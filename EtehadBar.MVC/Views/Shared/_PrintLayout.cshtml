@@ -1,0 +1,32 @@
+﻿@{ 
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewData["Title"]</title>
+    <link href="~/lib/uikit/css/uikit-rtl.min.css" rel="stylesheet" />
+    <link href="~/css/print.min.css" rel="stylesheet" asp-append-version="true" />
+    <script src="~/lib/uikit/js/uikit-core.min.js"></script>
+    @RenderSection("Links", false)
+</head>
+<body class="uk-position-relative">
+    <button id="btn" class="uk-button uk-button-primary uk-button-large uk-border-rounded"><i uk-icon="icon: print; ratio:2.5"></i></button>
+    @RenderBody()
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    <script src="~/lib/uikit/js/uikit-icons.min.js"></script>
+    <script src="~/lib/uikit/js/components/notification.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            setTimeout(function () {
+                window.print();
+            }, 500);
+        });
+        $('#btn').click(function () {
+            window.print();
+        });
+    </script>
+    @RenderSection("Scripts", false)
+</body>
+</html>

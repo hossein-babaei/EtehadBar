@@ -1,0 +1,9 @@
+D:\Projects\EtehadBar\EtehadBar.Domain\bin\Debug\netcoreapp3.1\EtehadBar.Domain.deps.json
+D:\Projects\EtehadBar\EtehadBar.Domain\bin\Debug\netcoreapp3.1\EtehadBar.Domain.dll
+D:\Projects\EtehadBar\EtehadBar.Domain\bin\Debug\netcoreapp3.1\EtehadBar.Domain.pdb
+D:\Projects\EtehadBar\EtehadBar.Domain\obj\Debug\netcoreapp3.1\EtehadBar.Domain.AssemblyInfoInputs.cache
+D:\Projects\EtehadBar\EtehadBar.Domain\obj\Debug\netcoreapp3.1\EtehadBar.Domain.AssemblyInfo.cs
+D:\Projects\EtehadBar\EtehadBar.Domain\obj\Debug\netcoreapp3.1\EtehadBar.Domain.csproj.CoreCompileInputs.cache
+D:\Projects\EtehadBar\EtehadBar.Domain\obj\Debug\netcoreapp3.1\EtehadBar.Domain.dll
+D:\Projects\EtehadBar\EtehadBar.Domain\obj\Debug\netcoreapp3.1\EtehadBar.Domain.pdb
+D:\Projects\EtehadBar\EtehadBar.Domain\obj\Debug\netcoreapp3.1\EtehadBar.Domain.csprojAssemblyReference.cache

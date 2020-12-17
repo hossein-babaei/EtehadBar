@@ -1,0 +1,94 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سامانه تحت وب اتحاد بار آسیا</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#1e87f0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <environment include="Development">
+        <link href="~/lib/uikit/css/uikit-rtl.css" rel="stylesheet" />
+        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+        <script src="~/lib/uikit/js/uikit-core.js"></script>
+    </environment>
+    <environment exclude="Development">
+        <link href="~/lib/uikit/css/uikit-rtl.min.css" rel="stylesheet" />
+        <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
+        <script src="~/lib/uikit/js/uikit-core.min.js"></script>
+    </environment>
+    @RenderSection("Links", required: false)
+</head>
+<body>
+    <div class="content">
+        <nav class="uk-navbar-container">
+            <div class="uk-container uk-container-expand">
+                <div uk-navbar>
+                    <div class="uk-navbar-right">
+                        <a class="uk-navbar-item uk-logo" href="#">سامانه تحت وب اتحاد بار آسیا</a>
+                    </div>
+                    <div class="uk-navbar-left">
+
+                        <div class="uk-navbar-item">
+                            @{
+                                var date = PersianDateTime.Now.ToString("yyyy/MM/dd");
+                                <span class="uk-text-bold uk-text-center" dir="ltr">@date <br /> <span class="main-clock"></span></span>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main>
+            <div class="uk-container uk-container-xsmall">
+                <div class="uk-flex uk-flex-middle uk-flex-center">
+                    @RenderBody()
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <footer class="footer uk-flex uk-flex-middle uk-flex-center">
+        <span>طراحی و توسعه توسط <a href="https://parsmvc.ir" target="_blank" title="پارس ام وی سی"><img id="parsmvc-logo" src="~/img/parsmvc-color.png" alt="parsmvc" /></a></span>
+    </footer>
+
+    <script src="~/lib/jquery/jquery.min.js"></script>
+    @RenderSection("Scripts", required: false)
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/lib/uikit/js/uikit-icons.min.js"></script>
+    <script src="~/lib/uikit/js/components/notification.min.js"></script>
+    @if (TempData["msg"] != null)
+    {
+        string msg = (string)TempData["msg"];
+        string[] m = msg.Split('|');
+        <script>UIkit.notification({ message: '@m[0]', status: '@m[1]', pos: 'bottom-center', timeout: 15000 });</script>
+    }
+    <script>
+        function getdate() {
+            var today = new Date();
+            var h = today.getHours();
+            var m = today.getMinutes();
+            var s = today.getSeconds();
+            if (s < 10) {
+                s = "0" + s;
+            }
+            if (m < 10) {
+                m = "0" + m;
+            }
+            if (h < 10) {
+                h = "0" + h;
+            }
+            $(".main-clock").text(h + ":" + m + ":" + s);
+            setTimeout(function () { getdate() }, 500);
+        }
+        $(document).ready(function () {
+            getdate();
+        });
+    </script>
+    <partial name="_Preloader" />
+</body>
+</html>

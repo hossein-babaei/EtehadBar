@@ -1,0 +1,14 @@
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\bin\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.deps.json
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\bin\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.dll
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\bin\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.pdb
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\obj\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.csprojAssemblyReference.cache
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\obj\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.AssemblyInfoInputs.cache
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\obj\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.AssemblyInfo.cs
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\obj\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.csproj.CoreCompileInputs.cache
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\obj\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.dll
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\obj\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.pdb
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\bin\Debug\netcoreapp3.1\EtehadBar.Domain.dll
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\bin\Debug\netcoreapp3.1\EtehadBar.Infra.Data.dll
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\bin\Debug\netcoreapp3.1\EtehadBar.Domain.pdb
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\bin\Debug\netcoreapp3.1\EtehadBar.Infra.Data.pdb
+D:\Projects\EtehadBar\EtehadBar.Infra.IoC\obj\Debug\netcoreapp3.1\EtehadBar.Infra.IoC.csproj.CopyComplete

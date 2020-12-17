@@ -1,0 +1,35 @@
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Rewrite;
+using Microsoft.Net.Http.Headers;
+using System.Linq;
+
+namespace Helpers
+{
+    public class RedirectLowerCaseRule : IRule
+    {
+        //new RewriteOptions().Add(new RedirectLowerCaseRule());
+        public int StatusCode { get; } = StatusCodes.Status301MovedPermanently;
+
+        public void ApplyRule(RewriteContext context)
+        {
+            context.HttpContext.Response.Headers.Add("X-Developed-By", "HOSSEIN BABAEI (+989108897900)");
+            context.HttpContext.Response.Headers.Add("X-Developer-Company", "WWW.PARSMVC.IR");
+            HttpRequest request = context.HttpContext.Request;
+            PathString path = context.HttpContext.Request.Path;
+            PathString pathbase = context.HttpContext.Request.PathBase;
+            HostString host = context.HttpContext.Request.Host;
+
+            if ((path.HasValue && path.Value.Any(char.IsUpper)) || (host.HasValue && host.Value.Any(char.IsUpper)) || (pathbase.HasValue && pathbase.Value.Any(char.IsUpper)))
+            {
+                HttpResponse response = context.HttpContext.Response;
+                response.StatusCode = StatusCode;
+                response.Headers[HeaderNames.Location] = (request.Scheme + "://" + host.Value + request.PathBase + request.Path).ToLower() + request.QueryString;
+                context.Result = RuleResult.EndResponse;
+            }
+            else
+            {
+                context.Result = RuleResult.ContinueRules;
+            }
+        }
+    }
+}

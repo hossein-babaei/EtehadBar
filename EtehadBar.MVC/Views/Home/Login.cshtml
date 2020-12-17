@@ -1,0 +1,27 @@
+﻿@model LoginVM
+
+<div class="uk-card uk-card-default uk-card-body uk-border-rounded">
+    <h3 class="uk-card-title">جهت ورود به سامانه شماره تلفن همراه و کلمه عبور خود را وارد نمائید.</h3>
+    <hr />
+    <form asp-action="login" method="post" class="uk-grid-small uk-child-width-1-1" data-uk-grid>
+        <div>
+            <label asp-for="Username" class="uk-form-label"></label>
+            <input asp-for="Username" dir="ltr" class="uk-input uk-border-rounded" />
+            <span asp-validation-for="Username" class="uk-text-danger"></span>
+        </div>
+        <div>
+            <label asp-for="Password" class="uk-form-label"></label>
+            <input asp-for="Password" dir="ltr" class="uk-input uk-border-rounded" />
+            <span asp-validation-for="Password" class="uk-text-danger"></span>
+        </div>
+        <div>
+            <label class="uk-form-label">
+                <input class="uk-checkbox uk-border-rounded" type="checkbox" asp-for="RememberMe" value="true" />
+                &ensp; <span>@Html.DisplayNameFor(a => a.RememberMe)</span>
+            </label>
+        </div>
+        <div>
+            <button class="uk-button uk-button-primary uk-border-rounded">ورود به سامانه</button>
+        </div>
+    </form>
+</div>

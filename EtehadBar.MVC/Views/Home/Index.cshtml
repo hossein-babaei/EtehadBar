@@ -1,0 +1,30 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+<div class="uk-card uk-card-default uk-card-body uk-border-rounded">
+    @if (User.Identity.IsAuthenticated)
+    {
+        var fullName = HttpContextAccessor.HttpContext.Session.GetString("Name");
+        <h3 class="uk-card-title">@fullName عزیز، خوش آمدید.</h3>
+        <p>جهت ادامه کار روی دکمه داشبورد کلیک نمائید.</p>
+        <div class="uk-grid-small uk-child-width-auto uk-margin-large-top" uk-grid>
+            @if (User.IsInRole("Admin"))
+            {
+                <div>
+                    <a class="uk-button uk-button-primary uk-border-rounded" asp-action="Index" asp-controller="Admin">داشبورد مدیریت</a>
+                </div>
+            }
+            <div>
+                <form id="logout-form" asp-action="Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <button class="uk-button uk-button-secondary uk-border-rounded">خروج</button>
+                </form>
+            </div>
+        </div>
+    }
+    else
+    {
+        <h3 class="uk-card-title">کاربر گرامی</h3>
+        <p>برای استفاده از امکانات سامانه باید وارد حساب کاربری خود شوید.</p>
+        <a class="uk-button uk-button-primary uk-border-rounded" asp-action="Login">ورود</a>
+    }
+</div>
