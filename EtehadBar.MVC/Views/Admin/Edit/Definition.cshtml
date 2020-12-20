@@ -1,0 +1,33 @@
+﻿@model Definition
+
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">ویرایش @Model.Title</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="edit-form" asp-action="EditDefinition" method="post">
+            <input asp-for="Id" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="Type" class="uk-form-label"></label>
+                    <select asp-for="Type" class="uk-select uk-border-rounded">
+                        <!option value="@((int)DefinitionType.Car)" @if (Model.Type.Equals((int)DefinitionType.Car)) { <text> selected="selected" </text> }>خودرو</!option>
+                        <!option value="@((int)DefinitionType.Origin)" @if (Model.Type.Equals((int)DefinitionType.Origin)) { <text> selected="selected" </text> }>مبدا</!option>
+                        <!option value="@((int)DefinitionType.Destionation)" @if (Model.Type.Equals((int)DefinitionType.Destionation)) { <text> selected="selected" </text> }>مقصد</!option>
+                    </select>
+                    <span asp-validation-for="Type" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Title" class="uk-form-label"></label>
+                    <input asp-for="Title" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Title" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="$('#edit-form').submit()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

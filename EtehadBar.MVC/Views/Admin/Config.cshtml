@@ -1,0 +1,121 @@
+﻿@model Config
+
+@{
+    ViewData["pageId"] = 100;
+    ViewData["Title"] = "پیکر بندی سایت";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@section Links{
+    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+}
+@section Scripts {
+    <script src="~/lib/ckeditor/ckeditor.js"></script>
+    <script src="~/lib/persian-date/persian-date.min.js"></script>
+    <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
+    <script>
+        function submit() {
+            if ($('#create-form').valid() == true) {
+                preloader();
+                var data = $('#create-form').serialize();
+                $.post('@Url.Action("Config")', data, function (r) {
+                    UIkit.notification({ message: r.msg, status: r.status, pos: 'bottom-center', timeout: 5000 });
+                }, 'json').then(function () {
+                    preloader();
+                });
+            }
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left"></div>
+</div>
+<div class="box">
+    <form id="create-form" method="post">
+        <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+        <input type="hidden" asp-for="Id" />
+        <ul class="uk-child-width-expand uk-margin-remove-top" uk-tab>
+            <li class="uk-active"><a href="#">عمومی</a></li>
+            <li><a href="#">ایمیل و پیامک</a></li>
+        </ul>
+        <ul class="uk-switcher uk-margin">
+            <li>
+                <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label asp-for="Year" class="uk-form-label"></label>
+                        <input asp-for="Year" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Year" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Tel" class="uk-form-label"></label>
+                        <input asp-for="Tel" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Tel" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Email" class="uk-form-label"></label>
+                        <input asp-for="Email" dir="ltr" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Email" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Address" class="uk-form-label"></label>
+                        <textarea asp-for="Address" rows="2" class="uk-textarea uk-border-rounded"></textarea>
+                        <span asp-validation-for="Address" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </li>
+            <li>
+                <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label asp-for="SmsCenter" class="uk-form-label"></label>
+                        <input asp-for="SmsCenter" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="SmsCenter" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="SmsUser" class="uk-form-label"></label>
+                        <input asp-for="SmsUser" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="SmsUser" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="SmsPass" class="uk-form-label"></label>
+                        <input asp-for="SmsPass" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="SmsPass" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <div class="uk-border-rounded samim" uk-alert>
+                            <p>برای استفاده از آدرس ایمیل جدید آن را در پنل سرور تنظیم کنید و آن را در فیلد <span class="lg">(نام کاربری پنل Email)</span> بدون فاصله و با وارد کردن دو عدد Semicolumn (;;) تایپ و ذخیره نمائید. برای مثال در اینجا دو آدرس وارد شده است:<code>info@parsmvc.ir;;crm@parsmvc.ir</code></p>
+                            <p>تمامی آدرس هایی که در سرور تنظیم می کنید باید کلمه عبور یکسان داشته باشند و با کلمه عبوری که در اینجا وارد می کنید یکسان باشد.</p>
+                        </div>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="MailDisplayName" class="uk-form-label"></label>
+                        <input asp-for="MailDisplayName" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="MailDisplayName" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-2@m">
+                        <label asp-for="MailSmtpDomain" class="uk-form-label"></label>
+                        <input asp-for="MailSmtpDomain" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="MailSmtpDomain" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="MailUserName" class="uk-form-label"></label>
+                        <input asp-for="MailUserName" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="MailUserName" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="MailPassword" class="uk-form-label"></label>
+                        <input asp-for="MailPassword" class="uk-input uk-border-rounded" dir="ltr" />
+                        <span asp-validation-for="MailPassword" class="uk-text-danger"></span>
+                    </div>
+                </div>
+            </li>
+        </ul>
+    </form>
+    <div class="uk-text-center uk-margin-medium-top">
+        <button class="uk-button uk-button-primary" type="button" onclick="submit()">ثبت اطلاعات</button>
+    </div>
+</div>

@@ -46,12 +46,8 @@
             <li @if (param == 12) { <text> class="active" </text> }><a asp-action="DriverLoadFactor" asp-controller="Report">بارنامه های رانندگان</a></li>
         </ul>
     </li>
-    <li class="uk-parent @if (param == 2 || param == 3) { <text>uk-open</text> }">
-        <a><i class="uk-margin-left fas fa-book-open"></i>تعاریف سیستم</a>
-        <ul class="uk-nav-sub">
-            <li @if (param == 2) { <text> class="active" </text> }><a asp-action="Definition" asp-controller="Admin">تعاریف</a></li>
-            <li @if (param == 3) { <text> class="active" </text> }><a asp-action="DefinitionType" asp-controller="Admin">پارامتر ها</a></li>
-        </ul>
+    <li @if (param == 2) { <text> class="active" </text> }>
+        <a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>تعاریف</a>
     </li>
     <li @if (param == 100) { <text> class="active" </text> }>
         <a asp-action="Config" asp-controller="Admin"><i class="uk-margin-left fas fa-cogs"></i>تنظیمات سیستم</a>

@@ -29,5 +29,10 @@ namespace EtehadBar.Infra.Data.Repository
         {
             return await db.SaveChangesAsync();
         }
+
+        public void Update(AdminTheme obj)
+        {
+            db.Update(obj);
+        }
     }
 }

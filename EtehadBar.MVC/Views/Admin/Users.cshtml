@@ -1,0 +1,195 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 20;
+    var data = ViewBag.data as IPagedList<ApplicationUser>;
+    ViewData["Title"] = "کاربران";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+    if (data.PageNumber > 1)
+    {
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+    }
+}
+@section Links{
+    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+}
+@section Scripts{
+    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="~/lib/persian-date/persian-date.min.js"></script>
+    <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
+    <script>
+        $('#search-modal form').submit(function (e) {
+            e.preventDefault();
+            filter();
+        });
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            if ($('#search-modal #param').val() != '' && $('#search-modal #param').val() != ' ') {
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("SearchUser")',
+                    data: data,
+                    dataType: 'html',
+                    beforeSend: function () {
+                        preloader();
+                    },
+                    success: function (r) {
+                        $('#append').html(r);
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger')
+                    },
+                    complete: function () {
+                        preloader();
+                        UIkit.modal('#search-modal').hide();
+                    }
+                });
+            } else {
+                uiAlert('لطفا مقدار مورد نظر را وارد نمایید.', 'danger');
+            }
+        }
+        function getCreateModal(type) {
+            preloader();
+            $.get('@Url.Action("GetUserCreateForm")', { 'type': type }, function (r) {
+                $('#create-modal').html(r);
+            }, 'html').then(function () {
+                $('.date-picker').persianDatepicker({
+                    initialValue: true,
+                    autoClose: true,
+                    timePicker: {
+                        enabled: false
+                    },
+                    format: 'YYYY/MM/DD',
+                    navigator: {
+                        enabled: true,
+                        scroll: {
+                            "enabled": true
+                        },
+                        text: {
+                            btnNextText: '>',
+                            btnPrevText: '<'
+                        }
+                    },
+                    toolbox: {
+                        calendarSwitch: {
+                            enabled: false
+                        }
+                    }
+                });
+                preloader();
+                parseValidator('#create-form');
+                UIkit.modal('#create-modal').show();
+            });
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a uk-toggle="#type-modal" class="uk-button uk-button-primary">افزودن کاربر</a>
+        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>نام و نام خانوادگی</th>
+                    <th>تلفن همراه</th>
+                    <th>کد ملی</th>
+                    <th>تاریخ تولد</th>
+                    <th>تاریخ عضویت</th>
+                    <th>نقش</th>
+                    <th width="50">ویرایش</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    string birth = new PersianDateTime(item.Birth).ToShortDateString();
+                    string register = new PersianDateTime(item.RegisterDate).ToShortDateString();
+
+                    string role = item.Role switch
+                    {
+                        (byte)ApplicationRoles.Admin => "مدیر سیستم",
+                        (byte)ApplicationRoles.User => "کاربر سیستم",
+                        (byte)ApplicationRoles.Driver => "راننده",
+                        _ => ""
+                    };
+
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@item.Firstname @item.Lastname</td>
+                        @if (item.PhoneNumberConfirmed)
+                        {
+                            <td class="uk-text-success" title="تایید شده">@item.PhoneNumber</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-danger" title="تایید نشده">@item.PhoneNumber</td>
+                        }
+                        <td>@item.NationalId</td>
+                        <td>@birth</td>
+                        <td>@register</td>
+                        <td>@role</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditUser" asp-route-id="@item.Id"><i class="far fa-edit"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("Users", new { p = page }))
+        </div>
+    }
+</div>
+<div id="type-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>نوع کاربر را انتخاب کنید</h3>
+        <ul class="uk-list">
+            <li><button class="uk-button uk-button-primary" onclick="getCreateModal(@((byte)ApplicationRoles.Admin))">مدیر</button></li>
+            <li><button class="uk-button uk-button-primary" onclick="getCreateModal(@((byte)ApplicationRoles.User))">کاربر</button></li>
+            <li><button class="uk-button uk-button-primary" onclick="getCreateModal(@((byte)ApplicationRoles.Driver))">راننده</button></li>
+        </ul>
+    </div>
+</div>
+<div id="create-modal" uk-modal="bg-close: false"></div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجوی کاربر</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div class="uk-margin uk-grid-medium uk-child-width-auto uk-grid">
+                    <label><input class="uk-radio" type="radio" name="filterBy" value="name" checked> نام</label>
+                    <label><input class="uk-radio" type="radio" name="filterBy" value="nationalId"> کد ملی</label>
+                    <label><input class="uk-radio" type="radio" name="filterBy" value="mobile"> شماره موبایل</label>
+                </div>
+                <div>
+                    <label class="uk-form-label"></label>
+                    <input class="uk-input uk-border-rounded" id="param" name="param" autocomplete="off" placeholder="در این قسمت تایپ نمائید..." />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="Users" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

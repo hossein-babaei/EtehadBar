@@ -1,0 +1,81 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var data = ViewBag.data as IPagedList<ApplicationUser>;
+    int i = 1;
+    if (data.PageNumber > 1)
+    {
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+    }
+}
+@if (data.Count > 0)
+{
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>نام و نام خانوادگی</th>
+                    <th>تلفن همراه</th>
+                    <th>کد ملی</th>
+                    <th>تاریخ تولد</th>
+                    <th>تاریخ عضویت</th>
+                    <th>نقش</th>
+                    <th width="50">ویرایش</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    string birth = new PersianDateTime(item.Birth).ToShortDateString();
+                    string register = new PersianDateTime(item.RegisterDate).ToShortDateString();
+
+                    string role = item.Role switch
+                    {
+                        (byte)ApplicationRoles.Admin => "مدیر سیستم",
+                        (byte)ApplicationRoles.User => "کاربر سیستم",
+                        (byte)ApplicationRoles.Driver => "راننده",
+                        _ => ""
+                    };
+
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@item.Firstname @item.Lastname</td>
+                        @if (item.PhoneNumberConfirmed)
+                        {
+                            <td class="uk-text-success" title="تایید شده">@item.PhoneNumber</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-danger" title="تایید نشده">@item.PhoneNumber</td>
+                        }
+                        <td>@item.NationalId</td>
+                        <td>@birth</td>
+                        <td>@register</td>
+                        <td>@role</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditUser" asp-route-id="@item.Id"><i class="far fa-edit"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("SearchCustomer", new { pageNumber = page, param = ViewBag.param, filterBy = ViewBag.filterBy }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+        </div>
+    }
+}
+else
+{
+    <div class="uk-margin-medium-top uk-margin-medium-bottom">
+        <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+            <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+            <div>
+                <h2>نتیجه ای یافت نشد.</h2>
+            </div>
+        </div>
+    </div>
+}

@@ -8,5 +8,6 @@ namespace EtehadBar.Domain.Interfaces
         Task<AdminTheme> GetByUserId(string userId);
         void Create(AdminTheme obj);
         Task<int> Save();
+        void Update(AdminTheme obj);
     }
 }

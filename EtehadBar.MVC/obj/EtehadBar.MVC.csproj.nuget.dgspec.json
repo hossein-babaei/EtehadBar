@@ -274,6 +274,10 @@
         "net5.0": {
           "targetAlias": "net5.0",
           "dependencies": {
+            "MD.PersianDateTime.Standard": {
+              "target": "Package",
+              "version": "[2.2.0, )"
+            },
             "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": {
               "target": "Package",
               "version": "[5.0.0, )"
@@ -293,6 +297,18 @@
             "Microsoft.EntityFrameworkCore.Tools": {
               "target": "Package",
               "version": "[5.0.0, )"
+            },
+            "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
+              "target": "Package",
+              "version": "[5.0.1, )"
+            },
+            "X.PagedList.Mvc.Core": {
+              "target": "Package",
+              "version": "[8.0.7, )"
+            },
+            "reCAPTCHA.AspNetCore": {
+              "target": "Package",
+              "version": "[3.0.3, )"
             }
           },
           "imports": [

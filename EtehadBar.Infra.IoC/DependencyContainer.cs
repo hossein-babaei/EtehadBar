@@ -9,6 +9,9 @@ namespace EtehadBar.Infra.IoC
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
             services.AddScoped<IAdminThemeRepository, AdminThemeRepository>();
+            services.AddScoped<IConfigRepository, ConfigRepository>();
+            services.AddScoped<IDefinitionRepository, DefinitionRepository>();
+            services.AddScoped<IVehicleRepository, VehicleRepository>();
 
             return services;
         }
