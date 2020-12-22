@@ -1,0 +1,114 @@
+﻿@model Cost
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 4;
+    var data = ViewBag.data as IPagedList<Cost>;
+    ViewData["Title"] = "هزینه ها";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+    if (data.PageNumber > 1)
+    {
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+    }
+}
+
+@section Scripts{
+    <script>
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditCost")', { 'id': id }, function (r) {
+                $('#edit-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#edit-modal form');
+                preloader();
+                UIkit.modal('#edit-modal').show();
+            });
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a uk-toggle="#create-modal" class="uk-button uk-button-primary">افزودن</a>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    <th>@Html.DisplayNameFor(model => model.UserId)</th>
+                    <th>تصویر</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    var pd = new PersianDateTime(item.Date);
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@item.Calendar.Title</td>
+                        <td>@pd.ToString("yyyy/MM/dd")</td>
+                        <td>@item.Description</td>
+                        <td>@item.Amount.ToString("N0")</td>
+                        <td>@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname</td>
+                        @if (string.IsNullOrEmpty(item.Picture))
+                        {
+                            <td>بدون تصویر</td>
+                        }
+                        else
+                        {
+                            <td>
+                                <div uk-lightbox>
+                                    <a class="uk-button uk-button-default" href="/img/cost/@item.Picture" data-caption="@item.Description">مشاهده تصویر</a>
+                                </div>
+                            </td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("Cost", new { p = page }))
+        </div>
+    }
+</div>
+<partial name="~/Views/Admin/Create/Cost.cshtml" model="@Model" view-data="ViewData" />
+<div id="edit-modal" uk-modal="bg-close: false"></div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteCost" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>

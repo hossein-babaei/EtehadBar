@@ -17,7 +17,7 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool Status { get; set; }
 
-        public virtual ICollection<LoadFactor> LoadFactors { get; set; }
+        public virtual ICollection<Contract> Contracts { get; set; }
         public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }
     }
 }

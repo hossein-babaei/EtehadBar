@@ -1,0 +1,91 @@
+﻿@model CustomerIncome
+@{
+    var calendar = (List<Calendar>)ViewData["Calendar"];
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">ویرایش دریافتی</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="edit-form" asp-action="EditCustomerIncome" method="post" enctype="multipart/form-data">
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="CustomerId" type="hidden" />
+            <input asp-for="Date" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="CalendarId" class="uk-form-label"></label>
+                    <select asp-for="CalendarId" class="uk-select uk-border-rounded">
+                        @foreach (var item in calendar)
+                        {
+                            <!option value="@item.Id" @if (Model.CalendarId.Equals(item.Id)) { <text> selected="selected" </text> }>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
+                </div>
+                @{
+                    var pd = new PersianDateTime(Model.Date);
+                }
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">روز</label>
+                    <select class="uk-select uk-border-rounded" name="day" dir="ltr">
+                        @for (int i = 1; i < 32; i++)
+                        {
+                            <!option value="@i" @if (pd.Day == i) { <text> selected="selected" </text> }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">ماه</label>
+                    <select class="uk-select uk-border-rounded" name="month" dir="ltr">
+                        @for (int i = 1; i < 13; i++)
+                        {
+                            <!option value="@i" @if (pd.Month == i) { <text> selected="selected" </text> }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">سال</label>
+                    <input class="uk-input uk-border-rounded" name="year" value="@pd.Year" dir="ltr" readonly />
+                </div>
+                <div>
+                    <label asp-for="Amount" class="uk-form-label"></label>
+                    <input asp-for="Amount" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Description" class="uk-form-label"></label>
+                    <textarea asp-for="Description" class="uk-textarea uk-border-rounded" rows="2"></textarea>
+                    <span asp-validation-for="Description" class="uk-text-danger"></span>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Picture))
+                {
+                    <div>
+                        <div class="uk-width-1-1 uk-padding">
+                            تصویر فعلی رسید یا سند مالی را در زیر مشاهده میکنید.
+                            <br />
+                            اگر میخواهید آن را تغییر دهید یک تصویر انتخاب کنید. در غیر اینصورت آن را خالی بگذارید.
+                        </div>
+                        <div class="uk-width-1-1 uk-text-center">
+                            <img class="uk-width-1-1@s uk-width-3-5@m" src="~/img/income/@Model.Picture" />
+                        </div>
+                    </div>
+                }
+                <div class="uk-text-center">
+                    <div class="uk-margin-top">
+                        <div><label class="uk-form-label">تصویر رسید یا سند مالی</label></div>
+                        <div uk-form-custom="target: true">
+                            <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: image"></a>
+                            <input name="pic" accept=".jpg,.png" type="file" id="pic" />
+                            <input class="uk-input uk-form-width-large uk-form-small" type="text" placeholder="انتخاب کنید ..." disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="$('#edit-form').submit()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

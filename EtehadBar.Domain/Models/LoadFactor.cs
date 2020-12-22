@@ -52,6 +52,12 @@ namespace EtehadBar.Domain.Models
         public string AdminId { get; set; }
 
         [Required]
+        [Display(Name = "مشتری")]
+        [StringLength(50)]
+        public string ContractId { get; set; }
+        public virtual Contract Contract { get; set; }
+
+        [Required]
         [StringLength(50)]
         public string CalendarId { get; set; }
         public virtual Calendar Calendar { get; set; }
@@ -68,10 +74,5 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "خودرو")]
         public string VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; }
-
-        [Required]
-        [Display(Name = "مشتری")]
-        public int CustomerId { get; set; }
-        public virtual Customer Customer { get; set; }
     }
 }

@@ -13,6 +13,12 @@
     <li @if (param == 1) { <text> class="active" </text> }>
         <a asp-action="Index" asp-controller="Admin"><i class="uk-margin-left fas fa-tachometer-alt"></i>داشبورد</a>
     </li>
+    <li @if (param == 2) { <text> class="active" </text> }>
+        <a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>تعاریف</a>
+    </li>
+    <li @if (param == 3) { <text> class="active" </text> }>
+        <a asp-action="Calendar" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar"></i>تقویم کاری</a>
+    </li>
     <li @if (param == 20) { <text> class="active" </text> }>
         <a asp-action="Users" asp-controller="Admin"><i class="uk-margin-left fas fa-users"></i>کاربران</a>
     </li>
@@ -25,9 +31,12 @@
     <li @if (param == 13) { <text> class="active" </text> }>
         <a asp-action="Customer" asp-controller="Admin"><i class="uk-margin-left fas fa-user"></i>مشتریان خدمات</a>
     </li>
-    @*<li @if (param == 7) { <text> class="active" </text> }>
-            <a asp-action="ShippingFee" asp-controller="Admin"><i class="uk-margin-left fas fa-hand-holding-usd"></i>نرخ حمل و نقل</a>
-        </li>*@
+    <li @if (param == 7) { <text> class="active" </text> }>
+        <a asp-action="Contract" asp-controller="Admin"><i class="uk-margin-left fas fa-hand-holding-usd"></i>قرارداد ها</a>
+    </li>
+    <li @if (param == 100) { <text> class="active" </text> }>
+        <a asp-action="Config" asp-controller="Admin"><i class="uk-margin-left fas fa-cogs"></i>تنظیمات سیستم</a>
+    </li>
     <li class="uk-parent @if (param == 4 || param == 5) { <text>uk-open</text> }">
         <a><i class="uk-margin-left fas fa-money-bill"></i>هزینه ها</a>
         <ul class="uk-nav-sub">
@@ -45,11 +54,5 @@
             <li @if (param == 15) { <text> class="active" </text> }><a asp-action="PaymentByDriver" asp-controller="Report">حقوق و مساعده جزء</a></li>
             <li @if (param == 12) { <text> class="active" </text> }><a asp-action="DriverLoadFactor" asp-controller="Report">بارنامه های رانندگان</a></li>
         </ul>
-    </li>
-    <li @if (param == 2) { <text> class="active" </text> }>
-        <a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>تعاریف</a>
-    </li>
-    <li @if (param == 100) { <text> class="active" </text> }>
-        <a asp-action="Config" asp-controller="Admin"><i class="uk-margin-left fas fa-cogs"></i>تنظیمات سیستم</a>
     </li>
 </ul>

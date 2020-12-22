@@ -48,7 +48,12 @@
                 <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
                     <div>
                         <label asp-for="Year" class="uk-form-label"></label>
-                        <input asp-for="Year" dir="ltr" class="uk-input uk-border-rounded" />
+                        <select class="uk-select uk-border-rounded">
+                            @for (int i = 1399; i < 1411; i++)
+                            {
+                                <!option value="@i" @if (Model.Year == i.ToString()) { <text> selected</text> }>@i</!option>
+                            }
+                        </select>
                         <span asp-validation-for="Year" class="uk-text-danger"></span>
                     </div>
                     <div>

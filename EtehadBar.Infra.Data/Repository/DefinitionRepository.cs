@@ -30,7 +30,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Remove(obj);
         }
 
-        public async Task<Definition> GetDefinition(int id)
+        public async Task<Definition> Get(int id)
         {
             return await db.Definition.FindAsync(id);
         }

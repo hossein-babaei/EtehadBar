@@ -22,8 +22,13 @@ namespace EtehadBar.MVC.Controllers
     public class AdminController : Controller
     {
         private readonly IAdminThemeRepository _adminThemeRepo;
+        private readonly ICalendarRepository _calendarRepo;
         private readonly IConfigRepository _configRepo;
+        private readonly IContractRepository _contractRepo;
+        private readonly ICostRepository _costRepo;
+        private readonly ICustomerRepository _customerRepo;
         private readonly IDefinitionRepository _definitionRepo;
+        private readonly IPaymentRepository _paymentRepo;
         private readonly IVehicleRepository _vehicleRepo;
         private readonly IWebHostEnvironment _environment;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -31,16 +36,26 @@ namespace EtehadBar.MVC.Controllers
 
         public AdminController(
             IAdminThemeRepository adminThemeRepository,
+            ICalendarRepository calendarRepository,
             IConfigRepository configRepository,
+            IContractRepository contractRepository,
+            ICostRepository costRepository,
+            ICustomerRepository customerRepository,
             IDefinitionRepository definitionRepository,
+            IPaymentRepository paymentRepository,
             IVehicleRepository vehicleRepository,
             IWebHostEnvironment environment,
             RoleManager<IdentityRole> roleManager,
             UserManager<ApplicationUser> userManager)
         {
             _adminThemeRepo = adminThemeRepository;
+            _calendarRepo = calendarRepository;
             _configRepo = configRepository;
+            _contractRepo = contractRepository;
+            _costRepo = costRepository;
+            _customerRepo = customerRepository;
             _definitionRepo = definitionRepository;
+            _paymentRepo = paymentRepository;
             _vehicleRepo = vehicleRepository;
             _environment = environment;
             _roleManager = roleManager;
@@ -699,7 +714,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<PartialViewResult> EditDefinition(int id)
         {
-            return PartialView("~/Views/Admin/Edit/Definition.cshtml", await _definitionRepo.GetDefinition(id));
+            return PartialView("~/Views/Admin/Edit/Definition.cshtml", await _definitionRepo.Get(id));
         }
 
         [HttpPost]
@@ -707,7 +722,7 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                var item = await _definitionRepo.GetDefinition(d.Id);
+                var item = await _definitionRepo.Get(d.Id);
                 item.Title = d.Title;
                 item.Type = d.Type;
                 _definitionRepo.Update(item);
@@ -731,7 +746,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteDefinition(int id)
         {
-            var item = await _definitionRepo.GetDefinition(id);
+            var item = await _definitionRepo.Get(id);
             if (item == null) return NotFound();
 
             _definitionRepo.Delete(item);
@@ -747,601 +762,6 @@ namespace EtehadBar.MVC.Controllers
             return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion
-
-        //#region Cost
-        //[HttpGet]
-        //public async Task<IActionResult> Cost(int? p)
-        //{
-        //    ViewData["UserId"] = _userManager.GetUserId(User);
-        //    ViewData["Year"] = await db.Config.AsNoTracking().Select(a => a.Year).FirstAsync();
-        //    var pageNumber = p ?? 1;
-        //    var onePageOfData = await db.Cost.OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
-        //    ViewBag.data = onePageOfData;
-        //    return View();
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> Cost(Cost c, int day, int month, int year, IFormFile pic)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        if (pic != null)
-        //        {
-        //            if (pic.Length <= 1024000)
-        //            {
-        //                if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-        //                {
-        //                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\cost")))
-        //                    {
-        //                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\cost"));
-        //                    }
-        //                    var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-        //                    var path = Path.Combine(_environment.WebRootPath, "img\\cost", fileName);
-        //                    using (var stream = new FileStream(path, FileMode.Create))
-        //                    {
-        //                        await pic.CopyToAsync(stream);
-        //                    }
-
-        //                    c.Picture = fileName;
-        //                }
-        //                else
-        //                {
-        //                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-        //                }
-        //            }
-        //            else
-        //            {
-        //                TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-        //            }
-        //        }
-
-        //        c.Date = new PersianDateTime(year, month, day).ToDateTime();
-
-        //        db.Add(c);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-
-        //[HttpGet]
-        //public async Task<PartialViewResult> EditCost(int id)
-        //{
-        //    return PartialView("~/Views/Admin/Edit/Cost.cshtml", await db.Cost.FindAsync(id));
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> EditCost(Cost c, int day, int month, int year, IFormFile pic)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var item = await db.Cost.FindAsync(c.Id);
-        //        item.Description = c.Description;
-        //        item.Amount = c.Amount;
-
-        //        item.Date = new PersianDateTime(year, month, day).ToDateTime();
-
-        //        if (pic != null)
-        //        {
-        //            if (pic.Length <= 1024000)
-        //            {
-        //                if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-        //                {
-        //                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\cost")))
-        //                    {
-        //                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\cost"));
-        //                    }
-        //                    var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-        //                    var path = Path.Combine(_environment.WebRootPath, "img\\cost", fileName);
-        //                    using (var stream = new FileStream(path, FileMode.Create))
-        //                    {
-        //                        await pic.CopyToAsync(stream);
-        //                    }
-
-        //                    if (!string.IsNullOrEmpty(item.Picture))
-        //                    {
-        //                        try
-        //                        {
-        //                            System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\cost", item.Picture));
-        //                        }
-        //                        catch (Exception e)
-        //                        {
-        //                            throw e;
-        //                        }
-        //                    }
-
-        //                    item.Picture = fileName;
-        //                }
-        //                else
-        //                {
-        //                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-        //                }
-        //            }
-        //            else
-        //            {
-        //                TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-        //            }
-        //        }
-
-        //        db.Update(item);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> DeleteCost(int id)
-        //{
-        //    var item = await db.Cost.FindAsync(id);
-        //    if (!string.IsNullOrEmpty(item.Picture))
-        //    {
-        //        try
-        //        {
-        //            System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\cost", item.Picture));
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            throw e;
-        //        }
-        //    }
-        //    db.Remove(item);
-        //    try
-        //    {
-        //        await db.SaveChangesAsync();
-        //        TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-        //#endregion
-
-        //#region Payment
-        //[HttpGet]
-        //public async Task<IActionResult> Payment(int? p)
-        //{
-        //    var pageNumber = p ?? 1;
-        //    var onePageOfData = await db.Payment.OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
-        //    ViewBag.data = onePageOfData;
-        //    return View();
-        //}
-
-        //[HttpGet]
-        //public async Task<PartialViewResult> CreatePayment(string userId)
-        //{
-        //    ViewData["AdminId"] = _userManager.GetUserId(User);
-        //    ViewData["UserInfo"] = await _userManager.FindByIdAsync(userId);
-        //    ViewData["Year"] = await db.Config.AsNoTracking().Select(a => a.Year).FirstAsync();
-        //    return PartialView("~/Views/Admin/Create/Payment.cshtml");
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> CreatePayment(Payment p, int day, int month, int year, IFormFile pic)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        if (pic != null)
-        //        {
-        //            if (pic.Length <= 1024000)
-        //            {
-        //                if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-        //                {
-        //                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\payment")))
-        //                    {
-        //                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\payment"));
-        //                    }
-        //                    var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-        //                    var path = Path.Combine(_environment.WebRootPath, "img\\payment", fileName);
-        //                    using (var stream = new FileStream(path, FileMode.Create))
-        //                    {
-        //                        await pic.CopyToAsync(stream);
-        //                    }
-
-        //                    p.Picture = fileName;
-        //                }
-        //                else
-        //                {
-        //                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-        //                }
-        //            }
-        //            else
-        //            {
-        //                TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-        //            }
-        //        }
-
-        //        p.Date = new PersianDateTime(year, month, day).ToDateTime();
-
-        //        db.Add(p);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-
-        //[HttpGet]
-        //public async Task<PartialViewResult> EditPayment(int id)
-        //{
-        //    return PartialView("~/Views/Admin/Edit/Payment.cshtml", await db.Payment.FindAsync(id));
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> EditPayment(Payment p, int day, int month, int year, IFormFile pic)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var item = await db.Payment.FindAsync(p.Id);
-        //        item.AdminId = _userManager.GetUserId(User);
-        //        item.Amount = p.Amount;
-        //        item.Type = p.Type;
-
-        //        item.Date = new PersianDateTime(year, month, day).ToDateTime();
-
-        //        if (pic != null)
-        //        {
-        //            if (pic.Length <= 1024000)
-        //            {
-        //                if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-        //                {
-        //                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\payment")))
-        //                    {
-        //                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\payment"));
-        //                    }
-        //                    var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-        //                    var path = Path.Combine(_environment.WebRootPath, "img\\payment", fileName);
-        //                    using (var stream = new FileStream(path, FileMode.Create))
-        //                    {
-        //                        await pic.CopyToAsync(stream);
-        //                    }
-
-        //                    if (!string.IsNullOrEmpty(item.Picture))
-        //                    {
-        //                        try
-        //                        {
-        //                            System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\payment", item.Picture));
-        //                        }
-        //                        catch (Exception e)
-        //                        {
-        //                            throw e;
-        //                        }
-        //                    }
-
-        //                    item.Picture = fileName;
-        //                }
-        //                else
-        //                {
-        //                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-        //                }
-        //            }
-        //            else
-        //            {
-        //                TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-        //            }
-        //        }
-
-        //        db.Update(item);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> DeletePayment(int id)
-        //{
-        //    var item = await db.Payment.FindAsync(id);
-        //    if (!string.IsNullOrEmpty(item.Picture))
-        //    {
-        //        try
-        //        {
-        //            System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\payment", item.Picture));
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            throw e;
-        //        }
-        //    }
-        //    db.Remove(item);
-        //    try
-        //    {
-        //        await db.SaveChangesAsync();
-        //        TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-        //#endregion
-
-        //#region Customer
-        //[HttpGet]
-        //public async Task<IActionResult> Customer()
-        //{
-        //    return View(await db.Customer.OrderBy(a => a.Name).ToListAsync());
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> Customer(Customer c)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        db.Add(c);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-
-        //[HttpGet]
-        //public async Task<PartialViewResult> EditCustomer(int id)
-        //{
-        //    return PartialView("~/Views/Admin/Edit/Customer.cshtml", await db.Customer.FindAsync(id));
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> EditCustomer(Customer c)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var item = await db.Customer.FindAsync(c.Id);
-        //        item.Name = c.Name;
-        //        item.Status = c.Status;
-
-        //        db.Update(item);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-
-        //[HttpGet]
-        //public async Task<IActionResult> CustomerIncome(int id, int? p)
-        //{
-        //    var customer = await db.Customer.AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(id));
-        //    if (customer == null)
-        //    {
-        //        return BadRequest();
-        //    }
-        //    ViewData["CustomerInfo"] = customer;
-        //    ViewData["Year"] = await db.Config.AsNoTracking().Select(a => a.Year).FirstAsync();
-        //    var pageNumber = p ?? 1;
-        //    var onePageOfData = await db.CustomerIncome.Where(a => a.CustomerId.Equals(id)).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
-        //    ViewBag.data = onePageOfData;
-        //    return View();
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> CustomerIncome([Bind("Amount,Description,CustomerId")]CustomerIncome c, int day, int month, int year, IFormFile pic)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        if (pic != null)
-        //        {
-        //            if (pic.Length <= 1024000)
-        //            {
-        //                if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-        //                {
-        //                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\income")))
-        //                    {
-        //                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\income"));
-        //                    }
-        //                    var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-        //                    var path = Path.Combine(_environment.WebRootPath, "img\\income", fileName);
-        //                    using (var stream = new FileStream(path, FileMode.Create))
-        //                    {
-        //                        await pic.CopyToAsync(stream);
-        //                    }
-
-        //                    c.Picture = fileName;
-        //                }
-        //                else
-        //                {
-        //                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-        //                }
-        //            }
-        //            else
-        //            {
-        //                TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-        //            }
-        //        }
-
-        //        c.AdminId = _userManager.GetUserId(User);
-        //        c.Date = new PersianDateTime(year, month, day).ToDateTime();
-
-        //        db.Add(c);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-
-        //[HttpGet]
-        //public async Task<PartialViewResult> EditCustomerIncome(int id)
-        //{
-        //    return PartialView("~/Views/Admin/Edit/CustomerIncome.cshtml", await db.CustomerIncome.FindAsync(id));
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> EditCustomerIncome(CustomerIncome p, int day, int month, int year, IFormFile pic)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var item = await db.CustomerIncome.FindAsync(p.Id);
-        //        item.AdminId = _userManager.GetUserId(User);
-        //        item.Amount = p.Amount;
-
-        //        item.Date = new PersianDateTime(year, month, day).ToDateTime();
-
-        //        if (pic != null)
-        //        {
-        //            if (pic.Length <= 1024000)
-        //            {
-        //                if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-        //                {
-        //                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\income")))
-        //                    {
-        //                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\income"));
-        //                    }
-        //                    var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-        //                    var path = Path.Combine(_environment.WebRootPath, "img\\income", fileName);
-        //                    using (var stream = new FileStream(path, FileMode.Create))
-        //                    {
-        //                        await pic.CopyToAsync(stream);
-        //                    }
-
-        //                    if (!string.IsNullOrEmpty(item.Picture))
-        //                    {
-        //                        try
-        //                        {
-        //                            System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\income", item.Picture));
-        //                        }
-        //                        catch (Exception e)
-        //                        {
-        //                            throw e;
-        //                        }
-        //                    }
-
-        //                    item.Picture = fileName;
-        //                }
-        //                else
-        //                {
-        //                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-        //                }
-        //            }
-        //            else
-        //            {
-        //                TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-        //            }
-        //        }
-
-        //        db.Update(item);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-
-        //[HttpPost]
-        //public async Task<IActionResult> DeleteCustomerIncome(int id)
-        //{
-        //    var item = await db.CustomerIncome.FindAsync(id);
-        //    if (!string.IsNullOrEmpty(item.Picture))
-        //    {
-        //        try
-        //        {
-        //            System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\income", item.Picture));
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            throw e;
-        //        }
-        //    }
-        //    db.Remove(item);
-        //    try
-        //    {
-        //        await db.SaveChangesAsync();
-        //        TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-        //#endregion
 
         #region Vehicle
         [HttpGet]
@@ -1387,7 +807,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<PartialViewResult> EditVehicle(string id)
         {
             ViewData["Definition"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.Type.Equals((int)DefinitionType.Car)).OrderBy(a => a.Title).ToListAsync();
-            return PartialView("~/Views/Admin/Edit/Vehicle.cshtml", await _vehicleRepo.GetVehicle(id));
+            return PartialView("~/Views/Admin/Edit/Vehicle.cshtml", await _vehicleRepo.Get(id));
         }
 
         [HttpPost]
@@ -1395,7 +815,7 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                var item = await _vehicleRepo.GetVehicle(v.Id);
+                var item = await _vehicleRepo.Get(v.Id);
                 item.Number = v.Number;
                 item.Status = v.Status;
                 item.Type = v.Type;
@@ -1418,297 +838,829 @@ namespace EtehadBar.MVC.Controllers
         }
         #endregion
 
-        //#region ShippingFee
-        //[HttpGet]
-        //public async Task<IActionResult> ShippingFee(int? p)
-        //{
-        //    var pageNumber = p ?? 1;
-        //    var onePageOfData = await db.ShippingFee.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 15);
-        //    ViewBag.data = onePageOfData;
-        //    return View();
-        //}
+        #region Calendar
+        [HttpGet]
+        public async Task<IActionResult> Calendar(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _calendarRepo.Calendars().OrderBy(a => a.StartDate).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
 
-        //[HttpGet]
-        //public async Task<PartialViewResult> CreateShippingFee()
-        //{
-        //    List<int> ids = new List<int>{ 1, 2, 3, 4 };
-        //    ViewData["Definition"] = await db.Definition.AsNoTracking().Where(a => ids.Contains(a.Type)).OrderBy(a => a.Title).ToListAsync();
-        //    return PartialView("~/Views/Admin/Create/ShippingFee.cshtml");
-        //}
+        [HttpGet]
+        public async Task<IActionResult> CreateCalendar()
+        {
+            ViewBag.year = await _configRepo.CurrentYear();
+            return PartialView("~/Views/Admin/Create/Calendar.cshtml");
+        }
 
-        //[HttpPost]
-        //public async Task<IActionResult> CreateShippingFee(ShippingFee s)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        db.Add(s);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
+        [HttpPost]
+        public async Task<IActionResult> CreateCalendar(CreateCalendarVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                DateTime startDate = new PersianDateTime(c.StartYear, c.StartMonth, c.StartDay, 0, 0, 0).ToDateTime();
+                DateTime endDate = new PersianDateTime(c.EndYear, c.EndMonth, c.EndDay, 23, 59, 59).ToDateTime();
 
-        //[HttpGet]
-        //public async Task<PartialViewResult> EditShippingFee(string id)
-        //{
-        //    List<int> ids = new List<int> { 1, 2, 3, 4 };
-        //    ViewData["Definition"] = await db.Definition.AsNoTracking().Where(a => ids.Contains(a.Type)).OrderBy(a => a.Title).ToListAsync();
-        //    return PartialView("~/Views/Admin/Edit/ShippingFee.cshtml", await db.ShippingFee.FindAsync(id));
-        //}
+                if (startDate >= endDate)
+                {
+                    TempData["msg"] = "تاریخ شروع وارد شده از تاریخ پایان بزرگ تر است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
 
-        //[HttpPost]
-        //public async Task<IActionResult> EditShippingFee(ShippingFee v)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var item = await db.ShippingFee.FindAsync(v.Id);
-        //        item.Destination = v.Destination;
-        //        item.Origin = v.Origin;
-        //        item.Price = v.Price;
-        //        item.PriceGroup = v.PriceGroup;
-        //        item.Vehicle = v.Vehicle;
+                if (await _calendarRepo.Calendars().AnyAsync(a => a.EndDate >= startDate))
+                {
+                    TempData["msg"] = "این بازه زمانی قبلا ثبت شده است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
 
-        //        db.Update(item);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-        //#endregion
+                _calendarRepo.Create(new Calendar
+                {
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Title = c.Title,
+                    WithholdingTax = c.WithholdingTax,
+                    VAT = c.VAT,
+                    LoadFactorDeductions = c.LoadFactorDeductions
+                });
+                try
+                {
+                    await _calendarRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
 
-        //#region LoadFactor
-        //[HttpGet]
-        //public async Task<IActionResult> LoadFactor(int? p)
-        //{
-        //    var pageNumber = p ?? 1;
-        //    var onePageOfData = await db.LoadFactor.OrderByDescending(a => a.Counter).ToPagedListAsync(pageNumber, 15);
-        //    ViewBag.data = onePageOfData;
-        //    return View();
-        //}
+        [HttpGet]
+        public async Task<PartialViewResult> EditCalendar(string id)
+        {
+            var item = await _calendarRepo.Get(id);
+            var persianStartDate = new PersianDateTime(item.StartDate);
+            var persianEndDate = new PersianDateTime(item.EndDate);
 
-        //[HttpGet]
-        //public async Task<PartialViewResult> LoadFactorDetail(string id)
-        //{
-        //    var item = await db.LoadFactor.FindAsync(id);
-        //    ViewData["Admin"] = await _userManager.FindByIdAsync(item.AdminId);
-        //    return PartialView("_LoadFactorDetail", item);
-        //}
+            return PartialView("~/Views/Admin/Edit/Calendar.cshtml", new EditCalendarVM
+            {
+                EndDay = persianEndDate.Day,
+                EndMonth = persianEndDate.Month,
+                EndYear = persianEndDate.Year,
+                Id = item.Id,
+                LoadFactorDeductions = item.LoadFactorDeductions,
+                StartDay = persianStartDate.Day,
+                StartMonth = persianStartDate.Month,
+                StartYear = persianStartDate.Year,
+                Title = item.Title,
+                VAT = item.VAT,
+                WithholdingTax = item.WithholdingTax
+            });
+        }
 
-        //[HttpGet]
-        //public async Task<IActionResult> SearchLoadFactor(int? p, string param)
-        //{
-        //    if (!string.IsNullOrWhiteSpace(param))
-        //    {
-        //        var pageNum = p ?? 1;
-        //        var onePageOfData = await db.LoadFactor.Where(a => a.LoadNumber.Contains(param) || a.LoadNumberGov.Contains(param)).OrderByDescending(a => a.Counter).ToPagedListAsync(pageNum, 15);
-        //        ViewBag.data = onePageOfData;
-        //        ViewBag.page = pageNum;
-        //        ViewBag.param = param;
-        //        return PartialView("_LoadFactor");
-        //    }
-        //    else
-        //    {
-        //        return BadRequest("لطفا یک مقدار برای جستجو انتخاب نمائید.");
-        //    }
-        //}
+        [HttpPost]
+        public async Task<IActionResult> EditCalendar(EditCalendarVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                DateTime startDate = new PersianDateTime(c.StartYear, c.StartMonth, c.StartDay, 0, 0, 0).ToDateTime();
+                DateTime endDate = new PersianDateTime(c.EndYear, c.EndMonth, c.EndDay, 23, 59, 59).ToDateTime();
 
-        //[HttpGet]
-        //public async Task<PartialViewResult> CreateLoadFactor()
-        //{
-        //    ViewData["AdminId"] = _userManager.GetUserId(User);
-        //    ViewData["Drivers"] = await _userManager.GetUsersInRoleAsync("Driver");
-        //    ViewData["Vehicles"] = await db.Vehicle.AsNoTracking().Where(a => a.Status).ToListAsync();
-        //    List<int> ids = new List<int> { 2, 3};
-        //    ViewData["Definition"] = await db.Definition.AsNoTracking().Where(a => ids.Contains(a.Type)).OrderBy(a => a.Title).ToListAsync();
-        //    ViewData["Config"] = await db.Config.AsNoTracking().Select(a => new LoadeFactorFormConfig { Tax = a.LoadFactorTax, Year = a.Year, Deduction = a.LoadFactorDeductions }).FirstAsync();
-        //    ViewData["Customer"] = await db.Customer.AsNoTracking().Where(a => a.Status).OrderBy(a => a.Name).ToListAsync();
-        //    return PartialView("~/Views/Admin/Create/LoadFactor.cshtml");
-        //}
+                if (startDate >= endDate)
+                {
+                    TempData["msg"] = "تاریخ شروع وارد شده از تاریخ پایان بزرگ تر است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
 
-        //[HttpPost]
-        //public async Task<IActionResult> CreateLoadFactor(LoadFactor l, int day, int month, int year, IFormFile pic)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        if (pic != null)
-        //        {
-        //            if (pic.Length <= 1024000)
-        //            {
-        //                if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-        //                {
-        //                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\load-factor")))
-        //                    {
-        //                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\load-factor"));
-        //                    }
-        //                    var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-        //                    var path = Path.Combine(_environment.WebRootPath, "img\\load-factor", fileName);
-        //                    using (var stream = new FileStream(path, FileMode.Create))
-        //                    {
-        //                        await pic.CopyToAsync(stream);
-        //                    }
+                if (await _calendarRepo.Calendars().AnyAsync(a => a.EndDate >= startDate && !a.Id.Equals(c.Id)))
+                {
+                    TempData["msg"] = "این بازه زمانی قبلا ثبت شده است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
 
-        //                    l.Picture = fileName;
-        //                }
-        //                else
-        //                {
-        //                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-        //                }
-        //            }
-        //            else
-        //            {
-        //                TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-        //            }
-        //        }
+                var item = await _calendarRepo.Get(c.Id);
+                item.StartDate = startDate;
+                item.EndDate = endDate;
+                item.Title = c.Title;
+                item.VAT = c.VAT;
+                item.LoadFactorDeductions = c.LoadFactorDeductions;
+                item.WithholdingTax = c.WithholdingTax;
+                _calendarRepo.Update(item);
+                try
+                {
+                    await _calendarRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
 
-        //        l.Date = new PersianDateTime(year, month, day).ToDateTime();
+        [HttpPost]
+        public async Task<IActionResult> DeleteCalendar(string id)
+        {
+            var item = await _calendarRepo.Get(id);
+            if (item == null) return NotFound();
 
-        //        db.Add(l);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    ViewBag.open = 1;
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
+            if (item.Costs.Any() || item.CustomerIncomes.Any() || item.LoadFactors.Any() || item.Payments.Any())
+            {
+                TempData["msg"] = "این تقویم قابل حذف نیست. |danger";
+                return Redirect(Request.Headers["Referer"].ToString());
+            }
 
-        //[HttpGet]
-        //public async Task<PartialViewResult> EditLoadFactor(string id)
-        //{
-        //    ViewData["Drivers"] = await _userManager.GetUsersInRoleAsync("Driver");
-        //    ViewData["Vehicles"] = await db.Vehicle.Where(a => a.Status).ToListAsync();
-        //    List<int> ids = new List<int> { 2, 3 };
-        //    ViewData["Definition"] = await db.Definition.AsNoTracking().Where(a => ids.Contains(a.Type)).OrderBy(a => a.Title).ToListAsync();
-        //    ViewData["Customer"] = await db.Customer.AsNoTracking().Where(a => a.Status).OrderBy(a => a.Name).ToListAsync();
-        //    return PartialView("~/Views/Admin/Edit/LoadFactor.cshtml", await db.LoadFactor.FindAsync(id));
-        //}
+            _calendarRepo.Delete(item);
+            try
+            {
+                await _calendarRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
 
-        //[HttpPost]
-        //public async Task<IActionResult> EditLoadFactor(LoadFactor l, int day, int month, int year, IFormFile pic)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var item = await db.LoadFactor.FindAsync(l.Id);
-        //        item.AdminId = _userManager.GetUserId(User);
-        //        item.Amount = l.Amount;
-        //        item.Deduction = l.Deduction;
-        //        item.Destination = l.Destination;
-        //        item.Origin = l.Origin;
-        //        item.DriverId = l.DriverId;
-        //        item.ExitNumber = l.ExitNumber;
-        //        item.LoadNumber = l.LoadNumber;
-        //        item.LoadNumberGov = l.LoadNumberGov;
-        //        item.Tax = l.Tax;
-        //        item.VehicleId = l.VehicleId;
+        #region Cost
+        [HttpGet]
+        public async Task<IActionResult> Cost(int? p)
+        {
+            ViewData["UserId"] = _userManager.GetUserId(User);
+            ViewData["Year"] = await _configRepo.CurrentYear();
+            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _costRepo.Costs().OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
 
-        //        item.Date = new PersianDateTime(year, month, day).ToDateTime();
+        [HttpPost]
+        public async Task<IActionResult> Cost(Cost c, int day, int month, int year, IFormFile pic)
+        {
+            if (ModelState.IsValid)
+            {
+                if (pic != null)
+                {
+                    if (pic.Length <= 1024000)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\cost")))
+                            {
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\cost"));
+                            }
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\cost", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
 
-        //        if (pic != null)
-        //        {
-        //            if (pic.Length <= 1024000)
-        //            {
-        //                if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-        //                {
-        //                    if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\load-factor")))
-        //                    {
-        //                        Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\load-factor"));
-        //                    }
-        //                    var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-        //                    var path = Path.Combine(_environment.WebRootPath, "img\\load-factor", fileName);
-        //                    using (var stream = new FileStream(path, FileMode.Create))
-        //                    {
-        //                        await pic.CopyToAsync(stream);
-        //                    }
+                            c.Picture = fileName;
+                        }
+                        else
+                        {
+                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                        }
+                    }
+                    else
+                    {
+                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
+                    }
+                }
 
-        //                    if (!string.IsNullOrEmpty(item.Picture))
-        //                    {
-        //                        try
-        //                        {
-        //                            System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\load-factor", item.Picture));
-        //                        }
-        //                        catch (Exception e)
-        //                        {
-        //                            throw e;
-        //                        }
-        //                    }
+                c.Date = new PersianDateTime(year, month, day).ToDateTime();
 
-        //                    item.Picture = fileName;
-        //                }
-        //                else
-        //                {
-        //                    TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-        //                }
-        //            }
-        //            else
-        //            {
-        //                TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-        //            }
-        //        }
+                _costRepo.Create(c);
+                try
+                {
+                    await _costRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
 
-        //        db.Update(item);
-        //        try
-        //        {
-        //            await db.SaveChangesAsync();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
+        [HttpGet]
+        public async Task<PartialViewResult> EditCost(int id)
+        {
+            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            return PartialView("~/Views/Admin/Edit/Cost.cshtml", await _costRepo.Get(id));
+        }
 
-        //[HttpPost]
-        //public async Task<IActionResult> DeleteLoadFactor(string id)
-        //{
-        //    db.Remove(await db.LoadFactor.FindAsync(id));
-        //    try
-        //    {
-        //        await db.SaveChangesAsync();
-        //        TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
-        //#endregion
+        [HttpPost]
+        public async Task<IActionResult> EditCost(Cost c, int day, int month, int year, IFormFile pic)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _costRepo.Get(c.Id);
+                item.Description = c.Description;
+                item.Amount = c.Amount;
+                item.CalendarId = c.CalendarId;
+
+                item.Date = new PersianDateTime(year, month, day).ToDateTime();
+
+                if (pic != null)
+                {
+                    if (pic.Length <= 1024000)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\cost")))
+                            {
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\cost"));
+                            }
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\cost", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            if (!string.IsNullOrEmpty(item.Picture))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\cost", item.Picture));
+                                }
+                                catch (Exception)
+                                {
+                                    throw;
+                                }
+                            }
+
+                            item.Picture = fileName;
+                        }
+                        else
+                        {
+                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                        }
+                    }
+                    else
+                    {
+                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
+                    }
+                }
+
+                _costRepo.Update(item);
+                try
+                {
+                    await _costRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCost(int id)
+        {
+            var item = await _costRepo.Get(id);
+            if (!string.IsNullOrEmpty(item.Picture))
+            {
+                try
+                {
+                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\cost", item.Picture));
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+            _costRepo.Delete(item);
+            try
+            {
+                await _costRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region Payment
+        [HttpGet]
+        public async Task<IActionResult> Payment(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _paymentRepo.Payments().OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> CreatePayment(string userId)
+        {
+            ViewData["AdminId"] = _userManager.GetUserId(User);
+            ViewData["UserInfo"] = await _userManager.FindByIdAsync(userId);
+            ViewData["Year"] = await _configRepo.CurrentYear();
+            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            return PartialView("~/Views/Admin/Create/Payment.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreatePayment(Payment p, int day, int month, int year, IFormFile pic)
+        {
+            if (ModelState.IsValid)
+            {
+                if (pic != null)
+                {
+                    if (pic.Length <= 1024000)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\payment")))
+                            {
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\payment"));
+                            }
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\payment", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            p.Picture = fileName;
+                        }
+                        else
+                        {
+                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                        }
+                    }
+                    else
+                    {
+                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
+                    }
+                }
+
+                p.Date = new PersianDateTime(year, month, day).ToDateTime();
+
+                _paymentRepo.Create(p);
+                try
+                {
+                    await _paymentRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditPayment(int id)
+        {
+            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            return PartialView("~/Views/Admin/Edit/Payment.cshtml", await _paymentRepo.Get(id));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditPayment(Payment p, int day, int month, int year, IFormFile pic)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _paymentRepo.Get(p.Id);
+                item.AdminId = _userManager.GetUserId(User);
+                item.Amount = p.Amount;
+                item.Type = p.Type;
+                item.CalendarId = p.CalendarId;
+
+                item.Date = new PersianDateTime(year, month, day).ToDateTime();
+
+                if (pic != null)
+                {
+                    if (pic.Length <= 1024000)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\payment")))
+                            {
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\payment"));
+                            }
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\payment", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            if (!string.IsNullOrEmpty(item.Picture))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\payment", item.Picture));
+                                }
+                                catch (Exception)
+                                {
+                                    throw;
+                                }
+                            }
+
+                            item.Picture = fileName;
+                        }
+                        else
+                        {
+                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                        }
+                    }
+                    else
+                    {
+                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
+                    }
+                }
+
+                _paymentRepo.Update(item);
+                try
+                {
+                    await _paymentRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeletePayment(int id)
+        {
+            var item = await _paymentRepo.Get(id);
+            if (!string.IsNullOrEmpty(item.Picture))
+            {
+                try
+                {
+                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\payment", item.Picture));
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+            _paymentRepo.Delete(item);
+            try
+            {
+                await _paymentRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region Customer
+        [HttpGet]
+        public async Task<IActionResult> Customer()
+        {
+            return View(await _customerRepo.GetAll());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Customer(Customer c)
+        {
+            if (ModelState.IsValid)
+            {
+                _customerRepo.Create(c);
+                try
+                {
+                    await _customerRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditCustomer(int id)
+        {
+            return PartialView("~/Views/Admin/Edit/Customer.cshtml", await _customerRepo.Get(id));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditCustomer(Customer c)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _customerRepo.Get(c.Id);
+                item.Name = c.Name;
+                item.Status = c.Status;
+
+                _customerRepo.Update(item);
+                try
+                {
+                    await _customerRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CustomerIncome(int id, int? p)
+        {
+            var customer = await _customerRepo.Get(id);
+            if (customer == null)
+            {
+                return BadRequest();
+            }
+            ViewData["CustomerInfo"] = customer;
+            ViewData["Year"] = await _configRepo.CurrentYear();
+            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _customerRepo.CustomerIncomes().Where(a => a.CustomerId.Equals(id)).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CustomerIncome([Bind("Amount,Description,CustomerId")] CustomerIncome c, int day, int month, int year, IFormFile pic)
+        {
+            if (ModelState.IsValid)
+            {
+                if (pic != null)
+                {
+                    if (pic.Length <= 1024000)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\income")))
+                            {
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\income"));
+                            }
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\income", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            c.Picture = fileName;
+                        }
+                        else
+                        {
+                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                        }
+                    }
+                    else
+                    {
+                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
+                    }
+                }
+
+                c.AdminId = _userManager.GetUserId(User);
+                c.Date = new PersianDateTime(year, month, day).ToDateTime();
+
+                _customerRepo.Create(c);
+                try
+                {
+                    await _customerRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditCustomerIncome(int id)
+        {
+            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            return PartialView("~/Views/Admin/Edit/CustomerIncome.cshtml", await _customerRepo.GetIncome(id));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditCustomerIncome(CustomerIncome p, int day, int month, int year, IFormFile pic)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _customerRepo.GetIncome(p.Id);
+                item.AdminId = _userManager.GetUserId(User);
+                item.Amount = p.Amount;
+
+                item.Date = new PersianDateTime(year, month, day).ToDateTime();
+
+                if (pic != null)
+                {
+                    if (pic.Length <= 1024000)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\income")))
+                            {
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\income"));
+                            }
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\income", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            if (!string.IsNullOrEmpty(item.Picture))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\income", item.Picture));
+                                }
+                                catch (Exception)
+                                {
+                                    throw;
+                                }
+                            }
+
+                            item.Picture = fileName;
+                        }
+                        else
+                        {
+                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                        }
+                    }
+                    else
+                    {
+                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
+                    }
+                }
+
+                _customerRepo.Update(item);
+                try
+                {
+                    await _customerRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCustomerIncome(int id)
+        {
+            var item = await _customerRepo.GetIncome(id);
+            if (!string.IsNullOrEmpty(item.Picture))
+            {
+                try
+                {
+                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\income", item.Picture));
+                }
+                catch (Exception)
+                {
+                    throw;
+                }
+            }
+            _customerRepo.Delete(item);
+            try
+            {
+                await _customerRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region Contract
+        [HttpGet]
+        public async Task<IActionResult> Contract(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _contractRepo.Contracts().Where(a => string.IsNullOrEmpty(a.ParentContractId)).OrderByDescending(a => a.StartDate).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateContract()
+        {
+            ViewData["Year"] = await _configRepo.CurrentYear();
+            ViewData["Customers"] = await _customerRepo.GetAll();
+            ViewData["Contracts"] = await _contractRepo.Contracts().Where(a => string.IsNullOrEmpty(a.ParentContractId)).OrderByDescending(a => a.StartDate).ToListAsync();
+            return PartialView("~/Views/Admin/Create/Contract.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateContract(CreateContractVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                DateTime startDate = new PersianDateTime(c.StartYear, c.StartMonth, c.StartDay, 0, 0, 0).ToDateTime();
+                DateTime endDate = new PersianDateTime(c.EndYear, c.EndMonth, c.EndDay, 23, 59, 59).ToDateTime();
+
+                if (startDate >= endDate)
+                {
+                    TempData["msg"] = "تاریخ شروع وارد شده از تاریخ پایان بزرگ تر است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var contract = new Contract
+                {
+                    CustomerId = c.CustomerId,
+                    EndDate = endDate,
+                    StartDate = startDate,
+                    Number = c.Number,
+                    Subject = c.Subject
+                };
+
+                if (c.ParentContractId != "none")
+                    contract.ParentContractId = c.ParentContractId;
+
+                _contractRepo.Create(contract);
+
+                try
+                {
+                    await _contractRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
     }
 }

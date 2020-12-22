@@ -1,0 +1,78 @@
+﻿@model Cost
+@{
+    var calendar = (List<Calendar>)ViewData["Calendar"];
+}
+<div id="create-modal" uk-modal="bg-close: false">
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">افزودن هزینه جدید</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form id="create-form" asp-action="Cost" method="post" enctype="multipart/form-data">
+                <input asp-for="UserId" type="hidden" value="@ViewData["UserId"].ToString()" />
+                <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label asp-for="CalendarId" class="uk-form-label"></label>
+                        <select asp-for="CalendarId" class="uk-select uk-border-rounded">
+                            @foreach (var item in calendar)
+                            {
+                                <option value="@item.Id">@item.Title</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
+                    </div>
+                    @{
+                        var now = PersianDateTime.Now;
+                    }
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">روز</label>
+                        <select class="uk-select uk-border-rounded" name="day" dir="ltr">
+                            @for (int i = 1; i < 32; i++)
+                            {
+                                <!option value="@i" @if (now.Day == i) { <text> selected="selected" </text> }>@i</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">ماه</label>
+                        <select class="uk-select uk-border-rounded" name="month" dir="ltr">
+                            @for (int i = 1; i < 13; i++)
+                            {
+                                <!option value="@i" @if (now.Month == i) { <text> selected="selected" </text> }>@i</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">سال</label>
+                        <input class="uk-input uk-border-rounded" name="year" value="@ViewData["Year"].ToString()" dir="ltr" readonly />
+                    </div>
+                    <div>
+                        <label asp-for="Amount" class="uk-form-label"></label>
+                        <input asp-for="Amount" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Description" class="uk-form-label"></label>
+                        <textarea asp-for="Description" class="uk-textarea uk-border-rounded" rows="2"></textarea>
+                        <span asp-validation-for="Description" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-text-center">
+                        <div class="uk-margin-top">
+                            <div><label class="uk-form-label">تصویر رسید یا سند مالی</label></div>
+                            <div uk-form-custom="target: true">
+                                <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: image"></a>
+                                <input name="pic" accept=".jpg,.png" type="file" id="pic" />
+                                <input class="uk-input uk-form-width-large uk-form-small" type="text" placeholder="انتخاب کنید ..." disabled>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="$('#create-form').submit()">ثبت اطلاعات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

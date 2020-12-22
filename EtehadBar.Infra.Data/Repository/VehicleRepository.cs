@@ -25,7 +25,7 @@ namespace EtehadBar.Infra.Data.Repository
             return db.Vehicles.AsQueryable();
         }
 
-        public async Task<Vehicle> GetVehicle(string id)
+        public async Task<Vehicle> Get(string id)
         {
             return await db.Vehicles.FindAsync(id);
         }

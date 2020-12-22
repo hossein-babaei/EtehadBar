@@ -2,6 +2,7 @@
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EtehadBar.Infra.Data.Repository
@@ -13,6 +14,11 @@ namespace EtehadBar.Infra.Data.Repository
         public ConfigRepository(ApplicationDbContext context)
         {
             db = context;
+        }
+
+        public async Task<string> CurrentYear()
+        {
+            return await db.Config.AsNoTracking().Select(a => a.Year).FirstAsync();
         }
 
         public async Task<Config> First()

@@ -24,7 +24,8 @@ namespace EtehadBar.Domain.Models
         [StringLength(50)]
         public string Picture { get; set; }
 
-        [Required]
+        [Display(Name = "تقویم کاری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(50)]
         public string CalendarId { get; set; }
         public virtual Calendar Calendar { get; set; }

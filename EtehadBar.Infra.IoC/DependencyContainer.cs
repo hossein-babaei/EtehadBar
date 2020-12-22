@@ -9,8 +9,13 @@ namespace EtehadBar.Infra.IoC
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
             services.AddScoped<IAdminThemeRepository, AdminThemeRepository>();
+            services.AddScoped<ICalendarRepository, CalendarRepository>();
             services.AddScoped<IConfigRepository, ConfigRepository>();
+            services.AddScoped<IContractRepository, ContractRepository>();
+            services.AddScoped<ICostRepository, CostRepository>();
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
             services.AddScoped<IDefinitionRepository, DefinitionRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<IVehicleRepository, VehicleRepository>();
 
             return services;

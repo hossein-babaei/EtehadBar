@@ -4,6 +4,181 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain
 {
+    public class CreateContractVM
+    {
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndDay { get; set; }
+
+        [Display(Name = "ماه پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndMonth { get; set; }
+
+        [Display(Name = "سال پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndYear { get; set; }
+
+        [Display(Name = "موضوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Subject { get; set; }
+
+        [Display(Name = "شماره")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Number { get; set; }
+
+        [Display(Name = "الحاقیه ای است برای قرارداد")]
+        [StringLength(50)]
+        public string ParentContractId { get; set; }
+
+        [Required]
+        [Display(Name = "مشتری")]
+        public int CustomerId { get; set; }
+    }
+    public class EditContractVM
+    {
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Id { get; set; }
+
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndDay { get; set; }
+
+        [Display(Name = "ماه پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndMonth { get; set; }
+
+        [Display(Name = "سال پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndYear { get; set; }
+
+        [Display(Name = "موضوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Subject { get; set; }
+
+        [Display(Name = "شماره")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Number { get; set; }
+
+        [Display(Name = "الحاقیه ای است برای قرارداد")]
+        [StringLength(50)]
+        public string ParentContractId { get; set; }
+
+        [Required]
+        [Display(Name = "مشتری")]
+        public int CustomerId { get; set; }
+    }
+
+    public class CreateCalendarVM
+    {
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndDay { get; set; }
+
+        [Display(Name = "ماه پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndMonth { get; set; }
+
+        [Display(Name = "سال پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndYear { get; set; }
+
+        [Display(Name = "عنوان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+
+        [Display(Name = "مالیات ارزش افزوده (%)")]
+        public double VAT { get; set; }
+
+        [Display(Name = "سپرده بیمه (%)")]
+        public double LoadFactorDeductions { get; set; }
+
+        [Display(Name = "مالیات تکلیفی (%)")]
+        public double WithholdingTax { get; set; }
+    }
+
+    public class EditCalendarVM
+    {
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Id { get; set; }
+
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndDay { get; set; }
+
+        [Display(Name = "ماه پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndMonth { get; set; }
+
+        [Display(Name = "سال پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndYear { get; set; }
+
+        [Display(Name = "عنوان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+
+        [Display(Name = "مالیات ارزش افزوده (%)")]
+        public double VAT { get; set; }
+
+        [Display(Name = "سپرده بیمه (%)")]
+        public double LoadFactorDeductions { get; set; }
+
+        [Display(Name = "مالیات تکلیفی (%)")]
+        public double WithholdingTax { get; set; }
+    }
+
     public class LoadeFactorFormConfig
     {
         public double Tax { get; set; }

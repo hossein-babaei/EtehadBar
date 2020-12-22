@@ -254,6 +254,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
@@ -274,6 +277,8 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("ParentContractId");
 
@@ -422,13 +427,15 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("ContractId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<long>("Counter")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .UseIdentityColumn();
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -475,7 +482,7 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("CalendarId");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("ContractId");
 
                     b.HasIndex("DriverId");
 
@@ -696,12 +703,10 @@ namespace EtehadBar.Infra.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -738,12 +743,10 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -755,9 +758,17 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Contract", b =>
                 {
+                    b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
+                        .WithMany("Contracts")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("EtehadBar.Domain.Models.Contract", "ParentContract")
                         .WithMany("ContractAddons")
                         .HasForeignKey("ParentContractId");
+
+                    b.Navigation("Customer");
 
                     b.Navigation("ParentContract");
                 });
@@ -808,9 +819,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
+                    b.HasOne("EtehadBar.Domain.Models.Contract", "Contract")
                         .WithMany("LoadFactors")
-                        .HasForeignKey("CustomerId")
+                        .HasForeignKey("ContractId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -830,7 +841,7 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.Navigation("Calendar");
 
-                    b.Navigation("Customer");
+                    b.Navigation("Contract");
 
                     b.Navigation("Vehicle");
                 });
@@ -940,14 +951,16 @@ namespace EtehadBar.Infra.Data.Migrations
                 {
                     b.Navigation("ContractAddons");
 
+                    b.Navigation("LoadFactors");
+
                     b.Navigation("ShippingFees");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Customer", b =>
                 {
-                    b.Navigation("CustomerIncomes");
+                    b.Navigation("Contracts");
 
-                    b.Navigation("LoadFactors");
+                    b.Navigation("CustomerIncomes");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Vehicle", b =>

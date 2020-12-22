@@ -35,7 +35,12 @@ namespace EtehadBar.Domain.Models
 
         public virtual ICollection<Contract> ContractAddons { get; set; }
 
+        [Required]
+        [Display(Name = "مشتری")]
+        public int CustomerId { get; set; }
+        public virtual Customer Customer { get; set; }
+
+        public virtual ICollection<LoadFactor> LoadFactors { get; set; }
         public virtual ICollection<ShippingFee> ShippingFees { get; set; }
-        //public virtual ICollection<ContractAddon> ContractAddons { get; set; }
     }
 }
