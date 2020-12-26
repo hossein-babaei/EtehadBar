@@ -1,19 +1,17 @@
-﻿@model EditCalendarVM
-
+﻿@model CreateContractVM
+@{ 
+    int currentYear = Convert.ToInt32(ViewData["Year"].ToString());
+    var customers = (List<Customer>)ViewData["Customers"];
+    var contracts = (List<Contract>)ViewData["Contracts"];
+}
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
-        <h2 class="uk-modal-title">ویرایش @Model.Title</h2>
+        <h2 class="uk-modal-title">افزودن جدید</h2>
     </div>
     <div class="uk-modal-body">
-        <form id="edit-form" asp-action="EditCalendar" method="post">
+        <form id="create-form" asp-action="CreateContract" method="post">
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
-            <input asp-for="Id" type="hidden" />
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                <div>
-                    <label asp-for="Title" class="uk-form-label"></label>
-                    <input asp-for="Title" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="Title" class="uk-text-danger"></span>
-                </div>
                 <div>
                     <h5 class="uk-text-bold">تاریخ شروع</h5>
                     <div class="uk-grid-small uk-child-width-1-3" uk-grid>
@@ -22,7 +20,7 @@
                             <select asp-for="StartDay" class="uk-select uk-border-rounded">
                                 @for (int i = 1; i < 32; i++)
                                 {
-                                    <!option value="@i" @if (Model.StartDay.Equals(i)) { <text> selected="selected" </text> }>@i</!option>
+                                    <option value="@i">@i</option>
                                 }
                             </select>
                             <span asp-validation-for="StartDay" class="uk-text-danger"></span>
@@ -32,7 +30,7 @@
                             <select asp-for="StartMonth" class="uk-select uk-border-rounded">
                                 @for (int i = 1; i < 13; i++)
                                 {
-                                    <!option value="@i" @if (Model.StartMonth.Equals(i)) { <text> selected="selected" </text> }>@i</!option>
+                                    <option value="@i">@i</option>
                                 }
                             </select>
                             <span asp-validation-for="StartMonth" class="uk-text-danger"></span>
@@ -42,7 +40,7 @@
                             <select asp-for="StartYear" class="uk-select uk-border-rounded">
                                 @for (int i = 1398; i < 1411; i++)
                                 {
-                                    <!option value="@i" @if (Model.StartYear.Equals(i)) { <text> selected="selected" </text> }>@i</!option>
+                                    <!option value="@i" @if (currentYear == i) { <text> selected</text> }>@i</!option>
                                 }
                             </select>
                             <span asp-validation-for="StartYear" class="uk-text-danger"></span>
@@ -57,7 +55,7 @@
                             <select asp-for="EndDay" class="uk-select uk-border-rounded">
                                 @for (int i = 1; i < 32; i++)
                                 {
-                                    <!option value="@i" @if (Model.EndDay.Equals(i)) { <text> selected="selected" </text> }>@i</!option>
+                                    <option value="@i">@i</option>
                                 }
                             </select>
                             <span asp-validation-for="EndDay" class="uk-text-danger"></span>
@@ -67,7 +65,7 @@
                             <select asp-for="EndMonth" class="uk-select uk-border-rounded">
                                 @for (int i = 1; i < 13; i++)
                                 {
-                                    <!option value="@i" @if (Model.EndMonth.Equals(i)) { <text> selected="selected" </text> }>@i</!option>
+                                    <option value="@i">@i</option>
                                 }
                             </select>
                             <span asp-validation-for="EndMonth" class="uk-text-danger"></span>
@@ -77,33 +75,49 @@
                             <select asp-for="EndYear" class="uk-select uk-border-rounded">
                                 @for (int i = 1398; i < 1411; i++)
                                 {
-                                    <!option value="@i" @if (Model.EndYear.Equals(i)) { <text> selected="selected" </text> }>@i</!option>
+                                    <!option value="@i" @if (currentYear == i) { <text> selected</text> }>@i</!option>
                                 }
                             </select>
                             <span asp-validation-for="EndYear" class="uk-text-danger"></span>
                         </div>
                     </div>
                 </div>
-                <div class="uk-width-1-3@m">
-                    <label asp-for="VAT" class="uk-form-label"></label>
-                    <input asp-for="VAT" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="VAT" class="uk-text-danger"></span>
+                <div>
+                    <label asp-for="Subject" class="uk-form-label"></label>
+                    <input asp-for="Subject" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Subject" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-3@m">
-                    <label asp-for="LoadFactorDeductions" class="uk-form-label"></label>
-                    <input asp-for="LoadFactorDeductions" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="LoadFactorDeductions" class="uk-text-danger"></span>
+                <div>
+                    <label asp-for="Number" class="uk-form-label"></label>
+                    <input asp-for="Number" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Number" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-3@m">
-                    <label asp-for="WithholdingTax" class="uk-form-label"></label>
-                    <input asp-for="WithholdingTax" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="WithholdingTax" class="uk-text-danger"></span>
+                <div>
+                    <label asp-for="CustomerId" class="uk-form-label"></label>
+                    <select asp-for="CustomerId" class="uk-border-rounded">
+                        @foreach (var item in customers)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="ParentContractId" class="uk-form-label"></label>
+                    <select asp-for="ParentContractId" class="uk-border-rounded">
+                        <option value="none" selected="selected">ثبت به عنوان قرارداد جدید</option>
+                        @foreach (var item in contracts)
+                        {
+                            <option value="@item.Id">@item.Subject (@item.Number)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ParentContractId" class="uk-text-danger"></span>
                 </div>
             </div>
         </form>
     </div>
     <div class="uk-modal-footer uk-text-center">
-        <button class="uk-button uk-button-primary" type="button" onclick="submitForm('#edit-form')">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-primary" type="button" onclick="submitForm('#create-form')">ثبت اطلاعات</button>
         <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
     </div>
 </div>

@@ -204,3 +204,7 @@ D:\Projects\EtehadBar\EtehadBar.MVC\obj\Debug\net5.0\Razor\Views\Admin\CustomerI
 D:\Projects\EtehadBar\EtehadBar.MVC\obj\Debug\net5.0\Razor\Views\Admin\Edit\Customer.cshtml.g.cs
 D:\Projects\EtehadBar\EtehadBar.MVC\obj\Debug\net5.0\Razor\Views\Admin\Edit\CustomerIncome.cshtml.g.cs
 D:\Projects\EtehadBar\EtehadBar.MVC\obj\Debug\net5.0\Razor\Views\Admin\Contract.cshtml.g.cs
+D:\Projects\EtehadBar\EtehadBar.MVC\obj\Debug\net5.0\Razor\Views\Admin\Create\Contract.cshtml.g.cs
+D:\Projects\EtehadBar\EtehadBar.MVC\obj\Debug\net5.0\Razor\Views\Admin\Edit\Contract.cshtml.g.cs
+D:\Projects\EtehadBar\EtehadBar.MVC\obj\Debug\net5.0\Razor\Views\Admin\ShippingFee.cshtml.g.cs
+D:\Projects\EtehadBar\EtehadBar.MVC\obj\Debug\net5.0\Razor\Views\Admin\Create\ShippingFee.cshtml.g.cs

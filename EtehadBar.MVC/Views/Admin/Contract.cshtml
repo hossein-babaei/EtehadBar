@@ -13,14 +13,24 @@
         i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
     }
 }
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+}
 @section Scripts{
+    <script src="~/lib/select2/select2.full.min.js"></script>
     <script>
+        $(document).ready(function () {
+            $('#tags').select2({ width: '100%' });
+            $('#tags').select2({ width: '100%' });
+        });
         function create() {
             preloader();
             $.get('@Url.Action("CreateContract")', { }, function (r) {
                 $('#create-modal').html(r);
             }, 'html').then(function () {
                 parseValidator('#create-modal form');
+                $('#create-modal #CustomerId').select2({ width: '100%' });
+                $('#create-modal #ParentContractId').select2({ width: '100%' });
                 preloader();
                 UIkit.modal('#create-modal').show();
             });
@@ -31,6 +41,8 @@
                 $('#edit-modal').html(r);
             }, 'html').then(function () {
                 parseValidator('#edit-modal form');
+                $('#edit-modal #CustomerId').select2({ width: '100%' });
+                $('#edit-modal #ParentContractId').select2({ width: '100%' });
                 preloader();
                 UIkit.modal('#edit-modal').show();
             });
@@ -69,6 +81,7 @@
                     <th>@Html.DisplayNameFor(model => model.StartDate)</th>
                     <th>@Html.DisplayNameFor(model => model.EndDate)</th>
                     <th width="50">الحاقیه</th>
+                    <th width="50">کرایه</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -95,6 +108,7 @@
                         {
                             <td><button disabled class="uk-button uk-button-default uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
                         }
+                        <td><a asp-action="ShippingFee" asp-route-contractId="@item.Id" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

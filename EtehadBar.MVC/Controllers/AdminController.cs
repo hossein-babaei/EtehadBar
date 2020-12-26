@@ -29,6 +29,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ICustomerRepository _customerRepo;
         private readonly IDefinitionRepository _definitionRepo;
         private readonly IPaymentRepository _paymentRepo;
+        private readonly IShippingFeeRepository _shippingFeeRepo;
         private readonly IVehicleRepository _vehicleRepo;
         private readonly IWebHostEnvironment _environment;
         private readonly RoleManager<IdentityRole> _roleManager;
@@ -43,6 +44,7 @@ namespace EtehadBar.MVC.Controllers
             ICustomerRepository customerRepository,
             IDefinitionRepository definitionRepository,
             IPaymentRepository paymentRepository,
+            IShippingFeeRepository shippingFeeRepository,
             IVehicleRepository vehicleRepository,
             IWebHostEnvironment environment,
             RoleManager<IdentityRole> roleManager,
@@ -56,6 +58,7 @@ namespace EtehadBar.MVC.Controllers
             _customerRepo = customerRepository;
             _definitionRepo = definitionRepository;
             _paymentRepo = paymentRepository;
+            _shippingFeeRepo = shippingFeeRepository;
             _vehicleRepo = vehicleRepository;
             _environment = environment;
             _roleManager = roleManager;
@@ -1649,6 +1652,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _contractRepo.Save();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                    return RedirectToAction("ShippingFee", new { contractId = contract.Id });
                 }
                 catch (Exception e)
                 {
@@ -1660,6 +1664,159 @@ namespace EtehadBar.MVC.Controllers
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditContract(string id)
+        {
+            var item = await _contractRepo.Get(id);
+            var persianStartDate = new PersianDateTime(item.StartDate);
+            var persianEndDate = new PersianDateTime(item.EndDate);
+
+            ViewData["Year"] = await _configRepo.CurrentYear();
+
+            return PartialView("~/Views/Admin/Edit/Contract.cshtml", new EditContractVM
+            {
+                EndDay = persianEndDate.Day,
+                EndMonth = persianEndDate.Month,
+                EndYear = persianEndDate.Year,
+                Id = item.Id,
+                StartDay = persianStartDate.Day,
+                StartMonth = persianStartDate.Month,
+                StartYear = persianStartDate.Year,
+                Number = item.Number,
+                Subject = item.Subject
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditContract(EditContractVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                DateTime startDate = new PersianDateTime(c.StartYear, c.StartMonth, c.StartDay, 0, 0, 0).ToDateTime();
+                DateTime endDate = new PersianDateTime(c.EndYear, c.EndMonth, c.EndDay, 23, 59, 59).ToDateTime();
+
+                if (startDate >= endDate)
+                {
+                    TempData["msg"] = "تاریخ شروع وارد شده از تاریخ پایان بزرگ تر است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var contract = await _contractRepo.Get(c.Id);
+                contract.EndDate = endDate;
+                contract.StartDate = startDate;
+                contract.Number = c.Number;
+                contract.Subject = c.Subject;
+
+                _contractRepo.Update(contract);
+
+                try
+                {
+                    await _contractRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteContract(string id)
+        {
+            var item = await _contractRepo.Get(id);
+
+            if (item == null) return NotFound();
+
+            if (item.LoadFactors.Any())
+            {
+                TempData["msg"] = $"برای این قرارداد { item.LoadFactors.Count } بارنامه وجود دارد و قابل حذف نیست. |danger";
+                return Redirect(Request.Headers["Referer"].ToString());
+            }
+
+            _contractRepo.Delete(item);
+            try
+            {
+                await _contractRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region ShippingFee
+        [HttpGet]
+        public async Task<IActionResult> ShippingFee(string contractId)
+        {
+            if (string.IsNullOrWhiteSpace(contractId)) return BadRequest();
+
+            var contract = await _contractRepo.Get(contractId);
+            if (contract == null) return NotFound();
+
+            ViewData["Contract"] = contract;
+            return View(await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).OrderBy(a => a.Origin).ToListAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ShippingFeePartial(string contractId)
+        {
+            return PartialView("_ShippingFee", await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).OrderBy(a => a.Origin).ToListAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateShippingFee(string contractId)
+        {
+            ViewData["Contract"] = await _contractRepo.Get(contractId);
+            List<int> types = new List<int>
+            {
+                (int)DefinitionType.Car,
+                (int)DefinitionType.Origin,
+                (int)DefinitionType.Destionation
+            };
+            ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.Type)).ToListAsync();
+
+            return PartialView("~/Views/Admin/Create/ShippingFee.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateShippingFee(ShippingFee s)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                if (await _shippingFeeRepo.ShippingFees().AsNoTracking().AnyAsync(a=>a.Vehicle.Equals(s.Vehicle) && a.Origin.Equals(s.Origin) && a.Destination.Equals(s.Destination)))
+                    return Json(new { msg = "نرخ حمل و نقل ثبت شده تکراری است.", status });
+
+                _shippingFeeRepo.Create(s);
+
+                try
+                {
+                    await _shippingFeeRepo.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+            return Json(new { msg, status });
         }
         #endregion
     }

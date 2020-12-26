@@ -1,0 +1,200 @@
+﻿@model IEnumerable<ShippingFee>
+
+@{
+    ViewData["pageId"] = 7;
+
+    var contractInfo = (Contract)ViewData["Contract"];
+    var addons = contractInfo.ContractAddons;
+    var startPersianDate = new PersianDateTime(contractInfo.StartDate);
+    var endPersianDate = new PersianDateTime(contractInfo.EndDate);
+
+    ViewData["Title"] = $"کرایه حمل و نقل قرارداد به شماره {contractInfo.Number}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+}
+
+@section Scripts{
+    <script>
+        var contractId = '@contractInfo.Id';
+        function create() {
+            preloader();
+            $.get('@Url.Action("CreateShippingFee")', { 'contractId': contractId }, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#append-modal form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function submitCreate() {
+            var form = $('#create-form');
+            if (form.valid() == true) {
+                preloader();
+                var data = form.serialize();
+                $.post('@Url.Action("CreateShippingFee")', data, function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.get('@Url.Action("ShippingFeePartial")', { 'contractId': contractId }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                }, 'json').then(function () {
+                    preloader();
+                });
+            }
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditShippingFee")', { 'id': id }, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#append-modal form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+        function toggleAddons(t) {
+            event.stopPropagation();
+            $(t).find('i').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
+            $(t).parents('tr').next('.detail-row').fadeToggle(200);
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+    </div>
+</div>
+<div class="box uk-margin-medium-bottom">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <caption class="uk-text-center">اطلاعات قرارداد</caption>
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => contractInfo.Number)</th>
+                    <th>@Html.DisplayNameFor(model => contractInfo.CustomerId)</th>
+                    <th>@Html.DisplayNameFor(model => contractInfo.Subject)</th>
+                    <th>@Html.DisplayNameFor(model => contractInfo.StartDate)</th>
+                    <th>@Html.DisplayNameFor(model => contractInfo.EndDate)</th>
+                    <th width="50">الحاقیه</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr class="uk-text-center">
+                    <td>@Html.DisplayFor(modelItem => contractInfo.Number)</td>
+                    <td>@Html.DisplayFor(modelItem => contractInfo.Customer.Name)</td>
+                    <td>@Html.DisplayFor(modelItem => contractInfo.Subject)</td>
+                    <td>@startPersianDate.ToShortDateString()</td>
+                    <td>@endPersianDate.ToShortDateString()</td>
+                    @if (addons.Any())
+                    {
+                        <td><button onclick="toggleAddons(this)" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
+                    }
+                    else
+                    {
+                        <td><button disabled class="uk-button uk-button-default uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
+                    }
+                </tr>
+                @if (addons.Any())
+                {
+                    i = 1;
+                    <tr class="detail-row" style="display:none">
+                        <td colspan="6">
+                            <div class="uk-overflow-auto uk-border-rounded uk-box-shadow-medium">
+                                <table class="uk-table uk-table-small uk-table-striped uk-table-middle" style="background: #ccc">
+                                    <thead>
+                                        <tr>
+                                            <th>ردیف</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.Number)</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.CustomerId)</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.Subject)</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.StartDate)</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.EndDate)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var addon in addons.OrderBy(a => a.StartDate))
+                                        {
+                                            startPersianDate = new PersianDateTime(addon.StartDate);
+                                            endPersianDate = new PersianDateTime(addon.EndDate);
+
+                                            <tr class="uk-text-center sm">
+                                                <td>@i</td>
+                                                <td>@Html.DisplayFor(modelItem => addon.Number)</td>
+                                                <td>@Html.DisplayFor(modelItem => addon.Customer.Name)</td>
+                                                <td>@Html.DisplayFor(modelItem => addon.Subject)</td>
+                                                <td>@startPersianDate.ToShortDateString()</td>
+                                                <td>@endPersianDate.ToShortDateString()</td>
+                                            </tr>
+                                            i++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    i = 1;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
+                    <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                    <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                    <th>@Html.DisplayNameFor(model => model.Price)</th>
+                    <th>@Html.DisplayNameFor(model => model.DriverPrice)</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@item.Vehicle</td>
+                        <td>@item.Origin</td>
+                        <td>@item.Destination</td>
+                        <td>@item.Price</td>
+                        <td>@item.DriverPrice</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="append-modal" uk-modal="bg-close: false"></div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteShippingFee" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
