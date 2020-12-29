@@ -24,11 +24,11 @@ namespace EtehadBar.Domain.Models
         [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string Vehicle { get; set; }
 
-        [Display(Name = "کرایه (تومان)")]
+        [Display(Name = "کرایه (ریال)")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double Price { get; set; }
 
-        [Display(Name = "کرایه راننده (تومان)")]
+        [Display(Name = "کرایه راننده (ریال)")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double DriverPrice { get; set; }
 

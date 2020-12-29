@@ -73,6 +73,7 @@
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <a onclick="create()" class="uk-button uk-button-secondary">تغییر نرخ کلی</a>
     </div>
 </div>
 <div class="box uk-margin-medium-bottom">
@@ -173,8 +174,8 @@
                         <td>@item.Vehicle</td>
                         <td>@item.Origin</td>
                         <td>@item.Destination</td>
-                        <td>@item.Price</td>
-                        <td>@item.DriverPrice</td>
+                        <td>@item.Price.ToString("N0")</td>
+                        <td>@item.DriverPrice.ToString("N0")</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

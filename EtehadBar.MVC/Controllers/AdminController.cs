@@ -1652,7 +1652,11 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _contractRepo.Save();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                    return RedirectToAction("ShippingFee", new { contractId = contract.Id });
+
+                    if (c.ParentContractId.Equals("none"))
+                        return RedirectToAction("ShippingFee", new { contractId = contract.Id });
+                    else
+                        return RedirectToAction("ShippingFee", new { contractId = contract.ParentContractId });
                 }
                 catch (Exception e)
                 {
@@ -1817,6 +1821,76 @@ namespace EtehadBar.MVC.Controllers
                 msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
             return Json(new { msg, status });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditShippingFee(string id)
+        {
+            List<int> types = new List<int>
+            {
+                (int)DefinitionType.Car,
+                (int)DefinitionType.Origin,
+                (int)DefinitionType.Destionation
+            };
+            ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.Type)).ToListAsync();
+
+            return PartialView("~/Views/Admin/Edit/ShippingFee.cshtml", await _shippingFeeRepo.Get(id));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditShippingFee(ShippingFee s)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _shippingFeeRepo.ShippingFees().AsNoTracking().AnyAsync(a => !a.Id.Equals(s.Id) && a.Vehicle.Equals(s.Vehicle) && a.Origin.Equals(s.Origin) && a.Destination.Equals(s.Destination)))
+                {
+                    TempData["msg"] = "نرخ حمل و نقل ثبت شده تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = await _shippingFeeRepo.Get(s.Id);
+                item.Destination = s.Destination;
+                item.Origin = s.Origin;
+                item.DriverPrice = s.DriverPrice;
+                item.Price = s.Price;
+                item.Vehicle = s.Vehicle;
+                _shippingFeeRepo.Update(item);
+
+                try
+                {
+                    await _shippingFeeRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteShippingFee(string id)
+        {
+            var item = await _shippingFeeRepo.Get(id);
+
+            if (item == null) return NotFound();
+
+            _shippingFeeRepo.Delete(item);
+            try
+            {
+                await _shippingFeeRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion
     }
