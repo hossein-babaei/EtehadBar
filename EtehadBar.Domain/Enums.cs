@@ -19,4 +19,11 @@
         AdvanceMoney,
         Salary
     }
+
+    public enum Customers
+    {
+        SaipaPlasco,
+        SaipaPress,
+        SazehGostar
+    }
 }

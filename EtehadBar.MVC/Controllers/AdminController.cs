@@ -28,6 +28,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ICostRepository _costRepo;
         private readonly ICustomerRepository _customerRepo;
         private readonly IDefinitionRepository _definitionRepo;
+        private readonly ILoadFactorRepository _loadFactorRepo;
         private readonly IPaymentRepository _paymentRepo;
         private readonly IShippingFeeRepository _shippingFeeRepo;
         private readonly IVehicleRepository _vehicleRepo;
@@ -43,6 +44,7 @@ namespace EtehadBar.MVC.Controllers
             ICostRepository costRepository,
             ICustomerRepository customerRepository,
             IDefinitionRepository definitionRepository,
+            ILoadFactorRepository loadFactorRepository,
             IPaymentRepository paymentRepository,
             IShippingFeeRepository shippingFeeRepository,
             IVehicleRepository vehicleRepository,
@@ -57,6 +59,7 @@ namespace EtehadBar.MVC.Controllers
             _costRepo = costRepository;
             _customerRepo = customerRepository;
             _definitionRepo = definitionRepository;
+            _loadFactorRepo = loadFactorRepository;
             _paymentRepo = paymentRepository;
             _shippingFeeRepo = shippingFeeRepository;
             _vehicleRepo = vehicleRepository;
@@ -771,7 +774,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Vehicle(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _vehicleRepo.Vehicles().OrderBy(a => a.Number).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await _vehicleRepo.Vehicles().OrderBy(a => a.LeftNumber).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -819,7 +822,10 @@ namespace EtehadBar.MVC.Controllers
             if (ModelState.IsValid)
             {
                 var item = await _vehicleRepo.Get(v.Id);
-                item.Number = v.Number;
+                item.IranStateNumber = v.IranStateNumber;
+                item.LeftNumber = v.LeftNumber;
+                item.NumberWord = v.NumberWord;
+                item.RightNumber = v.RightNumber;
                 item.Status = v.Status;
                 item.Type = v.Type;
                 _vehicleRepo.Update(item);
@@ -1800,7 +1806,10 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
-                if (await _shippingFeeRepo.ShippingFees().AsNoTracking().AnyAsync(a=>a.Vehicle.Equals(s.Vehicle) && a.Origin.Equals(s.Origin) && a.Destination.Equals(s.Destination)))
+                if (s.Destination == s.Origin)
+                    return Json(new { msg = "مبدا و مقصد نمی تواند یکی باشد.", status });
+
+                if (await _shippingFeeRepo.ShippingFees().AsNoTracking().AnyAsync(a => a.Vehicle.Equals(s.Vehicle) && a.Origin.Equals(s.Origin) && a.Destination.Equals(s.Destination)))
                     return Json(new { msg = "نرخ حمل و نقل ثبت شده تکراری است.", status });
 
                 _shippingFeeRepo.Create(s);
@@ -1842,6 +1851,12 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (s.Destination == s.Origin)
+                {
+                    TempData["msg"] = "مبدا و مقصد نمی تواند یکی باشد. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking().AnyAsync(a => !a.Id.Equals(s.Id) && a.Vehicle.Equals(s.Vehicle) && a.Origin.Equals(s.Origin) && a.Destination.Equals(s.Destination)))
                 {
                     TempData["msg"] = "نرخ حمل و نقل ثبت شده تکراری است. |danger";
@@ -1849,6 +1864,7 @@ namespace EtehadBar.MVC.Controllers
                 }
 
                 var item = await _shippingFeeRepo.Get(s.Id);
+
                 item.Destination = s.Destination;
                 item.Origin = s.Origin;
                 item.DriverPrice = s.DriverPrice;
@@ -1859,6 +1875,25 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _shippingFeeRepo.Save();
+
+                    var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(item.ContractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
+                    if (latestContractAddon == null)
+                        latestContractAddon = await _contractRepo.Get(item.ContractId);
+
+                    var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(item.ContractId) && a.Date >= latestContractAddon.StartDate).ToListAsync();
+                    if (loadFactors.Any())
+                    {
+                        foreach (var factor in loadFactors)
+                        {
+                            factor.Origin = item.Origin;
+                            factor.Destination = item.Destination;
+                            factor.DriverFee = item.DriverPrice;
+                            factor.Amount = item.Price;
+                        }
+                        _loadFactorRepo.UpdateRange(loadFactors);
+                        await _loadFactorRepo.Save();
+                    }
+
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -1892,6 +1927,541 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangeShippingFee(string contractId, double amount, double driverAmount, string type, string driverType)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                if (amount == 0 || driverAmount == 0)
+                    return Json(new { msg = "میزان تغییر باید بزرگتر یا کوچکتر از صفر باشد.", status });
+
+                if (type.Equals("percent") && (amount > 100 || amount < -100))
+                    return Json(new { msg = "درصد تغییر نرخ مناسب نیست.", status });
+
+                if (driverType.Equals("percent") && (driverAmount > 100 || driverAmount < -100))
+                    return Json(new { msg = "درصد تغییر نرخ راننده مناسب نیست.", status });
+
+                var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
+                if (latestContractAddon == null)
+                    latestContractAddon = await _contractRepo.Get(contractId);
+
+                var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
+                var loadFactors = await _shippingFeeRepo.GetLoadFactorsByContractId(contractId, latestContractAddon.StartDate);
+
+                bool updateLoadFactors = false;
+                foreach (var fee in feeList)
+                {
+                    if (type.Equals("percent"))
+                    {
+                        var a = fee.Price * amount / 100;
+                        fee.Price += a;
+                    }
+                    else fee.Price += amount;
+
+                    if (driverAmount.Equals("percent"))
+                    {
+                        var a = fee.DriverPrice * driverAmount / 100;
+                        fee.DriverPrice += a;
+                    }
+                    else fee.DriverPrice += driverAmount;
+
+                    var loadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id)).SingleOrDefault();
+                    if (loadFactor != null)
+                    {
+                        loadFactor.Amount = fee.Price;
+                        loadFactor.DriverFee = fee.DriverPrice;
+
+                        updateLoadFactors = true;
+                    }
+                }
+
+                _shippingFeeRepo.UpdateRange(feeList);
+
+                if (updateLoadFactors)
+                    _shippingFeeRepo.UpdateLoadFactors(loadFactors);
+
+                try
+                {
+                    await _shippingFeeRepo.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+            return Json(new { msg, status });
+        }
         #endregion
+
+        #region LoadFactor
+        [HttpGet]
+        public async Task<IActionResult> LoadFactor(int? p)
+        {
+            var pageNumber = p ?? 1;
+            if (pageNumber == 1)
+            {
+                if (!await _vehicleRepo.Vehicles().AnyAsync())
+                {
+                    TempData["msg"] = "برای ثبت بارنامه، باید حداقل یک خودرو ثبت نمائید. |danger";
+                    return RedirectToAction("Vehicle");
+                }
+
+                if (!await _userManager.Users.AsNoTracking().AnyAsync(a => a.Role.Equals((byte)ApplicationRoles.Driver)))
+                {
+                    TempData["msg"] = "برای ثبت بارنامه، باید حداقل یک راننده ثبت نمائید. |danger";
+                    return RedirectToAction("Users");
+                }
+            }
+            ViewData["Customer"] = await _customerRepo.GetAllActive();
+
+            var onePageOfData = await _loadFactorRepo.LoadFactors().OrderByDescending(a => a.Counter).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> LoadFactorPartial(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _loadFactorRepo.LoadFactors().OrderByDescending(a => a.Counter).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            ViewBag.isSearch = false;
+            return PartialView("_LoadFactor");
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> LoadFactorDetail(string id)
+        {
+            var item = await _loadFactorRepo.Get(id);
+            ViewData["Admin"] = await _userManager.FindByIdAsync(item.AdminId);
+            return PartialView("_LoadFactorDetail", item);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchLoadFactor(int? p, string param)
+        {
+            if (!string.IsNullOrWhiteSpace(param))
+            {
+                var pageNum = p ?? 1;
+                var onePageOfData = await _loadFactorRepo.LoadFactors().Where(a => a.LoadNumber.Contains(param) || a.LoadNumberGov.Contains(param)).OrderByDescending(a => a.Counter).ToPagedListAsync(pageNum, 15);
+                ViewBag.data = onePageOfData;
+                ViewBag.page = pageNum;
+                ViewBag.param = param;
+                ViewBag.isSearch = true;
+                return PartialView("_LoadFactor");
+            }
+            else
+            {
+                return BadRequest("لطفا یک مقدار برای جستجو انتخاب نمائید.");
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateLoadFactor(int customerId, byte customerType)
+        {
+            var contracts = await _contractRepo.Contracts().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderByDescending(a => a.StartDate).ToListAsync();
+            if (!contracts.Any()) return NotFound("قراردادی پیدا نشد.");
+
+            var activeContract = contracts.OrderByDescending(a => a.StartDate).First().Id;
+            ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(activeContract)).OrderBy(a => a.Origin).ToListAsync();
+            ViewData["Contracts"] = contracts;
+
+            ViewData["Year"] = await _configRepo.CurrentYear();
+            ViewData["Drivers"] = await _userManager.GetUsersInRoleAsync("Driver");
+            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+
+            return customerType switch
+            {
+                (byte)Customers.SaipaPlasco => PartialView("~/Views/Admin/Create/LoadFactor/SaipaPlasco.cshtml"),
+                (byte)Customers.SaipaPress => PartialView("~/Views/Admin/Create/LoadFactor/SaipaPress.cshtml"),
+                (byte)Customers.SazehGostar => PartialView("~/Views/Admin/Create/LoadFactor/SazehGostar.cshtml"),
+                _ => NoContent(),
+            };
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateSaipaPlascoLoadFactor(CSaipaPlascoLoadFactorVM input)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var loadFactor = new LoadFactor
+                {
+                    AdminId = _userManager.GetUserId(User),
+                    Amount = fee.Price,
+                    DriverFee = fee.DriverPrice,
+                    Origin = fee.Origin,
+                    Destination = fee.Destination,
+                    CalendarId = input.CalendarId,
+                    ContractId = input.ContractId,
+                    Date = new PersianDateTime(input.Year, input.Month, input.Day, 0, 0, 0).ToDateTime(),
+                    DriverId = input.DriverId,
+                    ExitNumber = input.ExitNumber,
+                    LoadNumber = input.LoadNumber,
+                    LoadNumberGov = input.LoadNumberGov,
+                    VehicleId = input.VehicleId,
+                    ShippingFeeId = input.ShippingFeeId
+                };
+
+                _loadFactorRepo.Create(loadFactor);
+
+                try
+                {
+                    await _loadFactorRepo.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+            return Json(new { msg, status });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateSaipaPressLoadFactor(CSaipaPressLoadFactorVM input)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var loadFactor = new LoadFactor
+                {
+                    AdminId = _userManager.GetUserId(User),
+                    Amount = fee.Price,
+                    DriverFee = fee.DriverPrice,
+                    Origin = fee.Origin,
+                    Destination = fee.Destination,
+                    CalendarId = input.CalendarId,
+                    ContractId = input.ContractId,
+                    Date = new PersianDateTime(input.Year, input.Month, input.Day, 0, 0, 0).ToDateTime(),
+                    DriverId = input.DriverId,
+                    ExitNumber = input.ExitNumber,
+                    LoadNumber = input.LoadNumber,
+                    LoadNumberGov = input.LoadNumberGov,
+                    VehicleId = input.VehicleId,
+                    ShippingFeeId = input.ShippingFeeId
+                };
+
+                var saipaPressLoadFactor = new SaipaPressLoadFactor
+                {
+                    EntryNumber = input.EntryNumber,
+                    LoadType = input.LoadType,
+                    LoadFactorId = loadFactor.Id
+                };
+
+                loadFactor.SaipaPressLoadFactorId = saipaPressLoadFactor.Id;
+
+                _loadFactorRepo.Create(loadFactor);
+                _loadFactorRepo.CreateSaipaPress(saipaPressLoadFactor);
+
+                try
+                {
+                    await _loadFactorRepo.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+            return Json(new { msg, status });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateSazehGostarLoadFactor(CSazehGostarLoadFactorVM input)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var loadFactor = new LoadFactor
+                {
+                    AdminId = _userManager.GetUserId(User),
+                    Amount = fee.Price,
+                    DriverFee = fee.DriverPrice,
+                    Origin = fee.Origin,
+                    Destination = fee.Destination,
+                    CalendarId = input.CalendarId,
+                    ContractId = input.ContractId,
+                    Date = new PersianDateTime(input.Year, input.Month, input.Day, 0, 0, 0).ToDateTime(),
+                    DriverId = input.DriverId,
+                    ExitNumber = input.ExitNumber,
+                    LoadNumber = input.LoadNumber,
+                    LoadNumberGov = input.LoadNumberGov,
+                    VehicleId = input.VehicleId,
+                    ShippingFeeId = input.ShippingFeeId
+                };
+
+                var sazehGostarLoadFactor = new SazehGostarLoadFactor
+                {
+                    Certain = input.Certain,
+                    Count = input.Count,
+                    Description = input.Description,
+                    DetailedCostCenter = input.DetailedCostCenter,
+                    LoadFactorId = loadFactor.Id,
+                    Nature = input.Nature,
+                    RegisterCode = input.RegisterCode,
+                    Status = input.Status
+                };
+
+                loadFactor.SazehGostarLoadFactorId = sazehGostarLoadFactor.Id;
+
+                _loadFactorRepo.Create(loadFactor);
+                _loadFactorRepo.CreateSazehGostar(sazehGostarLoadFactor);
+
+                try
+                {
+                    await _loadFactorRepo.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+            return Json(new { msg, status });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> EditLoadFactor(string loadFactorId)
+        {
+            var loadFactor = await _loadFactorRepo.Get(loadFactorId);
+
+            if (loadFactor == null) return NotFound("بارنامه پیدا نشد.");
+
+            var customer = loadFactor.Contract.Customer;
+            var contracts = await _contractRepo.Contracts().AsNoTracking().Where(a => a.CustomerId.Equals(customer.Id)).OrderByDescending(a => a.StartDate).ToListAsync();
+            if (!contracts.Any()) return NotFound("قراردادی پیدا نشد.");
+
+            ViewData["Contracts"] = contracts;
+            ViewData["Drivers"] = await _userManager.GetUsersInRoleAsync("Driver");
+            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
+
+            return customer.Type switch
+            {
+                (byte)Customers.SaipaPlasco => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPlasco.cshtml", await _loadFactorRepo.GetSaipaPlascoLoadFactor(loadFactorId)),
+                (byte)Customers.SaipaPress => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPress.cshtml", await _loadFactorRepo.GetSaipaPressLoadFactor(loadFactorId)),
+                (byte)Customers.SazehGostar => PartialView("~/Views/Admin/Edit/LoadFactor/SazehGostar.cshtml", await _loadFactorRepo.GetSazehGostarLoadFactor(loadFactorId)),
+                _ => NoContent(),
+            };
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditSaipaPlascoLoadFactor(ESaipaPlascoLoadFactorVM input)
+        {
+            if (ModelState.IsValid)
+            {
+                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var item = await _loadFactorRepo.Get(input.Id);
+                if (item == null) return NotFound();
+
+                item.AdminId = _userManager.GetUserId(User);
+                item.Amount = fee.Price;
+                item.DriverFee = fee.DriverPrice;
+                item.Origin = fee.Origin;
+                item.Destination = fee.Destination;
+                item.CalendarId = input.CalendarId;
+                item.ContractId = input.ContractId;
+                item.Date = new PersianDateTime(input.Year, input.Month, input.Day, 0, 0, 0).ToDateTime();
+                item.DriverId = input.DriverId;
+                item.ExitNumber = input.ExitNumber;
+                item.LoadNumber = input.LoadNumber;
+                item.LoadNumberGov = input.LoadNumberGov;
+                item.VehicleId = input.VehicleId;
+                item.ShippingFeeId = input.ShippingFeeId;
+
+                _loadFactorRepo.Update(item);
+                try
+                {
+                    await _loadFactorRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> EditSaipaPressLoadFactor(ESaipaPressLoadFactorVM input)
+        {
+            if (ModelState.IsValid)
+            {
+                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var item = await _loadFactorRepo.Get(input.Id);
+                if (item == null) return NotFound();
+
+                item.AdminId = _userManager.GetUserId(User);
+                item.Amount = fee.Price;
+                item.DriverFee = fee.DriverPrice;
+                item.Origin = fee.Origin;
+                item.Destination = fee.Destination;
+                item.CalendarId = input.CalendarId;
+                item.ContractId = input.ContractId;
+                item.Date = new PersianDateTime(input.Year, input.Month, input.Day, 0, 0, 0).ToDateTime();
+                item.DriverId = input.DriverId;
+                item.ExitNumber = input.ExitNumber;
+                item.LoadNumber = input.LoadNumber;
+                item.LoadNumberGov = input.LoadNumberGov;
+                item.VehicleId = input.VehicleId;
+                item.ShippingFeeId = input.ShippingFeeId;
+
+                item.SaipaPressLoadFactor.EntryNumber = input.EntryNumber;
+                item.SaipaPressLoadFactor.LoadType = input.LoadType;
+
+                _loadFactorRepo.Update(item);
+                try
+                {
+                    await _loadFactorRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> EditSazehGostarLoadFactor(ESazehGostarLoadFactorVM input)
+        {
+            if (ModelState.IsValid)
+            {
+                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var item = await _loadFactorRepo.Get(input.Id);
+                if (item == null) return NotFound();
+
+                item.AdminId = _userManager.GetUserId(User);
+                item.Amount = fee.Price;
+                item.DriverFee = fee.DriverPrice;
+                item.Origin = fee.Origin;
+                item.Destination = fee.Destination;
+                item.CalendarId = input.CalendarId;
+                item.ContractId = input.ContractId;
+                item.Date = new PersianDateTime(input.Year, input.Month, input.Day, 0, 0, 0).ToDateTime();
+                item.DriverId = input.DriverId;
+                item.ExitNumber = input.ExitNumber;
+                item.LoadNumber = input.LoadNumber;
+                item.LoadNumberGov = input.LoadNumberGov;
+                item.VehicleId = input.VehicleId;
+                item.ShippingFeeId = input.ShippingFeeId;
+
+                item.SazehGostarLoadFactor.Certain = input.Certain;
+                item.SazehGostarLoadFactor.Count = input.Count;
+                item.SazehGostarLoadFactor.Description = input.Description;
+                item.SazehGostarLoadFactor.DetailedCostCenter = input.DetailedCostCenter;
+                item.SazehGostarLoadFactor.Nature = input.Nature;
+                item.SazehGostarLoadFactor.RegisterCode = input.RegisterCode;
+                item.SazehGostarLoadFactor.Status = input.Status;
+
+                _loadFactorRepo.Update(item);
+                try
+                {
+                    await _loadFactorRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> GetShippingFeeJson(string contractId)
+        {
+            return Json(await _shippingFeeRepo.ShippingFees().AsNoTracking().Where(a => a.ContractId.Equals(contractId)).OrderBy(a => a.Origin).Select(a => new
+            {
+                a.Destination,
+                a.DriverPrice,
+                a.Id,
+                a.Origin,
+                price = a.Price.ToString("N0"),
+                a.Vehicle
+            }).ToListAsync());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteLoadFactor(string id)
+        {
+            var item = await _loadFactorRepo.Get(id);
+            if (item == null) return NotFound();
+
+            _loadFactorRepo.Delete(item);
+            try
+            {
+                await _loadFactorRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
     }
 }

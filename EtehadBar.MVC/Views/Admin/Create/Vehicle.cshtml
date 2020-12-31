@@ -9,7 +9,7 @@
     <div class="uk-modal-body">
         <form id="create-form" asp-action="CreateVehicle" method="post">
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
-            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+            <div class="uk-grid-small uk-flex-bottom uk-child-width-1-1" uk-grid>
                 <div>
                     <label asp-for="Type" class="uk-form-label"></label>
                     <select asp-for="Type" class="uk-select uk-border-rounded">
@@ -20,10 +20,25 @@
                     </select>
                     <span asp-validation-for="Type" class="uk-text-danger"></span>
                 </div>
-                <div>
-                    <label asp-for="Number" class="uk-form-label"></label>
-                    <input asp-for="Number" dir="ltr" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="Number" class="uk-text-danger"></span>
+                <div class="uk-width-1-4">
+                    <label asp-for="IranStateNumber" class="uk-form-label"></label>
+                    <input asp-for="IranStateNumber" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="IranStateNumber" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-4">
+                    <label asp-for="RightNumber" class="uk-form-label"></label>
+                    <input asp-for="RightNumber" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="RightNumber" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-4">
+                    <label asp-for="NumberWord" class="uk-form-label"></label>
+                    <input asp-for="NumberWord" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="NumberWord" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-4">
+                    <label asp-for="LeftNumber" class="uk-form-label"></label>
+                    <input asp-for="LeftNumber" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="LeftNumber" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Status" class="uk-form-label"></label>

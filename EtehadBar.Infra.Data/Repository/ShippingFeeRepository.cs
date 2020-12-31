@@ -1,6 +1,9 @@
 ﻿using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -42,6 +45,21 @@ namespace EtehadBar.Infra.Data.Repository
         public void Update(ShippingFee obj)
         {
             db.Update(obj);
+        }
+
+        public async Task<List<LoadFactor>> GetLoadFactorsByContractId(string contractId, DateTime date)
+        {
+            return await db.LoadFactor.Where(a => a.ContractId.Equals(contractId) && a.Date >= date).ToListAsync();
+        }
+
+        public void UpdateRange(List<ShippingFee> list)
+        {
+            db.UpdateRange(list.AsEnumerable());
+        }
+
+        public void UpdateLoadFactors(List<LoadFactor> list)
+        {
+            db.UpdateRange(list.AsEnumerable());
         }
     }
 }

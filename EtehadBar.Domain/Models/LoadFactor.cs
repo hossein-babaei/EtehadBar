@@ -52,12 +52,17 @@ namespace EtehadBar.Domain.Models
         public string AdminId { get; set; }
 
         [Required]
+        [StringLength(50)]
+        public string ShippingFeeId { get; set; }
+
+        [Required]
         [Display(Name = "مشتری")]
         [StringLength(50)]
         public string ContractId { get; set; }
         public virtual Contract Contract { get; set; }
 
         [Required]
+        [Display(Name = "تقویم کاری")]
         [StringLength(50)]
         public string CalendarId { get; set; }
         public virtual Calendar Calendar { get; set; }
@@ -74,5 +79,15 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "خودرو")]
         public string VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; }
+
+        [StringLength(50)]
+        [ForeignKey(nameof(SaipaPressLoadFactor))]
+        public string SaipaPressLoadFactorId { get; set; }
+        public virtual SaipaPressLoadFactor SaipaPressLoadFactor { get; set; }
+
+        [StringLength(50)]
+        [ForeignKey(nameof(SazehGostarLoadFactor))]
+        public string SazehGostarLoadFactorId { get; set; }
+        public virtual SazehGostarLoadFactor SazehGostarLoadFactor { get; set; }
     }
 }

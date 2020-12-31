@@ -59,7 +59,7 @@
                 <tr>
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.Type)</th>
-                    <th>@Html.DisplayNameFor(model => model.Number)</th>
+                    <th>شماره خودرو</th>
                     <th>@Html.DisplayNameFor(model => model.Status)</th>
                     <th width="50">ویرایش</th>
                 </tr>
@@ -70,7 +70,7 @@
                     <tr class="uk-text-center">
                         <td>@i</td>
                         <td>@Html.DisplayFor(modelItem => item.Type)</td>
-                        <td class="uk-text-bold" dir="ltr">@Html.DisplayFor(modelItem => item.Number)</td>
+                        <td class="uk-text-bold">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</td>
                         @if (item.Status)
                         {
                             <td class="uk-text-success">فعال</td>

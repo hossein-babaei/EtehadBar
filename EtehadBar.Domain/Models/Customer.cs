@@ -13,6 +13,10 @@ namespace EtehadBar.Domain.Models
         [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string Name { get; set; }
 
+        [Display(Name = "نوع مشتری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public byte Type { get; set; } // customer type enum
+
         [Display(Name = "وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool Status { get; set; }

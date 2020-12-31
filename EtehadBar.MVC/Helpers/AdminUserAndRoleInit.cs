@@ -49,6 +49,26 @@ namespace Helpers
 
                 IdentityResult roleResult = roleManager.CreateAsync(role).Result;
             }
+
+            if (!roleManager.RoleExistsAsync("Driver").Result)
+            {
+                IdentityRole role = new IdentityRole
+                {
+                    Name = "Driver"
+                };
+
+                IdentityResult roleResult = roleManager.CreateAsync(role).Result;
+            }
+
+            if (!roleManager.RoleExistsAsync("User").Result)
+            {
+                IdentityRole role = new IdentityRole
+                {
+                    Name = "User"
+                };
+
+                IdentityResult roleResult = roleManager.CreateAsync(role).Result;
+            }
         }
     }
 }

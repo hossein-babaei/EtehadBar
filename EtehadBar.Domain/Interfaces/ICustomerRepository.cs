@@ -9,6 +9,7 @@ namespace EtehadBar.Domain.Interfaces
     {
         Task<Customer> Get(int id);
         Task<List<Customer>> GetAll();
+        Task<List<Customer>> GetAllActive();
         void Update(Customer obj);
         void Create(Customer obj);
 

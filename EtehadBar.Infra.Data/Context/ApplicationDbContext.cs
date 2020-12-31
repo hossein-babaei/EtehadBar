@@ -29,6 +29,8 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<Definition> Definition { get; set; }
         public DbSet<LoadFactor> LoadFactor { get; set; }
         public DbSet<Payment> Payment { get; set; }
+        public DbSet<SaipaPressLoadFactor> SaipaPressLoadFactor { get; set; }
+        public DbSet<SazehGostarLoadFactor> SazehGostarLoadFactor { get; set; }
         public DbSet<ShippingFee> ShippingFee { get; set; }
         public DbSet<UploadedFiles> UploadedFiles { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }

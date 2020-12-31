@@ -4,14 +4,16 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20201229114408_ShippingFeeIdInLoadFactor")]
+    partial class ShippingFeeIdInLoadFactor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -341,9 +343,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
-                    b.Property<byte>("Type")
-                        .HasColumnType("tinyint");
-
                     b.HasKey("Id");
 
                     b.ToTable("Customer");
@@ -476,14 +475,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("SaipaPressLoadFactorId")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("SazehGostarLoadFactorId")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("ShippingFeeId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -501,14 +492,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.HasIndex("ContractId");
 
                     b.HasIndex("DriverId");
-
-                    b.HasIndex("SaipaPressLoadFactorId")
-                        .IsUnique()
-                        .HasFilter("[SaipaPressLoadFactorId] IS NOT NULL");
-
-                    b.HasIndex("SazehGostarLoadFactorId")
-                        .IsUnique()
-                        .HasFilter("[SazehGostarLoadFactorId] IS NOT NULL");
 
                     b.HasIndex("VehicleId");
 
@@ -562,77 +545,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.HasIndex("CalendarId");
 
                     b.ToTable("Payment");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.SaipaPressLoadFactor", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("EntryNumber")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("LoadFactorId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("LoadType")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SaipaPressLoadFactor");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.SazehGostarLoadFactor", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Certain")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<int>("Count")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DetailedCostCenter")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("LoadFactorId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Nature")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("RegisterCode")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("Status")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SazehGostarLoadFactor");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.ShippingFee", b =>
@@ -702,25 +614,10 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("IranStateNumber")
+                    b.Property<string>("Number")
                         .IsRequired()
-                        .HasMaxLength(2)
-                        .HasColumnType("nvarchar(2)");
-
-                    b.Property<string>("LeftNumber")
-                        .IsRequired()
-                        .HasMaxLength(2)
-                        .HasColumnType("nvarchar(2)");
-
-                    b.Property<string>("NumberWord")
-                        .IsRequired()
-                        .HasMaxLength(1)
-                        .HasColumnType("nvarchar(1)");
-
-                    b.Property<string>("RightNumber")
-                        .IsRequired()
-                        .HasMaxLength(3)
-                        .HasColumnType("nvarchar(3)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
@@ -941,14 +838,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EtehadBar.Domain.Models.SaipaPressLoadFactor", "SaipaPressLoadFactor")
-                        .WithOne("LoadFactor")
-                        .HasForeignKey("EtehadBar.Domain.Models.LoadFactor", "SaipaPressLoadFactorId");
-
-                    b.HasOne("EtehadBar.Domain.Models.SazehGostarLoadFactor", "SazehGostarLoadFactor")
-                        .WithOne("LoadFactor")
-                        .HasForeignKey("EtehadBar.Domain.Models.LoadFactor", "SazehGostarLoadFactorId");
-
                     b.HasOne("EtehadBar.Domain.Models.Vehicle", "Vehicle")
                         .WithMany("LoadFactors")
                         .HasForeignKey("VehicleId")
@@ -960,10 +849,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("Calendar");
 
                     b.Navigation("Contract");
-
-                    b.Navigation("SaipaPressLoadFactor");
-
-                    b.Navigation("SazehGostarLoadFactor");
 
                     b.Navigation("Vehicle");
                 });
@@ -1083,16 +968,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("Contracts");
 
                     b.Navigation("CustomerIncomes");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.SaipaPressLoadFactor", b =>
-                {
-                    b.Navigation("LoadFactor");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.SazehGostarLoadFactor", b =>
-                {
-                    b.Navigation("LoadFactor");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Vehicle", b =>

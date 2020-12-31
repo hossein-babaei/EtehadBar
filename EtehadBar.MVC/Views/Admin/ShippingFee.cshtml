@@ -16,6 +16,24 @@
 @section Scripts{
     <script>
         var contractId = '@contractInfo.Id';
+
+        function submitChange() {
+            var form = $('#change-form');
+            var value = form.find('input[name=amount]').val();
+            if (value != 0) {
+                preloader();
+                $.post('@Url.Action("ChangeShippingFee")', form.serialize(), function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        setTimeout(function () {
+                            window.location.reload(true);
+                        }, 1000);
+                    }
+                }, 'json').then(function () {
+                    preloader();
+                });
+            }
+        }
         function create() {
             preloader();
             $.get('@Url.Action("CreateShippingFee")', { 'contractId': contractId }, function (r) {
@@ -72,8 +90,8 @@
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a uk-toggle="#change-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ کلی</a>
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
-        <a onclick="create()" class="uk-button uk-button-secondary">تغییر نرخ کلی</a>
     </div>
 </div>
 <div class="box uk-margin-medium-bottom">
@@ -162,6 +180,7 @@
                     <th>@Html.DisplayNameFor(model => model.Destination)</th>
                     <th>@Html.DisplayNameFor(model => model.Price)</th>
                     <th>@Html.DisplayNameFor(model => model.DriverPrice)</th>
+                    <th width="50">بارنامه ها</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -176,6 +195,7 @@
                         <td>@item.Destination</td>
                         <td>@item.Price.ToString("N0")</td>
                         <td>@item.DriverPrice.ToString("N0")</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" ><i class="fas fa-clipboard-check"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
@@ -197,5 +217,39 @@
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
             </div>
         </form>
+    </div>
+</div>
+<div id="change-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="change-form">
+            <input type="hidden" name="contractId" value="@contractInfo.Id" />
+            <h4 class="uk-text-light">لطفا میزان تغییر قیمت بر مبنای درصد را در ورودی عدد زیر، وارد نمائید.</h4>
+            <ul class="uk-list uk-list-bullet uk-text-light sm">
+                <li>جهت کاهش نرخ عددی منفی وارد نمائید.</li>
+                <li>جهت افزایش نرخ عددی مثبت وارد نمائید.</li>
+                <li>تا پایان عملیات مرورگر خود را نبندید و از تازه سازی (رفرش) صفحه خودداری نمائید.</li>
+                <li>این عملیات ممکن است بر اساس تعداد نرخ ها و بارنامه هایی را که شامل می شود، طولانی و زمان بر باشد. لطفا از داشتن اتصال اینترنت مناسب و مطمئن اطمینان حاصل نمائید.</li>
+            </ul>
+            <label class="uk-form-label">میزان تغییر نرخ کرایه</label>
+            <input name="amount" dir="ltr" class="uk-input uk-border-rounded" type="number" value="0" step="0.1" />
+            <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
+            <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                <label><input class="uk-radio" type="radio" name="type" value="amount" checked /> مبلغ ثابت</label>
+                <label><input class="uk-radio" type="radio" name="type" value="percent" /> درصد</label>
+            </div>
+            <hr />
+
+            <label class="uk-form-label">میزان تغییر نرخ کرایه راننده</label>
+            <input name="driverAmount" dir="ltr" class="uk-input uk-border-rounded" type="number" value="0" step="0.1" />
+            <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
+            <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                <label><input class="uk-radio" type="radio" name="driverType" value="amount" checked /> مبلغ ثابت</label>
+                <label><input class="uk-radio" type="radio" name="driverType" value="percent" /> درصد</label>
+            </div>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="submitChange()" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
     </div>
 </div>

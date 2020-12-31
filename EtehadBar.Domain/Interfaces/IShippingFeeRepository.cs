@@ -1,4 +1,6 @@
 ﻿using EtehadBar.Domain.Models;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,7 +10,10 @@ namespace EtehadBar.Domain.Interfaces
     {
         Task<ShippingFee> Get(string id);
         IQueryable<ShippingFee> ShippingFees();
+        Task<List<LoadFactor>> GetLoadFactorsByContractId(string contractId, DateTime date);
         void Update(ShippingFee obj);
+        void UpdateRange(List<ShippingFee> list);
+        void UpdateLoadFactors(List<LoadFactor> list);
         void Create(ShippingFee obj);
         void Delete(ShippingFee obj);
         Task<int> Save();

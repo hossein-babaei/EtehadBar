@@ -29,7 +29,7 @@
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a class="uk-button uk-button-primary" uk-toggle="#create-modal">افزودن</a>
+        @*<a class="uk-button uk-button-primary" uk-toggle="#create-modal">افزودن</a>*@
     </div>
 </div>
 <div id="append" class="box">
@@ -59,7 +59,8 @@
                             <td class="uk-text-bold uk-text-danger">غیر فعال</td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id"><i class="fas fa-money-bill"></i></a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        @*<td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>*@
+                        <td><button class="uk-button uk-button-default uk-button-small" disabled><i class="far fa-edit"></i></button></td>
                     </tr>
                     i++;
                 }

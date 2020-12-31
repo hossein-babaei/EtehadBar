@@ -13,6 +13,7 @@
                 <th>@Html.DisplayNameFor(model => model.Destination)</th>
                 <th>@Html.DisplayNameFor(model => model.Price)</th>
                 <th>@Html.DisplayNameFor(model => model.DriverPrice)</th>
+                <th width="50">بارنامه ها</th>
                 <th width="50">ویرایش</th>
                 <th width="50">حذف</th>
             </tr>
@@ -27,6 +28,7 @@
                     <td>@item.Destination</td>
                     <td>@item.Price.ToString("N0")</td>
                     <td>@item.DriverPrice.ToString("N0")</td>
+                    <td><a class="uk-button uk-button-primary uk-button-small"><i class="fas fa-clipboard-check"></i></a></td>
                     <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                     <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                 </tr>

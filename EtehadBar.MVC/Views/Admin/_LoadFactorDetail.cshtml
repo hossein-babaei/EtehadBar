@@ -1,0 +1,80 @@
+﻿@model LoadFactor
+@{ 
+    var adminDetail = (ApplicationUser)ViewData["Admin"];
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header">
+        <h2 class="uk-modal-title">اطلاعات بارنامه به شماره @Model.LoadNumber</h2>
+    </div>
+    <div class="uk-modal-body" style="background:#fff">
+        <div class="uk-grid-medium uk-child-width-1-1 uk-child-width-1-2@m uk-grid-divider" uk-grid>
+            @*<div class="uk-width-1-1">
+            <div class="uk-text-center">
+                @if (string.IsNullOrEmpty(Model.Picture))
+                {
+                    <span>بدون تصویر</span>
+                }
+                else
+                {
+                    <div uk-lightbox>
+                        <a class="uk-button uk-button-default" href="/img/load-factor/@Model.Picture" data-caption="@Model.LoadNumber">
+                            <img src="~/img/load-factor/@Model.Picture" width="100" />
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>*@
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.LoadNumber)</p>
+                <span class="sm">@Html.DisplayFor(model => model.LoadNumber)</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.LoadNumberGov)</p>
+                <span class="sm">@Html.DisplayFor(model => model.LoadNumberGov)</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.ExitNumber)</p>
+                <span class="sm">@Html.DisplayFor(model => model.ExitNumber)</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">تاریخ</p>
+                <span class="sm" dir="ltr">@(new PersianDateTime(Model.Date).ToString("yyyy/MM/dd"))</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Origin)</p>
+                <span class="sm">@Html.DisplayFor(model => model.Origin)</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Destination)</p>
+                <span class="sm">@Html.DisplayFor(model => model.Destination)</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.DriverId)</p>
+                <span class="sm">@Model.ApplicationUser.Firstname @Model.ApplicationUser.Lastname (@Model.ApplicationUser.PhoneNumber - @Model.ApplicationUser.NationalId)</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.VehicleId)</p>
+                <span class="sm">ایران @Model.Vehicle.IranStateNumber - @Model.Vehicle.RightNumber @Model.Vehicle.NumberWord @Model.Vehicle.LeftNumber (@Model.Vehicle.Type)</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">مسئول ثبت بارنامه</p>
+                <span class="sm">@adminDetail.Firstname @adminDetail.Lastname</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.ContractId)</p>
+                <span class="sm">@Model.Contract.Subject - @Model.Contract.Number</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.CalendarId)</p>
+                <span class="sm">@Model.Calendar.Title - (@(new PersianDateTime(Model.Calendar.StartDate).ToString("yyyy/MM/dd")) الی @(new PersianDateTime(Model.Calendar.EndDate).ToString("yyyy/MM/dd")))</span>
+            </div>
+            <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Amount)</p>
+                <span class="sm">@Model.Amount.ToString("N0")</span>
+            </div>
+        </div>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

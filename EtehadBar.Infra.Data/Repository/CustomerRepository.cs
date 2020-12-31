@@ -26,6 +26,11 @@ namespace EtehadBar.Infra.Data.Repository
             return await db.Customer.OrderBy(a => a.Name).ToListAsync();
         }
 
+        public async Task<List<Customer>> GetAllActive()
+        {
+            return await db.Customer.Where(a => a.Status).OrderBy(a => a.Name).ToListAsync();
+        }
+
         public async Task<Customer> Get(int id)
         {
             return await db.Customer.FindAsync(id);

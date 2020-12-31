@@ -1,0 +1,146 @@
+﻿@model ESazehGostarLoadFactorVM
+@{
+    var fees = (List<ShippingFee>)ViewData["Fees"];
+    var contract = (List<Contract>)ViewData["Contracts"];
+    var drivers = (List<ApplicationUser>)ViewData["Drivers"];
+    var vehicles = (List<Vehicle>)ViewData["Vehicles"];
+    var calendars = (List<Calendar>)ViewData["Calendars"];
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">ویرایش بارنامه سازه گستر</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="edit-form" asp-action="EditSazehGostarLoadFactor" method="post">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
+                <div class="uk-width-1-1@m">
+                    <label asp-for="ContractId" class="uk-form-label"></label>
+                    <select asp-for="ContractId" onchange="getShippingFees(this)" class="uk-select uk-border-rounded">
+                        @foreach (var item in contract)
+                        {
+                            <!option value="@item.Id" @if (item.Id.Equals(Model.ContractId)) { <text>selected="selected"</text> }>@item.Subject - @item.Number</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="ContractId" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-1@m">
+                    <label asp-for="ShippingFeeId" class="uk-form-label"></label>
+                    <select asp-for="ShippingFeeId" class="uk-select uk-border-rounded">
+                        @foreach (var item in fees)
+                        {
+                            <!option value="@item.Id" @if (item.Id.Equals(Model.ShippingFeeId)) { <text>selected="selected"</text> }>@item.Vehicle - (@item.Origin به @item.Destination) - @item.Price.ToString("N0")</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="ShippingFeeId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="VehicleId" class="uk-form-label"></label>
+                    <select asp-for="VehicleId" class="uk-select uk-border-rounded">
+                        @foreach (var item in vehicles)
+                        {
+                            <!option value="@item.Id" @if (item.Id.Equals(Model.VehicleId)) { <text>selected="selected"</text> }>@item.Type | ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="VehicleId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="DriverId" class="uk-form-label"></label>
+                    <select asp-for="DriverId" class="uk-select uk-border-rounded">
+                        @foreach (var item in drivers)
+                        {
+                            <!option value="@item.Id" @if (item.Id.Equals(Model.DriverId)) { <text>selected="selected"</text> }>@item.Firstname @item.Lastname (@item.NationalId)</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="DriverId" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">روز</label>
+                    <select asp-for="Day" class="uk-select uk-border-rounded" dir="ltr">
+                        @for (int i = 1; i < 32; i++)
+                        {
+                            <!option value="@i" @if (Model.Day == i) { <text> selected="selected" </text> }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">ماه</label>
+                    <select asp-for="Month" class="uk-select uk-border-rounded" dir="ltr">
+                        @for (int i = 1; i < 13; i++)
+                        {
+                            <!option value="@i" @if (Model.Month == i) { <text> selected="selected" </text> }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">سال</label>
+                    <input class="uk-input uk-border-rounded" asp-for="Year" dir="ltr" />
+                </div>
+                <div>
+                    <label asp-for="CalendarId" class="uk-form-label"></label>
+                    <select asp-for="CalendarId" class="uk-select uk-border-rounded">
+                        @foreach (var item in calendars)
+                        {
+                            <!option value="@item.Id" @if (item.Id.Equals(Model.CalendarId)) { <text>selected="selected"</text> }>@item.Title - (@(new PersianDateTime(item.StartDate).ToString("yyyy/MM/dd")) الی @(new PersianDateTime(item.EndDate).ToString("yyyy/MM/dd")))</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="ExitNumber" class="uk-form-label"></label>
+                    <input asp-for="ExitNumber" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="ExitNumber" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="LoadNumber" class="uk-form-label"></label>
+                    <input asp-for="LoadNumber" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="LoadNumber" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="LoadNumberGov" class="uk-form-label"></label>
+                    <input asp-for="LoadNumberGov" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="LoadNumberGov" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="RegisterCode" class="uk-form-label"></label>
+                    <input asp-for="RegisterCode" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="RegisterCode" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Certain" class="uk-form-label"></label>
+                    <input asp-for="Certain" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Certain" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Nature" class="uk-form-label"></label>
+                    <input asp-for="Nature" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Nature" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="DetailedCostCenter" class="uk-form-label"></label>
+                    <input asp-for="DetailedCostCenter" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="DetailedCostCenter" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Count" class="uk-form-label"></label>
+                    <input asp-for="Count" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Count" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Status" class="uk-form-label"></label>
+                    <input asp-for="Status" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Status" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Description" class="uk-form-label"></label>
+                    <textarea asp-for="Description" class="uk-textarea uk-border-rounded"></textarea>
+                    <span asp-validation-for="Description" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitForm('#edit-form')">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>
