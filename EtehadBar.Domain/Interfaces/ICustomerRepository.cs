@@ -8,6 +8,7 @@ namespace EtehadBar.Domain.Interfaces
     public interface ICustomerRepository
     {
         Task<Customer> Get(int id);
+        IQueryable<Customer> Customers();
         Task<List<Customer>> GetAll();
         Task<List<Customer>> GetAllActive();
         void Update(Customer obj);

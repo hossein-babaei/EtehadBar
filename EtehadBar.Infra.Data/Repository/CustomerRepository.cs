@@ -21,6 +21,11 @@ namespace EtehadBar.Infra.Data.Repository
             db.Add(obj);
         }
 
+        public IQueryable<Customer> Customers()
+        {
+            return db.Customer.AsQueryable();
+        }
+
         public async Task<List<Customer>> GetAll()
         {
             return await db.Customer.OrderBy(a => a.Name).ToListAsync();

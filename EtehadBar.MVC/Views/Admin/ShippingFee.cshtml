@@ -86,11 +86,19 @@
     <div class="uk-width-auto@m">
         <ul class="uk-breadcrumb">
             <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="Contract" asp-controller="Admin">قرارداد ها</a></li>
             <li><span>@ViewData["Title"]</span></li>
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a uk-toggle="#change-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ کلی</a>
+        @if (Model.Any())
+        {
+            <a uk-toggle="#change-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ کلی</a>
+        }
+        else
+        {
+            <button disabled class="uk-button uk-button-default uk-margin-small-left">تغییر نرخ کلی</button>
+        }
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
     </div>
 </div>

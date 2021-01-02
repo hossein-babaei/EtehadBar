@@ -94,10 +94,10 @@
                 </div>
                 <div>
                     <label asp-for="CustomerId" class="uk-form-label"></label>
-                    <select asp-for="CustomerId" class="uk-border-rounded">
+                    <select asp-for="CustomerId" class="uk-border-rounded" onchange="getContractAddons(this)">
                         @foreach (var item in customers)
                         {
-                            <option value="@item.Id">@item.Name</option>
+                            <!option value="@item.Id" @if (item.Equals(customers.First())) { <text>selected="selected"</text> }>@item.Name</!option>
                         }
                     </select>
                     <span asp-validation-for="CustomerId" class="uk-text-danger"></span>

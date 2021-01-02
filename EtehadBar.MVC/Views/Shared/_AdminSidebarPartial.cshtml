@@ -13,14 +13,17 @@
     <li @if (param == 1) { <text> class="active" </text> }>
         <a asp-action="Index" asp-controller="Admin"><i class="uk-margin-left fas fa-tachometer-alt"></i>داشبورد</a>
     </li>
+    <li @if (param == 20) { <text> class="active" </text> }>
+        <a asp-action="Users" asp-controller="Admin"><i class="uk-margin-left fas fa-users"></i>کاربران</a>
+    </li>
     <li @if (param == 2) { <text> class="active" </text> }>
         <a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>تعاریف</a>
     </li>
     <li @if (param == 3) { <text> class="active" </text> }>
         <a asp-action="Calendar" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar"></i>تقویم کاری</a>
     </li>
-    <li @if (param == 20) { <text> class="active" </text> }>
-        <a asp-action="Users" asp-controller="Admin"><i class="uk-margin-left fas fa-users"></i>کاربران</a>
+    <li @if (param == 7) { <text> class="active" </text> }>
+        <a asp-action="Contract" asp-controller="Admin"><i class="uk-margin-left fas fa-hand-holding-usd"></i>قرارداد ها</a>
     </li>
     <li @if (param == 8) { <text> class="active" </text> }>
         <a asp-action="LoadFactor" asp-controller="Admin"><i class="uk-margin-left fas fa-clipboard-check"></i>بارنامه ها</a>
@@ -30,9 +33,6 @@
     </li>
     <li @if (param == 13) { <text> class="active" </text> }>
         <a asp-action="Customer" asp-controller="Admin"><i class="uk-margin-left fas fa-user"></i>مشتریان خدمات</a>
-    </li>
-    <li @if (param == 7) { <text> class="active" </text> }>
-        <a asp-action="Contract" asp-controller="Admin"><i class="uk-margin-left fas fa-hand-holding-usd"></i>قرارداد ها</a>
     </li>
     <li @if (param == 100) { <text> class="active" </text> }>
         <a asp-action="Config" asp-controller="Admin"><i class="uk-margin-left fas fa-cogs"></i>تنظیمات سیستم</a>

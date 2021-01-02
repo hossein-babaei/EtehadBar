@@ -1621,8 +1621,9 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CreateContract()
         {
             ViewData["Year"] = await _configRepo.CurrentYear();
-            ViewData["Customers"] = await _customerRepo.GetAll();
-            ViewData["Contracts"] = await _contractRepo.Contracts().Where(a => string.IsNullOrEmpty(a.ParentContractId)).OrderByDescending(a => a.StartDate).ToListAsync();
+            var customers = await _customerRepo.GetAll();
+            ViewData["Customers"] = customers;
+            ViewData["Contracts"] = await _contractRepo.Contracts().Where(a => string.IsNullOrEmpty(a.ParentContractId) && a.CustomerId.Equals(customers.First().Id)).OrderByDescending(a => a.StartDate).ToListAsync();
             return PartialView("~/Views/Admin/Create/Contract.cshtml");
         }
 
@@ -1736,6 +1737,17 @@ namespace EtehadBar.MVC.Controllers
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> GetContractAddonsJson(int customerId)
+        {
+            return Json(await _contractRepo.Contracts().AsNoTracking().Where(a => string.IsNullOrEmpty(a.ParentContractId) && a.CustomerId.Equals(customerId)).OrderByDescending(a => a.StartDate).Select(a => new
+            {
+                a.Number,
+                a.Subject,
+                a.Id
+            }).ToListAsync());
         }
 
         [HttpPost]
@@ -2449,6 +2461,12 @@ namespace EtehadBar.MVC.Controllers
             var item = await _loadFactorRepo.Get(id);
             if (item == null) return NotFound();
 
+            if (item.SazehGostarLoadFactor != null)
+                _loadFactorRepo.DeleteSazehGostar(item.SazehGostarLoadFactor);
+
+            if (item.SaipaPressLoadFactor != null)
+                _loadFactorRepo.DeleteSaipaPress(item.SaipaPressLoadFactor);
+
             _loadFactorRepo.Delete(item);
             try
             {
@@ -2462,6 +2480,5 @@ namespace EtehadBar.MVC.Controllers
             return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion
-
     }
 }

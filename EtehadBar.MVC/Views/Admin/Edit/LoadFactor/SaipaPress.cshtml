@@ -1,4 +1,4 @@
-﻿@model CSaipaPressLoadFactorVM
+﻿@model ESaipaPressLoadFactorVM
 @{
     var fees = (List<ShippingFee>)ViewData["Fees"];
     var contract = (List<Contract>)ViewData["Contracts"];
@@ -12,6 +12,8 @@
     </div>
     <div class="uk-modal-body">
         <form id="edit-form" asp-action="EditSaipaPressLoadFactor" method="post">
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="RelationId" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
                 <div class="uk-width-1-1@m">

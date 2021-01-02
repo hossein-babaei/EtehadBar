@@ -33,6 +33,16 @@ namespace EtehadBar.Infra.Data.Repository
             db.Remove(obj);
         }
 
+        public void DeleteSaipaPress(SaipaPressLoadFactor obj)
+        {
+            db.Remove(obj);
+        }
+
+        public void DeleteSazehGostar(SazehGostarLoadFactor obj)
+        {
+            db.Remove(obj);
+        }
+
         public async Task<LoadFactor> Get(string id)
         {
             return await db.LoadFactor.FindAsync(id);
@@ -101,7 +111,7 @@ namespace EtehadBar.Infra.Data.Repository
             var loadFactor = await db.LoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESaipaPressLoadFactorVM();
 
-            var saipaPressLoadFactor = loadFactor.SaipaPressLoadFactor;
+            var saipaPressLoadFactor = await db.SaipaPressLoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.LoadFactorId.Equals(loadFactorId));
             if (saipaPressLoadFactor == null) return new ESaipaPressLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);
@@ -130,7 +140,7 @@ namespace EtehadBar.Infra.Data.Repository
             var loadFactor = await db.LoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESazehGostarLoadFactorVM();
 
-            var sazehGostarLoadFactor = loadFactor.SazehGostarLoadFactor;
+            var sazehGostarLoadFactor = await db.SazehGostarLoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.LoadFactorId.Equals(loadFactorId));
             if (loadFactor == null) return new ESazehGostarLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);

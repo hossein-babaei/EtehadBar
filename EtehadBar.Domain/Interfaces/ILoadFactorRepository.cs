@@ -20,6 +20,8 @@ namespace EtehadBar.Domain.Interfaces
         void CreateSaipaPress(SaipaPressLoadFactor obj);
         void CreateSazehGostar(SazehGostarLoadFactor obj);
         void Delete(LoadFactor obj);
+        void DeleteSaipaPress(SaipaPressLoadFactor obj);
+        void DeleteSazehGostar(SazehGostarLoadFactor obj);
         Task<int> Save();
     }
 }
