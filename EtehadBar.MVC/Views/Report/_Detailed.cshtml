@@ -1,0 +1,161 @@
+﻿@model IEnumerable<LoadFactor>
+
+@{
+    int i = 1;
+
+    var calendar = (Calendar)ViewData["calendar"];
+    var totalCost = (double)ViewData["cost"];
+    var totalPayment = (double)ViewData["payment"];
+
+    var amount = Model.Sum(a => a.Amount);
+    var driverFeeSum = Model.Sum(a => a.DriverFee);
+
+    //double netAmount = 0;
+
+    double vatAmountSum = Model.Sum(a => a.Amount * a.VAT / 100);
+    double withholdingTax = Model.Sum(a => a.Amount * a.WithholdingTax / 100);
+    double deductionAmountSum = Model.Sum(a => a.Amount * a.LoadFactorDeductions / 100);
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>گزارش تفصیلی</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        @if (Model.Count() > 0)
+        {
+            <a asp-action="DetailedReport" asp-controller="Print" asp-route-cakendarId="@calendar.Id" target="_blank" class="uk-button uk-button-secondary uk-margin-small-left" uk-icon="print"></a>
+        }
+        else
+        {
+            <button class="uk-button uk-button-default uk-margin-small-left" uk-icon="print" disabled></button>
+        }
+        <a class="uk-button uk-button-primary" href="#search-modal" uk-toggle uk-icon="search"></a>
+    </div>
+</div>
+<div class="box uk-margin-small-bottom" style="padding:15px 30px">
+    <h3 class="uk-text-center">گزارش تفصیلی بارنامه در <span class="underline">@calendar.Title</span></h3>
+</div>
+<div class="box uk-margin-small-bottom">
+    @if (Model.Any())
+    {
+        <div class="uk-overflow-auto">
+            <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                <thead>
+                    <tr>
+                        <th width="50">ردیف</th>
+                        <th>@Html.DisplayNameFor(model => model.Date)</th>
+                        <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
+                        <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
+                        <th>@Html.DisplayNameFor(model => model.ExitNumber)</th>
+                        <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                        <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                        <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                        <th>@Html.DisplayNameFor(model => model.VAT)</th>
+                        <th>@Html.DisplayNameFor(model => model.LoadFactorDeductions)</th>
+                        <th>@Html.DisplayNameFor(model => model.WithholdingTax)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverId)</th>
+                        <th>@Html.DisplayNameFor(model => model.VehicleId)</th>
+                        <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
+                        <th>@Html.DisplayNameFor(model => model.ContractId)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        //netAmount = netAmount + (item.Amount - item.Amount * (item.Tax / 100));
+                        var pd = new PersianDateTime(item.Date);
+
+                        <tr class="uk-text-center xs">
+                            <td>
+                                @i
+                            </td>
+                            <td>@pd.ToString("yyyy/MM/dd")</td>
+                            <td>@item.LoadNumber</td>
+                            <td>@item.LoadNumberGov</td>
+                            <td>@item.ExitNumber</td>
+                            <td>@item.Origin</td>
+                            <td>@item.Destination</td>
+                            <td>@item.Amount.ToString("N0")</td>
+                            <td>@item.DriverFee.ToString("N0")</td>
+                            <td>@item.VAT</td>
+                            <td>@item.LoadFactorDeductions</td>
+                            <td>@item.WithholdingTax</td>
+                            <td>@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname</td>
+                            <td>@item.Vehicle.Type</td>
+                            <td>@item.Calendar.Title</td>
+                            <td>@item.Contract.Customer.Name - @item.Contract.Number</td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="uk-margin-medium-top uk-margin-medium-bottom">
+            <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+                <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+                <div>
+                    <h2>نتیجه ای یافت نشد.</h2>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div class="box" style="padding:15px 30px">
+    <h3 class="uk-heading-divider uk-text-center">گزارش تفصیلی بارنامه در <span class="underline">@calendar.Title</span></h3>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">تعداد کل بارنامه ها</div>
+        <div>@Model.Count() عدد</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ بارنامه ها</div>
+        <div>@amount.ToString("N0") ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ کرایه <span class="sm">(قابل پرداخت به رانندگان)</span></div>
+        <div>@driverFeeSum.ToString("N0") ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ مالیات بارنامه ها</div>
+        <div>@vatAmountSum.ToString("N0") ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ کسورات بارنامه ها</div>
+        <div>@deductionAmountSum.ToString("N0") ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">مجموع حقوق/مساعده پرداختی</div>
+        <div>@totalPayment.ToString("N0") ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">مجموع هزینه های جاری</div>
+        <div>@totalCost.ToString("N0") ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">مجموع کل هزینه ها</div>
+        <div>@((totalPayment + totalCost).ToString("N0")) ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">سود <span class="sm">[مجموع مبلغ بارنامه ها - (حقوق/مساعده پرداختی + هزینه های جاری + کسورات)]</span></div>
+        <div><span dir="ltr">@((amount - (totalPayment + totalCost + deductionAmountSum)).ToString("N0"))</span> ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">سود <span class="sm">[(مبلغ بارنامه ها + مالیات دریافتی) - (حقوق/مساعده پرداختی + هزینه های جاری + کسورات)]</span></div>
+        <div><span dir="ltr">@(((amount + vatAmountSum) - (totalPayment + totalCost + deductionAmountSum)).ToString("N0"))</span> ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">سود <span class="sm">[مبلغ بارنامه ها - (کرایه (قابل پرداخت به رانندگان) + کسورات)]</span></div>
+        <div><span dir="ltr">@(((amount) - (driverFeeSum + deductionAmountSum)).ToString("N0"))</span> ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">سود <span class="sm">[(مبلغ بارنامه ها + مالیات دریافتی) - (کرایه (قابل پرداخت به رانندگان) + کسورات)]</span></div>
+        <div><span dir="ltr">@(((amount + vatAmountSum) - (driverFeeSum + deductionAmountSum)).ToString("N0"))</span> ریال</div>
+    </div>
+</div>

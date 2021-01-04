@@ -10,7 +10,7 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
     var calendars = (List<Calendar>)ViewData["calendars"];
-    var lastCal = calendars.First();
+    var latestCal = calendars.First();
 }
 @section Links{
     <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
@@ -65,7 +65,7 @@
         <div class="uk-width-expand@m uk-flex uk-flex-left">
             @if (Model.Count() > 0)
             {
-                <a asp-action="CustomerIncome" asp-controller="Print" asp-route-calendarId="@lastCal.Id" asp-route-id="@customer.Id" target="_blank" class="uk-button uk-button-secondary uk-margin-small-left" uk-icon="print"></a>
+                <a asp-action="CustomerIncome" asp-controller="Print" asp-route-calendarId="@latestCal.Id" asp-route-id="@customer.Id" target="_blank" class="uk-button uk-button-secondary uk-margin-small-left" uk-icon="print"></a>
             }
             else
             {
@@ -75,7 +75,7 @@
         </div>
     </div>
     <div class="box uk-margin-small-bottom" style="padding:15px 30px">
-        <h3 class="uk-text-center">گزارش دریافتی های @customer.Name در <span class="underline">@lastCal.Title</span></h3>
+        <h3 class="uk-text-center">گزارش دریافتی های @customer.Name در <span class="underline">@latestCal.Title</span></h3>
     </div>
     <div class="box uk-margin-small-bottom">
         @if (Model.Any())
@@ -119,7 +119,7 @@
         }
     </div>
     <div class="box" style="padding:15px 30px">
-        <h3 class="uk-text-center">گزارش دریافتی های @customer.Name در <span class="underline">@lastCal.Title</span></h3>
+        <h3 class="uk-text-center">گزارش دریافتی های @customer.Name در <span class="underline">@latestCal.Title</span></h3>
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ دریافتی</div>
             <div>@Model.Sum(a => a.Amount).ToString("N0") ریال</div>

@@ -48,7 +48,7 @@ namespace EtehadBar.Infra.Data.Context
             modelBuilder.Entity<LoadFactor>().Property(u => u.Counter).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
 
             modelBuilder.Entity<Config>().HasData(
-                new Config() { Id = 1, /*VAT = 9, LoadFactorDeductions = 5, WithholdingTax = 3,*/ Year = PersianDateTime.Now.ToString("yyyy") });
+                new Config() { Id = 1, VAT = 9, LoadFactorDeductions = 5, WithholdingTax = 3, Year = PersianDateTime.Now.ToString("yyyy") });
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)

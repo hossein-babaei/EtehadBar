@@ -1,4 +1,5 @@
-﻿using EtehadBar.Domain.Interfaces;
+﻿using EtehadBar.Domain;
+using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,16 @@ namespace EtehadBar.Infra.Data.Repository
         public async Task<Config> First()
         {
             return await db.Config.AsNoTracking().FirstAsync();
+        }
+
+        public async Task<LoadFactorConfigVM> LoadFactorTax()
+        {
+            return await db.Config.AsNoTracking().Select(a => new LoadFactorConfigVM
+            {
+                LoadFactorDeductions = a.LoadFactorDeductions,
+                VAT = a.VAT,
+                WithholdingTax = a.WithholdingTax
+            }).FirstAsync();
         }
 
         public async Task<int> Save()

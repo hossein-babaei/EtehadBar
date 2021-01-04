@@ -1,4 +1,5 @@
-﻿using EtehadBar.Domain.Interfaces;
+﻿using EtehadBar.Domain;
+using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using Helpers;
 using MD.PersianDateTime.Standard;
@@ -50,63 +51,52 @@ namespace EtehadBar.MVC.Controllers
             _userManager = userManager;
         }
 
-        //public async Task<IActionResult> Customer(int? id, string statusNumber, string start, string end)
-        //{
-        //    if (Request.IsAjaxRequest())
-        //    {
-        //        var S = start.PersianToEnglish().Split('/');
-        //        var startDate = new PersianDateTime(
-        //            Convert.ToInt32(S[0]),
-        //            Convert.ToInt32(S[1]),
-        //            Convert.ToInt32(S[2]), 0, 0, 0, 0).ToDateTime();
-        //        var E = end.PersianToEnglish().Split('/');
-        //        var endDate = new PersianDateTime(
-        //            Convert.ToInt32(E[0]),
-        //            Convert.ToInt32(E[1]),
-        //            Convert.ToInt32(E[2]), 23, 59, 59, 99).ToDateTime();
+        public async Task<IActionResult> Customer(int? id, string statusNumber, string calendarId)
+        {
+            if (Request.IsAjaxRequest())
+            {
+                ViewData["statusNumber"] = statusNumber;
 
-        //        ViewData["start"] = startDate;
-        //        ViewData["end"] = endDate;
-        //        ViewData["statusNumber"] = statusNumber;
-        //        var customer = await db.Customer.AsNoTracking().Where(a => a.Id.Equals(id.Value)).SingleAsync();
+                var calendar = await _calendarRepo.Get(calendarId);
+                ViewData["calendar"] = calendar;
 
-        //        ViewData["customer"] = customer;
+                var customer = await _customerRepo.Get(id.Value);
+                ViewData["customer"] = customer;
 
-        //        if (customer.Name.Contains("پلاسکو"))
-        //        {
-        //            return PartialView("_Plasco", await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync());
-        //        }
+                return customer.Type switch
+                {
+                    (byte)Customers.SaipaPlasco => PartialView("_Plasco"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
+                    (byte)Customers.SaipaPress => PartialView("_SaipaPress"),
+                    (byte)Customers.SazehGostar => PartialView("_SazehGostar"),
+                    _ => NotFound(),
+                };
+            }
+            else
+            {
+                if (id.HasValue)
+                {
+                    ViewData["statusNumber"] = statusNumber;
 
-        //        return NotFound();
-        //    }
-        //    else
-        //    {
-        //        if (id.HasValue)
-        //        {
-        //            var pdNow = PersianDateTime.Now;
-        //            var startDate = new PersianDateTime(pdNow.Year, pdNow.Month, 1, 0, 0, 0, 0).ToDateTime();
-        //            var endDate = pdNow.ToDateTime();
+                    var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+                    ViewData["calendars"] = calendars;
 
-        //            ViewData["start"] = startDate;
-        //            ViewData["end"] = endDate;
-        //            ViewData["statusNumber"] = statusNumber;
-        //            var customer = await db.Customer.AsNoTracking().Where(a => a.Id.Equals(id.Value)).SingleAsync();
+                    var customer = await _customerRepo.Get(id.Value);
+                    ViewData["customer"] = customer;
 
-        //            ViewData["customer"] = customer;
-
-        //            if (customer.Name.Contains("پلاسکو"))
-        //            {
-        //                return View("Plasco", await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync());
-        //            }
-
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            return View("CustomerList", await db.Customer.OrderBy(a => a.Name).ToListAsync());
-        //        }
-        //    }
-        //}
+                    return customer.Type switch
+                    {
+                        (byte)Customers.SaipaPlasco => View("Plasco"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
+                        (byte)Customers.SaipaPress => View("SaipaPress"),
+                        (byte)Customers.SazehGostar => View("SazehGostar"),
+                        _ => NotFound(),
+                    };
+                }
+                else
+                {
+                    return View("CustomerList", await _customerRepo.GetAll());
+                }
+            }
+        }
 
         [HttpGet]
         public async Task<IActionResult> CustomerIncome(int? id)
@@ -119,10 +109,10 @@ namespace EtehadBar.MVC.Controllers
 
             ViewData["customer"] = await _customerRepo.Get(id.Value);
 
-            var caledndars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
-            ViewData["calendars"] = caledndars;
+            var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["calendars"] = calendars;
 
-            return View(await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(caledndars.First().Id)).OrderBy(a => a.Date).ToListAsync());
+            return View(await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendars.First().Id)).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpPost]
@@ -132,6 +122,28 @@ namespace EtehadBar.MVC.Controllers
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
 
             return PartialView("_CustomerIncome", await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Detailed()
+        {
+            var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["calendars"] = calendars;
+
+            var latestCal = calendars.First();
+            ViewData["cost"] = await _costRepo.Costs().Where(a => a.CalendarId.Equals(latestCal.Id)).SumAsync(a => a.Amount);
+            ViewData["payment"] = await _paymentRepo.Payments().Where(a => a.CalendarId.Equals(latestCal.Id)).SumAsync(a => a.Amount);
+            return View(await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(latestCal.Id)).OrderBy(a => a.Date).ToListAsync());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Detailed(string calendarId)
+        {
+            ViewData["calendar"] = await _calendarRepo.Get(calendarId);
+
+            ViewData["cost"] = await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            ViewData["payment"] = await _paymentRepo.Payments().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            return PartialView("_Detailed", await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync());
         }
     }
 }

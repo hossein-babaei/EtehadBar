@@ -53,7 +53,15 @@ namespace EtehadBar.Domain.Models
         public string Domain { get; set; }
 
         [Display(Name = "سال جاری")]
-        [StringLength(4, MinimumLength = 4, ErrorMessage = "{0} باید {1} عدد باشد.")]
         public string Year { get; set; }
+
+        [Display(Name = "مالیات ارزش افزوده (%)")]
+        public double VAT { get; set; }
+
+        [Display(Name = "سپرده بیمه (%)")]
+        public double LoadFactorDeductions { get; set; }
+
+        [Display(Name = "مالیات تکلیفی (%)")]
+        public double WithholdingTax { get; set; }
     }
 }

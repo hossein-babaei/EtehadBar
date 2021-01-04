@@ -48,6 +48,17 @@ namespace EtehadBar.Domain.Models
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ExitNumber { get; set; }
 
+
+        [Display(Name = "مالیات ارزش افزوده (%)")]
+        public double VAT { get; set; }
+
+        [Display(Name = "سپرده بیمه (%)")]
+        public double LoadFactorDeductions { get; set; }
+
+        [Display(Name = "مالیات تکلیفی (%)")]
+        public double WithholdingTax { get; set; }
+
+
         [StringLength(450)]
         public string AdminId { get; set; }
 

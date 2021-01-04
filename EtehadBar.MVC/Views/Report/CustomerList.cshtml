@@ -1,0 +1,78 @@
+﻿@model IEnumerable<Customer>
+
+@{
+    int i = 1;
+    ViewData["pageId"] = 14;
+    ViewData["Title"] = "گزارش بارنامه بر اساس مشتری";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+@section Scripts{
+    <script>
+        function submitForm() {
+            $('#modal form').submit();
+        }
+        function showForm(id, type) {
+            if (type == 'plasco') {
+                var tag = '<form method="post" action="/report/customer"><input type="hidden" name="id" value="' + id + '" /><label class="uk-form-label"> لطفا شماره صورت وضعیت را وارد نمائید</label><input class="uk-input uk-border-rounded" name="statusNumber" /></div>';
+                $('#modal .uk-modal-body').html(tag);
+                $('#modal .uk-modal-footer').html('<a class="uk-button uk-button-primary" onclick="submitForm()">مشاهده</a><button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>');
+                UIkit.modal('#modal').show();
+            }
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a class="uk-button uk-button-primary" asp-action="Customer" asp-controller="Admin">مدیریت مشتریان</a>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Name)</th>
+                    <th>@Html.DisplayNameFor(model => model.Status)</th>
+                    <th>گزارش دریافتی</th>
+                    <th>گزارش بارنامه</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@item.Name</td>
+                        @if (item.Status)
+                        {
+                            <td class="uk-text-bold uk-text-success">فعال</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-bold uk-text-danger">غیر فعال</td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="showForm(@item.Id, 'plasco')">بارنامه</a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">فرم</h2>
+        </div>
+        <div class="uk-modal-body"></div>
+        <div class="uk-modal-footer uk-text-center"></div>
+    </div>
+</div>

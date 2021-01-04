@@ -47,6 +47,7 @@ namespace EtehadBar.Domain
         [Display(Name = "مشتری")]
         public int CustomerId { get; set; }
     }
+
     public class EditContractVM
     {
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -171,11 +172,11 @@ namespace EtehadBar.Domain
         public double WithholdingTax { get; set; }
     }
 
-    public class LoadeFactorFormConfig
+    public class LoadFactorConfigVM
     {
-        public double Tax { get; set; }
-        public double Deduction { get; set; }
-        public string Year { get; set; }
+        public double VAT { get; set; }
+        public double LoadFactorDeductions { get; set; }
+        public double WithholdingTax { get; set; }
     }
 
     public class PaymentVM

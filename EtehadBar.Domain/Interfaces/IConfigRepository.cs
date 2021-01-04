@@ -5,6 +5,7 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface IConfigRepository
     {
+        Task<LoadFactorConfigVM> LoadFactorTax();
         Task<string> CurrentYear();
         Task<Config> First();
         Task<int> Save();

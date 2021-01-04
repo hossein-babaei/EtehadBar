@@ -888,10 +888,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     StartDate = startDate,
                     EndDate = endDate,
-                    Title = c.Title,
-                    WithholdingTax = c.WithholdingTax,
-                    VAT = c.VAT,
-                    LoadFactorDeductions = c.LoadFactorDeductions
+                    Title = c.Title
                 });
                 try
                 {
@@ -923,13 +920,10 @@ namespace EtehadBar.MVC.Controllers
                 EndMonth = persianEndDate.Month,
                 EndYear = persianEndDate.Year,
                 Id = item.Id,
-                LoadFactorDeductions = item.LoadFactorDeductions,
                 StartDay = persianStartDate.Day,
                 StartMonth = persianStartDate.Month,
                 StartYear = persianStartDate.Year,
-                Title = item.Title,
-                VAT = item.VAT,
-                WithholdingTax = item.WithholdingTax
+                Title = item.Title
             });
         }
 
@@ -957,9 +951,6 @@ namespace EtehadBar.MVC.Controllers
                 item.StartDate = startDate;
                 item.EndDate = endDate;
                 item.Title = c.Title;
-                item.VAT = c.VAT;
-                item.LoadFactorDeductions = c.LoadFactorDeductions;
-                item.WithholdingTax = c.WithholdingTax;
                 _calendarRepo.Update(item);
                 try
                 {
@@ -2111,6 +2102,7 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                var config = await _configRepo.LoadFactorTax();
                 var loadFactor = new LoadFactor
                 {
                     AdminId = _userManager.GetUserId(User),
@@ -2126,7 +2118,10 @@ namespace EtehadBar.MVC.Controllers
                     LoadNumber = input.LoadNumber,
                     LoadNumberGov = input.LoadNumberGov,
                     VehicleId = input.VehicleId,
-                    ShippingFeeId = input.ShippingFeeId
+                    ShippingFeeId = input.ShippingFeeId,
+                    WithholdingTax = config.WithholdingTax,
+                    VAT = config.VAT,
+                    LoadFactorDeductions = config.LoadFactorDeductions
                 };
 
                 _loadFactorRepo.Create(loadFactor);
@@ -2159,6 +2154,7 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                var config = await _configRepo.LoadFactorTax();
                 var loadFactor = new LoadFactor
                 {
                     AdminId = _userManager.GetUserId(User),
@@ -2174,7 +2170,10 @@ namespace EtehadBar.MVC.Controllers
                     LoadNumber = input.LoadNumber,
                     LoadNumberGov = input.LoadNumberGov,
                     VehicleId = input.VehicleId,
-                    ShippingFeeId = input.ShippingFeeId
+                    ShippingFeeId = input.ShippingFeeId,
+                    WithholdingTax = config.WithholdingTax,
+                    VAT = config.VAT,
+                    LoadFactorDeductions = config.LoadFactorDeductions
                 };
 
                 var saipaPressLoadFactor = new SaipaPressLoadFactor
@@ -2217,6 +2216,7 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                var config = await _configRepo.LoadFactorTax();
                 var loadFactor = new LoadFactor
                 {
                     AdminId = _userManager.GetUserId(User),
@@ -2232,7 +2232,10 @@ namespace EtehadBar.MVC.Controllers
                     LoadNumber = input.LoadNumber,
                     LoadNumberGov = input.LoadNumberGov,
                     VehicleId = input.VehicleId,
-                    ShippingFeeId = input.ShippingFeeId
+                    ShippingFeeId = input.ShippingFeeId,
+                    WithholdingTax = config.WithholdingTax,
+                    VAT = config.VAT,
+                    LoadFactorDeductions = config.LoadFactorDeductions
                 };
 
                 var sazehGostarLoadFactor = new SazehGostarLoadFactor
@@ -2340,7 +2343,6 @@ namespace EtehadBar.MVC.Controllers
             return Redirect(Request.Headers["Referer"].ToString());
         }
 
-
         [HttpPost]
         public async Task<IActionResult> EditSaipaPressLoadFactor(ESaipaPressLoadFactorVM input)
         {
@@ -2387,7 +2389,6 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
-
 
         [HttpPost]
         public async Task<IActionResult> EditSazehGostarLoadFactor(ESazehGostarLoadFactorVM input)

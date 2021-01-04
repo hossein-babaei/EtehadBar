@@ -23,15 +23,6 @@ namespace EtehadBar.Domain.Models
         [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string Title { get; set; }
 
-        [Display(Name = "مالیات ارزش افزوده (%)")]
-        public double VAT { get; set; }
-
-        [Display(Name = "سپرده بیمه (%)")]
-        public double LoadFactorDeductions { get; set; }
-
-        [Display(Name = "مالیات تکلیفی (%)")]
-        public double WithholdingTax { get; set; }
-
         public virtual ICollection<Cost> Costs { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }

@@ -48,13 +48,28 @@
                 <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
                     <div>
                         <label asp-for="Year" class="uk-form-label"></label>
-                        <select class="uk-select uk-border-rounded">
+                        <select asp-for="Year" class="uk-select uk-border-rounded">
                             @for (int i = 1399; i < 1411; i++)
                             {
-                                <!option value="@i" @if (Model.Year == i.ToString()) { <text> selected</text> }>@i</!option>
+                                <!option value="@i.ToString()" @if (Model.Year == i.ToString()) { <text> selected</text> }>@i</!option>
                             }
                         </select>
                         <span asp-validation-for="Year" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label asp-for="VAT" class="uk-form-label"></label>
+                        <input asp-for="VAT" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="VAT" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label asp-for="LoadFactorDeductions" class="uk-form-label"></label>
+                        <input asp-for="LoadFactorDeductions" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="LoadFactorDeductions" class="uk-text-danger"></span>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label asp-for="WithholdingTax" class="uk-form-label"></label>
+                        <input asp-for="WithholdingTax" class="uk-input uk-border-rounded" />
+                        <span asp-validation-for="WithholdingTax" class="uk-text-danger"></span>
                     </div>
                     <div>
                         <label asp-for="Tel" class="uk-form-label"></label>

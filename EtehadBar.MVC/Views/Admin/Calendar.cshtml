@@ -62,9 +62,6 @@
                     <th>@Html.DisplayNameFor(model => model.Title)</th>
                     <th>@Html.DisplayNameFor(model => model.StartDate)</th>
                     <th>@Html.DisplayNameFor(model => model.EndDate)</th>
-                    <th>@Html.DisplayNameFor(model => model.VAT)</th>
-                    <th>@Html.DisplayNameFor(model => model.LoadFactorDeductions)</th>
-                    <th>@Html.DisplayNameFor(model => model.WithholdingTax)</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -80,9 +77,6 @@
                         <td>@Html.DisplayFor(modelItem => item.Title)</td>
                         <td>@startDate</td>
                         <td>@endDate</td>
-                        <td>@item.VAT</td>
-                        <td>@item.LoadFactorDeductions</td>
-                        <td>@item.WithholdingTax</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
