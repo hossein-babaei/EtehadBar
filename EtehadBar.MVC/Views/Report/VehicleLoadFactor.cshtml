@@ -1,0 +1,161 @@
+﻿@{
+    ViewData["pageId"] = 11;
+    ViewData["Title"] = "گزارش عملکرد خودرو";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var calendars = (List<Calendar>)ViewData["calendars"];
+    var latestCal = calendars.First();
+}
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+}
+@section Scripts{
+    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="~/lib/select2/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#search-modal select[name=calendarId]').select2({ width: '100%' });
+        });
+        $('#search-modal form').submit(function (e) {
+            e.preventDefault();
+            filter();
+        });
+        function filter() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("VehicleLoadFactor", "Report")',
+                data: $('#search-modal form').serialize(),
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+        function getSearch() {
+            preloader();
+            $.get('@Url.Action("GetVehicleListPartial", "Admin")', { }, function (r) {
+                $('#vehicle-list-modal #appendList').html(r);
+            }, 'html').then(function () {
+                preloader();
+                UIkit.modal('#vehicle-list-modal').show();
+            });
+        }
+        function find() {
+            preloader();
+            var key = $('#search-term').val();
+            $.get('@Url.Action("GetVehicleListPartial", "Admin")', { 'rightNumber': key }, function (r) {
+                $('#vehicle-list-modal #appendList').html(r);
+            }, 'html').then(function () {
+                preloader();
+            });
+        }
+        $('#vehicle-list-modal #find-form').submit(function (e) {
+            e.preventDefault();
+            find();
+        });
+        function reset() {
+            $('#search-term').val('');
+            find();
+        }
+        function showForm(id) {
+            $('#search-modal #vehicleId').val(id);
+            UIkit.modal('#search-modal').show();
+        }
+        $(document).ready(function () {
+            getSearch();
+        });
+    </script>
+}
+<style>
+    .underline {
+        text-decoration: underline;
+    }
+</style>
+<div id="append">
+    <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+        <div class="uk-width-auto@m">
+            <ul class="uk-breadcrumb">
+                <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+                <li><span>@ViewData["Title"]</span></li>
+            </ul>
+        </div>
+        <div class="uk-width-expand@m uk-flex uk-flex-left">
+            <button class="uk-button uk-button-default uk-margin-small-left" uk-icon="print" disabled></button>
+            <a class="uk-button uk-button-primary" onclick="getSearch()" uk-icon="search"></a>
+        </div>
+    </div>
+    <div class="box uk-margin-small-bottom">
+        <div class="uk-margin-medium-top uk-margin-medium-bottom">
+            <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+                <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+                <div>
+                    <h2>لطفا یک خودرو را انتخاب کنید.</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="vehicle-list-modal" class="uk-modal-container" uk-modal="bg-close: false">
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">لیست خودرو های اتحاد بار</h2>
+        </div>
+        <div class="uk-modal-body">
+            <div class="uk-grid-small" uk-grid>
+                <div class="uk-width-1-1 uk-width-1-2@m">
+                    <form id="find-form" class="uk-search uk-search-default uk-width-1-1">
+                        <a onclick="find()" class="uk-search-icon-flip" uk-search-icon></a>
+                        <input id="search-term" autocomplete="off" class="uk-search-input uk-border-rounded" type="search" placeholder="جستجوی بر اساس 3 رقم سمت راست پلاک...">
+                    </form>
+                </div>
+                <div class="uk-width-1-1 uk-width-1-2@m uk-flex uk-flex-left@m">
+                    <button class="uk-button uk-button-default" onclick="reset()">ریست</button>
+                </div>
+                <div class="uk-width-1-1" id="appendList"></div>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <input type="hidden" value="" autocomplete="off" name="vehicleId" id="vehicleId" />
+                <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label class="uk-form-label">تاریخ</label>
+                        <select name="calendarId">
+                            @foreach (var item in calendars)
+                            {
+                                <option value="@item.Id">@item.Title</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="VehicleLoadFactor" asp-controller="Report" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

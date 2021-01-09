@@ -186,7 +186,7 @@ namespace EtehadBar.Domain
         [Display(Name = "تاریخ")]
         public DateTime Date { get; set; } = DateTime.Now;
 
-        [Display(Name = "مبلغ (تومان)")]
+        [Display(Name = "مبلغ (ریال)")]
         public double Amount { get; set; }
 
         [Display(Name = "شرح پرداخت")]
@@ -202,10 +202,10 @@ namespace EtehadBar.Domain
         [Display(Name = "کاربر سیستم")]
         public string AdminName { get; set; }
 
-        public string DriverId { get; set; }
 
-        [Display(Name = "کارمند / راننده")]
-        public string DriverName { get; set; }
+        [Display(Name = "خودرو")]
+        public string VehicleId { get; set; }
+        public string Vehicle { get; set; }
     }
 
     public class CreateUserVM

@@ -1,0 +1,162 @@
+﻿@model IEnumerable<Cost>
+
+@{
+    ViewData["pageId"] = 10;
+    ViewData["Title"] = "گزارش هزینه های جاری";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+
+    var calendars = (List<Calendar>)ViewData["calendars"];
+    var latestCal = calendars.First();
+
+    var amount = Model.Sum(a => a.Amount);
+}
+
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+}
+@section Scripts{
+    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="~/lib/select2/select2.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#search-modal select[name=calendarId]').select2({ width: '100%' });
+        });
+        $('#search-modal form').submit(function (e) {
+            e.preventDefault();
+            filter();
+        });
+        function filter() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Cost", "Report")',
+                data: $('#search-modal form').serialize(),
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+    </script>
+}
+<style>
+    .underline {
+        text-decoration: underline;
+    }
+</style>
+<div id="append">
+    <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+        <div class="uk-width-auto@m">
+            <ul class="uk-breadcrumb">
+                <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+                <li><span>@ViewData["Title"]</span></li>
+            </ul>
+        </div>
+        <div class="uk-width-expand@m uk-flex uk-flex-left">
+            @if (Model.Count() > 0)
+            {
+                <a asp-action="Cost" asp-controller="Excel" asp-route-calendarId="@latestCal.Id" target="_blank" class="uk-button uk-button-secondary uk-margin-small-left"><span class="fas fa-file-excel"></span></a>
+            }
+            else
+            {
+                <button class="uk-button uk-button-default uk-margin-small-left" disabled><span class="fas fa-file-excel"></span></button>
+            }
+            <a class="uk-button uk-button-primary" href="#search-modal" uk-toggle uk-icon="search"></a>
+        </div>
+    </div>
+    <div class="box uk-margin-small-bottom" style="padding:15px 30px">
+        <h3 class="uk-text-center">گزارش هزینه های جاری در <span class="underline">@latestCal.Title</span></h3>
+    </div>
+    <div class="box uk-margin-small-bottom">
+        @if (Model.Any())
+        {
+            <div class="uk-overflow-auto">
+                <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                    <thead>
+                        <tr>
+                            <th width="50">ردیف</th>
+                            <th>@Html.DisplayNameFor(model => model.Date)</th>
+                            <th>@Html.DisplayNameFor(model => model.Description)</th>
+                            <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                            <th>@Html.DisplayNameFor(model => model.UserId)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var pd = new PersianDateTime(item.Date);
+
+                            <tr class="uk-text-center samim xs">
+                                <td>
+                                    @i
+                                </td>
+                                <td>@pd.ToString("yyyy/MM/dd")</td>
+                                <td>@item.Description</td>
+                                <td>@item.Amount.ToString("N0")</td>
+                                <td>@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname</td>
+                            </tr>
+                            i++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="uk-margin-medium-top uk-margin-medium-bottom">
+                <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+                    <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+                    <div>
+                        <h2>نتیجه ای یافت نشد.</h2>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div class="box" style="padding:15px 30px">
+        <h3 class="uk-heading-divider uk-text-center">گزارش هزینه های جاری در <span class="underline">@latestCal.Title</span></h3>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">تعداد کل</div>
+            <div>@Model.Count() عدد</div>
+        </div>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ هزینه های جاری</div>
+            <div>@amount.ToString("N0") تومان</div>
+        </div>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <label class="uk-form-label">تاریخ</label>
+                <select name="calendarId">
+                    @foreach (var item in calendars)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                </select>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="Cost" asp-controller="Report" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

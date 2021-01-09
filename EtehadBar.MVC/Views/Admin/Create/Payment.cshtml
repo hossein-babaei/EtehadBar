@@ -1,13 +1,6 @@
 ﻿@model Payment
 @{
-    var userInfo = (ApplicationUser)ViewData["UserInfo"];
-    string role = userInfo.Role switch
-    {
-        (byte)ApplicationRoles.Admin => "مدیر سیستم",
-        (byte)ApplicationRoles.User => "کاربر سیستم",
-        (byte)ApplicationRoles.Driver => "راننده",
-        _ => ""
-    };
+    var vehicleInfo = (Vehicle)ViewData["VehicleInfo"];
     var calendar = (List<Calendar>)ViewData["Calendar"];
 }
 <div class="uk-modal-dialog">
@@ -17,39 +10,17 @@
     <div class="uk-modal-body">
         <div class="uk-grid-divider uk-margin-bottom uk-child-width-auto uk-text-center uk-flex uk-flex-center" uk-grid>
             <div>
-                @if (string.IsNullOrEmpty(userInfo.Avatar))
-                {
-                    <span class="xs">بدون تصویر پرسنلی</span>
-                }
-                else
-                {
-                    <div uk-lightbox>
-                        <a class="uk-button uk-button-default" href="/img/user/@userInfo.Avatar" data-caption="@userInfo.Firstname @userInfo.Lastname (@role)">
-                            <img class="uk-box-shadow-small uk-border-rounded" width="70" src="~/img/user/@userInfo.Avatar" />
-                        </a>
-                    </div>
-                }
+                <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">نوع خودرو</p>
+                <span class="md">@vehicleInfo.Type</span>
             </div>
             <div>
-                <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">نام و نام خانوادگی</p>
-                <span class="md">@userInfo.Firstname @userInfo.Lastname</span>
-            </div>
-            <div>
-                <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">نقش</p>
-                <span class="md">@role</span>
-            </div>
-            <div>
-                <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">کد ملی</p>
-                <span class="md">@userInfo.NationalId</span>
-            </div>
-            <div>
-                <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">شماره تلفن همراه</p>
-                <span class="md">@userInfo.PhoneNumber</span>
+                <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">شماره پلاک</p>
+                <span class="md">ایران @vehicleInfo.IranStateNumber - @vehicleInfo.RightNumber @vehicleInfo.NumberWord @vehicleInfo.LeftNumber</span>
             </div>
         </div>
         <form id="create-form" asp-action="CreatePayment" method="post" enctype="multipart/form-data">
             <input asp-for="AdminId" type="hidden" value="@ViewData["AdminId"].ToString()" />
-            <input asp-for="ApplicationUserId" type="hidden" value="@userInfo.Id" />
+            <input asp-for="VehicleId" type="hidden" value="@vehicleInfo.Id" />
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
                 <div>

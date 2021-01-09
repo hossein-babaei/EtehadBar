@@ -1,6 +1,9 @@
-﻿using EtehadBar.Domain.Interfaces;
+﻿using EtehadBar.Domain;
+using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -43,6 +46,41 @@ namespace EtehadBar.Infra.Data.Repository
         public void Update(Payment obj)
         {
             db.Update(obj);
+        }
+
+        public async Task<List<PaymentVM>> PaymentVMList(string calendarId, byte? type, string vehicleId)
+        {
+            var data = from a in db.Payment
+                       join b in db.ApplicationUser on a.AdminId equals b.Id
+                       join c in db.Vehicles on a.VehicleId equals c.Id
+                       where a.CalendarId.Equals(calendarId)
+                       select new PaymentVM
+                       {
+                           AdminId = a.AdminId,
+                           Id = a.Id,
+                           AdminName = $"{b.Firstname} {b.Lastname}",
+                           Amount = a.Amount,
+                           Date = a.Date,
+                           Description = a.Description,
+                           VehicleId = c.Id,
+                           Vehicle = $"ایران {c.IranStateNumber} - {c.RightNumber} {c.NumberWord} {c.LeftNumber}",
+                           Picture = a.Picture,
+                           Type = a.Type
+                       };
+
+            if (type.HasValue)
+            {
+                if (type.Value != 2)
+                    data = data.Where(a => a.Type.Equals(type.Value));
+            }
+
+            if (!string.IsNullOrWhiteSpace(vehicleId))
+            {
+                if (vehicleId != "all")
+                    data = data.Where(a => a.VehicleId.Equals(vehicleId));
+            }
+
+            return await data.AsNoTracking().ToListAsync();
         }
     }
 }

@@ -18,23 +18,23 @@
     <script>
         function getCreate() {
             preloader();
-            $.get('@Url.Action("GetUserListPartial")', { }, function (r) {
-                $('#user-list-modal #appendList').html(r);
+            $.get('@Url.Action("GetVehicleListPartial")', { }, function (r) {
+                $('#vehicle-list-modal #appendList').html(r);
             }, 'html').then(function () {
                 preloader();
-                UIkit.modal('#user-list-modal').show();
+                UIkit.modal('#vehicle-list-modal').show();
             });
         }
         function find() {
             preloader();
             var key = $('#search-term').val();
-            $.get('@Url.Action("GetUserListPartial")', { 'name': key }, function (r) {
-                $('#user-list-modal #appendList').html(r);
+            $.get('@Url.Action("GetVehicleListPartial")', { 'rightNumber': key }, function (r) {
+                $('#vehicle-list-modal #appendList').html(r);
             }, 'html').then(function () {
                 preloader();
             });
         }
-        $('#user-list-modal #find-form').submit(function (e) {
+        $('#vehicle-list-modal #find-form').submit(function (e) {
             e.preventDefault();
             find();
         });
@@ -44,7 +44,7 @@
         }
         function showForm(id) {
             preloader();
-            $.get('@Url.Action("CreatePayment")', { 'userId': id }, function (r) {
+            $.get('@Url.Action("CreatePayment")', { 'vehicleId': id }, function (r) {
                 $('#create-modal').html(r);
             }, 'html').then(function () {
                 parseValidator('#create-modal form');
@@ -89,7 +89,7 @@
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
-                    <th>@Html.DisplayNameFor(model => model.ApplicationUserId)</th>
+                    <th>@Html.DisplayNameFor(model => model.VehicleId)</th>
                     <th>@Html.DisplayNameFor(model => model.Type)</th>
                     <th>تصویر</th>
                     <th width="50">ویرایش</th>
@@ -106,7 +106,7 @@
                         <td>@pd.ToString("yyyy/MM/dd")</td>
                         <td>@item.Description</td>
                         <td>@item.Amount.ToString("N0")</td>
-                        <td>@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname</td>
+                        <td>ایران @item.Vehicle.IranStateNumber - @item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
                         @if (item.Type.Equals((byte)PaymentType.AdvanceMoney))
                         {
                             <td class="uk-text-bold">مساعده</td>
@@ -142,17 +142,17 @@
         </div>
     }
 </div>
-<div id="user-list-modal" class="uk-modal-container" uk-modal="bg-close: false">
+<div id="vehicle-list-modal" class="uk-modal-container" uk-modal="bg-close: false">
     <div class="uk-modal-dialog">
         <div class="uk-modal-header uk-light">
-            <h2 class="uk-modal-title">لیست کاربران</h2>
+            <h2 class="uk-modal-title">لیست خودرو های اتحاد بار</h2>
         </div>
         <div class="uk-modal-body">
             <div class="uk-grid-small" uk-grid>
                 <div class="uk-width-1-1 uk-width-1-2@m">
                     <form id="find-form" class="uk-search uk-search-default uk-width-1-1">
                         <a onclick="find()" class="uk-search-icon-flip" uk-search-icon></a>
-                        <input id="search-term" autocomplete="off" class="uk-search-input uk-border-rounded" type="search" placeholder="جستجوی نام کاربر...">
+                        <input id="search-term" autocomplete="off" class="uk-search-input uk-border-rounded" type="search" placeholder="جستجوی بر اساس 3 رقم سمت راست پلاک...">
                     </form>
                 </div>
                 <div class="uk-width-1-1 uk-width-1-2@m uk-flex uk-flex-left@m">

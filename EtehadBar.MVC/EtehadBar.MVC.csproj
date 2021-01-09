@@ -31,4 +31,8 @@
     <ProjectReference Include="..\EtehadBar.Infra.IoC\EtehadBar.Infra.IoC.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Views\Report\Customer\" />
+  </ItemGroup>
+
 </Project>

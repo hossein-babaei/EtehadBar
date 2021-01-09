@@ -38,6 +38,8 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool Status { get; set; }
+
+        public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
     }
 }

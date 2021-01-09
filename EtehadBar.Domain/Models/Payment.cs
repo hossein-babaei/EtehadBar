@@ -37,10 +37,10 @@ namespace EtehadBar.Domain.Models
         public string CalendarId { get; set; }
         public virtual Calendar Calendar { get; set; }
 
-        [Display(Name = "کارمند / راننده")]
+        [Display(Name = "خودرو")]
         [Required]
-        [StringLength(450)]
-        public string ApplicationUserId { get; set; }
-        public virtual ApplicationUser ApplicationUser { get; set; }
+        [StringLength(50)]
+        public string VehicleId { get; set; }
+        public virtual Vehicle Vehicle { get; set; }
     }
 }

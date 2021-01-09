@@ -1,0 +1,52 @@
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@{
+    var data = ViewBag.data as IPagedList<Vehicle>;
+    int i = 1;
+    if (data.PageNumber > 1)
+    {
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+    }
+}
+@if (data.Count > 0)
+{
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>نوع</th>
+                    <th>شماره پلاک</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center sm pointer" onclick="showForm('@item.Id')">
+                        <td>@i</td>
+                        <td>@item.Type</td>
+                        <td>ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("GetVehicleListPartial", new { p = page, rightNumber = ViewBag.rightNumber }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "appendList", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+        </div>
+    }
+}
+else
+{
+    <div class="box">
+        <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+            <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+            <div>
+                <h3>خودرویی پیدا نشد</h3>
+            </div>
+        </div>
+    </div>
+}

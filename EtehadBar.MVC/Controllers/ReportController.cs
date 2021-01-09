@@ -51,6 +51,23 @@ namespace EtehadBar.MVC.Controllers
             _userManager = userManager;
         }
 
+        [HttpPost]
+        public async Task<JsonResult> GetUserListJson()
+        {
+            return Json(await _userManager.Users.OrderBy(a => a.Lastname).Select(a => new { id = a.Id, fullname = a.Firstname + " " + a.Lastname }).ToListAsync());
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> GetVehicleListJson()
+        {
+            return Json(await _vehicleRepo.Vehicles().OrderBy(a => a.LeftNumber).Select(a => new
+            {
+                a.Id,
+                number = $"ایران {a.IranStateNumber} - {a.RightNumber} {a.NumberWord} {a.LeftNumber}",
+                a.Type
+            }).ToListAsync());
+        }
+
         public async Task<IActionResult> Customer(int? id, string statusNumber, string calendarId)
         {
             if (Request.IsAjaxRequest())
@@ -65,9 +82,9 @@ namespace EtehadBar.MVC.Controllers
 
                 return customer.Type switch
                 {
-                    (byte)Customers.SaipaPlasco => PartialView("_Plasco"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
-                    (byte)Customers.SaipaPress => PartialView("_SaipaPress"),
-                    (byte)Customers.SazehGostar => PartialView("_SazehGostar"),
+                    (byte)Customers.SaipaPlasco => PartialView("~/Views/Report/Customer/_Plasco.cshtml"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
+                    (byte)Customers.SaipaPress => PartialView("~/Views/Report/Customer/_SaipaPress.cshtml"),
+                    (byte)Customers.SazehGostar => PartialView("~/Views/Report/Customer/_SazehGostar.cshtml"),
                     _ => NotFound(),
                 };
             }
@@ -85,14 +102,16 @@ namespace EtehadBar.MVC.Controllers
 
                     return customer.Type switch
                     {
-                        (byte)Customers.SaipaPlasco => View("Plasco"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
-                        (byte)Customers.SaipaPress => View("SaipaPress"),
-                        (byte)Customers.SazehGostar => View("SazehGostar"),
+                        (byte)Customers.SaipaPlasco => View("~/Views/Report/Customer/Plasco.cshtml"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
+                        (byte)Customers.SaipaPress => View("~/Views/Report/Customer/SaipaPress.cshtml"),
+                        (byte)Customers.SazehGostar => View("~/Views/Report/Customer/SazehGostar.cshtml"),
                         _ => NotFound(),
                     };
                 }
                 else
                 {
+                    ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+
                     return View("CustomerList", await _customerRepo.GetAll());
                 }
             }
@@ -144,6 +163,59 @@ namespace EtehadBar.MVC.Controllers
             ViewData["cost"] = await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
             ViewData["payment"] = await _paymentRepo.Payments().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
             return PartialView("_Detailed", await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Cost()
+        {
+            var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["calendars"] = calendars;
+
+            var latestCal = calendars.First();
+            return View(await _costRepo.Costs().Where(a => a.CalendarId.Equals(latestCal.Id)).ToListAsync());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Cost(string calendarId)
+        {
+            ViewData["calendar"] = await _calendarRepo.Get(calendarId);
+            return PartialView("_Cost", await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).ToListAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Payment()
+        {
+            var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["calendars"] = calendars;
+
+            var latestCal = calendars.First();
+            return View(await _paymentRepo.PaymentVMList(latestCal.Id, null, ""));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Payment(string calendarId, byte type, string vehicleId)
+        {
+            ViewData["calendar"] = await _calendarRepo.Get(calendarId);
+            ViewData["type"] = type;
+            ViewData["vehicleId"] = vehicleId;
+
+            return PartialView("_Payment", await _paymentRepo.PaymentVMList(calendarId, type, vehicleId));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VehicleLoadFactor()
+        {
+            ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> VehicleLoadFactor(string calendarId, string vehicleId)
+        {
+            ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
+            ViewData["calendar"] = await _calendarRepo.Get(calendarId);
+            ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
+            return PartialView("_VehicleLoadFactor", await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Counter).ToListAsync());
         }
     }
 }

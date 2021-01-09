@@ -771,6 +771,23 @@ namespace EtehadBar.MVC.Controllers
 
         #region Vehicle
         [HttpGet]
+        public async Task<IActionResult> GetVehicleListPartial(int? p, string rightNumber)
+        {
+            var data = _vehicleRepo.Vehicles();
+
+            if (!string.IsNullOrWhiteSpace(rightNumber))
+            {
+                data = data.Where(a => a.RightNumber.Contains(rightNumber));
+            }
+
+            var pageNumber = p ?? 1;
+            var onePageOfData = await data.OrderBy(a => a.LeftNumber).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            ViewBag.rightNumber = rightNumber;
+            return PartialView("_VehicleList");
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Vehicle(int? p)
         {
             var pageNumber = p ?? 1;
@@ -1182,10 +1199,10 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<PartialViewResult> CreatePayment(string userId)
+        public async Task<PartialViewResult> CreatePayment(string vehicleId)
         {
             ViewData["AdminId"] = _userManager.GetUserId(User);
-            ViewData["UserInfo"] = await _userManager.FindByIdAsync(userId);
+            ViewData["VehicleInfo"] = await _vehicleRepo.Get(vehicleId);
             ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             return PartialView("~/Views/Admin/Create/Payment.cshtml");

@@ -75,13 +75,11 @@
         <div class="uk-width-expand@m uk-flex uk-flex-left">
             @if (Model.Count() > 0)
             {
-                <a asp-action="Detailed" asp-controller="Excel" asp-route-calendarId="@latestCal.Id" target="_blank" class="uk-button uk-button-secondary uk-margin-small-left"><span class="fas fa-file-excel"></span></a>
-                <a asp-action="DetailedReport" asp-controller="Print" asp-route-calendarId="@latestCal.Id" target="_blank" class="uk-button uk-button-secondary uk-margin-small-left" uk-icon="print"></a>
+                <a asp-action="Detailed" asp-controller="Excel" asp-route-calendarId="@latestCal.Id" class="uk-button uk-button-secondary uk-margin-small-left"><span class="fas fa-file-excel"></span></a>
             }
             else
             {
                 <button class="uk-button uk-button-default uk-margin-small-left" disabled><span class="fas fa-file-excel"></span></button>
-                <button class="uk-button uk-button-default uk-margin-small-left" uk-icon="print" disabled></button>
             }
             <a class="uk-button uk-button-primary" href="#search-modal" uk-toggle uk-icon="search"></a>
         </div>

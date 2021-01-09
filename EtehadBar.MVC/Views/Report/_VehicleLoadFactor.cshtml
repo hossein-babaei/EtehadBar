@@ -1,0 +1,107 @@
+﻿@model IEnumerable<LoadFactor>
+
+@{
+    int i = 1;
+
+    var vehicle = (Vehicle)ViewData["vehicle"];
+    var calendar = (Calendar)ViewData["calendar"];
+    var payment = (double)ViewData["payment"];
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>گزارش عملکرد خودرو | @vehicle.Type (ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber)</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        @if (Model.Count() > 0)
+        {
+            <a asp-action="VehicleLoadFactor" asp-controller="Excel" asp-route-calendarId="@calendar.Id" asp-route-vehicleId="@vehicle.Id" class="uk-button uk-button-secondary uk-margin-small-left"><span class="fas fa-file-excel"></span></a>
+        }
+        else
+        {
+            <button class="uk-button uk-button-default uk-margin-small-left" disabled><span class="fas fa-file-excel"></span></button>
+        }
+        <a class="uk-button uk-button-primary" onclick="getSearch()" uk-icon="search"></a>
+    </div>
+</div>
+<div class="box uk-margin-small-bottom" style="padding:15px 30px">
+    <h3 class="uk-text-center">گزارش بارنامه های @vehicle.Type به شماره (ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber) در <span class="underline">@calendar.Title</span></h3>
+</div>
+<div class="box uk-margin-small-bottom">
+    @if (Model.Any())
+    {
+        <div class="uk-overflow-auto">
+            <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                <thead>
+                    <tr>
+                        <th width="50">ردیف</th>
+                        <th>@Html.DisplayNameFor(model => model.Date)</th>
+                        <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
+                        <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
+                        <th>@Html.DisplayNameFor(model => model.ExitNumber)</th>
+                        <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                        <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverId)</th>
+                        <th>@Html.DisplayNameFor(model => model.ContractId)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var pd = new PersianDateTime(item.Date);
+
+                        <tr class="uk-text-center xs">
+                            <td>
+                                @i
+                            </td>
+                            <td>@pd.ToString("yyyy/MM/dd")</td>
+                            <td>@item.LoadNumber</td>
+                            <td>@item.LoadNumberGov</td>
+                            <td>@item.ExitNumber</td>
+                            <td>@item.Origin</td>
+                            <td>@item.Destination</td>
+                            <td>@item.DriverFee.ToString("N0")</td>
+                            <td>@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname</td>
+                            <td>@item.Contract.Customer.Name - @item.Contract.Number</td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="uk-margin-medium-top uk-margin-medium-bottom">
+            <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+                <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+                <div>
+                    <h2>نتیجه ای یافت نشد.</h2>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div class="box" style="padding:15px 30px">
+    <h3 class="uk-heading-divider uk-text-center">گزارش بارنامه های @vehicle.Type به شماره (ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber) در <span class="underline">@calendar.Title</span></h3>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">تعداد کل بارنامه ها</div>
+        <div>@Model.Count() عدد</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">جمع کرایه عملکرد</div>
+        <div>@Model.Sum(a => a.DriverFee).ToString("N0") ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">جمع پرداختی (حقوق و مساعده)</div>
+        <div>@payment.ToString("N0") ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">مجموع قابل پرداخت</div>
+        <div>@((Model.Sum(a => a.DriverFee) - payment).ToString("N0")) ریال</div>
+    </div>
+</div>

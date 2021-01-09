@@ -5,19 +5,32 @@
     ViewData["pageId"] = 14;
     ViewData["Title"] = "گزارش بارنامه بر اساس مشتری";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var calendars = (List<Calendar>)ViewData["calendars"];
+    var latestCal = calendars.First();
+}
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
 }
 @section Scripts{
+    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="~/lib/select2/select2.min.js"></script>
     <script>
+        $(document).ready(function () {
+            $('#modal select[name=calendarId]').select2({ width: '100%' });
+        });
         function submitForm() {
             $('#modal form').submit();
         }
         function showForm(id, type) {
-            if (type == 'plasco') {
-                var tag = '<form method="post" action="/report/customer"><input type="hidden" name="id" value="' + id + '" /><label class="uk-form-label"> لطفا شماره صورت وضعیت را وارد نمائید</label><input class="uk-input uk-border-rounded" name="statusNumber" /></div>';
-                $('#modal .uk-modal-body').html(tag);
-                $('#modal .uk-modal-footer').html('<a class="uk-button uk-button-primary" onclick="submitForm()">مشاهده</a><button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>');
-                UIkit.modal('#modal').show();
+            $('#modal-append').html('');
+
+            if (type == @((byte)Customers.SaipaPlasco)) {
+                $('#modal-append').html('<label class= "uk-form-label"> لطفا شماره صورت وضعیت را وارد نمائید</label><input class="uk-input uk-border-rounded" name="statusNumber" />');
             }
+
+            $('#modal input[name=id]').val(id);
+            UIkit.modal('#modal').show();
         }
     </script>
 }
@@ -59,7 +72,7 @@
                             <td class="uk-text-bold uk-text-danger">غیر فعال</td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="showForm(@item.Id, 'plasco')">بارنامه</a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="showForm(@item.Id, @item.Type)">بارنامه</a></td>
                     </tr>
                     i++;
                 }
@@ -72,7 +85,26 @@
         <div class="uk-modal-header uk-light">
             <h2 class="uk-modal-title">فرم</h2>
         </div>
-        <div class="uk-modal-body"></div>
-        <div class="uk-modal-footer uk-text-center"></div>
+        <div class="uk-modal-body">
+            <form method="post" action="@Url.Action("Customer")" autocomplete="off">
+                <input type="hidden" name="id" value="" />
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <label class="uk-form-label">تاریخ</label>
+                        <select name="calendarId">
+                            @foreach (var item in calendars)
+                            {
+                                <!option value="@item.Id" @if (latestCal.Id.Equals(item)) { <text> selected="selected" </text> }>@item.Title</!option>
+                            }
+                        </select>
+                    </div>
+                    <div id="modal-append"></div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm()">مشاهده</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
     </div>
 </div>
