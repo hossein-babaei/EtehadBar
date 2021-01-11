@@ -11,6 +11,7 @@
 
     var totalCost = (double)ViewData["cost"];
     var totalPayment = (double)ViewData["payment"];
+    var totalIncome = (double)ViewData["income"];
 
     var amount = Model.Sum(a => a.Amount);
     var driverFeeSum = Model.Sum(a => a.DriverFee);
@@ -163,35 +164,43 @@
             <div>@Model.Count() عدد</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ بارنامه ها</div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ بارنامه ها</div>
             <div>@amount.ToString("N0") ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ کرایه <span class="xs">(قابل پرداخت به رانندگان)</span></div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ عملکرد <span class="xs">(قابل پرداخت به رانندگان)</span></div>
             <div>@driverFeeSum.ToString("N0") ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ مالیات بارنامه ها</div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع ارزش افزوده</div>
             <div>@vatAmountSum.ToString("N0") ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ کسورات بارنامه ها</div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع سپرده بیمه</div>
             <div>@deductionAmountSum.ToString("N0") ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">مجموع حقوق/مساعده پرداختی</div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع مالیات تکلیفی</div>
+            <div>@withholdingTax.ToString("N0") ریال</div>
+        </div>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع حقوق/مساعده پرداختی</div>
             <div>@totalPayment.ToString("N0") ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">مجموع هزینه های جاری</div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع هزینه های جاری</div>
             <div>@totalCost.ToString("N0") ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">مجموع کل هزینه ها</div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع کل هزینه ها</div>
             <div>@((totalPayment + totalCost).ToString("N0")) ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">سود <span class="xs">[مجموع مبلغ بارنامه ها - (حقوق/مساعده پرداختی + هزینه های جاری + کسورات)]</span></div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع کل دریافتی</div>
+            <div>@totalIncome.ToString("N0") ریال</div>
+        </div>
+        @*<div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">سود <span class="xs">[جمع مبلغ بارنامه ها - (حقوق/مساعده پرداختی + هزینه های جاری + کسورات)]</span></div>
             <div><span dir="ltr">@((amount - (totalPayment + totalCost + deductionAmountSum)).ToString("N0"))</span> ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
@@ -205,7 +214,7 @@
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">سود <span class="xs">[(مبلغ بارنامه ها + مالیات دریافتی) - (کرایه (قابل پرداخت به رانندگان) + کسورات)]</span></div>
             <div><span dir="ltr">@(((amount + vatAmountSum) - (driverFeeSum + deductionAmountSum)).ToString("N0"))</span> ریال</div>
-        </div>
+        </div>*@
     </div>
 </div>
 <div id="search-modal" uk-modal>

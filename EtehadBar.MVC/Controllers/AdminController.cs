@@ -1659,7 +1659,16 @@ namespace EtehadBar.MVC.Controllers
                 };
 
                 if (c.ParentContractId != "none")
+                {
                     contract.ParentContractId = c.ParentContractId;
+
+                    var parentContract = await _contractRepo.Get(c.ParentContractId);
+                    if (parentContract.EndDate < endDate)
+                    {
+                        TempData["msg"] = "تاریخ پایان الحاقیه از تاریخ پایان قرارداد اصلی بزرگ تر است. |danger";
+                        return Redirect(Request.Headers["Referer"].ToString());
+                    }
+                }
 
                 _contractRepo.Create(contract);
 
@@ -1723,6 +1732,17 @@ namespace EtehadBar.MVC.Controllers
                 }
 
                 var contract = await _contractRepo.Get(c.Id);
+
+                if (string.IsNullOrEmpty(contract.ParentContractId))
+                {
+                    var parentContract = await _contractRepo.Get(contract.ParentContractId);
+                    if (parentContract.EndDate < endDate)
+                    {
+                        TempData["msg"] = "تاریخ پایان الحاقیه از تاریخ پایان قرارداد اصلی بزرگ تر است. |danger";
+                        return Redirect(Request.Headers["Referer"].ToString());
+                    }
+                }
+
                 contract.EndDate = endDate;
                 contract.StartDate = startDate;
                 contract.Number = c.Number;
@@ -1971,7 +1991,6 @@ namespace EtehadBar.MVC.Controllers
                 var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
                 var loadFactors = await _shippingFeeRepo.GetLoadFactorsByContractId(contractId, latestContractAddon.StartDate);
 
-                bool updateLoadFactors = false;
                 foreach (var fee in feeList)
                 {
                     if (type.Equals("percent"))
@@ -1988,20 +2007,19 @@ namespace EtehadBar.MVC.Controllers
                     }
                     else fee.DriverPrice += driverAmount;
 
-                    var loadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id)).SingleOrDefault();
-                    if (loadFactor != null)
+                    var thisLoadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id)).ToList();
+                    if (thisLoadFactor.Any())
                     {
-                        loadFactor.Amount = fee.Price;
-                        loadFactor.DriverFee = fee.DriverPrice;
-
-                        updateLoadFactors = true;
+                        foreach (var loadFactor in thisLoadFactor)
+                        {
+                            loadFactor.Amount = fee.Price;
+                            loadFactor.DriverFee = fee.DriverPrice;
+                        }
+                        _shippingFeeRepo.UpdateLoadFactors(thisLoadFactor);
                     }
                 }
 
                 _shippingFeeRepo.UpdateRange(feeList);
-
-                if (updateLoadFactors)
-                    _shippingFeeRepo.UpdateLoadFactors(loadFactors);
 
                 try
                 {

@@ -12,6 +12,7 @@ namespace EtehadBar.Domain.Interfaces
         Task<ESaipaPressLoadFactorVM> GetSaipaPressLoadFactor(string loadFactorId);
         Task<ESazehGostarLoadFactorVM> GetSazehGostarLoadFactor(string loadFactorId);
         IQueryable<LoadFactor> LoadFactors();
+        Task<List<LoadFactor>> LoadFactors(int customerId, string calendarId);
         void Update(LoadFactor obj);
         void UpdateSaipaPress(SaipaPressLoadFactor obj);
         void UpdateSazehGostar(SazehGostarLoadFactor obj);

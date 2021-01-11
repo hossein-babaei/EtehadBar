@@ -29,7 +29,7 @@
                 $('#modal-append').html('<label class= "uk-form-label"> لطفا شماره صورت وضعیت را وارد نمائید</label><input class="uk-input uk-border-rounded" name="statusNumber" />');
             }
 
-            $('#modal input[name=id]').val(id);
+            $('#modal input[name=customerId]').val(id);
             UIkit.modal('#modal').show();
         }
     </script>
@@ -86,8 +86,8 @@
             <h2 class="uk-modal-title">فرم</h2>
         </div>
         <div class="uk-modal-body">
-            <form method="post" action="@Url.Action("Customer")" autocomplete="off">
-                <input type="hidden" name="id" value="" />
+            <form method="post" action="@Url.Action("Customer", "Excel")" autocomplete="off">
+                <input type="hidden" name="customerId" value="" />
                 <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
                     <div>
                         <label class="uk-form-label">تاریخ</label>

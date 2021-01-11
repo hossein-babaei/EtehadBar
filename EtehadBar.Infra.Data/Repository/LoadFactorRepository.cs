@@ -168,5 +168,14 @@ namespace EtehadBar.Infra.Data.Repository
                 Status = sazehGostarLoadFactor.Status
             };
         }
+
+        public async Task<List<LoadFactor>> LoadFactors(int customerId, string calendarId)
+        {
+            var data = from a in db.LoadFactor
+                       join b in db.Contract on a.ContractId equals b.Id
+                       where a.CalendarId.Equals(calendarId) && b.CustomerId.Equals(customerId)
+                       select a;
+            return await data.OrderBy(a => a.Date).ToListAsync();
+        }
     }
 }

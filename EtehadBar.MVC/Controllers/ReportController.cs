@@ -2,7 +2,6 @@
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using Helpers;
-using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,39 +13,27 @@ namespace EtehadBar.MVC.Controllers
     public class ReportController : Controller
     {
         private readonly ICalendarRepository _calendarRepo;
-        private readonly IConfigRepository _configRepo;
-        private readonly IContractRepository _contractRepo;
         private readonly ICostRepository _costRepo;
         private readonly ICustomerRepository _customerRepo;
-        private readonly IDefinitionRepository _definitionRepo;
         private readonly ILoadFactorRepository _loadFactorRepo;
         private readonly IPaymentRepository _paymentRepo;
-        private readonly IShippingFeeRepository _shippingFeeRepo;
         private readonly IVehicleRepository _vehicleRepo;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public ReportController(
             ICalendarRepository calendarRepository,
-            IConfigRepository configRepository,
-            IContractRepository contractRepository,
             ICostRepository costRepository,
             ICustomerRepository customerRepository,
-            IDefinitionRepository definitionRepository,
             ILoadFactorRepository loadFactorRepository,
             IPaymentRepository paymentRepository,
-            IShippingFeeRepository shippingFeeRepository,
             IVehicleRepository vehicleRepository,
             UserManager<ApplicationUser> userManager)
         {
             _calendarRepo = calendarRepository;
-            _configRepo = configRepository;
-            _contractRepo = contractRepository;
             _costRepo = costRepository;
             _customerRepo = customerRepository;
-            _definitionRepo = definitionRepository;
             _loadFactorRepo = loadFactorRepository;
             _paymentRepo = paymentRepository;
-            _shippingFeeRepo = shippingFeeRepository;
             _vehicleRepo = vehicleRepository;
             _userManager = userManager;
         }
@@ -131,7 +118,7 @@ namespace EtehadBar.MVC.Controllers
             var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["calendars"] = calendars;
 
-            return View(await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendars.First().Id)).OrderBy(a => a.Date).ToListAsync());
+            return View(await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendars.First().Id) && a.CustomerId.Equals(id.Value)).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpPost]
@@ -140,7 +127,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["customer"] = await _customerRepo.Get(id.Value);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
 
-            return PartialView("_CustomerIncome", await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync());
+            return PartialView("_CustomerIncome", await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Equals(id.Value)).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpGet]
@@ -152,6 +139,7 @@ namespace EtehadBar.MVC.Controllers
             var latestCal = calendars.First();
             ViewData["cost"] = await _costRepo.Costs().Where(a => a.CalendarId.Equals(latestCal.Id)).SumAsync(a => a.Amount);
             ViewData["payment"] = await _paymentRepo.Payments().Where(a => a.CalendarId.Equals(latestCal.Id)).SumAsync(a => a.Amount);
+            ViewData["income"] = await _customerRepo.CustomerIncomes().Where(a => a.CalendarId.Equals(latestCal.Id)).SumAsync(a => a.Amount);
             return View(await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(latestCal.Id)).OrderBy(a => a.Date).ToListAsync());
         }
 
@@ -162,6 +150,7 @@ namespace EtehadBar.MVC.Controllers
 
             ViewData["cost"] = await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
             ViewData["payment"] = await _paymentRepo.Payments().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            ViewData["income"] = await _customerRepo.CustomerIncomes().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
             return PartialView("_Detailed", await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync());
         }
 
