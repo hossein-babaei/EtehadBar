@@ -47,6 +47,11 @@ namespace EtehadBar.Infra.Data.Context
 
             modelBuilder.Entity<LoadFactor>().Property(u => u.Counter).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
 
+            modelBuilder.Entity<Customer>().HasData(
+                new { Id = 1, Name = "پلاسکو کار سایپا", CustomerType = Domain.CustomerType.SaipaPlasco, Status = true },
+                new { Id = 2, Name = "سایپا پرس", CustomerType = Domain.CustomerType.SaipaPress, Status = true },
+                new { Id = 3, Name = "سازه گستر", CustomerType = Domain.CustomerType.SazehGostar, Status = true });
+
             modelBuilder.Entity<Config>().HasData(
                 new Config() { Id = 1, VAT = 9, LoadFactorDeductions = 5, WithholdingTax = 3, Year = PersianDateTime.Now.ToString("yyyy") });
         }

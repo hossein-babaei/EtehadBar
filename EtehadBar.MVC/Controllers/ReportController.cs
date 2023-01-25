@@ -67,11 +67,11 @@ namespace EtehadBar.MVC.Controllers
                 var customer = await _customerRepo.Get(id.Value);
                 ViewData["customer"] = customer;
 
-                return customer.Type switch
+                return customer.CustomerType switch
                 {
-                    (byte)Customers.SaipaPlasco => PartialView("~/Views/Report/Customer/_Plasco.cshtml"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
-                    (byte)Customers.SaipaPress => PartialView("~/Views/Report/Customer/_SaipaPress.cshtml"),
-                    (byte)Customers.SazehGostar => PartialView("~/Views/Report/Customer/_SazehGostar.cshtml"),
+                    CustomerType.SaipaPlasco => PartialView("~/Views/Report/Customer/_Plasco.cshtml"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
+                    CustomerType.SaipaPress => PartialView("~/Views/Report/Customer/_SaipaPress.cshtml"),
+                    CustomerType.SazehGostar => PartialView("~/Views/Report/Customer/_SazehGostar.cshtml"),
                     _ => NotFound(),
                 };
             }
@@ -87,11 +87,11 @@ namespace EtehadBar.MVC.Controllers
                     var customer = await _customerRepo.Get(id.Value);
                     ViewData["customer"] = customer;
 
-                    return customer.Type switch
+                    return customer.CustomerType switch
                     {
-                        (byte)Customers.SaipaPlasco => View("~/Views/Report/Customer/Plasco.cshtml"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
-                        (byte)Customers.SaipaPress => View("~/Views/Report/Customer/SaipaPress.cshtml"),
-                        (byte)Customers.SazehGostar => View("~/Views/Report/Customer/SazehGostar.cshtml"),
+                        CustomerType.SaipaPlasco => View("~/Views/Report/Customer/Plasco.cshtml"/*, await db.LoadFactor.Where(a => a.CustomerId.Equals(id.Value) && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Counter).ToListAsync()*/),
+                        CustomerType.SaipaPress => View("~/Views/Report/Customer/SaipaPress.cshtml"),
+                        CustomerType.SazehGostar => View("~/Views/Report/Customer/SazehGostar.cshtml"),
                         _ => NotFound(),
                     };
                 }

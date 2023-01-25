@@ -14,6 +14,6 @@ namespace EtehadBar.Domain.Models
 
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public int Type { get; set; } //DefinitionTypeEnum
+        public DefinitionType DefinitionType { get; set; } //DefinitionTypeEnum
     }
 }

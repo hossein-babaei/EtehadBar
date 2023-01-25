@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20201230090331_CompletingLoadFactor")]
-    partial class CompletingLoadFactor
+    [Migration("20230125065511_FixEnums")]
+    partial class FixEnums
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -161,9 +161,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<double>("LoadFactorDeductions")
-                        .HasColumnType("float");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -171,12 +168,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<double>("VAT")
-                        .HasColumnType("float");
-
-                    b.Property<double>("WithholdingTax")
-                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -201,6 +192,9 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<string>("Email")
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
+
+                    b.Property<double>("LoadFactorDeductions")
+                        .HasColumnType("float");
 
                     b.Property<string>("MailDisplayName")
                         .HasMaxLength(50)
@@ -234,9 +228,14 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<double>("VAT")
+                        .HasColumnType("float");
+
+                    b.Property<double>("WithholdingTax")
+                        .HasColumnType("float");
+
                     b.Property<string>("Year")
-                        .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -246,7 +245,10 @@ namespace EtehadBar.Infra.Data.Migrations
                         new
                         {
                             Id = 1,
-                            Year = "1399"
+                            LoadFactorDeductions = 5.0,
+                            VAT = 9.0,
+                            WithholdingTax = 3.0,
+                            Year = "1401"
                         });
                 });
 
@@ -335,6 +337,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
+                    b.Property<int>("CustomerType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -346,6 +351,29 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Customer");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CustomerType = 0,
+                            Name = "پلاسکو کار سایپا",
+                            Status = true
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CustomerType = 1,
+                            Name = "سایپا پرس",
+                            Status = true
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CustomerType = 2,
+                            Name = "سازه گستر",
+                            Status = true
+                        });
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.CustomerIncome", b =>
@@ -398,13 +426,13 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
+                    b.Property<int>("DefinitionType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -460,6 +488,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<double>("LoadFactorDeductions")
+                        .HasColumnType("float");
+
                     b.Property<string>("LoadNumber")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -488,10 +519,16 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<double>("VAT")
+                        .HasColumnType("float");
+
                     b.Property<string>("VehicleId")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<double>("WithholdingTax")
+                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -529,11 +566,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
-                    b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("CalendarId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -547,18 +579,23 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
+                    b.Property<int>("PaymentType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Picture")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<byte>("Type")
-                        .HasColumnType("tinyint");
+                    b.Property<string>("VehicleId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
-
                     b.HasIndex("CalendarId");
+
+                    b.HasIndex("VehicleId");
 
                     b.ToTable("Payment");
                 });
@@ -701,10 +738,25 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Number")
+                    b.Property<string>("IranStateNumber")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("LeftNumber")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("NumberWord")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)");
+
+                    b.Property<string>("RightNumber")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
@@ -954,21 +1006,21 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Payment", b =>
                 {
-                    b.HasOne("EtehadBar.Domain.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany("AdvanceMoney")
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("EtehadBar.Domain.Models.Calendar", "Calendar")
                         .WithMany("Payments")
                         .HasForeignKey("CalendarId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ApplicationUser");
+                    b.HasOne("EtehadBar.Domain.Models.Vehicle", "Vehicle")
+                        .WithMany("Payments")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Calendar");
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.ShippingFee", b =>
@@ -1035,8 +1087,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.ApplicationUser", b =>
                 {
-                    b.Navigation("AdvanceMoney");
-
                     b.Navigation("Costs");
 
                     b.Navigation("LoadFactors");
@@ -1082,6 +1132,8 @@ namespace EtehadBar.Infra.Data.Migrations
             modelBuilder.Entity("EtehadBar.Domain.Models.Vehicle", b =>
                 {
                     b.Navigation("LoadFactors");
+
+                    b.Navigation("Payments");
                 });
 #pragma warning restore 612, 618
         }

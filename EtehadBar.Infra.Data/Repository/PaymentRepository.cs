@@ -65,13 +65,13 @@ namespace EtehadBar.Infra.Data.Repository
                            VehicleId = c.Id,
                            Vehicle = $"ایران {c.IranStateNumber} - {c.RightNumber} {c.NumberWord} {c.LeftNumber}",
                            Picture = a.Picture,
-                           Type = a.Type
+                           PaymentType = a.PaymentType
                        };
 
             if (type.HasValue)
             {
                 if (type.Value != 2)
-                    data = data.Where(a => a.Type.Equals(type.Value));
+                    data = data.Where(a => a.PaymentType.Equals(type.Value));
             }
 
             if (!string.IsNullOrWhiteSpace(vehicleId))

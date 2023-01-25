@@ -246,7 +246,7 @@ namespace EtehadBar.Infra.Data.Migrations
                             LoadFactorDeductions = 5.0,
                             VAT = 9.0,
                             WithholdingTax = 3.0,
-                            Year = "1399"
+                            Year = "1401"
                         });
                 });
 
@@ -335,6 +335,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
+                    b.Property<int>("CustomerType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -343,12 +346,32 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
-                    b.Property<byte>("Type")
-                        .HasColumnType("tinyint");
-
                     b.HasKey("Id");
 
                     b.ToTable("Customer");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CustomerType = 0,
+                            Name = "پلاسکو کار سایپا",
+                            Status = true
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CustomerType = 1,
+                            Name = "سایپا پرس",
+                            Status = true
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CustomerType = 2,
+                            Name = "سازه گستر",
+                            Status = true
+                        });
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.CustomerIncome", b =>
@@ -401,13 +424,13 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("int")
                         .UseIdentityColumn();
 
+                    b.Property<int>("DefinitionType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -554,12 +577,12 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
+                    b.Property<int>("PaymentType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Picture")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<byte>("Type")
-                        .HasColumnType("tinyint");
 
                     b.Property<string>("VehicleId")
                         .IsRequired()

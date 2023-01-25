@@ -252,10 +252,10 @@ namespace EtehadBar.MVC.Controllers
 
             for (int index = 1; index <= payments.Count; index++)
             {
-                string typeStr = payments[index - 1].Type switch
+                string typeStr = payments[index - 1].PaymentType switch
                 {
-                    (byte)PaymentType.AdvanceMoney => "مساعده",
-                    (byte)PaymentType.Salary => "حقوق",
+                    PaymentType.AdvanceMoney => "مساعده",
+                    PaymentType.Salary => "حقوق",
                     _ => ""
                 };
 
@@ -270,11 +270,11 @@ namespace EtehadBar.MVC.Controllers
 
             ws.Cell($"B{payments.Count + 3}").Value = "تعداد مساعده پرداختی";
             ws.Range($"B{payments.Count + 3}:D{payments.Count + 3}").Row(1).Merge();
-            ws.Cell(payments.Count + 3, 7).Value = payments.Count(a => a.Type.Equals((byte)PaymentType.AdvanceMoney));
+            ws.Cell(payments.Count + 3, 7).Value = payments.Count(a => a.PaymentType.Equals((byte)PaymentType.AdvanceMoney));
 
             ws.Cell($"B{payments.Count + 4}").Value = "تعداد حقوق پرداختی";
             ws.Range($"B{payments.Count + 4}:D{payments.Count + 4}").Row(1).Merge();
-            ws.Cell(payments.Count + 4, 7).Value = payments.Count(a => a.Type.Equals((byte)PaymentType.Salary));
+            ws.Cell(payments.Count + 4, 7).Value = payments.Count(a => a.PaymentType.Equals((byte)PaymentType.Salary));
 
             ws.Cell($"B{payments.Count + 5}").Value = "تعداد کل";
             ws.Range($"B{payments.Count + 5}:D{payments.Count + 5}").Row(1).Merge();
@@ -282,11 +282,11 @@ namespace EtehadBar.MVC.Controllers
 
             ws.Cell($"B{payments.Count + 6}").Value = "جمع کل مبلغ مساعده پرداختی";
             ws.Range($"B{payments.Count + 6}:D{payments.Count + 6}").Row(1).Merge();
-            ws.Cell(payments.Count + 6, 7).Value = payments.Where(a => a.Type.Equals((byte)PaymentType.AdvanceMoney)).Sum(a => a.Amount).ToString("N0");
+            ws.Cell(payments.Count + 6, 7).Value = payments.Where(a => a.PaymentType.Equals((byte)PaymentType.AdvanceMoney)).Sum(a => a.Amount).ToString("N0");
 
             ws.Cell($"B{payments.Count + 7}").Value = "جمع کل مبلغ حقوق پرداختی";
             ws.Range($"B{payments.Count + 7}:D{payments.Count + 7}").Row(1).Merge();
-            ws.Cell(payments.Count + 7, 7).Value = payments.Where(a => a.Type.Equals((byte)PaymentType.Salary)).Sum(a => a.Amount).ToString("N0");
+            ws.Cell(payments.Count + 7, 7).Value = payments.Where(a => a.PaymentType.Equals((byte)PaymentType.Salary)).Sum(a => a.Amount).ToString("N0");
 
             ws.Cell($"B{payments.Count + 8}").Value = "جمع کل پرداختی";
             ws.Range($"B{payments.Count + 8}:F{payments.Count + 8}").Row(1).Merge();
@@ -402,7 +402,7 @@ namespace EtehadBar.MVC.Controllers
 
             var allLoadFactors = await _loadFactorRepo.LoadFactors(customerId, calendarId);
 
-            if (customer.Type.Equals((byte)Customers.SaipaPlasco))
+            if (customer.CustomerType.Equals(CustomerType.SaipaPlasco))
             {
                 if (string.IsNullOrWhiteSpace(statusNumber))
                 {
@@ -544,7 +544,7 @@ namespace EtehadBar.MVC.Controllers
 
                 return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
             }
-            else if (customer.Type.Equals((byte)Customers.SazehGostar))
+            else if (customer.CustomerType.Equals(CustomerType.SazehGostar))
             {
                 string docTitle = $"گزارش بارنامه {customer.Name} در {calendar.Title}";
 

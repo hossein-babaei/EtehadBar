@@ -10,13 +10,13 @@
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
                 <div>
-                    <label asp-for="Type" class="uk-form-label"></label>
-                    <select asp-for="Type" class="uk-select uk-border-rounded">
-                        <!option value="@((int)DefinitionType.Car)" @if (Model.Type.Equals((int)DefinitionType.Car)) { <text> selected="selected" </text> }>خودرو</!option>
-                        <!option value="@((int)DefinitionType.Origin)" @if (Model.Type.Equals((int)DefinitionType.Origin)) { <text> selected="selected" </text> }>مبدا</!option>
-                        <!option value="@((int)DefinitionType.Destionation)" @if (Model.Type.Equals((int)DefinitionType.Destionation)) { <text> selected="selected" </text> }>مقصد</!option>
+                    <label asp-for="DefinitionType" class="uk-form-label"></label>
+                    <select asp-for="DefinitionType" class="uk-select uk-border-rounded">
+                        <!option value="@(DefinitionType.Car)" @if (Model.DefinitionType.Equals(DefinitionType.Car)) { <text> selected="selected" </text> }>خودرو</!option>
+                        <!option value="@(DefinitionType.Origin)" @if (Model.DefinitionType.Equals(DefinitionType.Origin)) { <text> selected="selected" </text> }>مبدا</!option>
+                        <!option value="@(DefinitionType.Destionation)" @if (Model.DefinitionType.Equals(DefinitionType.Destionation)) { <text> selected="selected" </text> }>مقصد</!option>
                     </select>
-                    <span asp-validation-for="Type" class="uk-text-danger"></span>
+                    <span asp-validation-for="DefinitionType" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Title" class="uk-form-label"></label>

@@ -15,7 +15,7 @@ namespace EtehadBar.Domain.Models
 
         [Display(Name = "نوع مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public byte Type { get; set; } // customer type enum
+        public CustomerType CustomerType { get; set; } // customer type enum
 
         [Display(Name = "وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]

@@ -193,7 +193,7 @@ namespace EtehadBar.Domain
         public string Description { get; set; }
 
         [Display(Name = "نوع پرداخت")]
-        public byte Type { get; set; } = (byte)PaymentType.AdvanceMoney;
+        public PaymentType PaymentType { get; set; }
 
         public string Picture { get; set; }
 

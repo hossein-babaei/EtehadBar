@@ -59,7 +59,7 @@
                 <tr>
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.Title)</th>
-                    <th>@Html.DisplayNameFor(model => model.Type)</th>
+                    <th>@Html.DisplayNameFor(model => model.DefinitionType)</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -67,11 +67,11 @@
             <tbody>
                 @foreach (var item in data)
                 {
-                    string type = item.Type switch
+                    string type = item.DefinitionType switch
                     {
-                        (int)DefinitionType.Car => "خودرو",
-                        (int)DefinitionType.Origin => "مبدا",
-                        (int)DefinitionType.Destionation => "مقصد",
+                        DefinitionType.Car => "خودرو",
+                        DefinitionType.Origin => "مبدا",
+                        DefinitionType.Destionation => "مقصد",
                         _ => ""
                     };
 

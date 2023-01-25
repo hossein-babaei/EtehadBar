@@ -103,9 +103,9 @@
         function submitCreate(type) {
             if ($('#create-modal form').valid() == true) {
                 var url = '';
-                if (type == @((byte)Customers.SaipaPlasco)) {
+                if (type == @((byte)CustomerType.SaipaPlasco)) {
                     url = '@Url.Action("CreateSaipaPlascoLoadFactor")';
-                } else if (type == @((byte)Customers.SaipaPress)) {
+                } else if (type == @((byte)CustomerType.SaipaPress)) {
                     url = '@Url.Action("CreateSaipaPressLoadFactor")';
                 } else {
                     url = '@Url.Action("CreateSazehGostarLoadFactor")';
@@ -263,7 +263,7 @@
             @foreach (var item in customers)
             {
                 <li>
-                    <button class="uk-button uk-button-primary uk-border-rounded" onclick="getCreateForm(@item.Id, @item.Type)">@item.Name</button>
+                    <button class="uk-button uk-button-primary uk-border-rounded" onclick="getCreateForm(@item.Id, @((int)item.CustomerType))">@item.Name</button>
                 </li>
             }
         </ul>

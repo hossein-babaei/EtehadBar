@@ -90,7 +90,7 @@
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
                     <th>@Html.DisplayNameFor(model => model.VehicleId)</th>
-                    <th>@Html.DisplayNameFor(model => model.Type)</th>
+                    <th>@Html.DisplayNameFor(model => model.PaymentType)</th>
                     <th>تصویر</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
@@ -107,7 +107,7 @@
                         <td>@item.Description</td>
                         <td>@item.Amount.ToString("N0")</td>
                         <td>ایران @item.Vehicle.IranStateNumber - @item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
-                        @if (item.Type.Equals((byte)PaymentType.AdvanceMoney))
+                        @if (item.PaymentType.Equals((byte)PaymentType.AdvanceMoney))
                         {
                             <td class="uk-text-bold">مساعده</td>
                         }

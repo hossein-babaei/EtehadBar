@@ -79,12 +79,12 @@
                     </div>
                 </div>
                 <div>
-                    <label asp-for="Type" class="uk-form-label"></label>
+                    <label asp-for="PaymentType" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
-                        <label><input class="uk-radio" type="radio" name="Type" value="@((byte)PaymentType.Salary)" checked /> حقوق</label>
-                        <label><input class="uk-radio" type="radio" name="Type" value="@((byte)PaymentType.AdvanceMoney)" /> مساعده</label>
+                        <label><input class="uk-radio" type="radio" name="Type" value="@(PaymentType.Salary)" checked /> حقوق</label>
+                        <label><input class="uk-radio" type="radio" name="Type" value="@(PaymentType.AdvanceMoney)" /> مساعده</label>
                     </div>
-                    <span asp-validation-for="Type" class="uk-text-danger"></span>
+                    <span asp-validation-for="PaymentType" class="uk-text-danger"></span>
                 </div>
             </div>
         </form>

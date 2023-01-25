@@ -2,9 +2,9 @@
 @{ 
     var contractInfo = (Contract)ViewData["Contract"];
     var types = (List<Definition>)ViewData["Data"];
-    var vehicles = types.Where(a => a.Type.Equals((int)DefinitionType.Car)).OrderBy(a => a.Title).ToList();
-    var origins = types.Where(a => a.Type.Equals((int)DefinitionType.Origin)).OrderBy(a => a.Title).ToList();
-    var destinations = types.Where(a => a.Type.Equals((int)DefinitionType.Destionation)).OrderBy(a => a.Title).ToList();
+    var vehicles = types.Where(a => a.DefinitionType.Equals(DefinitionType.Car)).OrderBy(a => a.Title).ToList();
+    var origins = types.Where(a => a.DefinitionType.Equals(DefinitionType.Origin)).OrderBy(a => a.Title).ToList();
+    var destinations = types.Where(a => a.DefinitionType.Equals(DefinitionType.Destionation)).OrderBy(a => a.Title).ToList();
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">

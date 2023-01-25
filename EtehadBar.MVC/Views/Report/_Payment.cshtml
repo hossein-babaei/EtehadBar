@@ -38,7 +38,7 @@
                     <tr>
                         <th width="50">ردیف</th>
                         <th>@Html.DisplayNameFor(model => model.Date)</th>
-                        <th>@Html.DisplayNameFor(model => model.Type)</th>
+                        <th>@Html.DisplayNameFor(model => model.PaymentType)</th>
                         <th>@Html.DisplayNameFor(model => model.Description)</th>
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.AdminName)</th>
@@ -48,10 +48,10 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
-                        string type = item.Type switch
+                        string type = item.PaymentType switch
                         {
-                            (byte)PaymentType.AdvanceMoney => "مساعده",
-                            (byte)PaymentType.Salary => "حقوق",
+                            PaymentType.AdvanceMoney => "مساعده",
+                            PaymentType.Salary => "حقوق",
                             _ => ""
                         };
 
@@ -90,11 +90,11 @@
     <h3 class="uk-heading-divider uk-text-center">گزارش حقوق و مساعده پرداختی در <span class="underline">@calendar.Title</span></h3>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">تعداد مساعده پرداختی</div>
-        <div>@Model.Count(a => a.Type.Equals((byte)PaymentType.AdvanceMoney)) عدد</div>
+        <div>@Model.Count(a => a.PaymentType.Equals((byte)PaymentType.AdvanceMoney)) عدد</div>
     </div>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">تعداد حقوق پرداختی</div>
-        <div>@Model.Count(a => a.Type.Equals((byte)PaymentType.Salary)) عدد</div>
+        <div>@Model.Count(a => a.PaymentType.Equals((byte)PaymentType.Salary)) عدد</div>
     </div>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">تعداد کل</div>
@@ -102,11 +102,11 @@
     </div>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ مساعده پرداختی</div>
-        <div>@Model.Where(a => a.Type.Equals((byte)PaymentType.AdvanceMoney)).Sum(a => a.Amount).ToString("N0") تومان</div>
+        <div>@Model.Where(a => a.PaymentType.Equals((byte)PaymentType.AdvanceMoney)).Sum(a => a.Amount).ToString("N0") تومان</div>
     </div>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ حقوق پرداختی</div>
-        <div>@Model.Where(a => a.Type.Equals((byte)PaymentType.Salary)).Sum(a => a.Amount).ToString("N0") تومان</div>
+        <div>@Model.Where(a => a.PaymentType.Equals((byte)PaymentType.Salary)).Sum(a => a.Amount).ToString("N0") تومان</div>
     </div>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع کل</div>

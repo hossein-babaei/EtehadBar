@@ -37,15 +37,27 @@
             });
         }
         function create() {
-            preloader();
-            $.get('@Url.Action("CreateContract")', { }, function (r) {
-                $('#create-modal').html(r);
-            }, 'html').then(function () {
-                parseValidator('#create-modal form');
-                $('#create-modal #CustomerId').select2({ width: '100%' });
-                $('#create-modal #ParentContractId').select2({ width: '100%' });
-                preloader();
-                UIkit.modal('#create-modal').show();
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CreateContract")',
+                data: { },
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#create-modal').html(r);
+                    parseValidator('#create-modal form');
+                    $('#create-modal #CustomerId').select2({ width: '100%' });
+                    $('#create-modal #ParentContractId').select2({ width: '100%' });
+                    UIkit.modal('#create-modal').show();
+                },
+                error: function (e) {
+                    UIkit.notification(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
             });
         }
         function edit(id) {

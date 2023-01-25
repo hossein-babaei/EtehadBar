@@ -25,7 +25,7 @@
         function showForm(id, type) {
             $('#modal-append').html('');
 
-            if (type == @((byte)Customers.SaipaPlasco)) {
+            if (type == @((byte)CustomerType.SaipaPlasco)) {
                 $('#modal-append').html('<label class= "uk-form-label"> لطفا شماره صورت وضعیت را وارد نمائید</label><input class="uk-input uk-border-rounded" name="statusNumber" />');
             }
 
@@ -72,7 +72,7 @@
                             <td class="uk-text-bold uk-text-danger">غیر فعال</td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="showForm(@item.Id, @item.Type)">بارنامه</a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="showForm(@item.Id, @item.CustomerType)">بارنامه</a></td>
                     </tr>
                     i++;
                 }

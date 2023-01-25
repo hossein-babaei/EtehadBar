@@ -730,7 +730,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 var item = await _definitionRepo.Get(d.Id);
                 item.Title = d.Title;
-                item.Type = d.Type;
+                item.DefinitionType = d.DefinitionType;
                 _definitionRepo.Update(item);
                 try
                 {
@@ -799,7 +799,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<PartialViewResult> CreateVehicle()
         {
-            ViewData["Definition"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.Type.Equals((int)DefinitionType.Car)).OrderBy(a => a.Title).ToListAsync();
+            ViewData["Definition"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType.Equals(DefinitionType.Car)).OrderBy(a => a.Title).ToListAsync();
             return PartialView("~/Views/Admin/Create/Vehicle.cshtml");
         }
 
@@ -829,7 +829,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<PartialViewResult> EditVehicle(string id)
         {
-            ViewData["Definition"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.Type.Equals((int)DefinitionType.Car)).OrderBy(a => a.Title).ToListAsync();
+            ViewData["Definition"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType.Equals((int)DefinitionType.Car)).OrderBy(a => a.Title).ToListAsync();
             return PartialView("~/Views/Admin/Edit/Vehicle.cshtml", await _vehicleRepo.Get(id));
         }
 
@@ -1278,7 +1278,7 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _paymentRepo.Get(p.Id);
                 item.AdminId = _userManager.GetUserId(User);
                 item.Amount = p.Amount;
-                item.Type = p.Type;
+                item.PaymentType = p.PaymentType;
                 item.CalendarId = p.CalendarId;
 
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
@@ -1630,6 +1630,9 @@ namespace EtehadBar.MVC.Controllers
         {
             ViewData["Year"] = await _configRepo.CurrentYear();
             var customers = await _customerRepo.GetAll();
+            if (!customers.Any())
+                return NotFound("ابتدا مشتری ثبت کنید");
+
             ViewData["Customers"] = customers;
             ViewData["Contracts"] = await _contractRepo.Contracts().Where(a => string.IsNullOrEmpty(a.ParentContractId) && a.CustomerId.Equals(customers.First().Id)).OrderByDescending(a => a.StartDate).ToListAsync();
             return PartialView("~/Views/Admin/Create/Contract.cshtml");
@@ -1828,13 +1831,13 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CreateShippingFee(string contractId)
         {
             ViewData["Contract"] = await _contractRepo.Get(contractId);
-            List<int> types = new List<int>
+            List<DefinitionType> types = new()
             {
-                (int)DefinitionType.Car,
-                (int)DefinitionType.Origin,
-                (int)DefinitionType.Destionation
+                DefinitionType.Car,
+                DefinitionType.Origin,
+                DefinitionType.Destionation
             };
-            ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.Type)).ToListAsync();
+            ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.DefinitionType)).ToListAsync();
 
             return PartialView("~/Views/Admin/Create/ShippingFee.cshtml");
         }
@@ -1875,13 +1878,13 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> EditShippingFee(string id)
         {
-            List<int> types = new List<int>
+            List<DefinitionType> types = new()
             {
-                (int)DefinitionType.Car,
-                (int)DefinitionType.Origin,
-                (int)DefinitionType.Destionation
+                DefinitionType.Car,
+                DefinitionType.Origin,
+                DefinitionType.Destionation
             };
-            ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.Type)).ToListAsync();
+            ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.DefinitionType)).ToListAsync();
 
             return PartialView("~/Views/Admin/Edit/ShippingFee.cshtml", await _shippingFeeRepo.Get(id));
         }
@@ -2120,9 +2123,9 @@ namespace EtehadBar.MVC.Controllers
 
             return customerType switch
             {
-                (byte)Customers.SaipaPlasco => PartialView("~/Views/Admin/Create/LoadFactor/SaipaPlasco.cshtml"),
-                (byte)Customers.SaipaPress => PartialView("~/Views/Admin/Create/LoadFactor/SaipaPress.cshtml"),
-                (byte)Customers.SazehGostar => PartialView("~/Views/Admin/Create/LoadFactor/SazehGostar.cshtml"),
+                (byte)CustomerType.SaipaPlasco => PartialView("~/Views/Admin/Create/LoadFactor/SaipaPlasco.cshtml"),
+                (byte)CustomerType.SaipaPress => PartialView("~/Views/Admin/Create/LoadFactor/SaipaPress.cshtml"),
+                (byte)CustomerType.SazehGostar => PartialView("~/Views/Admin/Create/LoadFactor/SazehGostar.cshtml"),
                 _ => NoContent(),
             };
         }
@@ -2325,11 +2328,11 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
 
-            return customer.Type switch
+            return customer.CustomerType switch
             {
-                (byte)Customers.SaipaPlasco => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPlasco.cshtml", await _loadFactorRepo.GetSaipaPlascoLoadFactor(loadFactorId)),
-                (byte)Customers.SaipaPress => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPress.cshtml", await _loadFactorRepo.GetSaipaPressLoadFactor(loadFactorId)),
-                (byte)Customers.SazehGostar => PartialView("~/Views/Admin/Edit/LoadFactor/SazehGostar.cshtml", await _loadFactorRepo.GetSazehGostarLoadFactor(loadFactorId)),
+                CustomerType.SaipaPlasco => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPlasco.cshtml", await _loadFactorRepo.GetSaipaPlascoLoadFactor(loadFactorId)),
+                CustomerType.SaipaPress => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPress.cshtml", await _loadFactorRepo.GetSaipaPressLoadFactor(loadFactorId)),
+                CustomerType.SazehGostar => PartialView("~/Views/Admin/Edit/LoadFactor/SazehGostar.cshtml", await _loadFactorRepo.GetSazehGostarLoadFactor(loadFactorId)),
                 _ => NoContent(),
             };
         }

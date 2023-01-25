@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20201215120312_Initial")]
-    partial class Initial
+    [Migration("20230123093537_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -161,9 +161,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<double>("LoadFactorDeductions")
-                        .HasColumnType("float");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -171,12 +168,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<double>("VAT")
-                        .HasColumnType("float");
-
-                    b.Property<double>("WithholdingTax")
-                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -201,6 +192,9 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<string>("Email")
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
+
+                    b.Property<double>("LoadFactorDeductions")
+                        .HasColumnType("float");
 
                     b.Property<string>("MailDisplayName")
                         .HasMaxLength(50)
@@ -234,9 +228,14 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<double>("VAT")
+                        .HasColumnType("float");
+
+                    b.Property<double>("WithholdingTax")
+                        .HasColumnType("float");
+
                     b.Property<string>("Year")
-                        .HasMaxLength(4)
-                        .HasColumnType("nvarchar(4)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -246,7 +245,10 @@ namespace EtehadBar.Infra.Data.Migrations
                         new
                         {
                             Id = 1,
-                            Year = "1399"
+                            LoadFactorDeductions = 5.0,
+                            VAT = 9.0,
+                            WithholdingTax = 3.0,
+                            Year = "1401"
                         });
                 });
 
@@ -255,6 +257,9 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<string>("Id")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -276,6 +281,8 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("ParentContractId");
 
@@ -337,6 +344,9 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
+
+                    b.Property<byte>("Type")
+                        .HasColumnType("tinyint");
 
                     b.HasKey("Id");
 
@@ -424,13 +434,15 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("ContractId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<long>("Counter")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .UseIdentityColumn();
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -453,6 +465,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<double>("LoadFactorDeductions")
+                        .HasColumnType("float");
+
                     b.Property<string>("LoadNumber")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -468,18 +483,45 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("SaipaPressLoadFactorId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("SazehGostarLoadFactorId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ShippingFeeId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<double>("VAT")
+                        .HasColumnType("float");
+
                     b.Property<string>("VehicleId")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<double>("WithholdingTax")
+                        .HasColumnType("float");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CalendarId");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("ContractId");
 
                     b.HasIndex("DriverId");
+
+                    b.HasIndex("SaipaPressLoadFactorId")
+                        .IsUnique()
+                        .HasFilter("[SaipaPressLoadFactorId] IS NOT NULL");
+
+                    b.HasIndex("SazehGostarLoadFactorId")
+                        .IsUnique()
+                        .HasFilter("[SazehGostarLoadFactorId] IS NOT NULL");
 
                     b.HasIndex("VehicleId");
 
@@ -501,11 +543,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
-                    b.Property<string>("ApplicationUserId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("CalendarId")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -526,13 +563,89 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<byte>("Type")
                         .HasColumnType("tinyint");
 
-                    b.HasKey("Id");
+                    b.Property<string>("VehicleId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
-                    b.HasIndex("ApplicationUserId");
+                    b.HasKey("Id");
 
                     b.HasIndex("CalendarId");
 
+                    b.HasIndex("VehicleId");
+
                     b.ToTable("Payment");
+                });
+
+            modelBuilder.Entity("EtehadBar.Domain.Models.SaipaPressLoadFactor", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("EntryNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LoadFactorId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LoadType")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SaipaPressLoadFactor");
+                });
+
+            modelBuilder.Entity("EtehadBar.Domain.Models.SazehGostarLoadFactor", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Certain")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DetailedCostCenter")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LoadFactorId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Nature")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("RegisterCode")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SazehGostarLoadFactor");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.ShippingFee", b =>
@@ -602,10 +715,25 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("Number")
+                    b.Property<string>("IranStateNumber")
                         .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("LeftNumber")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<string>("NumberWord")
+                        .IsRequired()
+                        .HasMaxLength(1)
+                        .HasColumnType("nvarchar(1)");
+
+                    b.Property<string>("RightNumber")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
 
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
@@ -698,12 +826,10 @@ namespace EtehadBar.Infra.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -740,12 +866,10 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -757,9 +881,17 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Contract", b =>
                 {
+                    b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
+                        .WithMany("Contracts")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("EtehadBar.Domain.Models.Contract", "ParentContract")
                         .WithMany("ContractAddons")
                         .HasForeignKey("ParentContractId");
+
+                    b.Navigation("Customer");
 
                     b.Navigation("ParentContract");
                 });
@@ -810,9 +942,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
+                    b.HasOne("EtehadBar.Domain.Models.Contract", "Contract")
                         .WithMany("LoadFactors")
-                        .HasForeignKey("CustomerId")
+                        .HasForeignKey("ContractId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -821,6 +953,14 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("EtehadBar.Domain.Models.SaipaPressLoadFactor", "SaipaPressLoadFactor")
+                        .WithOne("LoadFactor")
+                        .HasForeignKey("EtehadBar.Domain.Models.LoadFactor", "SaipaPressLoadFactorId");
+
+                    b.HasOne("EtehadBar.Domain.Models.SazehGostarLoadFactor", "SazehGostarLoadFactor")
+                        .WithOne("LoadFactor")
+                        .HasForeignKey("EtehadBar.Domain.Models.LoadFactor", "SazehGostarLoadFactorId");
 
                     b.HasOne("EtehadBar.Domain.Models.Vehicle", "Vehicle")
                         .WithMany("LoadFactors")
@@ -832,28 +972,32 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.Navigation("Calendar");
 
-                    b.Navigation("Customer");
+                    b.Navigation("Contract");
+
+                    b.Navigation("SaipaPressLoadFactor");
+
+                    b.Navigation("SazehGostarLoadFactor");
 
                     b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Payment", b =>
                 {
-                    b.HasOne("EtehadBar.Domain.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany("AdvanceMoney")
-                        .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("EtehadBar.Domain.Models.Calendar", "Calendar")
                         .WithMany("Payments")
                         .HasForeignKey("CalendarId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("ApplicationUser");
+                    b.HasOne("EtehadBar.Domain.Models.Vehicle", "Vehicle")
+                        .WithMany("Payments")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Calendar");
+
+                    b.Navigation("Vehicle");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.ShippingFee", b =>
@@ -920,8 +1064,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.ApplicationUser", b =>
                 {
-                    b.Navigation("AdvanceMoney");
-
                     b.Navigation("Costs");
 
                     b.Navigation("LoadFactors");
@@ -942,19 +1084,33 @@ namespace EtehadBar.Infra.Data.Migrations
                 {
                     b.Navigation("ContractAddons");
 
+                    b.Navigation("LoadFactors");
+
                     b.Navigation("ShippingFees");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Customer", b =>
                 {
-                    b.Navigation("CustomerIncomes");
+                    b.Navigation("Contracts");
 
-                    b.Navigation("LoadFactors");
+                    b.Navigation("CustomerIncomes");
+                });
+
+            modelBuilder.Entity("EtehadBar.Domain.Models.SaipaPressLoadFactor", b =>
+                {
+                    b.Navigation("LoadFactor");
+                });
+
+            modelBuilder.Entity("EtehadBar.Domain.Models.SazehGostarLoadFactor", b =>
+                {
+                    b.Navigation("LoadFactor");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Vehicle", b =>
                 {
                     b.Navigation("LoadFactors");
+
+                    b.Navigation("Payments");
                 });
 #pragma warning restore 612, 618
         }

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace EtehadBar.Infra.Data.Migrations
 {
-    public partial class Initial : Migration
+    public partial class initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -86,10 +86,7 @@ namespace EtehadBar.Infra.Data.Migrations
                     Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    VAT = table.Column<double>(type: "float", nullable: false),
-                    LoadFactorDeductions = table.Column<double>(type: "float", nullable: false),
-                    WithholdingTax = table.Column<double>(type: "float", nullable: false)
+                    Title = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -114,35 +111,14 @@ namespace EtehadBar.Infra.Data.Migrations
                     MailPassword = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     MailDisplayName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Domain = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    Year = table.Column<string>(type: "nvarchar(4)", maxLength: 4, nullable: true)
+                    Year = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    VAT = table.Column<double>(type: "float", nullable: false),
+                    LoadFactorDeductions = table.Column<double>(type: "float", nullable: false),
+                    WithholdingTax = table.Column<double>(type: "float", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Config", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Contract",
-                schema: "dbo",
-                columns: table => new
-                {
-                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Subject = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Number = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ParentContractId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Contract", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Contract_Contract_ParentContractId",
-                        column: x => x.ParentContractId,
-                        principalSchema: "dbo",
-                        principalTable: "Contract",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -153,6 +129,7 @@ namespace EtehadBar.Infra.Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Type = table.Column<byte>(type: "tinyint", nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -173,6 +150,41 @@ namespace EtehadBar.Infra.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Definition", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SaipaPressLoadFactor",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    EntryNumber = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    LoadType = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    LoadFactorId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SaipaPressLoadFactor", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SazehGostarLoadFactor",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RegisterCode = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Certain = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Nature = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Count = table.Column<int>(type: "int", nullable: false),
+                    DetailedCostCenter = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    LoadFactorId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SazehGostarLoadFactor", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -197,7 +209,10 @@ namespace EtehadBar.Infra.Data.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Type = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Number = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    LeftNumber = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false),
+                    NumberWord = table.Column<string>(type: "nvarchar(1)", maxLength: 1, nullable: false),
+                    RightNumber = table.Column<string>(type: "nvarchar(3)", maxLength: 3, nullable: false),
+                    IranStateNumber = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false),
                     Status = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
@@ -256,8 +271,8 @@ namespace EtehadBar.Infra.Data.Migrations
                 schema: "dbo",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
@@ -306,8 +321,8 @@ namespace EtehadBar.Infra.Data.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -356,61 +371,33 @@ namespace EtehadBar.Infra.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Payment",
-                schema: "dbo",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Amount = table.Column<double>(type: "float", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
-                    Type = table.Column<byte>(type: "tinyint", nullable: false),
-                    Picture = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
-                    AdminId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    CalendarId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Payment", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Payment_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
-                        principalSchema: "dbo",
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Payment_Calendar_CalendarId",
-                        column: x => x.CalendarId,
-                        principalSchema: "dbo",
-                        principalTable: "Calendar",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "ShippingFee",
+                name: "Contract",
                 schema: "dbo",
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Origin = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    Destination = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    Vehicle = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
-                    Price = table.Column<double>(type: "float", nullable: false),
-                    DriverPrice = table.Column<double>(type: "float", nullable: false),
-                    ContractId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    Subject = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Number = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    StartDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EndDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ParentContractId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    CustomerId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ShippingFee", x => x.Id);
+                    table.PrimaryKey("PK_Contract", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ShippingFee_Contract_ContractId",
-                        column: x => x.ContractId,
+                        name: "FK_Contract_Contract_ParentContractId",
+                        column: x => x.ParentContractId,
                         principalSchema: "dbo",
                         principalTable: "Contract",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Contract_Customer_CustomerId",
+                        column: x => x.CustomerId,
+                        principalSchema: "dbo",
+                        principalTable: "Customer",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -450,6 +437,41 @@ namespace EtehadBar.Infra.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Payment",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Date = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Amount = table.Column<double>(type: "float", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
+                    Type = table.Column<byte>(type: "tinyint", nullable: false),
+                    Picture = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    AdminId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    CalendarId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    VehicleId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payment", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Payment_Calendar_CalendarId",
+                        column: x => x.CalendarId,
+                        principalSchema: "dbo",
+                        principalTable: "Calendar",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Payment_Vehicles_VehicleId",
+                        column: x => x.VehicleId,
+                        principalSchema: "dbo",
+                        principalTable: "Vehicles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "LoadFactor",
                 schema: "dbo",
                 columns: table => new
@@ -465,11 +487,17 @@ namespace EtehadBar.Infra.Data.Migrations
                     LoadNumber = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     LoadNumberGov = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     ExitNumber = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    VAT = table.Column<double>(type: "float", nullable: false),
+                    LoadFactorDeductions = table.Column<double>(type: "float", nullable: false),
+                    WithholdingTax = table.Column<double>(type: "float", nullable: false),
                     AdminId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: true),
+                    ShippingFeeId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ContractId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     CalendarId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     DriverId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
                     VehicleId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CustomerId = table.Column<int>(type: "int", nullable: false)
+                    SaipaPressLoadFactorId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    SazehGostarLoadFactorId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -489,12 +517,26 @@ namespace EtehadBar.Infra.Data.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_LoadFactor_Customer_CustomerId",
-                        column: x => x.CustomerId,
+                        name: "FK_LoadFactor_Contract_ContractId",
+                        column: x => x.ContractId,
                         principalSchema: "dbo",
-                        principalTable: "Customer",
+                        principalTable: "Contract",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_LoadFactor_SaipaPressLoadFactor_SaipaPressLoadFactorId",
+                        column: x => x.SaipaPressLoadFactorId,
+                        principalSchema: "dbo",
+                        principalTable: "SaipaPressLoadFactor",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_LoadFactor_SazehGostarLoadFactor_SazehGostarLoadFactorId",
+                        column: x => x.SazehGostarLoadFactorId,
+                        principalSchema: "dbo",
+                        principalTable: "SazehGostarLoadFactor",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_LoadFactor_Vehicles_VehicleId",
                         column: x => x.VehicleId,
@@ -504,11 +546,36 @@ namespace EtehadBar.Infra.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "ShippingFee",
+                schema: "dbo",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Origin = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Destination = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Vehicle = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
+                    Price = table.Column<double>(type: "float", nullable: false),
+                    DriverPrice = table.Column<double>(type: "float", nullable: false),
+                    ContractId = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ShippingFee", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ShippingFee_Contract_ContractId",
+                        column: x => x.ContractId,
+                        principalSchema: "dbo",
+                        principalTable: "Contract",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 schema: "dbo",
                 table: "Config",
-                columns: new[] { "Id", "Address", "Domain", "Email", "MailDisplayName", "MailPassword", "MailSmtpDomain", "MailUserName", "SmsCenter", "SmsPass", "SmsUser", "Tel", "Year" },
-                values: new object[] { 1, null, null, null, null, null, null, null, null, null, null, null, "1399" });
+                columns: new[] { "Id", "Address", "Domain", "Email", "LoadFactorDeductions", "MailDisplayName", "MailPassword", "MailSmtpDomain", "MailUserName", "SmsCenter", "SmsPass", "SmsUser", "Tel", "VAT", "WithholdingTax", "Year" },
+                values: new object[] { 1, null, null, null, 5.0, null, null, null, null, null, null, null, null, 9.0, 3.0, "1401" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
@@ -557,6 +624,12 @@ namespace EtehadBar.Infra.Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Contract_CustomerId",
+                schema: "dbo",
+                table: "Contract",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Contract_ParentContractId",
                 schema: "dbo",
                 table: "Contract",
@@ -593,10 +666,10 @@ namespace EtehadBar.Infra.Data.Migrations
                 column: "CalendarId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_LoadFactor_CustomerId",
+                name: "IX_LoadFactor_ContractId",
                 schema: "dbo",
                 table: "LoadFactor",
-                column: "CustomerId");
+                column: "ContractId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_LoadFactor_DriverId",
@@ -605,22 +678,38 @@ namespace EtehadBar.Infra.Data.Migrations
                 column: "DriverId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_LoadFactor_SaipaPressLoadFactorId",
+                schema: "dbo",
+                table: "LoadFactor",
+                column: "SaipaPressLoadFactorId",
+                unique: true,
+                filter: "[SaipaPressLoadFactorId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_LoadFactor_SazehGostarLoadFactorId",
+                schema: "dbo",
+                table: "LoadFactor",
+                column: "SazehGostarLoadFactorId",
+                unique: true,
+                filter: "[SazehGostarLoadFactorId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LoadFactor_VehicleId",
                 schema: "dbo",
                 table: "LoadFactor",
                 column: "VehicleId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payment_ApplicationUserId",
-                schema: "dbo",
-                table: "Payment",
-                column: "ApplicationUserId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Payment_CalendarId",
                 schema: "dbo",
                 table: "Payment",
                 column: "CalendarId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payment_VehicleId",
+                schema: "dbo",
+                table: "Payment",
+                column: "VehicleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ShippingFee_ContractId",
@@ -692,15 +781,15 @@ namespace EtehadBar.Infra.Data.Migrations
                 schema: "dbo");
 
             migrationBuilder.DropTable(
-                name: "Customer",
-                schema: "dbo");
-
-            migrationBuilder.DropTable(
-                name: "Vehicles",
-                schema: "dbo");
-
-            migrationBuilder.DropTable(
                 name: "AspNetUsers",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "SaipaPressLoadFactor",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "SazehGostarLoadFactor",
                 schema: "dbo");
 
             migrationBuilder.DropTable(
@@ -708,7 +797,15 @@ namespace EtehadBar.Infra.Data.Migrations
                 schema: "dbo");
 
             migrationBuilder.DropTable(
+                name: "Vehicles",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
                 name: "Contract",
+                schema: "dbo");
+
+            migrationBuilder.DropTable(
+                name: "Customer",
                 schema: "dbo");
         }
     }

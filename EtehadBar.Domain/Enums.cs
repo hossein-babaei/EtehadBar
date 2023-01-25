@@ -20,7 +20,7 @@
         Salary
     }
 
-    public enum Customers
+    public enum CustomerType
     {
         SaipaPlasco,
         SaipaPress,

@@ -22,7 +22,7 @@ namespace EtehadBar.Domain.Models
 
         [Display(Name = "نوع پرداخت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public byte Type { get; set; } = (byte)PaymentType.AdvanceMoney;
+        public PaymentType PaymentType { get; set; }
 
         [StringLength(50)]
         public string Picture { get; set; }

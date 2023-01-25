@@ -9,13 +9,13 @@
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
                 <div>
-                    <label asp-for="Type" class="uk-form-label"></label>
-                    <select asp-for="Type" class="uk-select uk-border-rounded">
+                    <label asp-for="DefinitionType" class="uk-form-label"></label>
+                    <select asp-for="DefinitionType" class="uk-select uk-border-rounded">
                         <option value="@((int)DefinitionType.Car)">خودرو</option>
                         <option value="@((int)DefinitionType.Origin)">مبدا</option>
                         <option value="@((int)DefinitionType.Destionation)">مقصد</option>
                     </select>
-                    <span asp-validation-for="Type" class="uk-text-danger"></span>
+                    <span asp-validation-for="DefinitionType" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Title" class="uk-form-label"></label>

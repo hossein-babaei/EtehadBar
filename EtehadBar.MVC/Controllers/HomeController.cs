@@ -8,6 +8,7 @@ using Microsoft.Extensions.Caching.Memory;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EtehadBar.MVC.Controllers
@@ -47,6 +48,7 @@ namespace EtehadBar.MVC.Controllers
         }
         public IActionResult Index()
         {
+            var data = _userManager.Users.ToList();
             return View();
         }
 
