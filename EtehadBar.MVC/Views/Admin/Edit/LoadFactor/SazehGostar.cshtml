@@ -31,7 +31,7 @@
                     <select asp-for="ShippingFeeId" class="uk-select uk-border-rounded">
                         @foreach (var item in fees)
                         {
-                            <!option value="@item.Id" @if (item.Id.Equals(Model.ShippingFeeId)) { <text> selected="selected" </text> }>@item.Vehicle - (@item.Origin به @item.Destination) - @item.Price.ToString("N0")</!option>
+                            <!option value="@item.Id" @if (item.Id.Equals(Model.ShippingFeeId)) { <text> selected="selected" </text> }>@item.Vehicle - (@item.Origin به @item.Destination) - @item.DriverPrice.ToString("N0")</!option>
                         }
                     </select>
                     <span asp-validation-for="ShippingFeeId" class="uk-text-danger"></span>

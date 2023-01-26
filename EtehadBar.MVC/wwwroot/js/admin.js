@@ -37,6 +37,7 @@ function getdate() {
     $(".main-clock").text(h + ":" + m + ":" + s);
     setTimeout(function () { getdate() }, 500);
 }
+
 function getNotifications() {
     $.post('/admin/admin-notifications', {}, function (r) {
         var heartbeat = '<span class="uk-position-absolute heartbeat"></span>';
@@ -46,6 +47,11 @@ function getNotifications() {
         $('#n-contact').text(r.contacts);
     }, 'json');
 }
+
+function numberWithCommas(n) {
+    return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
 $(document).ready(function () {
     new StickySidebar('#sidebar', {
         containerSelector: '#main-content',
@@ -55,4 +61,14 @@ $(document).ready(function () {
     });
     getdate();
     getNotifications();
+});
+
+$(document).on('keyup', '.format-number', function () {
+    var value = $(this).val();
+    let parent = $(this).parent();
+    if (!parent.hasClass('appended')) {
+        parent.append('<div class="format-append uk-text-left uk-text-light uk-font-sm"></div>');
+        parent.addClass('appended');
+    }
+    parent.find('.format-append').text(numberWithCommas(value));
 });
