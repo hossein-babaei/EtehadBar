@@ -26,7 +26,7 @@ namespace Helpers
                     PhoneNumberConfirmed = true,
                     RegisterDate = DateTime.Now,
                     UserName = "09108897900",
-                    Role = (byte)EtehadBar.Domain.ApplicationRoles.Admin
+                    Role = EtehadBar.Domain.ApplicationRoleType.Admin
                 };
 
                 IdentityResult result = userManager.CreateAsync(user, "P@ssw0rdAdmin!").Result;

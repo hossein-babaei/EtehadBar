@@ -30,7 +30,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Remove(obj);
         }
 
-        public async Task<Cost> Get(int id)
+        public async Task<Cost> Get(long id)
         {
             return await db.Cost.FindAsync(id);
         }

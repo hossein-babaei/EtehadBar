@@ -63,5 +63,9 @@ namespace EtehadBar.Domain.Models
 
         [Display(Name = "مالیات تکلیفی (%)")]
         public double WithholdingTax { get; set; }
+
+        [Required]
+        [StringLength(36)]
+        public string RowId { get; set; } = Guid.NewGuid().ToString();
     }
 }

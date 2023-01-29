@@ -8,9 +8,9 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface IShippingFeeRepository
     {
-        Task<ShippingFee> Get(string id);
+        Task<ShippingFee> Get(long id);
         IQueryable<ShippingFee> ShippingFees();
-        Task<List<LoadFactor>> GetLoadFactorsByContractId(string contractId, DateTime date);
+        Task<List<LoadFactor>> GetLoadFactorsByContractId(long contractId, DateTime date);
         void Update(ShippingFee obj);
         void UpdateRange(List<ShippingFee> list);
         void UpdateLoadFactors(List<LoadFactor> list);

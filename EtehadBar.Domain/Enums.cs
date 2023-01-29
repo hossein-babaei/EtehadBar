@@ -7,7 +7,7 @@
         Destionation
     }
 
-    public enum ApplicationRoles
+    public enum ApplicationRoleType
     {
         Admin,
         User,
@@ -25,5 +25,17 @@
         SaipaPlasco,
         SaipaPress,
         SazehGostar
+    }
+
+    public enum ShippingFeeType
+    {
+        Normal,
+        Custom
+    }
+
+    public enum LoadRouteType
+    {
+        Origin,
+        Destionation
     }
 }

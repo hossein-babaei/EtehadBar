@@ -1,7 +1,7 @@
 ﻿@model CreateUserVM
 @{
     var type = "مدیر سیستم";
-    if (ViewBag.type == (byte)ApplicationRoles.User)
+    if (ViewBag.type == (byte)ApplicationRoleType.User)
     {
         type = "کاربر سیستم";
     }

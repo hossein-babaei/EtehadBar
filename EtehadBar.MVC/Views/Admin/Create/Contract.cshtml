@@ -105,7 +105,7 @@
                 <div>
                     <label asp-for="ParentContractId" class="uk-form-label"></label>
                     <select asp-for="ParentContractId" class="uk-border-rounded">
-                        <option value="none" selected="selected">ثبت به عنوان قرارداد جدید</option>
+                        <option value="0" selected="selected">ثبت به عنوان قرارداد جدید</option>
                         @foreach (var item in contracts)
                         {
                             <option value="@item.Id">@item.Subject (@item.Number)</option>

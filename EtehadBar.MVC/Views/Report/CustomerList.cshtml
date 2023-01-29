@@ -72,7 +72,7 @@
                             <td class="uk-text-bold uk-text-danger">غیر فعال</td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="showForm(@item.Id, @item.CustomerType)">بارنامه</a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="showForm(@item.Id, @((byte)item.CustomerType))">بارنامه</a></td>
                     </tr>
                     i++;
                 }

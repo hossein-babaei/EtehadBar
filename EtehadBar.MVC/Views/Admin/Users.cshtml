@@ -120,9 +120,9 @@
 
                     string role = item.Role switch
                     {
-                        (byte)ApplicationRoles.Admin => "مدیر سیستم",
-                        (byte)ApplicationRoles.User => "کاربر سیستم",
-                        (byte)ApplicationRoles.Driver => "راننده",
+                        ApplicationRoleType.Admin => "مدیر سیستم",
+                        ApplicationRoleType.User => "کاربر سیستم",
+                        ApplicationRoleType.Driver => "راننده",
                         _ => ""
                     };
 
@@ -159,9 +159,9 @@
     <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
         <h3>نوع کاربر را انتخاب کنید</h3>
         <ul class="uk-list">
-            <li><button class="uk-button uk-button-primary" onclick="getCreateModal(@((byte)ApplicationRoles.Admin))">مدیر</button></li>
-            <li><button class="uk-button uk-button-primary" onclick="getCreateModal(@((byte)ApplicationRoles.User))">کاربر</button></li>
-            <li><button class="uk-button uk-button-primary" onclick="getCreateModal(@((byte)ApplicationRoles.Driver))">راننده</button></li>
+            <li><button class="uk-button uk-button-primary" onclick="getCreateModal(@((byte)ApplicationRoleType.Admin))">مدیر</button></li>
+            <li><button class="uk-button uk-button-primary" onclick="getCreateModal(@((byte)ApplicationRoleType.User))">کاربر</button></li>
+            <li><button class="uk-button uk-button-primary" onclick="getCreateModal(@((byte)ApplicationRoleType.Driver))">راننده</button></li>
         </ul>
     </div>
 </div>

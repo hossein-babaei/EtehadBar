@@ -29,7 +29,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Remove(obj);
         }
 
-        public async Task<Contract> Get(string id)
+        public async Task<Contract> Get(long id)
         {
             return await db.Contract.FindAsync(id);
         }

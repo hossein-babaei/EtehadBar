@@ -39,7 +39,7 @@ namespace EtehadBar.Domain.Models
 
         public bool Gender { get; set; }
 
-        public byte Role { get; set; }
+        public ApplicationRoleType Role { get; set; }
 
         public bool Status { get; set; }
 

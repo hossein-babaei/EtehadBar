@@ -6,7 +6,7 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface IVehicleRepository
     {
-        Task<Vehicle> Get(string id);
+        Task<Vehicle> Get(long id);
         IQueryable<Vehicle> Vehicles();
         void Update(Vehicle obj);
         void Create(Vehicle obj);

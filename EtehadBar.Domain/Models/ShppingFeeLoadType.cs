@@ -5,19 +5,15 @@ using System.ComponentModel.DataAnnotations;
 namespace EtehadBar.Domain.Models
 {
     [Index(nameof(RowId), IsUnique = true)]
-    public class Definition
+    public class ShippingFeeLoadType
     {
         [Key]
         public long Id { get; set; }
 
-        [Display(Name = "عنوان")]
+        [Display(Name = "نام")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(256, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
-        public string Title { get; set; }
-
-        [Display(Name = "نوع")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public DefinitionType DefinitionType { get; set; } //DefinitionTypeEnum
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Name { get; set; }
 
         [Required]
         [StringLength(36)]

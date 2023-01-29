@@ -1,29 +1,30 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain.Models
 {
+    [Index(nameof(RowId), IsUnique = true)]
     public class LoadFactor
     {
         [Key]
-        [StringLength(50)]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        public long Counter { get; set; }
+        public long Id { get; set; }
 
         [Display(Name = "تاریخ")]
         public DateTime Date { get; set; } = DateTime.Now;
 
         [Display(Name = "مبدأ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
-        public string Origin { get; set; }
+        [ForeignKey(nameof(Origin))]
+        public long OriginId { get; set; }
+        public virtual LoadRoutes Origin { get; set; }
 
         [Display(Name = "مقصد")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
-        public string Destination { get; set; }
+        [ForeignKey(nameof(Destination))]
+        public long DestinationId { get; set; }
+        public virtual LoadRoutes Destination { get; set; }
 
         [Display(Name = "مبلغ (ریال)")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -32,6 +33,12 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "کرایه راننده (ریال)")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double DriverFee { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; } = 0;
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; } = 0;
 
         [Display(Name = "شماره بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -48,7 +55,6 @@ namespace EtehadBar.Domain.Models
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ExitNumber { get; set; }
 
-
         [Display(Name = "مالیات ارزش افزوده (%)")]
         public double VAT { get; set; }
 
@@ -63,19 +69,19 @@ namespace EtehadBar.Domain.Models
         public string AdminId { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string ShippingFeeId { get; set; }
+        public long ShippingFeeId { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; } = 0;
 
         [Required]
         [Display(Name = "مشتری")]
-        [StringLength(50)]
-        public string ContractId { get; set; }
+        public long ContractId { get; set; }
         public virtual Contract Contract { get; set; }
 
         [Required]
         [Display(Name = "تقویم کاری")]
-        [StringLength(50)]
-        public string CalendarId { get; set; }
+        public long CalendarId { get; set; }
         public virtual Calendar Calendar { get; set; }
 
         [Required]
@@ -86,19 +92,20 @@ namespace EtehadBar.Domain.Models
         public virtual ApplicationUser ApplicationUser { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "خودرو")]
-        public string VehicleId { get; set; }
+        public long VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; }
 
-        [StringLength(50)]
         [ForeignKey(nameof(SaipaPressLoadFactor))]
-        public string SaipaPressLoadFactorId { get; set; }
+        public long? SaipaPressLoadFactorId { get; set; }
         public virtual SaipaPressLoadFactor SaipaPressLoadFactor { get; set; }
 
-        [StringLength(50)]
         [ForeignKey(nameof(SazehGostarLoadFactor))]
-        public string SazehGostarLoadFactorId { get; set; }
+        public long? SazehGostarLoadFactorId { get; set; }
         public virtual SazehGostarLoadFactor SazehGostarLoadFactor { get; set; }
+
+        [Required]
+        [StringLength(36)]
+        public string RowId { get; set; } = Guid.NewGuid().ToString();
     }
 }

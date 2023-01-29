@@ -1,14 +1,15 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain.Models
 {
+    [Index(nameof(RowId), IsUnique = true)]
     public class Calendar
     {
         [Key]
-        [StringLength(50)]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public long Id { get; set; }
 
         [Display(Name = "از تاریخ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -27,5 +28,9 @@ namespace EtehadBar.Domain.Models
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
         public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }
+
+        [Required]
+        [StringLength(36)]
+        public string RowId { get; set; } = Guid.NewGuid().ToString();
     }
 }

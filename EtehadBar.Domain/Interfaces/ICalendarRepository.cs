@@ -6,7 +6,7 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface ICalendarRepository
     {
-        Task<Calendar> Get(string id);
+        Task<Calendar> Get(long id);
         IQueryable<Calendar> Calendars();
         void Update(Calendar obj);
         void Create(Calendar obj);

@@ -33,7 +33,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Remove(obj);
         }
 
-        public async Task<Payment> Get(int id)
+        public async Task<Payment> Get(long id)
         {
             return await db.Payment.FindAsync(id);
         }
@@ -48,7 +48,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Update(obj);
         }
 
-        public async Task<List<PaymentVM>> PaymentVMList(string calendarId, byte? type, string vehicleId)
+        public async Task<List<PaymentVM>> PaymentVMList(long calendarId, byte? type, long? vehicleId)
         {
             var data = from a in db.Payment
                        join b in db.ApplicationUser on a.AdminId equals b.Id
@@ -74,10 +74,10 @@ namespace EtehadBar.Infra.Data.Repository
                     data = data.Where(a => a.PaymentType.Equals(type.Value));
             }
 
-            if (!string.IsNullOrWhiteSpace(vehicleId))
+            if (vehicleId.HasValue)
             {
-                if (vehicleId != "all")
-                    data = data.Where(a => a.VehicleId.Equals(vehicleId));
+                if (vehicleId.Value != 0)
+                    data = data.Where(a => a.VehicleId.Equals(vehicleId.Value));
             }
 
             return await data.AsNoTracking().ToListAsync();

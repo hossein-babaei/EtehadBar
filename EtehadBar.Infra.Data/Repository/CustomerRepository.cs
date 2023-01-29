@@ -36,7 +36,7 @@ namespace EtehadBar.Infra.Data.Repository
             return await db.Customer.Where(a => a.Status).OrderBy(a => a.Name).ToListAsync();
         }
 
-        public async Task<Customer> Get(int id)
+        public async Task<Customer> Get(long id)
         {
             return await db.Customer.FindAsync(id);
         }
@@ -51,7 +51,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Update(obj);
         }
 
-        public async Task<CustomerIncome> GetIncome(int id)
+        public async Task<CustomerIncome> GetIncome(long id)
         {
             return await db.CustomerIncome.FindAsync(id);
         }

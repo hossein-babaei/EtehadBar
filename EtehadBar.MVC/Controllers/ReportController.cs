@@ -55,7 +55,7 @@ namespace EtehadBar.MVC.Controllers
             }).ToListAsync());
         }
 
-        public async Task<IActionResult> Customer(int? id, string statusNumber, string calendarId)
+        public async Task<IActionResult> Customer(int? id, string statusNumber, int calendarId)
         {
             if (Request.IsAjaxRequest())
             {
@@ -122,7 +122,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CustomerIncome(int? id, string calendarId)
+        public async Task<IActionResult> CustomerIncome(int? id, int calendarId)
         {
             ViewData["customer"] = await _customerRepo.Get(id.Value);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
@@ -144,7 +144,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Detailed(string calendarId)
+        public async Task<IActionResult> Detailed(int calendarId)
         {
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
 
@@ -165,7 +165,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Cost(string calendarId)
+        public async Task<IActionResult> Cost(int calendarId)
         {
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
             return PartialView("_Cost", await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).ToListAsync());
@@ -178,11 +178,11 @@ namespace EtehadBar.MVC.Controllers
             ViewData["calendars"] = calendars;
 
             var latestCal = calendars.First();
-            return View(await _paymentRepo.PaymentVMList(latestCal.Id, null, ""));
+            return View(await _paymentRepo.PaymentVMList(latestCal.Id, null, null));
         }
 
         [HttpPost]
-        public async Task<IActionResult> Payment(string calendarId, byte type, string vehicleId)
+        public async Task<IActionResult> Payment(int calendarId, byte type, int vehicleId)
         {
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
             ViewData["type"] = type;
@@ -199,12 +199,12 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> VehicleLoadFactor(string calendarId, string vehicleId)
+        public async Task<IActionResult> VehicleLoadFactor(int calendarId, int vehicleId)
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
             ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
-            return PartialView("_VehicleLoadFactor", await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Counter).ToListAsync());
+            return PartialView("_VehicleLoadFactor", await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Id).ToListAsync());
         }
     }
 }

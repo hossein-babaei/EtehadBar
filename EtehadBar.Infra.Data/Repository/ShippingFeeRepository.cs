@@ -32,7 +32,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Remove(obj);
         }
 
-        public async Task<ShippingFee> Get(string id)
+        public async Task<ShippingFee> Get(long id)
         {
             return await db.ShippingFee.FindAsync(id);
         }
@@ -47,7 +47,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Update(obj);
         }
 
-        public async Task<List<LoadFactor>> GetLoadFactorsByContractId(string contractId, DateTime date)
+        public async Task<List<LoadFactor>> GetLoadFactorsByContractId(long contractId, DateTime date)
         {
             return await db.LoadFactor.Where(a => a.ContractId.Equals(contractId) && a.Date >= date).ToListAsync();
         }

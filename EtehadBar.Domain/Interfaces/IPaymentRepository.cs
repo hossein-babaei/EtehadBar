@@ -7,8 +7,8 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface IPaymentRepository
     {
-        Task<List<PaymentVM>> PaymentVMList(string calendarId, byte? type, string vehicleId);
-        Task<Payment> Get(int id);
+        Task<List<PaymentVM>> PaymentVMList(long calendarId, byte? type, long? vehicleId);
+        Task<Payment> Get(long id);
         IQueryable<Payment> Payments();
         void Update(Payment obj);
         void Create(Payment obj);

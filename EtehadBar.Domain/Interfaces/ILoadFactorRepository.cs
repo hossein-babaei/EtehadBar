@@ -7,12 +7,12 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface ILoadFactorRepository
     {
-        Task<LoadFactor> Get(string id);
-        Task<ESaipaPlascoLoadFactorVM> GetSaipaPlascoLoadFactor(string loadFactorId);
-        Task<ESaipaPressLoadFactorVM> GetSaipaPressLoadFactor(string loadFactorId);
-        Task<ESazehGostarLoadFactorVM> GetSazehGostarLoadFactor(string loadFactorId);
+        Task<LoadFactor> Get(long id);
+        Task<ESaipaPlascoLoadFactorVM> GetSaipaPlascoLoadFactor(long loadFactorId);
+        Task<ESaipaPressLoadFactorVM> GetSaipaPressLoadFactor(long loadFactorId);
+        Task<ESazehGostarLoadFactorVM> GetSazehGostarLoadFactor(long loadFactorId);
         IQueryable<LoadFactor> LoadFactors();
-        Task<List<LoadFactor>> LoadFactors(int customerId, string calendarId);
+        Task<List<LoadFactor>> LoadFactors(long customerId, long calendarId);
         void Update(LoadFactor obj);
         void UpdateSaipaPress(SaipaPressLoadFactor obj);
         void UpdateSazehGostar(SazehGostarLoadFactor obj);

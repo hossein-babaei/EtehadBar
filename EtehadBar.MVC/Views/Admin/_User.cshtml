@@ -33,9 +33,9 @@
 
                     string role = item.Role switch
                     {
-                        (byte)ApplicationRoles.Admin => "مدیر سیستم",
-                        (byte)ApplicationRoles.User => "کاربر سیستم",
-                        (byte)ApplicationRoles.Driver => "راننده",
+                        ApplicationRoleType.Admin => "مدیر سیستم",
+                        ApplicationRoleType.User => "کاربر سیستم",
+                        ApplicationRoleType.Driver => "راننده",
                         _ => ""
                     };
 

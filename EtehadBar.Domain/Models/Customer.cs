@@ -1,12 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain.Models
 {
+    [Index(nameof(RowId), IsUnique = true)]
     public class Customer
     {
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Display(Name = "نام")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -23,5 +26,9 @@ namespace EtehadBar.Domain.Models
 
         public virtual ICollection<Contract> Contracts { get; set; }
         public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }
+
+        [Required]
+        [StringLength(36)]
+        public string RowId { get; set; } = Guid.NewGuid().ToString();
     }
 }

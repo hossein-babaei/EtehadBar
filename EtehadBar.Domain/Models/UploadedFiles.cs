@@ -1,11 +1,14 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain.Models
 {
+    [Index(nameof(RowId), IsUnique = true)]
     public class UploadedFiles
     {
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Display(Name = "نام")]
         [StringLength(50)]
@@ -16,5 +19,9 @@ namespace EtehadBar.Domain.Models
         [StringLength(10)]
         [Required(ErrorMessage = "لطفا {0} را وارد کنید")]
         public string Type { get; set; }
+
+        [Required]
+        [StringLength(36)]
+        public string RowId { get; set; } = Guid.NewGuid().ToString();
     }
 }

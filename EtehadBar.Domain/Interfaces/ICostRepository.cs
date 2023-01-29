@@ -6,7 +6,7 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface ICostRepository
     {
-        Task<Cost> Get(int id);
+        Task<Cost> Get(long id);
         IQueryable<Cost> Costs();
         void Update(Cost obj);
         void Create(Cost obj);

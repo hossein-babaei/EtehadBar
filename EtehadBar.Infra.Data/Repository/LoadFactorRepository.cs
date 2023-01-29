@@ -43,7 +43,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Remove(obj);
         }
 
-        public async Task<LoadFactor> Get(string id)
+        public async Task<LoadFactor> Get(long id)
         {
             return await db.LoadFactor.FindAsync(id);
         }
@@ -83,7 +83,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Update(obj);
         }
 
-        public async Task<ESaipaPlascoLoadFactorVM> GetSaipaPlascoLoadFactor(string loadFactorId)
+        public async Task<ESaipaPlascoLoadFactorVM> GetSaipaPlascoLoadFactor(long loadFactorId)
         {
             var loadFactor = await db.LoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESaipaPlascoLoadFactorVM();
@@ -106,7 +106,7 @@ namespace EtehadBar.Infra.Data.Repository
             };
         }
 
-        public async Task<ESaipaPressLoadFactorVM> GetSaipaPressLoadFactor(string loadFactorId)
+        public async Task<ESaipaPressLoadFactorVM> GetSaipaPressLoadFactor(long loadFactorId)
         {
             var loadFactor = await db.LoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESaipaPressLoadFactorVM();
@@ -135,7 +135,7 @@ namespace EtehadBar.Infra.Data.Repository
             };
         }
 
-        public async Task<ESazehGostarLoadFactorVM> GetSazehGostarLoadFactor(string loadFactorId)
+        public async Task<ESazehGostarLoadFactorVM> GetSazehGostarLoadFactor(long loadFactorId)
         {
             var loadFactor = await db.LoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESazehGostarLoadFactorVM();
@@ -169,7 +169,7 @@ namespace EtehadBar.Infra.Data.Repository
             };
         }
 
-        public async Task<List<LoadFactor>> LoadFactors(int customerId, string calendarId)
+        public async Task<List<LoadFactor>> LoadFactors(long customerId, long calendarId)
         {
             var data = from a in db.LoadFactor
                        join b in db.Contract on a.ContractId equals b.Id

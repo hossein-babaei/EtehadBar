@@ -7,14 +7,14 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface ICustomerRepository
     {
-        Task<Customer> Get(int id);
+        Task<Customer> Get(long id);
         IQueryable<Customer> Customers();
         Task<List<Customer>> GetAll();
         Task<List<Customer>> GetAllActive();
         void Update(Customer obj);
         void Create(Customer obj);
 
-        Task<CustomerIncome> GetIncome(int id);
+        Task<CustomerIncome> GetIncome(long id);
         IQueryable<CustomerIncome> CustomerIncomes();
         void Update(CustomerIncome obj);
         void Create(CustomerIncome obj);

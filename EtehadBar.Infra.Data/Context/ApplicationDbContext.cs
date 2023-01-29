@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace EtehadBar.Infra.Data.Context
 {
@@ -28,9 +29,11 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<CustomerIncome> CustomerIncome { get; set; }
         public DbSet<Definition> Definition { get; set; }
         public DbSet<LoadFactor> LoadFactor { get; set; }
+        public DbSet<LoadRoutes> LoadRoute { get; set; }
         public DbSet<Payment> Payment { get; set; }
         public DbSet<SaipaPressLoadFactor> SaipaPressLoadFactor { get; set; }
         public DbSet<SazehGostarLoadFactor> SazehGostarLoadFactor { get; set; }
+        public DbSet<ShippingFeeLoadType> ShippingFeeLoadType { get; set; }
         public DbSet<ShippingFee> ShippingFee { get; set; }
         public DbSet<UploadedFiles> UploadedFiles { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
@@ -41,16 +44,22 @@ namespace EtehadBar.Infra.Data.Context
 
             modelBuilder.HasDefaultSchema("dbo");
 
-            modelBuilder.Entity<LoadFactor>()
-                .Property(a => a.Counter)
-                .UseIdentityColumn(seed: 1, increment: 1);
+            //modelBuilder.Entity<LoadFactor>()
+            //    .Property(a => a.Counter)
+            //    .UseIdentityColumn(seed: 1, increment: 1);
 
-            modelBuilder.Entity<LoadFactor>().Property(u => u.Counter).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+            //modelBuilder.Entity<LoadFactor>().Property(u => u.Counter).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Origin).WithMany().HasForeignKey(sf => sf.OriginId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Destination).WithMany().HasForeignKey(sf => sf.DestinationId).OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<LoadFactor>().HasOne(lf => lf.Origin).WithMany().HasForeignKey(lf => lf.OriginId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<LoadFactor>().HasOne(lf => lf.Destination).WithMany().HasForeignKey(lf => lf.DestinationId).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Customer>().HasData(
-                new { Id = 1, Name = "پلاسکو کار سایپا", CustomerType = Domain.CustomerType.SaipaPlasco, Status = true },
-                new { Id = 2, Name = "سایپا پرس", CustomerType = Domain.CustomerType.SaipaPress, Status = true },
-                new { Id = 3, Name = "سازه گستر", CustomerType = Domain.CustomerType.SazehGostar, Status = true });
+                new { Id = 1L, Name = "پلاسکو کار سایپا", CustomerType = Domain.CustomerType.SaipaPlasco, Status = true, RowId = Guid.NewGuid().ToString() },
+                new { Id = 2L, Name = "سایپا پرس", CustomerType = Domain.CustomerType.SaipaPress, Status = true, RowId = Guid.NewGuid().ToString() },
+                new { Id = 3L, Name = "سازه گستر", CustomerType = Domain.CustomerType.SazehGostar, Status = true, RowId = Guid.NewGuid().ToString() });
 
             modelBuilder.Entity<Config>().HasData(
                 new Config() { Id = 1, VAT = 9, LoadFactorDeductions = 5, WithholdingTax = 3, Year = PersianDateTime.Now.ToString("yyyy") });

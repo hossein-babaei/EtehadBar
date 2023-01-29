@@ -6,7 +6,7 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface IDefinitionRepository
     {
-        Task<Definition> Get(int id);
+        Task<Definition> Get(long id);
         IQueryable<Definition> Definitions();
         void Update(Definition obj);
         void Create(Definition obj);

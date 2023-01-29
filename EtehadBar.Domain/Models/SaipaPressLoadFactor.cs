@@ -1,13 +1,14 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain.Models
 {
+    [Index(nameof(RowId), IsUnique = true)]
     public class SaipaPressLoadFactor
     {
         [Key]
-        [StringLength(50)]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public long Id { get; set; }
 
         [Required]
         [StringLength(50)]
@@ -19,7 +20,11 @@ namespace EtehadBar.Domain.Models
 
         [Required]
         [StringLength(50)]
-        public string LoadFactorId { get; set; }
+        public long LoadFactorId { get; set; }
         public virtual LoadFactor LoadFactor { get; set; }
+
+        [Required]
+        [StringLength(36)]
+        public string RowId { get; set; } = Guid.NewGuid().ToString();
     }
 }

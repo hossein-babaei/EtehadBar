@@ -7,27 +7,36 @@ using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
+#nullable disable
+
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230123093537_initial")]
-    partial class initial
+    [Migration("20230129142717_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("dbo")
-                .UseIdentityColumns()
-                .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("ProductVersion", "5.0.0");
+                .HasAnnotation("ProductVersion", "6.0.13")
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
 
             modelBuilder.Entity("EtehadBar.Domain.Models.AdminTheme", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("Theme")
                         .IsRequired()
@@ -41,7 +50,10 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AdminTheme");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("AdminTheme", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.ApplicationUser", b =>
@@ -119,8 +131,8 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<DateTime>("RegisterDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<byte>("Role")
-                        .HasColumnType("tinyint");
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -149,17 +161,24 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("AspNetUsers");
+                    b.ToTable("AspNetUsers", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Calendar", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -171,15 +190,19 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Calendar");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("Calendar", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Config", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("Address")
                         .HasMaxLength(512)
@@ -212,6 +235,11 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<string>("SmsCenter")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -239,13 +267,14 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Config");
+                    b.ToTable("Config", "dbo");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
                             LoadFactorDeductions = 5.0,
+                            RowId = "8bd8d4c9-7595-4b03-95c7-91ab91046965",
                             VAT = 9.0,
                             WithholdingTax = 3.0,
                             Year = "1401"
@@ -254,12 +283,14 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Contract", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
 
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
+
+                    b.Property<long>("CustomerId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
@@ -269,9 +300,13 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<string>("ParentContractId")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long?>("ParentContractId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -286,23 +321,25 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("ParentContractId");
 
-                    b.ToTable("Contract");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("Contract", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Cost", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
-                    b.Property<string>("CalendarId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("CalendarId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -315,6 +352,11 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<string>("Picture")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -325,40 +367,79 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("CalendarId");
 
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("Cost");
+                    b.ToTable("Cost", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Customer", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
+
+                    b.Property<int>("CustomerType")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
-                    b.Property<byte>("Type")
-                        .HasColumnType("tinyint");
-
                     b.HasKey("Id");
 
-                    b.ToTable("Customer");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("Customer", "dbo");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1L,
+                            CustomerType = 0,
+                            Name = "پلاسکو کار سایپا",
+                            RowId = "29f78114-f72a-427a-a3f1-8864e6eeb13c",
+                            Status = true
+                        },
+                        new
+                        {
+                            Id = 2L,
+                            CustomerType = 1,
+                            Name = "سایپا پرس",
+                            RowId = "e1cbee6e-f7a1-4a84-a1c5-e740fb84fa7d",
+                            Status = true
+                        },
+                        new
+                        {
+                            Id = 3L,
+                            CustomerType = 2,
+                            Name = "سازه گستر",
+                            RowId = "df204398-5c7c-4caf-98c0-0c9b9be54a6f",
+                            Status = true
+                        });
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.CustomerIncome", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<string>("AdminId")
                         .HasMaxLength(450)
@@ -367,13 +448,12 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
-                    b.Property<string>("CalendarId")
-                        .IsRequired()
+                    b.Property<long>("CalendarId")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("bigint");
 
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
+                    b.Property<long>("CustomerId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -387,40 +467,59 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CalendarId");
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("CustomerIncome");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("CustomerIncome", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Definition", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
+
+                    b.Property<int>("DefinitionType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
-                    b.ToTable("Definition");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("Definition", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.LoadFactor", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<string>("AdminId")
                         .HasMaxLength(450)
@@ -429,28 +528,17 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
-                    b.Property<string>("CalendarId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("CalendarId")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("ContractId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<long>("Counter")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .UseIdentityColumn();
+                    b.Property<long>("ContractId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Destination")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                    b.Property<long>("DestinationId")
+                        .HasColumnType("bigint");
 
                     b.Property<double>("DriverFee")
                         .HasColumnType("float");
@@ -459,6 +547,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
+
+                    b.Property<double?>("DriverTonnagePrice")
+                        .HasColumnType("float");
 
                     b.Property<string>("ExitNumber")
                         .IsRequired()
@@ -478,31 +569,34 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<string>("Origin")
+                    b.Property<long>("OriginId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RowId")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
-                    b.Property<string>("SaipaPressLoadFactorId")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long?>("SaipaPressLoadFactorId")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("SazehGostarLoadFactorId")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long?>("SazehGostarLoadFactorId")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("ShippingFeeId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("ShippingFeeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<double?>("Tonnage")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("TonnagePrice")
+                        .HasColumnType("float");
 
                     b.Property<double>("VAT")
                         .HasColumnType("float");
 
-                    b.Property<string>("VehicleId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("VehicleId")
+                        .HasColumnType("bigint");
 
                     b.Property<double>("WithholdingTax")
                         .HasColumnType("float");
@@ -513,7 +607,14 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("ContractId");
 
+                    b.HasIndex("DestinationId");
+
                     b.HasIndex("DriverId");
+
+                    b.HasIndex("OriginId");
+
+                    b.HasIndex("RowId")
+                        .IsUnique();
 
                     b.HasIndex("SaipaPressLoadFactorId")
                         .IsUnique()
@@ -525,15 +626,46 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("LoadFactor");
+                    b.ToTable("LoadFactor", "dbo");
+                });
+
+            modelBuilder.Entity("EtehadBar.Domain.Models.LoadRoutes", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
+
+                    b.Property<int>("RouteType")
+                        .HasMaxLength(128)
+                        .HasColumnType("int");
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("LoadRoute", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Payment", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<string>("AdminId")
                         .IsRequired()
@@ -543,10 +675,9 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("float");
 
-                    b.Property<string>("CalendarId")
-                        .IsRequired()
+                    b.Property<long>("CalendarId")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
@@ -556,58 +687,76 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
+                    b.Property<int>("PaymentType")
+                        .HasColumnType("int");
+
                     b.Property<string>("Picture")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<byte>("Type")
-                        .HasColumnType("tinyint");
-
-                    b.Property<string>("VehicleId")
+                    b.Property<string>("RowId")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<long>("VehicleId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
                     b.HasIndex("CalendarId");
 
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
                     b.HasIndex("VehicleId");
 
-                    b.ToTable("Payment");
+                    b.ToTable("Payment", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.SaipaPressLoadFactor", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<string>("EntryNumber")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("LoadFactorId")
-                        .IsRequired()
+                    b.Property<long>("LoadFactorId")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("LoadType")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.HasKey("Id");
 
-                    b.ToTable("SaipaPressLoadFactor");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("SaipaPressLoadFactor", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.SazehGostarLoadFactor", b =>
                 {
-                    b.Property<string>("Id")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<string>("Certain")
                         .IsRequired()
@@ -624,10 +773,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<string>("LoadFactorId")
-                        .IsRequired()
+                    b.Property<long>("LoadFactorId")
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Nature")
                         .IsRequired()
@@ -639,40 +787,61 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<string>("Status")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("SazehGostarLoadFactor");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("SazehGostarLoadFactor", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.ShippingFee", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("ContractId")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
-                    b.Property<string>("Destination")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                    b.Property<long>("ContractId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("DestinationId")
+                        .HasColumnType("bigint");
 
                     b.Property<double>("DriverPrice")
                         .HasColumnType("float");
 
-                    b.Property<string>("Origin")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                    b.Property<double?>("DriverTonnagePrice")
+                        .HasColumnType("float");
+
+                    b.Property<long>("OriginId")
+                        .HasColumnType("bigint");
 
                     b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<long>("ShippingFeeLoadTypeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ShippingFeeType")
+                        .HasColumnType("int");
+
+                    b.Property<double?>("TonnagePrice")
                         .HasColumnType("float");
 
                     b.Property<string>("Vehicle")
@@ -684,20 +853,61 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("ContractId");
 
-                    b.ToTable("ShippingFee");
+                    b.HasIndex("DestinationId");
+
+                    b.HasIndex("OriginId");
+
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.HasIndex("ShippingFeeLoadTypeId");
+
+                    b.ToTable("ShippingFee", "dbo");
+                });
+
+            modelBuilder.Entity("EtehadBar.Domain.Models.ShippingFeeLoadType", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("ShippingFeeLoadType", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.UploadedFiles", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -706,14 +916,19 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("UploadedFiles");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("UploadedFiles", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Vehicle", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<string>("IranStateNumber")
                         .IsRequired()
@@ -735,6 +950,11 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(3)
                         .HasColumnType("nvarchar(3)");
 
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
                     b.Property<bool>("Status")
                         .HasColumnType("bit");
 
@@ -745,7 +965,10 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Vehicles");
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("Vehicles", "dbo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -772,15 +995,16 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasDatabaseName("RoleNameIndex")
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
-                    b.ToTable("AspNetRoles");
+                    b.ToTable("AspNetRoles", "dbo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("nvarchar(max)");
@@ -796,15 +1020,16 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims");
+                    b.ToTable("AspNetRoleClaims", "dbo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .UseIdentityColumn();
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("nvarchar(max)");
@@ -820,7 +1045,7 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims");
+                    b.ToTable("AspNetUserClaims", "dbo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -842,7 +1067,7 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins");
+                    b.ToTable("AspNetUserLogins", "dbo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -857,7 +1082,7 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles");
+                    b.ToTable("AspNetUserRoles", "dbo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -876,7 +1101,7 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens");
+                    b.ToTable("AspNetUserTokens", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Contract", b =>
@@ -948,10 +1173,22 @@ namespace EtehadBar.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("EtehadBar.Domain.Models.LoadRoutes", "Destination")
+                        .WithMany()
+                        .HasForeignKey("DestinationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("EtehadBar.Domain.Models.ApplicationUser", "ApplicationUser")
                         .WithMany("LoadFactors")
                         .HasForeignKey("DriverId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("EtehadBar.Domain.Models.LoadRoutes", "Origin")
+                        .WithMany()
+                        .HasForeignKey("OriginId")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("EtehadBar.Domain.Models.SaipaPressLoadFactor", "SaipaPressLoadFactor")
@@ -973,6 +1210,10 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("Calendar");
 
                     b.Navigation("Contract");
+
+                    b.Navigation("Destination");
+
+                    b.Navigation("Origin");
 
                     b.Navigation("SaipaPressLoadFactor");
 
@@ -1008,7 +1249,31 @@ namespace EtehadBar.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("EtehadBar.Domain.Models.LoadRoutes", "Destination")
+                        .WithMany()
+                        .HasForeignKey("DestinationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EtehadBar.Domain.Models.LoadRoutes", "Origin")
+                        .WithMany()
+                        .HasForeignKey("OriginId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("EtehadBar.Domain.Models.ShippingFeeLoadType", "ShippingFeeLoadType")
+                        .WithMany()
+                        .HasForeignKey("ShippingFeeLoadTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Contract");
+
+                    b.Navigation("Destination");
+
+                    b.Navigation("Origin");
+
+                    b.Navigation("ShippingFeeLoadType");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

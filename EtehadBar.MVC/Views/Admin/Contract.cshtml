@@ -112,7 +112,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var item in data.Where(a => string.IsNullOrEmpty(a.ParentContractId)))
+                @foreach (var item in data.Where(a => !a.ParentContractId.HasValue))
                 {
                     var addons = item.ContractAddons;
                     var startPersianDate = new PersianDateTime(item.StartDate);
@@ -134,8 +134,8 @@
                             <td><button disabled class="uk-button uk-button-default uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
                         }
                         <td><a asp-action="ShippingFee" asp-route-contractId="@item.Id" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
                     i++;
                     if (addons.Any())
@@ -170,8 +170,8 @@
                                                     <td>@Html.DisplayFor(modelItem => addon.Subject)</td>
                                                     <td>@startPersianDate.ToShortDateString()</td>
                                                     <td>@endPersianDate.ToShortDateString()</td>
-                                                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@addon.Id')"><i class="far fa-edit"></i></a></td>
-                                                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@addon.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                                                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@addon.Id)"><i class="far fa-edit"></i></a></td>
+                                                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@addon.Id)"><i class="fas fa-trash-alt"></i></a></td>
                                                 </tr>
                                                 i++;
                                             }

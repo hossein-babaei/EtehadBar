@@ -1,23 +1,24 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain.Models
 {
+    [Index(nameof(RowId), IsUnique = true)]
     public class ShippingFee
     {
         [Key]
-        [StringLength(50)]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public long Id { get; set; }
 
         [Display(Name = "مبدأ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
-        public string Origin { get; set; }
+        public long OriginId { get; set; }
+        public virtual LoadRoutes Origin { get; set; }
 
         [Display(Name = "مقصد")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
-        public string Destination { get; set; }
+        public long DestinationId { get; set; }
+        public virtual LoadRoutes Destination { get; set; }
 
         [Display(Name = "خودرو")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -32,10 +33,25 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double DriverPrice { get; set; }
 
-        [StringLength(50)]
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; } = 0;
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; } = 0;
+
+        [Display(Name = "نوع نرخ")]
+        public ShippingFeeType ShippingFeeType { get; set; } = ShippingFeeType.Normal;
+
+        public long ShippingFeeLoadTypeId { get; set; }
+        public virtual ShippingFeeLoadType ShippingFeeLoadType { get; set; }
+
         [Display(Name = "قرارداد")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string ContractId { get; set; }
+        public long ContractId { get; set; }
         public virtual Contract Contract { get; set; }
+
+        [Required]
+        [StringLength(36)]
+        public string RowId { get; set; } = Guid.NewGuid().ToString();
     }
 }

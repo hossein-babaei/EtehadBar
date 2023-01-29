@@ -1,13 +1,15 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain.Models
 {
+    [Index(nameof(RowId), IsUnique = true)]
     public class Cost
     {
         [Key]
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Display(Name = "شرح هزینه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -26,8 +28,7 @@ namespace EtehadBar.Domain.Models
 
         [Display(Name = "تقویم کاری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(50)]
-        public string CalendarId { get; set; }
+        public long CalendarId { get; set; }
         public virtual Calendar Calendar { get; set; }
 
         [Required]
@@ -36,5 +37,9 @@ namespace EtehadBar.Domain.Models
         [ForeignKey("ApplicationUser")]
         public string UserId { get; set; }
         public virtual ApplicationUser ApplicationUser { get; set; }
+
+        [Required]
+        [StringLength(36)]
+        public string RowId { get; set; } = Guid.NewGuid().ToString();
     }
 }

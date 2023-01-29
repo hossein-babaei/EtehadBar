@@ -36,7 +36,7 @@ namespace EtehadBar.MVC.Controllers
             _vehicleRepo = vehicleRepository;
         }
 
-        public async Task<IActionResult> Detailed(string calendarId)
+        public async Task<IActionResult> Detailed(int calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
             var cost = await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
@@ -150,7 +150,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
         }
 
-        public async Task<IActionResult> Cost(string calendarId)
+        public async Task<IActionResult> Cost(int calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
             var costs = await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync();
@@ -215,7 +215,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
         }
 
-        public async Task<IActionResult> Payment(string calendarId, byte? type, string vehicleId)
+        public async Task<IActionResult> Payment(int calendarId, byte? type, int vehicleId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
             var payments = await _paymentRepo.PaymentVMList(calendarId, type, vehicleId);
@@ -307,12 +307,12 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
         }
 
-        public async Task<IActionResult> VehicleLoadFactor(string calendarId, string vehicleId)
+        public async Task<IActionResult> VehicleLoadFactor(int calendarId, int vehicleId)
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
             var calendar = await _calendarRepo.Get(calendarId);
             var payment = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
-            var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Counter).ToListAsync();
+            var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Id).ToListAsync();
 
             string docTitle = $"گزارش بارنامه های {vehicle.Type} به شماره (ایران {vehicle.IranStateNumber} - {vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber}) در {calendar.Title}";
 
@@ -392,7 +392,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
         }
 
-        public async Task<IActionResult> Customer(int customerId, string calendarId, string statusNumber)
+        public async Task<IActionResult> Customer(int customerId, int calendarId, string statusNumber)
         {
             var customer = await _customerRepo.Get(customerId);
             if (customer == null) return NotFound("Customer not found");
@@ -694,7 +694,7 @@ namespace EtehadBar.MVC.Controllers
             }
         }
 
-        public async Task<IActionResult> CustomerIncome(int? id, string calendarId)
+        public async Task<IActionResult> CustomerIncome(int? id, int calendarId)
         {
             if (!id.HasValue)
                 return BadRequest("parameter error");

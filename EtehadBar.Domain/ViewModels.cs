@@ -40,18 +40,17 @@ namespace EtehadBar.Domain
         public string Number { get; set; }
 
         [Display(Name = "الحاقیه ای است برای قرارداد")]
-        [StringLength(50)]
-        public string ParentContractId { get; set; }
+        public long? ParentContractId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
-        public int CustomerId { get; set; }
+        public long CustomerId { get; set; }
     }
 
     public class EditContractVM
     {
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string Id { get; set; }
+        public long Id { get; set; }
 
         [Display(Name = "روز شروع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -131,7 +130,7 @@ namespace EtehadBar.Domain
     public class EditCalendarVM
     {
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string Id { get; set; }
+        public long Id { get; set; }
 
         [Display(Name = "روز شروع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -181,7 +180,7 @@ namespace EtehadBar.Domain
 
     public class PaymentVM
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
 
         [Display(Name = "تاریخ")]
         public DateTime Date { get; set; } = DateTime.Now;
@@ -204,7 +203,7 @@ namespace EtehadBar.Domain
 
 
         [Display(Name = "خودرو")]
-        public string VehicleId { get; set; }
+        public long VehicleId { get; set; }
         public string Vehicle { get; set; }
     }
 
@@ -248,7 +247,7 @@ namespace EtehadBar.Domain
         [StringLength(10, MinimumLength = 10, ErrorMessage = "{0} باید {1} رقم باشد.")]
         public string NationalId { get; set; }
 
-        public byte Role { get; set; }
+        public ApplicationRoleType Role { get; set; }
 
         [Display(Name = "تصویر پرسنلی")]
         public IFormFile Pic { get; set; }
@@ -282,7 +281,7 @@ namespace EtehadBar.Domain
         [StringLength(10, MinimumLength = 10, ErrorMessage = "{0} باید {1} رقم باشد.")]
         public string NationalId { get; set; }
 
-        public byte Role { get; set; }
+        public ApplicationRoleType Role { get; set; }
 
         [Display(Name = "تصویر پرسنلی")]
         public IFormFile Pic { get; set; }

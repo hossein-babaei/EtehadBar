@@ -1,15 +1,16 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain.Models
 {
+    [Index(nameof(RowId), IsUnique = true)]
     public class Contract
     {
         [Key]
-        [StringLength(50)]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public long Id { get; set; }
 
         [Display(Name = "موضوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -28,19 +29,22 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public DateTime EndDate { get; set; }
 
-        [StringLength(50)]
         [ForeignKey(nameof(ParentContract))]
-        public string ParentContractId { get; set; }
+        public long? ParentContractId { get; set; }
         public virtual Contract ParentContract { get; set; }
 
         public virtual ICollection<Contract> ContractAddons { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
-        public int CustomerId { get; set; }
+        public long CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
 
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
         public virtual ICollection<ShippingFee> ShippingFees { get; set; }
+
+        [Required]
+        [StringLength(36)]
+        public string RowId { get; set; } = Guid.NewGuid().ToString();
     }
 }

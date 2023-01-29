@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain
 {
@@ -33,19 +32,16 @@ namespace EtehadBar.Domain
         public string ExitNumber { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "نرخ بارنامه")]
-        public string ShippingFeeId { get; set; }
+        public long ShippingFeeId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
-        [StringLength(50)]
-        public string ContractId { get; set; }
+        public long ContractId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "تقویم کاری")]
-        public string CalendarId { get; set; }
+        public long CalendarId { get; set; }
 
         [Required]
         [StringLength(450)]
@@ -53,16 +49,14 @@ namespace EtehadBar.Domain
         public string DriverId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "خودرو")]
-        public string VehicleId { get; set; }
+        public long VehicleId { get; set; }
     }
 
     public class ESaipaPlascoLoadFactorVM
     {
         [Required]
-        [StringLength(50)]
-        public string Id { get; set; }
+        public long Id { get; set; }
 
         [Display(Name = "روز")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -94,17 +88,16 @@ namespace EtehadBar.Domain
         [Required]
         [StringLength(50)]
         [Display(Name = "نرخ بارنامه")]
-        public string ShippingFeeId { get; set; }
+        public long ShippingFeeId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
         [StringLength(50)]
-        public string ContractId { get; set; }
+        public long ContractId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "تقویم کاری")]
-        public string CalendarId { get; set; }
+        public long CalendarId { get; set; }
 
         [Required]
         [StringLength(450)]
@@ -112,9 +105,8 @@ namespace EtehadBar.Domain
         public string DriverId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "خودرو")]
-        public string VehicleId { get; set; }
+        public long VehicleId { get; set; }
     }
 
     public class CSaipaPressLoadFactorVM
@@ -156,41 +148,35 @@ namespace EtehadBar.Domain
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ExitNumber { get; set; }
 
-        [StringLength(50)]
         [Display(Name = "نرخ بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string ShippingFeeId { get; set; }
+        public long ShippingFeeId { get; set; }
 
         [Display(Name = "مشتری")]
-        [StringLength(50)]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string ContractId { get; set; }
+        public long ContractId { get; set; }
 
-        [StringLength(50)]
         [Display(Name = "تقویم کاری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string CalendarId { get; set; }
+        public long CalendarId { get; set; }
 
         [StringLength(450)]
         [Display(Name = "راننده")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string DriverId { get; set; }
 
-        [StringLength(50)]
         [Display(Name = "خودرو")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string VehicleId { get; set; }
+        public long VehicleId { get; set; }
     }
 
     public class ESaipaPressLoadFactorVM
     {
         [Required]
-        [StringLength(50)]
-        public string Id { get; set; }
+        public long Id { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string RelationId { get; set; }
+        public long RelationId { get; set; }
 
         [Display(Name = "روز")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -230,19 +216,16 @@ namespace EtehadBar.Domain
         public string ExitNumber { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "نرخ بارنامه")]
-        public string ShippingFeeId { get; set; }
+        public long ShippingFeeId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
-        [StringLength(50)]
-        public string ContractId { get; set; }
+        public long ContractId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "تقویم کاری")]
-        public string CalendarId { get; set; }
+        public long CalendarId { get; set; }
 
         [Required]
         [StringLength(450)]
@@ -250,9 +233,8 @@ namespace EtehadBar.Domain
         public string DriverId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "خودرو")]
-        public string VehicleId { get; set; }
+        public long VehicleId { get; set; }
     }
 
     public class CSazehGostarLoadFactorVM
@@ -315,19 +297,16 @@ namespace EtehadBar.Domain
         public string ExitNumber { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "نرخ بارنامه")]
-        public string ShippingFeeId { get; set; }
+        public long ShippingFeeId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
-        [StringLength(50)]
-        public string ContractId { get; set; }
+        public long ContractId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "تقویم کاری")]
-        public string CalendarId { get; set; }
+        public long CalendarId { get; set; }
 
         [Required]
         [StringLength(450)]
@@ -335,20 +314,17 @@ namespace EtehadBar.Domain
         public string DriverId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "خودرو")]
-        public string VehicleId { get; set; }
+        public long VehicleId { get; set; }
     }
 
     public class ESazehGostarLoadFactorVM
     {
         [Required]
-        [StringLength(50)]
-        public string Id { get; set; }
+        public long Id { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string RelationId { get; set; }
+        public long RelationId { get; set; }
 
         [Display(Name = "روز")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -408,19 +384,16 @@ namespace EtehadBar.Domain
         public string ExitNumber { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "نرخ بارنامه")]
-        public string ShippingFeeId { get; set; }
+        public long ShippingFeeId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
-        [StringLength(50)]
-        public string ContractId { get; set; }
+        public long ContractId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "تقویم کاری")]
-        public string CalendarId { get; set; }
+        public long CalendarId { get; set; }
 
         [Required]
         [StringLength(450)]
@@ -428,8 +401,7 @@ namespace EtehadBar.Domain
         public string DriverId { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "خودرو")]
-        public string VehicleId { get; set; }
+        public long VehicleId { get; set; }
     }
 }

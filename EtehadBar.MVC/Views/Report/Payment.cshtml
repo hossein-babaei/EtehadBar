@@ -58,7 +58,7 @@
                         preloader();
                     },
                     success: function (r) {
-                        select.html('<option value="all">همه</option>');
+                        select.html('<option value="0">همه</option>');
                         $.each(r, function (i, v) {
                             select.append('<option value="' + v.id + '">' + v.number + ' (' + v.type + ')</option>');
                         });
@@ -168,11 +168,11 @@
         <h3 class="uk-heading-divider uk-text-center">گزارش حقوق و مساعده پرداختی در <span class="underline">@latestCal.Title</span></h3>
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">تعداد مساعده پرداختی</div>
-            <div>@Model.Count(a => a.PaymentType.Equals((byte)PaymentType.AdvanceMoney)) عدد</div>
+            <div>@Model.Count(a => a.PaymentType.Equals(PaymentType.AdvanceMoney)) عدد</div>
         </div>
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">تعداد حقوق پرداختی</div>
-            <div>@Model.Count(a => a.PaymentType.Equals((byte)PaymentType.Salary)) عدد</div>
+            <div>@Model.Count(a => a.PaymentType.Equals(PaymentType.Salary)) عدد</div>
         </div>
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">تعداد کل</div>
@@ -184,11 +184,11 @@
         </div>
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">مجموع مبلغ حقوق پرداختی</div>
-            <div>@Model.Where(a => a.PaymentType.Equals((byte)PaymentType.Salary)).Sum(a => a.Amount).ToString("N0") تومان</div>
+            <div>@Model.Where(a => a.PaymentType.Equals(PaymentType.Salary)).Sum(a => a.Amount).ToString("N0") تومان</div>
         </div>
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">جمع کل</div>
-            <div>@Model.Where(a => a.PaymentType.Equals((byte)PaymentType.AdvanceMoney)).Sum(a => a.Amount).ToString("N0") تومان</div>
+            <div>@Model.Where(a => a.PaymentType.Equals(PaymentType.AdvanceMoney)).Sum(a => a.Amount).ToString("N0") تومان</div>
         </div>
     </div>
 </div>
