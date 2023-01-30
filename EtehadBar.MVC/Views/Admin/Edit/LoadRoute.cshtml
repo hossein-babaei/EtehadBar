@@ -1,25 +1,24 @@
-﻿@model Definition
+﻿@model LoadRoutes
 
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
         <h2 class="uk-modal-title">ویرایش @Model.Title</h2>
     </div>
     <div class="uk-modal-body">
-        <form id="edit-form" asp-action="EditDefinition" method="post">
-            <input asp-for="Id" type="hidden" />
+        <form id="edit-form" asp-action="EditLoadRoute" method="post">
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <input asp-for="Id" type="hidden" />
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                <div>
-                    <label asp-for="DefinitionType" class="uk-form-label"></label>
-                    <select asp-for="DefinitionType" class="uk-select uk-border-rounded">
-                        <!option value="@(DefinitionType.Car)" @if (Model.DefinitionType.Equals(DefinitionType.Car)) { <text> selected="selected" </text> }>خودرو</!option>
-                    </select>
-                    <span asp-validation-for="DefinitionType" class="uk-text-danger"></span>
-                </div>
                 <div>
                     <label asp-for="Title" class="uk-form-label"></label>
                     <input asp-for="Title" class="uk-input uk-border-rounded" />
                     <span asp-validation-for="Title" class="uk-text-danger"></span>
+                </div>
+            </div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
+                    <label><input class="uk-radio" type="radio" name="RouteType" value="@((int)LoadRouteType.Origin)" @if(Model.RouteType.Equals(LoadRouteType.Origin)) { <text>checked</text> }> مبدا</label>
+                    <label><input class="uk-radio" type="radio" name="RouteType" value="@((int)LoadRouteType.Destionation)" @if(Model.RouteType.Equals(LoadRouteType.Destionation)) { <text>checked</text> }> مقصد</label>
                 </div>
             </div>
         </form>

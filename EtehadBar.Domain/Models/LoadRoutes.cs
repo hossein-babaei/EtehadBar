@@ -18,7 +18,6 @@ namespace EtehadBar.Domain.Models
 
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public LoadRouteType RouteType { get; set; }
 
         [Required]

@@ -1,10 +1,12 @@
 ﻿@model ShippingFee
-@{ 
+@{
     var contractInfo = (Contract)ViewData["Contract"];
     var types = (List<Definition>)ViewData["Data"];
     var vehicles = types.Where(a => a.DefinitionType.Equals(DefinitionType.Car)).OrderBy(a => a.Title).ToList();
-    var origins = types.Where(a => a.DefinitionType.Equals(DefinitionType.Origin)).OrderBy(a => a.Title).ToList();
-    var destinations = types.Where(a => a.DefinitionType.Equals(DefinitionType.Destionation)).OrderBy(a => a.Title).ToList();
+    var loadRoutes = (List<LoadRoutes>)ViewData["LoadRoutes"];
+    var origins = loadRoutes.Where(a => a.RouteType.Equals(LoadRouteType.Origin)).OrderBy(a => a.Title).ToList();
+    var destinations = loadRoutes.Where(a => a.RouteType.Equals(LoadRouteType.Destionation)).OrderBy(a => a.Title).ToList();
+    var loadTypes = (List<ShippingFeeLoadType>)ViewData["LoadTypes"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -26,24 +28,34 @@
                     <span asp-validation-for="Vehicle" class="uk-text-danger"></span>
                 </div>
                 <div>
-                    <label asp-for="Origin" class="uk-form-label"></label>
-                    <select asp-for="Origin" class="uk-select uk-border-rounded">
+                    <label asp-for="OriginId" class="uk-form-label"></label>
+                    <select asp-for="OriginId" class="uk-select uk-border-rounded">
                         @foreach (var item in origins)
                         {
-                            <option value="@item.Title">@item.Title</option>
+                            <option value="@item.Id">@item.Title</option>
                         }
                     </select>
-                    <span asp-validation-for="Origin" class="uk-text-danger"></span>
+                    <span asp-validation-for="OriginId" class="uk-text-danger"></span>
                 </div>
                 <div>
-                    <label asp-for="Destination" class="uk-form-label"></label>
-                    <select asp-for="Destination" class="uk-select uk-border-rounded">
+                    <label asp-for="DestinationId" class="uk-form-label"></label>
+                    <select asp-for="DestinationId" class="uk-select uk-border-rounded">
                         @foreach (var item in destinations)
                         {
-                            <option value="@item.Title">@item.Title</option>
+                            <option value="@item.Id">@item.Title</option>
                         }
                     </select>
-                    <span asp-validation-for="Destination" class="uk-text-danger"></span>
+                    <span asp-validation-for="DestinationId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="ShippingFeeLoadTypeId" class="uk-form-label"></label>
+                    <select asp-for="ShippingFeeLoadTypeId" class="uk-select uk-border-rounded">
+                        @foreach (var item in loadTypes)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ShippingFeeLoadTypeId" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Price" class="uk-form-label"></label>

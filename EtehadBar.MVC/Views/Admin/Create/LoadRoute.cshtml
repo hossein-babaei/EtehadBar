@@ -1,24 +1,22 @@
-﻿@model Definition
-
+﻿@model LoadRoutes
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
         <h2 class="uk-modal-title">افزودن جدید</h2>
     </div>
     <div class="uk-modal-body">
-        <form id="create-form" asp-action="CreateDefinition" method="post">
+        <form id="create-form" asp-action="CreateLoadRoute" method="post">
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                <div>
-                    <label asp-for="DefinitionType" class="uk-form-label"></label>
-                    <select asp-for="DefinitionType" class="uk-select uk-border-rounded">
-                        <option value="@((int)DefinitionType.Car)">خودرو</option>
-                    </select>
-                    <span asp-validation-for="DefinitionType" class="uk-text-danger"></span>
-                </div>
                 <div>
                     <label asp-for="Title" class="uk-form-label"></label>
                     <input asp-for="Title" class="uk-input uk-border-rounded" />
                     <span asp-validation-for="Title" class="uk-text-danger"></span>
+                </div>
+            </div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
+                    <label><input class="uk-radio" type="radio" name="RouteType" value="@((int)LoadRouteType.Origin)" checked> مبدا</label>
+                    <label><input class="uk-radio" type="radio" name="RouteType" value="@((int)LoadRouteType.Destionation)"> مقصد</label>
                 </div>
             </div>
         </form>

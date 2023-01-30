@@ -16,9 +16,6 @@
     <li @if (param == 20) { <text> class="active" </text> }>
         <a asp-action="Users" asp-controller="Admin"><i class="uk-margin-left fas fa-users"></i>کاربران</a>
     </li>
-    <li @if (param == 2) { <text> class="active" </text> }>
-        <a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>تعاریف</a>
-    </li>
     <li @if (param == 3) { <text> class="active" </text> }>
         <a asp-action="Calendar" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar"></i>تقویم کاری</a>
     </li>
@@ -53,6 +50,14 @@
             <li @if (param == 10) { <text> class="active" </text> }><a asp-action="Cost" asp-controller="Report">هزینه های جاری</a></li>
             <li @if (param == 11) { <text> class="active" </text> }><a asp-action="Payment" asp-controller="Report">حقوق و مساعده پرداختی</a></li>
             @*<li @if (param == 15) { <text> class="active" </text> }><a asp-action="PaymentByDriver" asp-controller="Report">حقوق و مساعده جزء</a></li>*@
+        </ul>
+    </li>
+    <li class="uk-parent @if (param == 2 || param == 30 || param == 31) { <text>uk-open</text> }">
+        <a><i class="uk-margin-left fas fa-money-bill"></i>تعاریف سیستم</a>
+        <ul class="uk-nav-sub">
+            <li @if (param == 31) { <text> class="active" </text> }><a asp-action="LoadRoute" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>مسیر ها</a></li>
+            <li @if (param == 30) { <text> class="active" </text> }><a asp-action="ShippingFeeLoadType" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>نوع بار</a></li>
+            <li @if (param == 2) { <text> class="active" </text> }><a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>نوع خودرو</a></li>
         </ul>
     </li>
 </ul>

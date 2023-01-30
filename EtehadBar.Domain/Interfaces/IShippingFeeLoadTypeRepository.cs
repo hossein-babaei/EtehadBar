@@ -7,6 +7,7 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface IShippingFeeLoadTypeRepository
     {
+        Task<bool> CheckNameExist(string name);
         Task<ShippingFeeLoadType> Get(long id);
         IQueryable<ShippingFeeLoadType> ShippingFeeLoadTypes();
         void Update(ShippingFeeLoadType obj);

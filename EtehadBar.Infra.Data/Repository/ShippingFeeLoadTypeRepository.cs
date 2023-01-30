@@ -1,6 +1,7 @@
 ﻿using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,6 +15,11 @@ namespace EtehadBar.Infra.Data.Repository
         public ShippingFeeLoadTypeRepository(ApplicationDbContext context)
         {
             db = context;
+        }
+
+        public async Task<bool> CheckNameExist(string name)
+        {
+            return await db.ShippingFeeLoadType.AsNoTracking().AnyAsync(a => a.Name.Equals(name));
         }
 
         public void Create(ShippingFeeLoadType obj)

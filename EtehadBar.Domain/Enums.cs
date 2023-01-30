@@ -2,9 +2,7 @@
 {
     public enum DefinitionType
     {
-        Car,
-        Origin,
-        Destionation
+        Car
     }
 
     public enum ApplicationRoleType

@@ -1,0 +1,88 @@
+﻿@model ShippingFeeLoadType
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 30;
+    var data = ViewBag.data as IPagedList<ShippingFeeLoadType>;
+    ViewData["Title"] = "نوع بار";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+    if (data.PageNumber > 1)
+    {
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+    }
+}
+
+@section Scripts{
+    <script>
+        function create() {
+            preloader();
+            $.get('@Url.Action("CreateShippingFeeLoadType")', {}, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#create-form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditShippingFeeLoadType")', { 'id': id }, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#edit-form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Name)</th>
+                    <th width="50">ویرایش</th>
+                    @*<th width="50">حذف</th>*@
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        @*<td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>*@
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("ShippingFeeLoadType", new { p = page }))
+        </div>
+    }
+</div>
+<div id="append-modal" uk-modal="bg-close: false"></div>

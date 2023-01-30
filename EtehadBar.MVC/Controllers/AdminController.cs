@@ -36,6 +36,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IShippingFeeLoadTypeRepository _shippingFeeLoadTypeRepo;
+        private readonly ILoadRoutesRepository _loadRouteRepo;
 
         public AdminController(
             IAdminThemeRepository adminThemeRepository,
@@ -52,7 +53,8 @@ namespace EtehadBar.MVC.Controllers
             IWebHostEnvironment environment,
             RoleManager<IdentityRole> roleManager,
             UserManager<ApplicationUser> userManager,
-            IShippingFeeLoadTypeRepository shippingFeeLoadTypeRepo)
+            IShippingFeeLoadTypeRepository shippingFeeLoadTypeRepo,
+            ILoadRoutesRepository loadRouteRepo)
         {
             _adminThemeRepo = adminThemeRepository;
             _calendarRepo = calendarRepository;
@@ -69,6 +71,7 @@ namespace EtehadBar.MVC.Controllers
             _roleManager = roleManager;
             _userManager = userManager;
             _shippingFeeLoadTypeRepo = shippingFeeLoadTypeRepo;
+            _loadRouteRepo = loadRouteRepo;
         }
 
         public IActionResult Index()
@@ -1836,11 +1839,11 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Contract"] = await _contractRepo.Get(contractId);
             List<DefinitionType> types = new()
             {
-                DefinitionType.Car,
-                DefinitionType.Origin,
-                DefinitionType.Destionation
+                DefinitionType.Car
             };
             ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.DefinitionType)).ToListAsync();
+            ViewData["LoadRoutes"] = await _loadRouteRepo.LoadRoutes().AsNoTracking().ToListAsync();
+            ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().ToListAsync();
 
             return PartialView("~/Views/Admin/Create/ShippingFee.cshtml");
         }
@@ -1883,11 +1886,11 @@ namespace EtehadBar.MVC.Controllers
         {
             List<DefinitionType> types = new()
             {
-                DefinitionType.Car,
-                DefinitionType.Origin,
-                DefinitionType.Destionation
+                DefinitionType.Car
             };
             ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.DefinitionType)).ToListAsync();
+            ViewData["LoadRoutes"] = await _loadRouteRepo.LoadRoutes().AsNoTracking().ToListAsync();
+            ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().ToListAsync();
 
             return PartialView("~/Views/Admin/Edit/ShippingFee.cshtml", await _shippingFeeRepo.Get(id));
         }
@@ -2067,6 +2070,12 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await _shippingFeeLoadTypeRepo.CheckNameExist(v.Name))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. نام در سیستم وجود دارد. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
                 _shippingFeeLoadTypeRepo.Create(v);
                 try
                 {
@@ -2096,6 +2105,12 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await _shippingFeeLoadTypeRepo.CheckNameExist(v.Name))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. نام در سیستم وجود دارد. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
                 var item = await _shippingFeeLoadTypeRepo.Get(v.Id);
                 item.Name = v.Name;
 
@@ -2590,6 +2605,85 @@ namespace EtehadBar.MVC.Controllers
             catch (Exception e)
             {
                 TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region LoadRoute
+        [HttpGet]
+        public async Task<IActionResult> LoadRoute(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _loadRouteRepo.LoadRoutes().OrderBy(a => a.Title).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        public PartialViewResult CreateLoadRoute()
+        {
+            return PartialView("~/Views/Admin/Create/LoadRoute.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateLoadRoute(LoadRoutes v)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _loadRouteRepo.CheckNameExist(v.Title))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. عنوان در سیستم وجود دارد. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                _loadRouteRepo.Create(v);
+                try
+                {
+                    await _loadRouteRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditLoadRoute(int id)
+        {
+            return PartialView("~/Views/Admin/Edit/LoadRoute.cshtml", await _loadRouteRepo.Get(id));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditLoadRoute(LoadRoutes v)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _loadRouteRepo.Get(v.Id);
+                item.Title = v.Title;
+                item.RouteType = v.RouteType;
+
+                _loadRouteRepo.Update(item);
+                try
+                {
+                    await _loadRouteRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
