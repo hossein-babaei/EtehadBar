@@ -22,7 +22,8 @@
     {
         SaipaPlasco,
         SaipaPress,
-        SazehGostar
+        SazehGostar,
+        MehrcomPars
     }
 
     public enum ShippingFeeType

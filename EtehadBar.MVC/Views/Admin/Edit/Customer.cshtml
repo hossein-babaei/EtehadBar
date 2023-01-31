@@ -15,6 +15,22 @@
                     <span asp-validation-for="Name" class="uk-text-danger"></span>
                 </div>
                 <div>
+                    <label asp-for="HasAddonTonnage" class="uk-form-label"></label>
+                    <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                        <label><input class="uk-radio" type="radio" name="HasAddonTonnage" value="true" @if (Model.HasAddonTonnage) { <text> checked</text> } /> دارد</label>
+                        <label><input class="uk-radio" type="radio" name="HasAddonTonnage" value="false" @if (!Model.HasAddonTonnage) { <text> checked</text> } /> ندارد</label>
+                    </div>
+                    <span asp-validation-for="HasAddonTonnage" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="HasLoadType" class="uk-form-label"></label>
+                    <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                        <label><input class="uk-radio" type="radio" name="HasLoadType" value="true" @if (Model.HasLoadType) { <text> checked</text> } /> دارد</label>
+                        <label><input class="uk-radio" type="radio" name="HasLoadType" value="false" @if (!Model.HasLoadType) { <text> checked</text> } /> ندارد</label>
+                    </div>
+                    <span asp-validation-for="HasLoadType" class="uk-text-danger"></span>
+                </div>
+                <div>
                     <label asp-for="Status" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
                         <label><input class="uk-radio" type="radio" name="Status" value="true" @if (Model.Status) { <text> checked</text> } /> فعال</label>

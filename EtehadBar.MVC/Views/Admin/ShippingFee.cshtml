@@ -80,6 +80,24 @@
             $(t).find('i').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
             $(t).parents('tr').next('.detail-row').fadeToggle(200);
         }
+        function shippingFeeTypeChangeHandler(select) {
+            let value = $(select).val(),
+                parent = $(select).parents('form');
+                
+            parent.find('#Price').val(0);
+            parent.find('#DriverPrice').val(0);
+            if (value == 0) {
+                parent.find('#Price').parent().show();
+                parent.find('#DriverPrice').parent().show();
+                parent.find('#TonnagePrice').parent().show();
+                parent.find('#DriverTonnagePrice').parent().show();
+            } else {
+                parent.find('#Price').parent().hide();
+                parent.find('#DriverPrice').parent().hide();
+                parent.find('#TonnagePrice').parent().hide();
+                parent.find('#DriverTonnagePrice').parent().hide();
+            }
+        }
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -184,12 +202,20 @@
                 <tr>
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
-                    <th>@Html.DisplayNameFor(model => model.Origin)</th>
-                    <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                    <th>@Html.DisplayNameFor(model => model.OriginId)</th>
+                    <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
+                    <th>@Html.DisplayNameFor(model => model.ShippingFeeType)</th>
+                    @if (contractInfo.Customer.HasLoadType)
+                    {
+                        <th>@Html.DisplayNameFor(model => model.ShippingFeeLoadTypeId)</th>
+                    }
                     <th>@Html.DisplayNameFor(model => model.Price)</th>
                     <th>@Html.DisplayNameFor(model => model.DriverPrice)</th>
-                    <th>@Html.DisplayNameFor(model => model.TonnagePrice)</th>
-                    <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
+                    @if (contractInfo.Customer.HasAddonTonnage)
+                    {
+                        <th>@Html.DisplayNameFor(model => model.TonnagePrice)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
+                    }
                     <th width="50">بارنامه ها</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
@@ -198,16 +224,28 @@
             <tbody>
                 @foreach (var item in Model)
                 {
+                    string type = "نرخ ثابت";
+                    if (item.ShippingFeeType == ShippingFeeType.Custom)
+                        type = "نرخ آزاد";
+
                     <tr class="uk-text-center sm">
                         <td>@i</td>
                         <td>@item.Vehicle</td>
-                        <td>@item.Origin</td>
-                        <td>@item.Destination</td>
+                        <td>@item.Origin.Title</td>
+                        <td>@item.Destination.Title</td>
+                        <td>@type</td>
+                        @if (!item.ShippingFeeLoadTypeId.Equals(-1))
+                        {
+                            <td>@item.ShippingFeeLoadType.Name</td>
+                        }
                         <td>@item.Price.ToString("N0")</td>
                         <td>@item.DriverPrice.ToString("N0")</td>
-                        <td>@(item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : "---")</td>
-                        <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" ><i class="fas fa-clipboard-check"></i></a></td>
+                        @if (item.TonnagePrice.HasValue)
+                        {
+                            <td>@(item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : "---")</td>
+                            <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small"><i class="fas fa-clipboard-check"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

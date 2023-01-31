@@ -1,6 +1,7 @@
 ﻿using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -32,6 +33,11 @@ namespace EtehadBar.Infra.Data.Repository
         public async Task<Contract> Get(long id)
         {
             return await db.Contract.FindAsync(id);
+        }
+
+        public async Task<Contract> Get(string rowId)
+        {
+            return await db.Contract.FirstOrDefaultAsync(a => a.RowId.Equals(rowId));
         }
 
         public async Task<int> Save()

@@ -133,7 +133,7 @@
                         {
                             <td><button disabled class="uk-button uk-button-default uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
                         }
-                        <td><a asp-action="ShippingFee" asp-route-contractId="@item.Id" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
+                        <td><a asp-action="ShippingFee" asp-route-contractId="@item.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

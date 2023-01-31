@@ -34,14 +34,16 @@ namespace EtehadBar.Domain.Models
         public double DriverPrice { get; set; }
 
         [Display(Name = "نرخ تناژ اضافه (ریال)")]
-        public double? TonnagePrice { get; set; } = 0;
+        public double? TonnagePrice { get; set; }
 
         [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
-        public double? DriverTonnagePrice { get; set; } = 0;
+        public double? DriverTonnagePrice { get; set; }
 
         [Display(Name = "نوع نرخ")]
         public ShippingFeeType ShippingFeeType { get; set; } = ShippingFeeType.Normal;
 
+        [Display(Name = "نوع بار")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long ShippingFeeLoadTypeId { get; set; }
         public virtual ShippingFeeLoadType ShippingFeeLoadType { get; set; }
 
@@ -49,6 +51,11 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long ContractId { get; set; }
         public virtual Contract Contract { get; set; }
+
+        public string CreatorId { get; set; }
+        public DateTime CreateDate { get; set; } = DateTime.Now;
+        public string EditorId { get; set; }
+        public DateTime? EditDate { get; set; }
 
         [Required]
         [StringLength(36)]

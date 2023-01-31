@@ -15,6 +15,22 @@
                         <span asp-validation-for="Name" class="uk-text-danger"></span>
                     </div>
                     <div>
+                        <label asp-for="HasAddonTonnage" class="uk-form-label"></label>
+                        <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                            <label><input class="uk-radio" type="radio" name="HasAddonTonnage" value="true" /> دارد</label>
+                            <label><input class="uk-radio" type="radio" name="HasAddonTonnage" value="false" checked /> ندارد</label>
+                        </div>
+                        <span asp-validation-for="HasAddonTonnage" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="HasLoadType" class="uk-form-label"></label>
+                        <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                            <label><input class="uk-radio" type="radio" name="HasLoadType" value="true" /> دارد</label>
+                            <label><input class="uk-radio" type="radio" name="HasLoadType" value="false" checked /> ندارد</label>
+                        </div>
+                        <span asp-validation-for="HasLoadType" class="uk-text-danger"></span>
+                    </div>
+                    <div>
                         <label asp-for="Status" class="uk-form-label"></label>
                         <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
                             <label><input class="uk-radio" type="radio" name="Status" value="true" checked /> فعال</label>

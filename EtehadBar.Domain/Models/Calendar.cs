@@ -24,6 +24,11 @@ namespace EtehadBar.Domain.Models
         [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string Title { get; set; }
 
+        public string CreatorId { get; set; }
+        public DateTime CreateDate { get; set; } = DateTime.Now;
+        public string EditorId { get; set; }
+        public DateTime? EditDate { get; set; }
+
         public virtual ICollection<Cost> Costs { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }

@@ -24,6 +24,14 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool Status { get; set; }
 
+        [Display(Name = "اضافه تناژ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool HasAddonTonnage { get; set; } = false;
+
+        [Display(Name = "نوع بار")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool HasLoadType { get; set; } = false;
+
         public virtual ICollection<Contract> Contracts { get; set; }
         public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }
 

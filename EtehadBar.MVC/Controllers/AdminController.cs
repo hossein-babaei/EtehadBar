@@ -911,7 +911,8 @@ namespace EtehadBar.MVC.Controllers
                 {
                     StartDate = startDate,
                     EndDate = endDate,
-                    Title = c.Title
+                    Title = c.Title,
+                    CreatorId = _userManager.GetUserId(User)
                 });
                 try
                 {
@@ -974,6 +975,8 @@ namespace EtehadBar.MVC.Controllers
                 item.StartDate = startDate;
                 item.EndDate = endDate;
                 item.Title = c.Title;
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDate = DateTime.Now;
                 _calendarRepo.Update(item);
                 try
                 {
@@ -1422,6 +1425,8 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _customerRepo.Get(c.Id);
                 item.Name = c.Name;
                 item.Status = c.Status;
+                item.HasAddonTonnage = c.HasAddonTonnage;
+                item.HasLoadType = c.HasLoadType;
 
                 _customerRepo.Update(item);
                 try
@@ -1686,10 +1691,13 @@ namespace EtehadBar.MVC.Controllers
                     await _contractRepo.Save();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
 
-                    if (c.ParentContractId.Equals("none"))
-                        return RedirectToAction("ShippingFee", new { contractId = contract.Id });
+                    if (!c.ParentContractId.HasValue || (c.ParentContractId.HasValue && c.ParentContractId.Value == 0))
+                        return RedirectToAction("ShippingFee", new { contractId = contract.RowId });
                     else
-                        return RedirectToAction("ShippingFee", new { contractId = contract.ParentContractId });
+                    {
+                        string parentRowId = await _contractRepo.Contracts().Where(a => a.Id.Equals(contract.ParentContractId.Value)).Select(a => a.RowId).FirstAsync();
+                        return RedirectToAction("ShippingFee", new { contractId = parentRowId });
+                    }
                 }
                 catch (Exception e)
                 {
@@ -1816,21 +1824,25 @@ namespace EtehadBar.MVC.Controllers
 
         #region ShippingFee
         [HttpGet]
-        public async Task<IActionResult> ShippingFee(int? contractId)
+        public async Task<IActionResult> ShippingFee(string contractId)
         {
-            if (contractId.HasValue) return BadRequest();
+            if (string.IsNullOrWhiteSpace(contractId)) return BadRequest();
 
-            var contract = await _contractRepo.Get(contractId.Value);
+            var contract = await _contractRepo.Get(contractId);
             if (contract == null) return NotFound();
 
             ViewData["Contract"] = contract;
-            return View(await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).OrderBy(a => a.Origin).ToListAsync());
+            return View(await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
         }
 
         [HttpGet]
         public async Task<IActionResult> ShippingFeePartial(string contractId)
         {
-            return PartialView("_ShippingFee", await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).OrderBy(a => a.Origin).ToListAsync());
+            var contract = await _contractRepo.Get(contractId);
+            if (contract == null) return NotFound();
+
+            ViewData["Contract"] = contract;
+            return PartialView("_ShippingFee", await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
         }
 
         [HttpGet]
@@ -1843,7 +1855,7 @@ namespace EtehadBar.MVC.Controllers
             };
             ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.DefinitionType)).ToListAsync();
             ViewData["LoadRoutes"] = await _loadRouteRepo.LoadRoutes().AsNoTracking().ToListAsync();
-            ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().ToListAsync();
+            ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().Where(a => a.Id > 0).AsNoTracking().ToListAsync();
 
             return PartialView("~/Views/Admin/Create/ShippingFee.cshtml");
         }
@@ -1855,12 +1867,22 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
-                if (s.Destination == s.Origin)
+                if (s.DestinationId == s.OriginId)
                     return Json(new { msg = "مبدا و مقصد نمی تواند یکی باشد.", status });
 
-                if (await _shippingFeeRepo.ShippingFees().AsNoTracking().AnyAsync(a => a.Vehicle.Equals(s.Vehicle) && a.Origin.Equals(s.Origin) && a.Destination.Equals(s.Destination)))
+                if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
+                    .AnyAsync(a => a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId)))
                     return Json(new { msg = "نرخ حمل و نقل ثبت شده تکراری است.", status });
 
+                if (s.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    s.Price = 0;
+                    s.DriverPrice = 0;
+                    s.TonnagePrice= null;
+                    s.DriverTonnagePrice = null;
+                }
+
+                s.CreatorId = _userManager.GetUserId(User);
                 _shippingFeeRepo.Create(s);
 
                 try
@@ -1900,25 +1922,40 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (s.Destination == s.Origin)
+                if (s.DestinationId == s.OriginId)
                 {
                     TempData["msg"] = "مبدا و مقصد نمی تواند یکی باشد. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
 
-                if (await _shippingFeeRepo.ShippingFees().AsNoTracking().AnyAsync(a => !a.Id.Equals(s.Id) && a.Vehicle.Equals(s.Vehicle) && a.Origin.Equals(s.Origin) && a.Destination.Equals(s.Destination)))
+                if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
+                    .AnyAsync(a => !a.Id.Equals(s.Id) && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId)))
                 {
                     TempData["msg"] = "نرخ حمل و نقل ثبت شده تکراری است. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
 
+                if (s.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    s.Price = 0;
+                    s.DriverPrice = 0;
+                    s.TonnagePrice = null;
+                    s.DriverTonnagePrice = null;
+                }
+
                 var item = await _shippingFeeRepo.Get(s.Id);
 
-                item.Destination = s.Destination;
-                item.Origin = s.Origin;
+                item.DestinationId = s.DestinationId;
+                item.OriginId = s.OriginId;
                 item.DriverPrice = s.DriverPrice;
                 item.Price = s.Price;
                 item.Vehicle = s.Vehicle;
+                item.TonnagePrice = s.TonnagePrice;
+                item.DriverTonnagePrice = s.DriverTonnagePrice;
+                item.ShippingFeeLoadTypeId = s.ShippingFeeLoadTypeId;
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDate = DateTime.Now;
+
                 _shippingFeeRepo.Update(item);
 
                 try
@@ -1938,6 +1975,8 @@ namespace EtehadBar.MVC.Controllers
                             factor.DestinationId = item.DestinationId;
                             factor.DriverFee = item.DriverPrice;
                             factor.Amount = item.Price;
+                            factor.TonnagePrice = item.TonnagePrice;
+                            factor.DriverTonnagePrice = item.DriverTonnagePrice;
                         }
                         _loadFactorRepo.UpdateRange(loadFactors);
                         await _loadFactorRepo.Save();

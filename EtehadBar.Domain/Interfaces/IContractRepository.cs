@@ -7,6 +7,7 @@ namespace EtehadBar.Domain.Interfaces
     public interface IContractRepository
     {
         Task<Contract> Get(long id);
+        Task<Contract> Get(string rowId);
         IQueryable<Contract> Contracts();
         void Update(Contract obj);
         void Create(Contract obj);
