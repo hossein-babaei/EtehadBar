@@ -31,6 +31,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<LoadFactor> LoadFactor { get; set; }
         public DbSet<LoadRoutes> LoadRoute { get; set; }
         public DbSet<Payment> Payment { get; set; }
+        public DbSet<SaipaPlascoLoadFactor> SaipaPlascoLoadFactor { get; set; }
         public DbSet<SaipaPressLoadFactor> SaipaPressLoadFactor { get; set; }
         public DbSet<SazehGostarLoadFactor> SazehGostarLoadFactor { get; set; }
         public DbSet<ShippingFeeLoadType> ShippingFeeLoadType { get; set; }

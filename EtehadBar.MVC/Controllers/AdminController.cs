@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using NUglify.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -72,6 +74,13 @@ namespace EtehadBar.MVC.Controllers
             _userManager = userManager;
             _shippingFeeLoadTypeRepo = shippingFeeLoadTypeRepo;
             _loadRouteRepo = loadRouteRepo;
+        }
+
+        private long CalcNextSequenceForLoadFactor(long sequence)
+        {
+            double x = sequence / 5;
+            sequence = Convert.ToInt64((Math.Floor(x) + 1) * 5);
+            return sequence;
         }
 
         public IActionResult Index()
@@ -353,6 +362,8 @@ namespace EtehadBar.MVC.Controllers
                 NationalId = user.NationalId,
                 PhoneNumber = user.PhoneNumber,
                 PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+                AccountBankName = user.AccountBankName,
+                BankAccountNumber = user.BankAccountNumber,
                 Tel = user.Tel
             });
         }
@@ -398,6 +409,8 @@ namespace EtehadBar.MVC.Controllers
                 user.Tel = u.Tel;
                 user.PhoneNumber = u.PhoneNumber;
                 user.PhoneNumberConfirmed = u.PhoneNumberConfirmed;
+                user.AccountBankName = u.AccountBankName;
+                user.BankAccountNumber = u.BankAccountNumber;
 
                 var validTypes = new string[] { "image/jpeg", "image/png" };
                 if (pic != null)
@@ -851,6 +864,9 @@ namespace EtehadBar.MVC.Controllers
                 item.RightNumber = v.RightNumber;
                 item.Status = v.Status;
                 item.Type = v.Type;
+                item.AccountBankName = v.AccountBankName;
+                item.BankAccountNumber = v.BankAccountNumber;
+                item.VehicleOwnerFullname = v.VehicleOwnerFullname;
                 _vehicleRepo.Update(item);
                 try
                 {
@@ -1804,7 +1820,7 @@ namespace EtehadBar.MVC.Controllers
 
             if (item.LoadFactors.Any())
             {
-                TempData["msg"] = $"برای این قرارداد { item.LoadFactors.Count } بارنامه وجود دارد و قابل حذف نیست. |danger";
+                TempData["msg"] = $"برای این قرارداد {item.LoadFactors.Count} بارنامه وجود دارد و قابل حذف نیست. |danger";
                 return Redirect(Request.Headers["Referer"].ToString());
             }
 
@@ -1846,7 +1862,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CreateShippingFee(int contractId)
+        public async Task<IActionResult> CreateShippingFee(string contractId)
         {
             ViewData["Contract"] = await _contractRepo.Get(contractId);
             List<DefinitionType> types = new()
@@ -1871,14 +1887,14 @@ namespace EtehadBar.MVC.Controllers
                     return Json(new { msg = "مبدا و مقصد نمی تواند یکی باشد.", status });
 
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
-                    .AnyAsync(a => a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId)))
+                    .AnyAsync(a => a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId)))
                     return Json(new { msg = "نرخ حمل و نقل ثبت شده تکراری است.", status });
 
                 if (s.ShippingFeeType == ShippingFeeType.Custom)
                 {
                     s.Price = 0;
                     s.DriverPrice = 0;
-                    s.TonnagePrice= null;
+                    s.TonnagePrice = null;
                     s.DriverTonnagePrice = null;
                 }
 
@@ -1929,7 +1945,7 @@ namespace EtehadBar.MVC.Controllers
                 }
 
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
-                    .AnyAsync(a => !a.Id.Equals(s.Id) && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId)))
+                    .AnyAsync(a => !a.Id.Equals(s.Id) && a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId)))
                 {
                     TempData["msg"] = "نرخ حمل و نقل ثبت شده تکراری است. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
@@ -2250,13 +2266,24 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
 
-            return customerType switch
+            long sequence;
+            switch (customerType)
             {
-                (byte)CustomerType.SaipaPlasco => PartialView("~/Views/Admin/Create/LoadFactor/SaipaPlasco.cshtml"),
-                (byte)CustomerType.SaipaPress => PartialView("~/Views/Admin/Create/LoadFactor/SaipaPress.cshtml"),
-                (byte)CustomerType.SazehGostar => PartialView("~/Views/Admin/Create/LoadFactor/SazehGostar.cshtml"),
-                _ => NoContent(),
-            };
+                case (byte)CustomerType.SaipaPlasco:
+                    sequence = await _loadFactorRepo.GetBiggestSequenceInSaipaPlasco();
+                    ViewData["Sequence"] = CalcNextSequenceForLoadFactor(sequence);
+                    return PartialView("~/Views/Admin/Create/LoadFactor/SaipaPlasco.cshtml");
+                case (byte)CustomerType.SaipaPress:
+                    sequence = await _loadFactorRepo.GetBiggestSequenceInSaipaPress();
+                    ViewData["Sequence"] = CalcNextSequenceForLoadFactor(sequence);
+                    return PartialView("~/Views/Admin/Create/LoadFactor/SaipaPress.cshtml");
+                case (byte)CustomerType.SazehGostar:
+                    sequence = await _loadFactorRepo.GetBiggestSequenceInSazehGostar();
+                    ViewData["Sequence"] = CalcNextSequenceForLoadFactor(sequence);
+                    return PartialView("~/Views/Admin/Create/LoadFactor/SazehGostar.cshtml");
+                default:
+                    return NoContent();
+            }
         }
 
         [HttpPost]
@@ -2273,8 +2300,6 @@ namespace EtehadBar.MVC.Controllers
                 var loadFactor = new LoadFactor
                 {
                     AdminId = _userManager.GetUserId(User),
-                    Amount = fee.Price,
-                    DriverFee = fee.DriverPrice,
                     OriginId = fee.OriginId,
                     DestinationId = fee.DestinationId,
                     CalendarId = input.CalendarId,
@@ -2291,6 +2316,23 @@ namespace EtehadBar.MVC.Controllers
                     LoadFactorDeductions = config.LoadFactorDeductions
                 };
 
+                if (fee.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    loadFactor.Amount = input.Amount;
+                    loadFactor.DriverFee = input.DriverFee;
+                }
+                else
+                {
+                    loadFactor.Amount = fee.Price;
+                    loadFactor.DriverFee = fee.DriverPrice;
+                }
+                loadFactor.SaipaPlascoLoadFactor = new SaipaPlascoLoadFactor
+                {
+                    LoadFactor = loadFactor,
+                    Sequence = input.Sequence
+                };
+
+
                 _loadFactorRepo.Create(loadFactor);
 
                 try
@@ -2298,6 +2340,45 @@ namespace EtehadBar.MVC.Controllers
                     await _loadFactorRepo.Save();
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
+                }
+                catch (SqlException sqlException)
+                {
+                    if (sqlException.Number == 2601 || sqlException.Number == 2627)
+                    {
+                        bool done = false;
+                        while (!done)
+                        {
+                            input.Sequence = input.Sequence++;
+                            loadFactor.SaipaPlascoLoadFactor.Sequence = input.Sequence;
+
+                            _loadFactorRepo.Create(loadFactor);
+                            try
+                            {
+                                await _loadFactorRepo.Save();
+                                done = true;
+                            }
+                            catch (SqlException sqlException2)
+                            {
+                                if (sqlException2.Number != 2601 || sqlException2.Number != 2627)
+                                {
+                                    msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException2.Message} #{sqlException2.Number}";
+                                    break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                                break;
+                            }
+                        }
+
+                        msg = "عملیات موفقیت آمیز بود.";
+                        status = "success";
+                    }
+                    else
+                    {
+                        msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException.Message} #{sqlException.Number}";
+                    }
                 }
                 catch (Exception e)
                 {
@@ -2308,7 +2389,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Json(new { msg, status });
+            return Json(new { msg, status, sequence = CalcNextSequenceForLoadFactor(input.Sequence) });
         }
 
         [HttpPost]
@@ -2325,8 +2406,6 @@ namespace EtehadBar.MVC.Controllers
                 var loadFactor = new LoadFactor
                 {
                     AdminId = _userManager.GetUserId(User),
-                    Amount = fee.Price,
-                    DriverFee = fee.DriverPrice,
                     OriginId = fee.OriginId,
                     DestinationId = fee.DestinationId,
                     CalendarId = input.CalendarId,
@@ -2340,26 +2419,79 @@ namespace EtehadBar.MVC.Controllers
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
-                    LoadFactorDeductions = config.LoadFactorDeductions
+                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    Tonnage = input.Tonnage
                 };
 
-                var saipaPressLoadFactor = new SaipaPressLoadFactor
+                if (fee.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    loadFactor.Amount = input.Amount;
+                    loadFactor.DriverFee = input.DriverFee;
+                    loadFactor.TonnagePrice = input.TonnagePrice;
+                    loadFactor.DriverTonnagePrice = input.DriverTonnagePrice;
+                }
+                else
+                {
+                    loadFactor.Amount = fee.Price;
+                    loadFactor.DriverFee = fee.DriverPrice;
+                    loadFactor.TonnagePrice = fee.TonnagePrice;
+                    loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
+                }
+
+                loadFactor.SaipaPressLoadFactor = new SaipaPressLoadFactor
                 {
                     EntryNumber = input.EntryNumber,
                     LoadType = input.LoadType,
-                    LoadFactorId = loadFactor.Id
+                    LoadFactor = loadFactor,
+                    Sequence = input.Sequence
                 };
 
-                loadFactor.SaipaPressLoadFactorId = saipaPressLoadFactor.Id;
-
                 _loadFactorRepo.Create(loadFactor);
-                _loadFactorRepo.CreateSaipaPress(saipaPressLoadFactor);
 
                 try
                 {
                     await _loadFactorRepo.Save();
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
+                }
+                catch (SqlException sqlException)
+                {
+                    if (sqlException.Number == 2601 || sqlException.Number == 2627)
+                    {
+                        bool done = false;
+                        while (!done)
+                        {
+                            input.Sequence = input.Sequence++;
+                            loadFactor.SaipaPressLoadFactor.Sequence = input.Sequence;
+
+                            _loadFactorRepo.Create(loadFactor);
+                            try
+                            {
+                                await _loadFactorRepo.Save();
+                                done = true;
+                            }
+                            catch (SqlException sqlException2)
+                            {
+                                if (sqlException2.Number != 2601 || sqlException2.Number != 2627)
+                                {
+                                    msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException2.Message} #{sqlException2.Number}";
+                                    break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                                break;
+                            }
+                        }
+
+                        msg = "عملیات موفقیت آمیز بود.";
+                        status = "success";
+                    }
+                    else
+                    {
+                        msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException.Message} #{sqlException.Number}";
+                    }
                 }
                 catch (Exception e)
                 {
@@ -2370,7 +2502,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Json(new { msg, status });
+            return Json(new { msg, status, sequence = CalcNextSequenceForLoadFactor(input.Sequence) });
         }
 
         [HttpPost]
@@ -2387,8 +2519,6 @@ namespace EtehadBar.MVC.Controllers
                 var loadFactor = new LoadFactor
                 {
                     AdminId = _userManager.GetUserId(User),
-                    Amount = fee.Price,
-                    DriverFee = fee.DriverPrice,
                     OriginId = fee.OriginId,
                     DestinationId = fee.DestinationId,
                     CalendarId = input.CalendarId,
@@ -2405,6 +2535,17 @@ namespace EtehadBar.MVC.Controllers
                     LoadFactorDeductions = config.LoadFactorDeductions
                 };
 
+                if (fee.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    loadFactor.Amount = input.Amount;
+                    loadFactor.DriverFee = input.DriverFee;
+                }
+                else
+                {
+                    loadFactor.Amount = fee.Price;
+                    loadFactor.DriverFee = fee.DriverPrice;
+                }
+
                 var sazehGostarLoadFactor = new SazehGostarLoadFactor
                 {
                     Certain = input.Certain,
@@ -2417,16 +2558,65 @@ namespace EtehadBar.MVC.Controllers
                     Status = input.Status
                 };
 
-                loadFactor.SazehGostarLoadFactorId = sazehGostarLoadFactor.Id;
+                loadFactor.SazehGostarLoadFactor = new SazehGostarLoadFactor
+                {
+                    Certain = input.Certain,
+                    Count = input.Count,
+                    Description = input.Description,
+                    DetailedCostCenter = input.DetailedCostCenter,
+                    Nature = input.Nature,
+                    RegisterCode = input.RegisterCode,
+                    Status = input.Status,
+                    LoadFactor = loadFactor,
+                    Sequence = input.Sequence
+                };
 
                 _loadFactorRepo.Create(loadFactor);
-                _loadFactorRepo.CreateSazehGostar(sazehGostarLoadFactor);
 
                 try
                 {
                     await _loadFactorRepo.Save();
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
+                }
+                catch (SqlException sqlException)
+                {
+                    if (sqlException.Number == 2601 || sqlException.Number == 2627)
+                    {
+                        bool done = false;
+                        while (!done)
+                        {
+                            input.Sequence = input.Sequence++;
+                            loadFactor.SazehGostarLoadFactor.Sequence = input.Sequence;
+
+                            _loadFactorRepo.Create(loadFactor);
+                            try
+                            {
+                                await _loadFactorRepo.Save();
+                                done = true;
+                            }
+                            catch (SqlException sqlException2)
+                            {
+                                if (sqlException2.Number != 2601 || sqlException2.Number != 2627)
+                                {
+                                    msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException2.Message} #{sqlException2.Number}";
+                                    break;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                                break;
+                            }
+                        }
+
+                        msg = "عملیات موفقیت آمیز بود.";
+                        status = "success";
+                    }
+                    else
+                    {
+                        msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException.Message} #{sqlException.Number}";
+                    }
                 }
                 catch (Exception e)
                 {
@@ -2437,7 +2627,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Json(new { msg, status });
+            return Json(new { msg, status, sequence = CalcNextSequenceForLoadFactor(input.Sequence) });
         }
 
         [HttpGet]
@@ -2477,9 +2667,11 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                item.AdminId = _userManager.GetUserId(User);
-                item.Amount = fee.Price;
-                item.DriverFee = fee.DriverPrice;
+                if (await _loadFactorRepo.SequenceExistInSaipaPlasco(item.SaipaPlascoLoadFactorId.Value, input.Sequence))
+                    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
+
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDateTime = DateTime.Now;
                 item.OriginId = fee.OriginId;
                 item.DestinationId = fee.DestinationId;
                 item.CalendarId = input.CalendarId;
@@ -2491,6 +2683,19 @@ namespace EtehadBar.MVC.Controllers
                 item.LoadNumberGov = input.LoadNumberGov;
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
+
+                item.SaipaPlascoLoadFactor.Sequence = input.Sequence;
+
+                if (fee.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    item.Amount = input.Amount;
+                    item.DriverFee = input.DriverFee;
+                }
+                else
+                {
+                    item.Amount = fee.Price;
+                    item.DriverFee = fee.DriverPrice;
+                }
 
                 _loadFactorRepo.Update(item);
                 try
@@ -2521,9 +2726,11 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                item.AdminId = _userManager.GetUserId(User);
-                item.Amount = fee.Price;
-                item.DriverFee = fee.DriverPrice;
+                if (await _loadFactorRepo.SequenceExistInSaipaPress(item.SaipaPlascoLoadFactorId.Value, input.Sequence))
+                    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
+
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDateTime = DateTime.Now;
                 item.OriginId = fee.OriginId;
                 item.DestinationId = fee.DestinationId;
                 item.CalendarId = input.CalendarId;
@@ -2535,9 +2742,25 @@ namespace EtehadBar.MVC.Controllers
                 item.LoadNumberGov = input.LoadNumberGov;
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
+                item.Tonnage = input.Tonnage;
 
                 item.SaipaPressLoadFactor.EntryNumber = input.EntryNumber;
                 item.SaipaPressLoadFactor.LoadType = input.LoadType;
+
+                if (fee.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    item.Amount = input.Amount;
+                    item.DriverFee = input.DriverFee;
+                    item.TonnagePrice = input.TonnagePrice;
+                    item.DriverTonnagePrice = input.DriverTonnagePrice;
+                }
+                else
+                {
+                    item.Amount = fee.Price;
+                    item.DriverFee = fee.DriverPrice;
+                    item.TonnagePrice = fee.TonnagePrice;
+                    item.DriverTonnagePrice = fee.DriverTonnagePrice;
+                }
 
                 _loadFactorRepo.Update(item);
                 try
@@ -2568,9 +2791,11 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                item.AdminId = _userManager.GetUserId(User);
-                item.Amount = fee.Price;
-                item.DriverFee = fee.DriverPrice;
+                if (await _loadFactorRepo.SequenceExistInSazehGostar(item.SaipaPlascoLoadFactorId.Value, input.Sequence))
+                    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
+
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDateTime = DateTime.Now;
                 item.OriginId = fee.OriginId;
                 item.DestinationId = fee.DestinationId;
                 item.CalendarId = input.CalendarId;
@@ -2590,6 +2815,17 @@ namespace EtehadBar.MVC.Controllers
                 item.SazehGostarLoadFactor.Nature = input.Nature;
                 item.SazehGostarLoadFactor.RegisterCode = input.RegisterCode;
                 item.SazehGostarLoadFactor.Status = input.Status;
+
+                if (fee.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    item.Amount = input.Amount;
+                    item.DriverFee = input.DriverFee;
+                }
+                else
+                {
+                    item.Amount = fee.Price;
+                    item.DriverFee = fee.DriverPrice;
+                }
 
                 _loadFactorRepo.Update(item);
                 try

@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230205130919_Load_Factor_Retouch")]
+    partial class Load_Factor_Retouch
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -62,10 +64,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
-                    b.Property<string>("AccountBankName")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
                     b.Property<string>("Address")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -73,10 +71,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<string>("Avatar")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("BankAccountNumber")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime>("Birth")
                         .HasColumnType("datetime2");
@@ -615,7 +609,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("LoadNumberGov")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<long?>("MehrcomParsLoadFactorId")
                         .HasColumnType("bigint");
@@ -790,10 +786,7 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<long?>("VehicleId")
+                    b.Property<long>("VehicleId")
                         .HasColumnType("bigint");
 
                     b.HasKey("Id");
@@ -802,8 +795,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasIndex("RowId")
                         .IsUnique();
-
-                    b.HasIndex("UserId");
 
                     b.HasIndex("VehicleId");
 
@@ -1086,16 +1077,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
-                    b.Property<string>("AccountBankName")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("BankAccountNumber")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
                     b.Property<string>("IranStateNumber")
                         .IsRequired()
                         .HasMaxLength(2)
@@ -1125,11 +1106,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("VehicleOwnerFullname")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
@@ -1413,15 +1389,11 @@ namespace EtehadBar.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EtehadBar.Domain.Models.ApplicationUser", "ApplicationUser")
-                        .WithMany("Payments")
-                        .HasForeignKey("UserId");
-
                     b.HasOne("EtehadBar.Domain.Models.Vehicle", "Vehicle")
                         .WithMany("Payments")
-                        .HasForeignKey("VehicleId");
-
-                    b.Navigation("ApplicationUser");
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Calendar");
 
@@ -1519,8 +1491,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("Costs");
 
                     b.Navigation("LoadFactors");
-
-                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Calendar", b =>

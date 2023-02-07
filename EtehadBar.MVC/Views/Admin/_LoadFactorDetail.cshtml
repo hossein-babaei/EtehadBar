@@ -1,36 +1,71 @@
 ﻿@model LoadFactor
-@{ 
+@{
     var adminDetail = (ApplicationUser)ViewData["Admin"];
 }
 <div class="uk-modal-dialog">
-    <div class="uk-modal-header">
+    <div class="uk-modal-header uk-light">
         <h2 class="uk-modal-title">اطلاعات بارنامه به شماره @Model.LoadNumber</h2>
     </div>
     <div class="uk-modal-body" style="background:#fff">
         <div class="uk-grid-medium uk-child-width-1-1 uk-child-width-1-2@m uk-grid-divider" uk-grid>
             @*<div class="uk-width-1-1">
             <div class="uk-text-center">
-                @if (string.IsNullOrEmpty(Model.Picture))
-                {
-                    <span>بدون تصویر</span>
-                }
-                else
-                {
-                    <div uk-lightbox>
-                        <a class="uk-button uk-button-default" href="/img/load-factor/@Model.Picture" data-caption="@Model.LoadNumber">
-                            <img src="~/img/load-factor/@Model.Picture" width="100" />
-                        </a>
-                    </div>
-                }
+            @if (string.IsNullOrEmpty(Model.Picture))
+            {
+            <span>بدون تصویر</span>
+            }
+            else
+            {
+            <div uk-lightbox>
+            <a class="uk-button uk-button-default" href="/img/load-factor/@Model.Picture" data-caption="@Model.LoadNumber">
+            <img src="~/img/load-factor/@Model.Picture" width="100" />
+            </a>
             </div>
-        </div>*@
+            }
+            </div>
+            </div>*@
+            @if (Model.SaipaPlascoLoadFactorId.HasValue)
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.SaipaPlascoLoadFactor.Sequence)</p>
+                    <span class="sm">@Html.DisplayFor(model => model.SaipaPlascoLoadFactor.Sequence)</span>
+                </div>
+            }
+            else if (Model.SaipaPressLoadFactorId.HasValue)
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.SaipaPressLoadFactor.Sequence)</p>
+                    <span class="sm">@Html.DisplayFor(model => model.SaipaPressLoadFactor.Sequence)</span>
+                </div>
+            }
+            else if (Model.SazehGostarLoadFactorId.HasValue)
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.SazehGostarLoadFactor.Sequence)</p>
+                    <span class="sm">@Html.DisplayFor(model => model.SazehGostarLoadFactor.Sequence)</span>
+                </div>
+            }
+            else if (Model.MehrcomParsLoadFactorId.HasValue)
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.MehrcomParsLoadFactor.Sequence)</p>
+                    <span class="sm">@Html.DisplayFor(model => model.MehrcomParsLoadFactor.Sequence)</span>
+                </div>
+            }
             <div>
                 <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.LoadNumber)</p>
                 <span class="sm">@Html.DisplayFor(model => model.LoadNumber)</span>
             </div>
             <div>
                 <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.LoadNumberGov)</p>
-                <span class="sm">@Html.DisplayFor(model => model.LoadNumberGov)</span>
+                @if (string.IsNullOrWhiteSpace(Model.LoadNumberGov))
+                {
+                    <span class="sm">---</span>
+                }
+                else
+                {
+                    <span class="sm">@Html.DisplayFor(model => model.LoadNumberGov)</span>
+                }
             </div>
             <div>
                 <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.ExitNumber)</p>
@@ -41,12 +76,12 @@
                 <span class="sm" dir="ltr">@(new PersianDateTime(Model.Date).ToString("yyyy/MM/dd"))</span>
             </div>
             <div>
-                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Origin)</p>
-                <span class="sm">@Html.DisplayFor(model => model.Origin)</span>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.OriginId)</p>
+                <span class="sm">@Html.DisplayFor(model => model.Origin.Title)</span>
             </div>
             <div>
-                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Destination)</p>
-                <span class="sm">@Html.DisplayFor(model => model.Destination)</span>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.DestinationId)</p>
+                <span class="sm">@Html.DisplayFor(model => model.Destination.Title)</span>
             </div>
             <div>
                 <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.DriverId)</p>

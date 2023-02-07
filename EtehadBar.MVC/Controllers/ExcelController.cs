@@ -86,12 +86,19 @@ namespace EtehadBar.MVC.Controllers
             for (int index = 1; index <= loadFactors.Count; index++)
             {
                 ws.Cell(index + 2, 1).Value = index;
-                ws.Cell(index + 2, 2).Value = new PersianDateTime(loadFactors[index - 1].Date).ToString("yyyy/MM/dd");
-                ws.Cell(index + 2, 3).Value = loadFactors[index - 1].LoadNumber;
-                ws.Cell(index + 2, 4).Value = loadFactors[index - 1].LoadNumberGov;
+                ws.Cell(index + 2, 2).Value = new PersianDateTime(loadFactors[index - 1].Date).ToString("yyyy/MM/dd"); if (string.IsNullOrWhiteSpace(loadFactors[index - 1].LoadNumberGov))
+                {
+                    ws.Cell(index + 2, 3).Value = loadFactors[index - 1].LoadNumber;
+                    ws.Cell(index + 2, 4).Value = "---";
+                }
+                else
+                {
+                    ws.Cell(index + 2, 3).Value = loadFactors[index - 1].LoadNumber;
+                    ws.Cell(index + 2, 4).Value = loadFactors[index - 1].LoadNumberGov;
+                }
                 ws.Cell(index + 2, 5).Value = loadFactors[index - 1].ExitNumber;
-                ws.Cell(index + 2, 6).Value = loadFactors[index - 1].Origin;
-                ws.Cell(index + 2, 7).Value = loadFactors[index - 1].Destination;
+                ws.Cell(index + 2, 6).Value = loadFactors[index - 1].Origin.Title;
+                ws.Cell(index + 2, 7).Value = loadFactors[index - 1].Destination.Title;
                 ws.Cell(index + 2, 8).Value = loadFactors[index - 1].Amount.ToString("N0");
                 ws.Cell(index + 2, 9).Value = loadFactors[index - 1].DriverFee.ToString("N0");
                 ws.Cell(index + 2, 10).Value = loadFactors[index - 1].VAT;
@@ -351,11 +358,19 @@ namespace EtehadBar.MVC.Controllers
             {
                 ws.Cell(index + 2, 1).Value = index;
                 ws.Cell(index + 2, 2).Value = new PersianDateTime(loadFactors[index - 1].Date).ToString("yyyy/MM/dd");
-                ws.Cell(index + 2, 3).Value = loadFactors[index - 1].LoadNumber;
-                ws.Cell(index + 2, 4).Value = loadFactors[index - 1].LoadNumberGov;
+                if (string.IsNullOrWhiteSpace(loadFactors[index - 1].LoadNumberGov))
+                {
+                    ws.Cell(index + 2, 3).Value = loadFactors[index - 1].LoadNumber;
+                    ws.Cell(index + 2, 4).Value = "---";
+                }
+                else
+                {
+                    ws.Cell(index + 2, 3).Value = loadFactors[index - 1].LoadNumber;
+                    ws.Cell(index + 2, 4).Value = loadFactors[index - 1].LoadNumberGov;
+                }
                 ws.Cell(index + 2, 5).Value = loadFactors[index - 1].ExitNumber;
-                ws.Cell(index + 2, 6).Value = loadFactors[index - 1].Origin;
-                ws.Cell(index + 2, 7).Value = loadFactors[index - 1].Destination;
+                ws.Cell(index + 2, 6).Value = loadFactors[index - 1].Origin.Title;
+                ws.Cell(index + 2, 7).Value = loadFactors[index - 1].Destination.Title;
                 ws.Cell(index + 2, 8).Value = loadFactors[index - 1].DriverFee.ToString("N0");
                 ws.Cell(index + 2, 9).Value = $"{loadFactors[index - 1].ApplicationUser.Firstname} {loadFactors[index - 1].ApplicationUser.Lastname}";
                 ws.Cell(index + 2, 10).Value = $"{loadFactors[index - 1].Contract.Customer.Name} {loadFactors[index - 1].Contract.Number}";
@@ -488,11 +503,19 @@ namespace EtehadBar.MVC.Controllers
                         ws.Cell(index + rowIndex, 2).Value = new PersianDateTime(loadFactors[index - 1].Date).ToString("yyyy/MM/dd");
                         ws.Cell(index + rowIndex, 3).Value = loadFactors[index - 1].ApplicationUser.Lastname;
                         ws.Cell(index + rowIndex, 4).Value = $"{loadFactors[index - 1].Vehicle.RightNumber} {loadFactors[index - 1].Vehicle.NumberWord} {loadFactors[index - 1].Vehicle.LeftNumber}";
-                        ws.Cell(index + rowIndex, 5).Value = loadFactors[index - 1].LoadNumberGov;
-                        ws.Cell(index + rowIndex, 6).Value = loadFactors[index - 1].LoadNumber;
+                        if (string.IsNullOrWhiteSpace(loadFactors[index - 1].LoadNumberGov))
+                        {
+                            ws.Cell(index + rowIndex, 5).Value = loadFactors[index - 1].LoadNumber;
+                            ws.Cell(index + rowIndex, 6).Value = "---";
+                        }
+                        else
+                        {
+                            ws.Cell(index + rowIndex, 5).Value = loadFactors[index - 1].LoadNumberGov;
+                            ws.Cell(index + rowIndex, 6).Value = loadFactors[index - 1].LoadNumber;
+                        }
                         ws.Cell(index + rowIndex, 7).Value = loadFactors[index - 1].ExitNumber;
-                        ws.Cell(index + rowIndex, 8).Value = loadFactors[index - 1].Origin;
-                        ws.Cell(index + rowIndex, 9).Value = loadFactors[index - 1].Destination;
+                        ws.Cell(index + rowIndex, 8).Value = loadFactors[index - 1].Origin.Title;
+                        ws.Cell(index + rowIndex, 9).Value = loadFactors[index - 1].Destination.Title;
                         ws.Cell(index + rowIndex, 10).Value = loadFactors[index - 1].Amount.ToString("N0");
                         ws.Cell(index + rowIndex, 11).Value = loadFactors[index - 1].Vehicle.Type;
                     }
@@ -598,8 +621,8 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(index + 1, 15).Value = allLoadFactors[index - 1].ExitNumber;
                     ws.Cell(index + 1, 16).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
                     ws.Cell(index + 1, 17).Value = allLoadFactors[index - 1].SazehGostarLoadFactor.Status;
-                    ws.Cell(index + 1, 18).Value = allLoadFactors[index - 1].Origin;
-                    ws.Cell(index + 1, 19).Value = allLoadFactors[index - 1].Destination;
+                    ws.Cell(index + 1, 18).Value = allLoadFactors[index - 1].Origin.Title;
+                    ws.Cell(index + 1, 19).Value = allLoadFactors[index - 1].Destination.Title;
                 }
 
                 ws.Cell($"A{allLoadFactors.Count + 1}").Value = "جمع";
@@ -659,8 +682,8 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(index + 1, 2).Value = allLoadFactors[index - 1].LoadNumberGov;
                     ws.Cell(index + 1, 3).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
                     ws.Cell(index + 1, 4).Value = allLoadFactors[index - 1].ApplicationUser.Lastname;
-                    ws.Cell(index + 1, 5).Value = allLoadFactors[index - 1].Origin;
-                    ws.Cell(index + 1, 6).Value = allLoadFactors[index - 1].Destination;
+                    ws.Cell(index + 1, 5).Value = allLoadFactors[index - 1].Origin.Title;
+                    ws.Cell(index + 1, 6).Value = allLoadFactors[index - 1].Destination.Title;
                     ws.Cell(index + 1, 7).Value = new PersianDateTime(allLoadFactors[index - 1].Date).ToString("yyyy/MM/dd");
                     ws.Cell(index + 1, 8).Value = allLoadFactors[index - 1].SaipaPressLoadFactor.EntryNumber;
                     ws.Cell(index + 1, 9).Value = allLoadFactors[index - 1].ExitNumber;

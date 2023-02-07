@@ -40,6 +40,21 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool Status { get; set; }
 
+        [Display(Name = "نام و نام خانوادگی مالک")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128)]
+        public string VehicleOwnerFullname { get; set; }
+
+        [Display(Name = "نام بانک")]
+        [StringLength(64)]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string AccountBankName { get; set; }
+
+        [Display(Name = "شماره حساب بانکی")]
+        [StringLength(64)]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string BankAccountNumber { get; set; }
+
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
 

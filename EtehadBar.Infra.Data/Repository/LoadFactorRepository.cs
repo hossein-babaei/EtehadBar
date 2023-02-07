@@ -85,12 +85,13 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<ESaipaPlascoLoadFactorVM> GetSaipaPlascoLoadFactor(long loadFactorId)
         {
-            var loadFactor = await db.LoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
+            var loadFactor = await db.LoadFactor.SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESaipaPlascoLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);
             return new ESaipaPlascoLoadFactorVM
             {
+                Sequence = loadFactor.SaipaPlascoLoadFactor.Sequence,
                 Id = loadFactor.Id,
                 CalendarId = loadFactor.CalendarId,
                 ContractId = loadFactor.ContractId,
@@ -102,7 +103,9 @@ namespace EtehadBar.Infra.Data.Repository
                 LoadNumber = loadFactor.LoadNumber,
                 LoadNumberGov = loadFactor.LoadNumberGov,
                 ShippingFeeId = loadFactor.ShippingFeeId,
-                VehicleId = loadFactor.VehicleId
+                VehicleId = loadFactor.VehicleId,
+                Amount = loadFactor.Amount,
+                DriverFee = loadFactor.DriverFee
             };
         }
 
@@ -117,6 +120,7 @@ namespace EtehadBar.Infra.Data.Repository
             var pd = new PersianDateTime(loadFactor.Date);
             return new ESaipaPressLoadFactorVM
             {
+                Sequence = saipaPressLoadFactor.Sequence,
                 Id = loadFactor.Id,
                 CalendarId = loadFactor.CalendarId,
                 ContractId = loadFactor.ContractId,
@@ -131,7 +135,12 @@ namespace EtehadBar.Infra.Data.Repository
                 VehicleId = loadFactor.VehicleId,
                 EntryNumber = saipaPressLoadFactor.EntryNumber,
                 LoadType = saipaPressLoadFactor.LoadType,
-                RelationId = saipaPressLoadFactor.Id
+                RelationId = saipaPressLoadFactor.Id,
+                Amount = loadFactor.Amount,
+                DriverFee = loadFactor.DriverFee,
+                DriverTonnagePrice = loadFactor.DriverTonnagePrice,
+                Tonnage = loadFactor.Tonnage,
+                TonnagePrice = loadFactor.TonnagePrice
             };
         }
 
@@ -146,6 +155,7 @@ namespace EtehadBar.Infra.Data.Repository
             var pd = new PersianDateTime(loadFactor.Date);
             return new ESazehGostarLoadFactorVM
             {
+                Sequence = sazehGostarLoadFactor.Sequence,
                 Id = loadFactor.Id,
                 CalendarId = loadFactor.CalendarId,
                 ContractId = loadFactor.ContractId,
@@ -165,7 +175,9 @@ namespace EtehadBar.Infra.Data.Repository
                 DetailedCostCenter = sazehGostarLoadFactor.DetailedCostCenter,
                 Nature = sazehGostarLoadFactor.Nature,
                 RegisterCode = sazehGostarLoadFactor.RegisterCode,
-                Status = sazehGostarLoadFactor.Status
+                Status = sazehGostarLoadFactor.Status,
+                Amount = loadFactor.Amount,
+                DriverFee = loadFactor.DriverFee
             };
         }
 
@@ -176,6 +188,45 @@ namespace EtehadBar.Infra.Data.Repository
                        where a.CalendarId.Equals(calendarId) && b.CustomerId.Equals(customerId)
                        select a;
             return await data.OrderBy(a => a.Date).ToListAsync();
+        }
+
+        public async Task<long> GetBiggestSequenceInSaipaPlasco()
+        {
+            if (await db.SaipaPlascoLoadFactor.AsNoTracking().AnyAsync())
+                return await db.SaipaPlascoLoadFactor.AsNoTracking().MaxAsync(a => a.Sequence);
+            else 
+                return 0;
+        }
+
+        public async Task<long> GetBiggestSequenceInSaipaPress()
+        {
+            if (await db.SaipaPressLoadFactor.AsNoTracking().AnyAsync())
+                return await db.SaipaPressLoadFactor.AsNoTracking().MaxAsync(a => a.Sequence);
+            else
+                return 0;
+        }
+
+        public async Task<long> GetBiggestSequenceInSazehGostar()
+        {
+            if (await db.SazehGostarLoadFactor.AsNoTracking().AnyAsync())
+                return await db.SazehGostarLoadFactor.AsNoTracking().MaxAsync(a => a.Sequence);
+            else
+                return 0;
+        }
+
+        public async Task<bool> SequenceExistInSaipaPlasco(long id, long sequence)
+        {
+            return await db.SaipaPlascoLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.Id.Equals(id));
+        }
+
+        public async Task<bool> SequenceExistInSaipaPress(long id, long sequence)
+        {
+            return await db.SaipaPressLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.Id.Equals(id));
+        }
+
+        public async Task<bool> SequenceExistInSazehGostar(long id, long sequence)
+        {
+            return await db.SazehGostarLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.Id.Equals(id));
         }
     }
 }

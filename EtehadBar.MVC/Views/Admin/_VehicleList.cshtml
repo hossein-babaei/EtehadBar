@@ -17,6 +17,7 @@
                     <th>ردیف</th>
                     <th>نوع</th>
                     <th>شماره پلاک</th>
+                    <th>نام مالک</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,6 +27,7 @@
                         <td>@i</td>
                         <td>@item.Type</td>
                         <td>ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</td>
+                        <td>@item.VehicleOwnerFullname</td>
                     </tr>
                     i++;
                 }

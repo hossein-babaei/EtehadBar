@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain.Models
 {
@@ -39,9 +40,14 @@ namespace EtehadBar.Domain.Models
         public virtual Calendar Calendar { get; set; }
 
         [Display(Name = "خودرو")]
-        [Required]
-        public long VehicleId { get; set; }
+        [ForeignKey(nameof(Vehicle))]
+        public long? VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; }
+
+        [Display(Name = "کارمند")]
+        [ForeignKey(nameof(ApplicationUser))]
+        public string UserId { get; set; }
+        public virtual ApplicationUser ApplicationUser { get; set; }
 
         [Required]
         [StringLength(36)]

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Principal;
 
 namespace EtehadBar.Domain.Models
 {
@@ -39,11 +40,20 @@ namespace EtehadBar.Domain.Models
 
         public bool Gender { get; set; }
 
+        [Display(Name = "نام بانک")]
+        [StringLength(64)]
+        public string AccountBankName { get; set; }
+
+        [Display(Name = "شماره حساب بانکی")]
+        [StringLength(64)]
+        public string BankAccountNumber { get; set; }
+
         public ApplicationRoleType Role { get; set; }
 
         public bool Status { get; set; }
 
         public virtual ICollection<Cost> Costs { get; set; }
+        public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
     }
 }

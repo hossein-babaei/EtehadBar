@@ -1,12 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace EtehadBar.Domain.Models
 {
     [Index(nameof(RowId), IsUnique = true)]
     [Index(nameof(Sequence), IsUnique = true)]
-    public class SaipaPressLoadFactor
+    public class MehrcomParsLoadFactor
     {
         [Key]
         public long Id { get; set; }
@@ -14,14 +18,6 @@ namespace EtehadBar.Domain.Models
         [Required]
         [Display(Name = "ترتیب")]
         public long Sequence { get; set; }
-
-        [Required]
-        [StringLength(50)]
-        public string EntryNumber { get; set; }
-
-        [Required]
-        [StringLength(128)]
-        public string LoadType { get; set; }
 
         [Required]
         public long LoadFactorId { get; set; }

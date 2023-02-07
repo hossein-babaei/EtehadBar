@@ -247,6 +247,12 @@ namespace EtehadBar.Domain
         [StringLength(10, MinimumLength = 10, ErrorMessage = "{0} باید {1} رقم باشد.")]
         public string NationalId { get; set; }
 
+        [Display(Name = "نام بانک")]
+        public string AccountBankName { get; set; }
+
+        [Display(Name = "شماره حساب")]
+        public string BankAccountNumber { get; set; }
+
         public ApplicationRoleType Role { get; set; }
 
         [Display(Name = "تصویر پرسنلی")]
@@ -452,6 +458,12 @@ namespace EtehadBar.Domain
 
         [Display(Name = "عکس پرسنلی")]
         public string Avatar { get; set; }
+
+        [Display(Name = "نام بانک")]
+        public string AccountBankName { get; set; }
+
+        [Display(Name = "شماره حساب")]
+        public string BankAccountNumber { get; set; }
 
         public bool LockoutEnabled { get; set; }
 

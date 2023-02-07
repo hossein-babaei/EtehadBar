@@ -52,8 +52,8 @@
                         <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
                         <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
                         <th>@Html.DisplayNameFor(model => model.ExitNumber)</th>
-                        <th>@Html.DisplayNameFor(model => model.Origin)</th>
-                        <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                        <th>@Html.DisplayNameFor(model => model.OriginId)</th>
+                        <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
                         <th>@Html.DisplayNameFor(model => model.VAT)</th>
@@ -79,8 +79,8 @@
                             <td>@item.LoadNumber</td>
                             <td>@item.LoadNumberGov</td>
                             <td>@item.ExitNumber</td>
-                            <td>@item.Origin</td>
-                            <td>@item.Destination</td>
+                            <td>@item.Origin.Title</td>
+                            <td>@item.Destination.Title</td>
                             <td>@item.Amount.ToString("N0")</td>
                             <td>@item.DriverFee.ToString("N0")</td>
                             <td>@item.VAT</td>

@@ -124,6 +124,9 @@
                             $.get('@Url.Action("LoadFactorPartial")', {}, function (r) {
                                 $('#append').html(r);
                             }, 'html');
+
+                            $('#create-modal #Sequence').val(r.sequence);
+                            $('#create-modal #Sequence').attr('min', r.sequence);
                         }
                     },
                     error: function (e) {
@@ -165,6 +168,45 @@
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();
         }
+        function loadFactorFormShippingFeeChangeHandler(select, customerType) {
+            let lastType = $(select).data('last-type'),
+                type = $(select).find('option:selected').data('type');
+            if (type == '@ShippingFeeType.Normal' && lastType != '@ShippingFeeType.Normal') {
+                $(select).parent().next().remove();
+                $(select).parent().next().remove();
+                if (customerType == '@CustomerType.SaipaPress') {
+                    $(select).parent().next().remove();
+                    $(select).parent().next().remove();
+                }
+            } else if (type == '@ShippingFeeType.Custom' && lastType != '@ShippingFeeType.Custom') {
+                $(`<div class="uk-grid-margin uk-first-column">
+                        <label class="uk-form-label" for="Amount">مبلغ (دریافتی)</label>
+                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="Amount" name="Amount" value="">
+                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="Amount" data-valmsg-replace="true"></span>
+                    </div>
+                    <div class="uk-grid-margin uk-first-column">
+                        <label class="uk-form-label" for="DriverFee">کرایه راننده (ریال)</label>
+                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="DriverFee" name="DriverFee" value="">
+                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverFee" data-valmsg-replace="true"></span>
+                    </div>
+                    ${customerType == '@CustomerType.SaipaPress' ?
+                    `<div class="uk-grid-margin uk-first-column">
+                        <label class="uk-form-label" for="TonnagePrice">نرخ تناژ اضافه (ریال)</label>
+                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="TonnagePrice" name="TonnagePrice" value="">
+                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="TonnagePrice" data-valmsg-replace="true"></span>
+                    </div>
+                    <div class="uk-grid-margin uk-first-column">
+                        <label class="uk-form-label" for="DriverTonnagePrice">نرخ تناژ اضافه راننده (ریال)</label>
+                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="DriverTonnagePrice" name="DriverTonnagePrice" value="">
+                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverTonnagePrice" data-valmsg-replace="true"></span>
+                    </div>` : ''}`).insertAfter($(select).parent());
+            }
+
+            $(select).parents('form').data('validator', null);
+            $.validator.unobtrusive.parse($(select).parents('form'));
+
+            $(select).data('last-type', type);
+        }
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -200,7 +242,14 @@
                     <tr class="uk-text-center sm">
                         <td>@i</td>
                         <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
-                        <td>@Html.DisplayFor(modelItem => item.LoadNumberGov)</td>
+                        @if (string.IsNullOrWhiteSpace(item.LoadNumberGov))
+                        {
+                            <td>---</td>
+                        }
+                        else
+                        {
+                            <td>@Html.DisplayFor(modelItem => item.LoadNumberGov)</td>
+                        }
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                         <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>

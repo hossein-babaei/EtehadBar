@@ -11,6 +11,12 @@ namespace EtehadBar.Domain.Interfaces
         Task<ESaipaPlascoLoadFactorVM> GetSaipaPlascoLoadFactor(long loadFactorId);
         Task<ESaipaPressLoadFactorVM> GetSaipaPressLoadFactor(long loadFactorId);
         Task<ESazehGostarLoadFactorVM> GetSazehGostarLoadFactor(long loadFactorId);
+        Task<long> GetBiggestSequenceInSaipaPlasco();
+        Task<long> GetBiggestSequenceInSaipaPress();
+        Task<long> GetBiggestSequenceInSazehGostar();
+        Task<bool> SequenceExistInSaipaPlasco(long id, long sequence);
+        Task<bool> SequenceExistInSaipaPress(long id, long sequence);
+        Task<bool> SequenceExistInSazehGostar(long id, long sequence);
         IQueryable<LoadFactor> LoadFactors();
         Task<List<LoadFactor>> LoadFactors(long customerId, long calendarId);
         void Update(LoadFactor obj);

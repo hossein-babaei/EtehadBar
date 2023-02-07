@@ -27,7 +27,7 @@
             var form = $(t).parents('form');
             preloader();
             $.post('@Url.Action("GetContractAddonsJson")', { 'customerId': $(t).val() }, function (r) {
-                form.find('#ParentContractId').html('<option value="none" selected="selected">ثبت به عنوان قرارداد جدید</option>');
+                form.find('#ParentContractId').html('<option value="0" selected="selected">ثبت به عنوان قرارداد جدید</option>');
                 $.each(r, function (i, v) {
                     form.find('#ParentContractId').append('<option value="' + v.id + '">' + v.subject + ' (' + v.number + ')</option>');
                 });

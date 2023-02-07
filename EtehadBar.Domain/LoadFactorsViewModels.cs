@@ -4,6 +4,10 @@ namespace EtehadBar.Domain
 {
     public class CSaipaPlascoLoadFactorVM
     {
+        [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long Sequence { get; set; }
+
         [Display(Name = "روز")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Day { get; set; }
@@ -22,7 +26,6 @@ namespace EtehadBar.Domain
         public string LoadNumber { get; set; }
 
         [Display(Name = "شماره بارنامه دولتی")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string LoadNumberGov { get; set; }
 
@@ -51,10 +54,20 @@ namespace EtehadBar.Domain
         [Required]
         [Display(Name = "خودرو")]
         public long VehicleId { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
     }
 
     public class ESaipaPlascoLoadFactorVM
     {
+        [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long Sequence { get; set; }
+
         [Required]
         public long Id { get; set; }
 
@@ -76,8 +89,6 @@ namespace EtehadBar.Domain
         public string LoadNumber { get; set; }
 
         [Display(Name = "شماره بارنامه دولتی")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string LoadNumberGov { get; set; }
 
         [Display(Name = "شماره خروج")]
@@ -86,13 +97,11 @@ namespace EtehadBar.Domain
         public string ExitNumber { get; set; }
 
         [Required]
-        [StringLength(50)]
         [Display(Name = "نرخ بارنامه")]
         public long ShippingFeeId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
-        [StringLength(50)]
         public long ContractId { get; set; }
 
         [Required]
@@ -107,10 +116,20 @@ namespace EtehadBar.Domain
         [Required]
         [Display(Name = "خودرو")]
         public long VehicleId { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
     }
 
     public class CSaipaPressLoadFactorVM
     {
+        [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long Sequence { get; set; }
+
         [Display(Name = "روز")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Day { get; set; }
@@ -168,10 +187,29 @@ namespace EtehadBar.Domain
         [Display(Name = "خودرو")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long VehicleId { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; } = 0;
     }
 
     public class ESaipaPressLoadFactorVM
     {
+        [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long Sequence { get; set; }
+
         [Required]
         public long Id { get; set; }
 
@@ -235,10 +273,29 @@ namespace EtehadBar.Domain
         [Required]
         [Display(Name = "خودرو")]
         public long VehicleId { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; } = 0;
     }
 
     public class CSazehGostarLoadFactorVM
     {
+        [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long Sequence { get; set; }
+
         [Display(Name = "روز")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Day { get; set; }
@@ -316,10 +373,20 @@ namespace EtehadBar.Domain
         [Required]
         [Display(Name = "خودرو")]
         public long VehicleId { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
     }
 
     public class ESazehGostarLoadFactorVM
     {
+        [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long Sequence { get; set; }
+
         [Required]
         public long Id { get; set; }
 
@@ -403,5 +470,11 @@ namespace EtehadBar.Domain
         [Required]
         [Display(Name = "خودرو")]
         public long VehicleId { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
     }
 }

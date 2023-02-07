@@ -34,11 +34,14 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double DriverFee { get; set; }
 
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; }
+
         [Display(Name = "نرخ تناژ اضافه (ریال)")]
-        public double? TonnagePrice { get; set; } = 0;
+        public double? TonnagePrice { get; set; }
 
         [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
-        public double? DriverTonnagePrice { get; set; } = 0;
+        public double? DriverTonnagePrice { get; set; }
 
         [Display(Name = "شماره بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -46,8 +49,6 @@ namespace EtehadBar.Domain.Models
         public string LoadNumber { get; set; }
 
         [Display(Name = "شماره بارنامه دولتی")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string LoadNumberGov { get; set; }
 
         [Display(Name = "شماره خروج")]
@@ -64,15 +65,16 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "مالیات تکلیفی (%)")]
         public double WithholdingTax { get; set; }
 
-
         [StringLength(450)]
         public string AdminId { get; set; }
+        public DateTime CreateDateTime { get; set; } = DateTime.Now;
+
+        [StringLength(450)]
+        public string EditorId { get; set; }
+        public DateTime? EditDateTime { get; set; }
 
         [Required]
         public long ShippingFeeId { get; set; }
-
-        [Display(Name = "تناژ اضافه")]
-        public double? Tonnage { get; set; } = 0;
 
         [Required]
         [Display(Name = "مشتری")]
@@ -95,6 +97,14 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "خودرو")]
         public long VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; }
+
+        [ForeignKey(nameof(MehrcomParsLoadFactor))]
+        public long? MehrcomParsLoadFactorId { get; set; }
+        public virtual MehrcomParsLoadFactor MehrcomParsLoadFactor { get; set; }
+
+        [ForeignKey(nameof(SaipaPlascoLoadFactor))]
+        public long? SaipaPlascoLoadFactorId { get; set; }
+        public virtual SaipaPlascoLoadFactor SaipaPlascoLoadFactor { get; set; }
 
         [ForeignKey(nameof(SaipaPressLoadFactor))]
         public long? SaipaPressLoadFactorId { get; set; }

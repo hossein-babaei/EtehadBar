@@ -51,6 +51,16 @@
                     <span asp-validation-for="BirthString" class="uk-text-danger"></span>
                 </div>
                 <div>
+                    <label asp-for="AccountBankName" class="uk-form-label"></label>
+                    <input asp-for="AccountBankName" class="uk-input uk-border-rounded" value="سامان" />
+                    <span asp-validation-for="AccountBankName" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="BankAccountNumber" class="uk-form-label"></label>
+                    <input asp-for="BankAccountNumber" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="BankAccountNumber" class="uk-text-danger"></span>
+                </div>
+                <div>
                     <label asp-for="Gender" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
                         <label><input class="uk-radio" type="radio" name="Gender" value="true" checked /> مرد</label>

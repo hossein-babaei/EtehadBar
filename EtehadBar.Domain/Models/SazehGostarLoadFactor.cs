@@ -5,11 +5,16 @@ using System.ComponentModel.DataAnnotations;
 namespace EtehadBar.Domain.Models
 {
     [Index(nameof(RowId), IsUnique = true)]
+    [Index(nameof(Sequence), IsUnique = true)]
     public class SazehGostarLoadFactor
     {
         [Key]
         [StringLength(50)]
         public long Id { get; set; }
+
+        [Required]
+        [Display(Name = "ترتیب")]
+        public long Sequence { get; set; }
 
         [Required]
         [StringLength(128)]
@@ -34,7 +39,6 @@ namespace EtehadBar.Domain.Models
         public string Status { get; set; }
 
         [Required]
-        [StringLength(50)]
         public long LoadFactorId { get; set; }
         public virtual LoadFactor LoadFactor { get; set; }
 

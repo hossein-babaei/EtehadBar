@@ -16,14 +16,23 @@
 
 @section Scripts{
     <script>
-        function getCreate() {
+        function getCreate(type) {
             preloader();
-            $.get('@Url.Action("GetVehicleListPartial")', { }, function (r) {
-                $('#vehicle-list-modal #appendList').html(r);
-            }, 'html').then(function () {
-                preloader();
-                UIkit.modal('#vehicle-list-modal').show();
-            });
+            if(type == 'vehicle') {
+                $.get('@Url.Action("GetVehicleListPartial")', { }, function (r) {
+                    $('#vehicle-list-modal #appendList').html(r);
+                }, 'html').then(function () {
+                    preloader();
+                    UIkit.modal('#vehicle-list-modal').show();
+                });
+            } else {
+                $.get('@Url.Action("GetVehicleListPartial")', { }, function (r) {
+                    $('#vehicle-list-modal #appendList').html(r);
+                }, 'html').then(function () {
+                    preloader();
+                    UIkit.modal('#vehicle-list-modal').show();
+                });
+            }
         }
         function find() {
             preloader();
@@ -76,7 +85,7 @@
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a onclick="getCreate()" class="uk-button uk-button-primary">افزودن</a>
+        <a uk-toggle="#payment-type-modal" class="uk-button uk-button-primary">افزودن</a>
     </div>
 </div>
 <div id="append" class="box">
@@ -179,5 +188,16 @@
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
             </div>
         </form>
+    </div>
+</div>
+<div id="payment-type-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>نوع پرداخت</h3>
+        <ul class="uk-list">
+            <li>
+                <button class="uk-button uk-button-primary uk-border-rounded" onclick="getCreate('vehicle')">خودرو</button>
+                <button class="uk-button uk-button-primary uk-border-rounded" onclick="getCreate('user')">کارمند</button>
+            </li>
+        </ul>
     </div>
 </div>
