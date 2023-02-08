@@ -1,6 +1,5 @@
 ﻿@model Payment
 @{
-    var vehicleInfo = Model.Vehicle;
     var calendar = (List<Calendar>)ViewData["Calendar"];
 }
 <div class="uk-modal-dialog">
@@ -9,20 +8,41 @@
     </div>
     <div class="uk-modal-body">
         <div class="uk-grid-divider uk-margin-bottom uk-child-width-auto uk-text-center uk-flex uk-flex-center" uk-grid>
-            <div>
-                <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">نوع خودرو</p>
-                <span class="md">@vehicleInfo.Type</span>
-            </div>
-            <div>
-                <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">شماره پلاک</p>
-                <span class="md">ایران @vehicleInfo.IranStateNumber - @vehicleInfo.RightNumber @vehicleInfo.NumberWord @vehicleInfo.LeftNumber</span>
-            </div>
+            @if (Model.VehicleId.HasValue)
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">نوع خودرو</p>
+                    <span class="md">@Model.Vehicle.Type</span>
+                </div>
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">شماره پلاک</p>
+                    <span class="md">ایران @Model.Vehicle.IranStateNumber - @Model.Vehicle.RightNumber @Model.Vehicle.NumberWord @Model.Vehicle.LeftNumber</span>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">نام و نام خانوادگی</p>
+                    <span class="md">@Model.ApplicationUser.Firstname @Model.ApplicationUser.Lastname</span>
+                </div>
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-margin-bottom-small sm">اطلاعات حساب</p>
+                    <span class="md" dir="ltr">@Model.ApplicationUser.AccountBankName - @Model.ApplicationUser.BankAccountNumber</span>
+                </div>
+            }
         </div>
         <form id="edit-form" asp-action="EditPayment" method="post" enctype="multipart/form-data">
             <input asp-for="Id" type="hidden" />
             <input asp-for="Date" type="hidden" />
             <input asp-for="AdminId" type="hidden" />
-            <input asp-for="VehicleId" type="hidden" />
+            @if (Model.VehicleId.HasValue)
+            {
+                <input asp-for="VehicleId" type="hidden" />
+            }
+            else
+            {
+                <input asp-for="UserId" type="hidden" />
+            }
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
                 <div>
@@ -43,7 +63,9 @@
                     <select class="uk-select uk-border-rounded" name="day" dir="ltr">
                         @for (int i = 1; i < 32; i++)
                         {
-                            <!option value="@i" @if (pd.Day == i) { <text> selected="selected" </text> }>@i</!option>
+                            <!option value="@i" @if (pd.Day == i) {
+                        <text> selected="selected" </text>
+                        }>@i</!option>
                         }
                     </select>
                 </div>
@@ -52,7 +74,9 @@
                     <select class="uk-select uk-border-rounded" name="month" dir="ltr">
                         @for (int i = 1; i < 13; i++)
                         {
-                            <!option value="@i" @if (pd.Month == i) { <text> selected="selected" </text> }>@i</!option>
+                            <!option value="@i" @if (pd.Month == i) {
+                        <text> selected="selected" </text>
+                        }>@i</!option>
                         }
                     </select>
                 </div>
@@ -96,8 +120,16 @@
                 <div>
                     <label asp-for="PaymentType" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
-                        <label><input class="uk-radio" type="radio" name="Type" value="@(PaymentType.Salary)" @if (Model.PaymentType.Equals(PaymentType.Salary)) { <text> checked</text> } /> حقوق</label>
-                        <label><input class="uk-radio" type="radio" name="Type" value="@(PaymentType.AdvanceMoney)" @if (Model.PaymentType.Equals(PaymentType.AdvanceMoney)) { <text> checked</text> } /> مساعده</label>
+                        <label>
+                            <input class="uk-radio" type="radio" name="Type" value="@(PaymentType.Salary)" @if (Model.PaymentType.Equals(PaymentType.Salary)) {
+                            <text> checked</text>
+                            } /> حقوق
+                        </label>
+                        <label>
+                            <input class="uk-radio" type="radio" name="Type" value="@(PaymentType.AdvanceMoney)" @if (Model.PaymentType.Equals(PaymentType.AdvanceMoney)) {
+                            <text> checked</text>
+                            } /> مساعده
+                        </label>
                     </div>
                     <span asp-validation-for="PaymentType" class="uk-text-danger"></span>
                 </div>

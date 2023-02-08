@@ -18,27 +18,38 @@
     <script>
         function getCreate(type) {
             preloader();
-            if(type == 'vehicle') {
-                $.get('@Url.Action("GetVehicleListPartial")', { }, function (r) {
+            if (type == 'vehicle') {
+                $.get('@Url.Action("GetVehicleListPartial")', {}, function (r) {
                     $('#vehicle-list-modal #appendList').html(r);
                 }, 'html').then(function () {
                     preloader();
                     UIkit.modal('#vehicle-list-modal').show();
                 });
             } else {
-                $.get('@Url.Action("GetVehicleListPartial")', { }, function (r) {
-                    $('#vehicle-list-modal #appendList').html(r);
+                $.get('@Url.Action("GetUserListExceptDriversPartial")', {}, function (r) {
+                    $('#user-list-modal #appendList').html(r);
                 }, 'html').then(function () {
                     preloader();
-                    UIkit.modal('#vehicle-list-modal').show();
+                    UIkit.modal('#user-list-modal').show();
                 });
             }
         }
-        function find() {
+        function find(type) {
             preloader();
-            var key = $('#search-term').val();
-            $.get('@Url.Action("GetVehicleListPartial")', { 'rightNumber': key }, function (r) {
-                $('#vehicle-list-modal #appendList').html(r);
+            let key = $('#vehicle-list-modal #search-term').val(),
+                appendArea = $('#vehicle-list-modal #appendList'),
+                url = '@Url.Action("GetVehicleListPartial")',
+                data = { 'rightNumber': key };
+
+            if (type == 'user') {
+                key = $('#user-list-modal #search-term').val(),
+                    appendArea = $('#user-list-modal #appendList');
+                url = '';
+                data = { 'name': key };
+            }
+
+            $.get(url, data, function (r) {
+                appendArea.html(r);
             }, 'html').then(function () {
                 preloader();
             });
@@ -47,13 +58,21 @@
             e.preventDefault();
             find();
         });
-        function reset() {
-            $('#search-term').val('');
+        $('#user-list-modal #find-form').submit(function (e) {
+            e.preventDefault();
             find();
+        });
+        function reset(type) {
+            if (type == 'user')
+                $('#user-list-modal #search-term').val('');
+            else
+                $('#vehicle-list-modal #search-term').val('');
+
+            find(type);
         }
-        function showForm(id) {
+        function showForm(id, type) {
             preloader();
-            $.get('@Url.Action("CreatePayment")', { 'vehicleId': id }, function (r) {
+            $.get('@Url.Action("CreatePayment")', { 'itemId': id, 'type': type }, function (r) {
                 $('#create-modal').html(r);
             }, 'html').then(function () {
                 parseValidator('#create-modal form');
@@ -98,7 +117,7 @@
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
-                    <th>@Html.DisplayNameFor(model => model.VehicleId)</th>
+                    <th>خودرو / کارمند</th>
                     <th>@Html.DisplayNameFor(model => model.PaymentType)</th>
                     <th>تصویر</th>
                     <th width="50">ویرایش</th>
@@ -115,8 +134,15 @@
                         <td>@pd.ToString("yyyy/MM/dd")</td>
                         <td>@item.Description</td>
                         <td>@item.Amount.ToString("N0")</td>
-                        <td>ایران @item.Vehicle.IranStateNumber - @item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
-                        @if (item.PaymentType.Equals((byte)PaymentType.AdvanceMoney))
+                        @if (item.VehicleId.HasValue)
+                        {
+                            <td>ایران @item.Vehicle.IranStateNumber - @item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
+                        }
+                        else
+                        {
+                            <td>@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname</td>
+                        }
+                        @if (item.PaymentType.Equals(PaymentType.AdvanceMoney))
                         {
                             <td class="uk-text-bold">مساعده</td>
                         }
@@ -160,12 +186,36 @@
             <div class="uk-grid-small" uk-grid>
                 <div class="uk-width-1-1 uk-width-1-2@m">
                     <form id="find-form" class="uk-search uk-search-default uk-width-1-1">
-                        <a onclick="find()" class="uk-search-icon-flip" uk-search-icon></a>
+                        <a onclick="find('vehicle')" class="uk-search-icon-flip" uk-search-icon></a>
                         <input id="search-term" autocomplete="off" class="uk-search-input uk-border-rounded" type="search" placeholder="جستجوی بر اساس 3 رقم سمت راست پلاک...">
                     </form>
                 </div>
                 <div class="uk-width-1-1 uk-width-1-2@m uk-flex uk-flex-left@m">
-                    <button class="uk-button uk-button-default" onclick="reset()">ریست</button>
+                    <button class="uk-button uk-button-default" onclick="reset('vehicle')">ریست</button>
+                </div>
+                <div class="uk-width-1-1" id="appendList"></div>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="user-list-modal" class="uk-modal-container" uk-modal="bg-close: false">
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">لیست کارمندان اتحاد بار</h2>
+        </div>
+        <div class="uk-modal-body">
+            <div class="uk-grid-small" uk-grid>
+                <div class="uk-width-1-1 uk-width-1-2@m">
+                    <form id="find-form" class="uk-search uk-search-default uk-width-1-1">
+                        <a onclick="find('user')" class="uk-search-icon-flip" uk-search-icon></a>
+                        <input id="search-term" autocomplete="off" class="uk-search-input uk-border-rounded" type="search" placeholder="جستجو بر اساس نام یا نام خانوادگی...">
+                    </form>
+                </div>
+                <div class="uk-width-1-1 uk-width-1-2@m uk-flex uk-flex-left@m">
+                    <button class="uk-button uk-button-default" onclick="reset('user')">ریست</button>
                 </div>
                 <div class="uk-width-1-1" id="appendList"></div>
             </div>

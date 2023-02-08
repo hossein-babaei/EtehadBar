@@ -203,8 +203,12 @@ namespace EtehadBar.Domain
 
 
         [Display(Name = "خودرو")]
-        public long VehicleId { get; set; }
+        public long? VehicleId { get; set; }
         public string Vehicle { get; set; }
+
+        [Display(Name = "کارمند")]
+        public string UserId { get; set; }
+        public string UserFullname { get; set; }
     }
 
     public class CreateUserVM

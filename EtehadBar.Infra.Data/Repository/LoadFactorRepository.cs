@@ -111,16 +111,13 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<ESaipaPressLoadFactorVM> GetSaipaPressLoadFactor(long loadFactorId)
         {
-            var loadFactor = await db.LoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
+            var loadFactor = await db.LoadFactor.SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESaipaPressLoadFactorVM();
-
-            var saipaPressLoadFactor = await db.SaipaPressLoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.LoadFactorId.Equals(loadFactorId));
-            if (saipaPressLoadFactor == null) return new ESaipaPressLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);
             return new ESaipaPressLoadFactorVM
             {
-                Sequence = saipaPressLoadFactor.Sequence,
+                Sequence = loadFactor.SaipaPressLoadFactor.Sequence,
                 Id = loadFactor.Id,
                 CalendarId = loadFactor.CalendarId,
                 ContractId = loadFactor.ContractId,
@@ -133,9 +130,9 @@ namespace EtehadBar.Infra.Data.Repository
                 LoadNumberGov = loadFactor.LoadNumberGov,
                 ShippingFeeId = loadFactor.ShippingFeeId,
                 VehicleId = loadFactor.VehicleId,
-                EntryNumber = saipaPressLoadFactor.EntryNumber,
-                LoadType = saipaPressLoadFactor.LoadType,
-                RelationId = saipaPressLoadFactor.Id,
+                EntryNumber = loadFactor.SaipaPressLoadFactor.EntryNumber,
+                LoadType = loadFactor.SaipaPressLoadFactor.LoadType,
+                RelationId = loadFactor.SaipaPressLoadFactor.Id,
                 Amount = loadFactor.Amount,
                 DriverFee = loadFactor.DriverFee,
                 DriverTonnagePrice = loadFactor.DriverTonnagePrice,
@@ -146,16 +143,13 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<ESazehGostarLoadFactorVM> GetSazehGostarLoadFactor(long loadFactorId)
         {
-            var loadFactor = await db.LoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
-            if (loadFactor == null) return new ESazehGostarLoadFactorVM();
-
-            var sazehGostarLoadFactor = await db.SazehGostarLoadFactor.AsNoTracking().SingleOrDefaultAsync(a => a.LoadFactorId.Equals(loadFactorId));
+            var loadFactor = await db.LoadFactor.SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESazehGostarLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);
             return new ESazehGostarLoadFactorVM
             {
-                Sequence = sazehGostarLoadFactor.Sequence,
+                Sequence = loadFactor.SazehGostarLoadFactor.Sequence,
                 Id = loadFactor.Id,
                 CalendarId = loadFactor.CalendarId,
                 ContractId = loadFactor.ContractId,
@@ -168,14 +162,14 @@ namespace EtehadBar.Infra.Data.Repository
                 LoadNumberGov = loadFactor.LoadNumberGov,
                 ShippingFeeId = loadFactor.ShippingFeeId,
                 VehicleId = loadFactor.VehicleId,
-                RelationId = sazehGostarLoadFactor.Id,
-                Certain = sazehGostarLoadFactor.Certain,
-                Count = sazehGostarLoadFactor.Count,
-                Description = sazehGostarLoadFactor.Description,
-                DetailedCostCenter = sazehGostarLoadFactor.DetailedCostCenter,
-                Nature = sazehGostarLoadFactor.Nature,
-                RegisterCode = sazehGostarLoadFactor.RegisterCode,
-                Status = sazehGostarLoadFactor.Status,
+                RelationId = loadFactor.SazehGostarLoadFactor.Id,
+                Certain = loadFactor.SazehGostarLoadFactor.Certain,
+                Count = loadFactor.SazehGostarLoadFactor.Count,
+                Description = loadFactor.SazehGostarLoadFactor.Description,
+                DetailedCostCenter = loadFactor.SazehGostarLoadFactor.DetailedCostCenter,
+                Nature = loadFactor.SazehGostarLoadFactor.Nature,
+                RegisterCode = loadFactor.SazehGostarLoadFactor.RegisterCode,
+                Status = loadFactor.SazehGostarLoadFactor.Status,
                 Amount = loadFactor.Amount,
                 DriverFee = loadFactor.DriverFee
             };

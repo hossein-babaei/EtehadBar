@@ -187,15 +187,28 @@ namespace EtehadBar.MVC.Controllers
             var data = _userManager.Users.Where(a => a.Status);
 
             if (!string.IsNullOrWhiteSpace(name))
-            {
                 data = data.Where(a => (a.Firstname + " " + a.Lastname).Contains(name) || a.Firstname.Contains(name) || a.Lastname.Contains(name));
-            }
 
             var pageNumber = p ?? 1;
             var onePageOfData = await data.OrderByDescending(a => a.RegisterDate).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             ViewBag.name = name;
             return PartialView("_UserList");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUserListExceptDriversPartial(int? p, string name)
+        {
+            var data = _userManager.Users.Where(a => a.Role != ApplicationRoleType.Driver && a.Status);
+
+            if (!string.IsNullOrWhiteSpace(name))
+                data = data.Where(a => (a.Firstname + " " + a.Lastname).Contains(name) || a.Firstname.Contains(name) || a.Lastname.Contains(name));
+
+            var pageNumber = p ?? 1;
+            var onePageOfData = await data.OrderByDescending(a => a.RegisterDate).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            ViewBag.name = name;
+            return PartialView("_UserListExceptDriver");
         }
 
         [HttpPost]
@@ -1224,12 +1237,17 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<PartialViewResult> CreatePayment(int vehicleId)
+        public async Task<PartialViewResult> CreatePayment(string itemId, string type)
         {
             ViewData["AdminId"] = _userManager.GetUserId(User);
-            ViewData["VehicleInfo"] = await _vehicleRepo.Get(vehicleId);
             ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            if (type == "vehicle")
+                ViewData["VehicleInfo"] = await _vehicleRepo.Get(Convert.ToInt64(itemId));
+            else
+                ViewData["UserInfo"] = await _userManager.Users.FirstOrDefaultAsync(a => a.Id == itemId);
+
+            ViewData["Type"] = type;
             return PartialView("~/Views/Admin/Create/Payment.cshtml");
         }
 
@@ -2275,6 +2293,7 @@ namespace EtehadBar.MVC.Controllers
                     return PartialView("~/Views/Admin/Create/LoadFactor/SaipaPlasco.cshtml");
                 case (byte)CustomerType.SaipaPress:
                     sequence = await _loadFactorRepo.GetBiggestSequenceInSaipaPress();
+                    ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
                     ViewData["Sequence"] = CalcNextSequenceForLoadFactor(sequence);
                     return PartialView("~/Views/Admin/Create/LoadFactor/SaipaPress.cshtml");
                 case (byte)CustomerType.SazehGostar:
@@ -2646,6 +2665,8 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
+            if (customer.CustomerType == CustomerType.SaipaPress)
+                ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
 
             return customer.CustomerType switch
             {

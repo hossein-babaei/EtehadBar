@@ -120,7 +120,7 @@
                             <th>@Html.DisplayNameFor(model => model.Description)</th>
                             <th>@Html.DisplayNameFor(model => model.Amount)</th>
                             <th>@Html.DisplayNameFor(model => model.AdminName)</th>
-                            <th>@Html.DisplayNameFor(model => model.VehicleId)</th>
+                            <th>خودرو/کارمند</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -144,7 +144,14 @@
                                 <td>@item.Description</td>
                                 <td>@item.Amount.ToString("N0")</td>
                                 <td>@item.AdminName</td>
-                                <td>@item.Vehicle</td>
+                                @if (item.VehicleId.HasValue)
+                                {
+                                    <td>@item.Vehicle</td>
+                                }
+                                else
+                                {
+                                    <td>@item.UserFullname</td>
+                                }
                             </tr>
                             i++;
                         }

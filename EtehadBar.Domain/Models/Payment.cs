@@ -35,7 +35,6 @@ namespace EtehadBar.Domain.Models
         public string AdminId { get; set; }
 
         [Display(Name = "تقویم کاری")]
-        [StringLength(50)]
         public long CalendarId { get; set; }
         public virtual Calendar Calendar { get; set; }
 

@@ -241,7 +241,7 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 4).Value = "توضیحات";
             ws.Cell(2, 5).Value = "مبلغ";
             ws.Cell(2, 6).Value = "کاربر سیستم";
-            ws.Cell(2, 7).Value = "خودرو";
+            ws.Cell(2, 7).Value = "خودرو/کارمند";
 
             var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(payments.Count + 2, 7));
             rngTable.FirstRow().Merge();
@@ -272,7 +272,10 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 2, 4).Value = payments[index - 1].Description;
                 ws.Cell(index + 2, 5).Value = payments[index - 1].Amount.ToString("N0");
                 ws.Cell(index + 2, 6).Value = payments[index - 1].AdminName;
-                ws.Cell(index + 2, 7).Value = payments[index - 1].Vehicle;
+                if (payments[index - 1].VehicleId.HasValue)
+                    ws.Cell(index + 2, 7).Value = payments[index - 1].Vehicle;
+                else
+                    ws.Cell(index + 2, 7).Value = payments[index - 1].UserFullname;
             }
 
             ws.Cell($"B{payments.Count + 3}").Value = "تعداد مساعده پرداختی";
@@ -297,7 +300,7 @@ namespace EtehadBar.MVC.Controllers
 
             ws.Cell($"B{payments.Count + 8}").Value = "جمع کل پرداختی";
             ws.Range($"B{payments.Count + 8}:F{payments.Count + 8}").Row(1).Merge();
-            ws.Cell(payments.Count + 8, 7).Value = payments.Sum(a => a.Amount).ToString();
+            ws.Cell(payments.Count + 8, 7).Value = payments.Sum(a => a.Amount).ToString("N0");
 
             var rngTable2 = ws.Range($"B{payments.Count + 3}:G{payments.Count + 8}");
             rngTable2.RangeUsed().Style

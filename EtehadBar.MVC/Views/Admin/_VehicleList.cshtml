@@ -23,7 +23,7 @@
             <tbody>
                 @foreach (var item in data)
                 {
-                    <tr class="uk-text-center sm pointer" onclick="showForm(@item.Id)">
+                    <tr class="uk-text-center sm pointer" onclick="showForm('@item.Id', 'vehicle')">
                         <td>@i</td>
                         <td>@item.Type</td>
                         <td>ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</td>

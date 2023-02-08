@@ -6,6 +6,7 @@
     var vehicles = (List<Vehicle>)ViewData["Vehicles"];
     var calendars = (List<Calendar>)ViewData["Calendars"];
     var currentFee = fees.Where(a => a.Id.Equals(Model.ShippingFeeId)).First();
+    var loadTypes = (List<ShippingFeeLoadType>)ViewData["LoadTypes"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -144,7 +145,12 @@
                 </div>
                 <div>
                     <label asp-for="LoadType" class="uk-form-label"></label>
-                    <input asp-for="LoadType" class="uk-input uk-border-rounded uk-form-small" />
+                    <select asp-for="LoadType" class="uk-select uk-border-rounded uk-form-small">
+                        @foreach (var item in loadTypes)
+                        {
+                            <!option value="@item.Name" @if(item.Name == Model.LoadType) { <text>selected="selected"</text> }>@item.Name</!option>
+                        }
+                    </select>
                     <span asp-validation-for="LoadType" class="uk-text-danger"></span>
                 </div>
             </div>

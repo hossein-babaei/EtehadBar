@@ -52,7 +52,10 @@ namespace EtehadBar.Infra.Data.Repository
         {
             var data = from a in db.Payment
                        join b in db.ApplicationUser on a.AdminId equals b.Id
-                       join c in db.Vehicles on a.VehicleId equals c.Id
+                       join c in db.Vehicles on a.VehicleId equals c.Id into v
+                       from vv in v.DefaultIfEmpty()
+                       join d in db.ApplicationUser on a.UserId equals d.Id into u
+                       from uu in u.DefaultIfEmpty()
                        where a.CalendarId.Equals(calendarId)
                        select new PaymentVM
                        {
@@ -62,8 +65,10 @@ namespace EtehadBar.Infra.Data.Repository
                            Amount = a.Amount,
                            Date = a.Date,
                            Description = a.Description,
-                           VehicleId = c.Id,
-                           Vehicle = $"ایران {c.IranStateNumber} - {c.RightNumber} {c.NumberWord} {c.LeftNumber}",
+                           VehicleId = a.VehicleId.HasValue ? vv.Id : null,
+                           Vehicle = a.VehicleId.HasValue ? $"ایران {vv.IranStateNumber} - {vv.RightNumber} {vv.NumberWord} {vv.LeftNumber}" : "",
+                           UserId = !string.IsNullOrWhiteSpace(a.UserId) ? uu.Id : null,
+                           UserFullname = !string.IsNullOrWhiteSpace(a.UserId) ? uu.Firstname + " " + uu.Lastname : "",
                            Picture = a.Picture,
                            PaymentType = a.PaymentType
                        };
