@@ -127,7 +127,6 @@ namespace EtehadBar.Infra.Data.Repository
                 DriverId = loadFactor.DriverId,
                 ExitNumber = loadFactor.ExitNumber,
                 LoadNumber = loadFactor.LoadNumber,
-                LoadNumberGov = loadFactor.LoadNumberGov,
                 ShippingFeeId = loadFactor.ShippingFeeId,
                 VehicleId = loadFactor.VehicleId,
                 EntryNumber = loadFactor.SaipaPressLoadFactor.EntryNumber,
@@ -159,7 +158,6 @@ namespace EtehadBar.Infra.Data.Repository
                 DriverId = loadFactor.DriverId,
                 ExitNumber = loadFactor.ExitNumber,
                 LoadNumber = loadFactor.LoadNumber,
-                LoadNumberGov = loadFactor.LoadNumberGov,
                 ShippingFeeId = loadFactor.ShippingFeeId,
                 VehicleId = loadFactor.VehicleId,
                 RelationId = loadFactor.SazehGostarLoadFactor.Id,
@@ -169,7 +167,6 @@ namespace EtehadBar.Infra.Data.Repository
                 DetailedCostCenter = loadFactor.SazehGostarLoadFactor.DetailedCostCenter,
                 Nature = loadFactor.SazehGostarLoadFactor.Nature,
                 RegisterCode = loadFactor.SazehGostarLoadFactor.RegisterCode,
-                Status = loadFactor.SazehGostarLoadFactor.Status,
                 Amount = loadFactor.Amount,
                 DriverFee = loadFactor.DriverFee
             };

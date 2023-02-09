@@ -143,7 +143,6 @@ namespace EtehadBar.Domain
         public int Year { get; set; }
 
         [Display(Name = "سند ورود")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(50, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string EntryNumber { get; set; }
 
@@ -152,18 +151,12 @@ namespace EtehadBar.Domain
         [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string LoadType { get; set; }
 
-        [Display(Name = "بارنامه اتحاد بار")]
+        [Display(Name = "شماره بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string LoadNumber { get; set; }
 
-        [Display(Name = "شماره بارنامه دولتی")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
-        public string LoadNumberGov { get; set; }
-
-        [Display(Name = "شماره خروج")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [Display(Name = "سند خروج")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ExitNumber { get; set; }
 
@@ -229,7 +222,6 @@ namespace EtehadBar.Domain
         public int Year { get; set; }
 
         [Display(Name = "سند ورود")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(50, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string EntryNumber { get; set; }
 
@@ -243,13 +235,7 @@ namespace EtehadBar.Domain
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string LoadNumber { get; set; }
 
-        [Display(Name = "شماره بارنامه دولتی")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
-        public string LoadNumberGov { get; set; }
-
-        [Display(Name = "شماره خروج")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [Display(Name = "سند خروج")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ExitNumber { get; set; }
 
@@ -323,9 +309,6 @@ namespace EtehadBar.Domain
         [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string Nature { get; set; }
 
-        [Display(Name = "شرح سند")]
-        public string Description { get; set; }
-
         [Display(Name = "تعداد")]
         public int Count { get; set; }
 
@@ -334,21 +317,12 @@ namespace EtehadBar.Domain
         [StringLength(50, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string DetailedCostCenter { get; set; }
 
-        [Display(Name = "وضعیت")]
-        [StringLength(50, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
-        public string Status { get; set; }
-
-        [Display(Name = "بارنامه اتحاد بار")]
+        [Display(Name = "شماره بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string LoadNumber { get; set; }
 
-        [Display(Name = "شماره بارنامه دولتی")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
-        public string LoadNumberGov { get; set; }
-
-        [Display(Name = "شماره خروج")]
+        [Display(Name = "شماره درخواست")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ExitNumber { get; set; }
@@ -431,21 +405,12 @@ namespace EtehadBar.Domain
         [StringLength(50, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string DetailedCostCenter { get; set; }
 
-        [Display(Name = "وضعیت")]
-        [StringLength(50, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
-        public string Status { get; set; }
-
-        [Display(Name = "بارنامه اتحاد بار")]
+        [Display(Name = "شماره بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string LoadNumber { get; set; }
 
-        [Display(Name = "شماره بارنامه دولتی")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
-        public string LoadNumberGov { get; set; }
-
-        [Display(Name = "شماره خروج")]
+        [Display(Name = "شماره درخواست")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ExitNumber { get; set; }

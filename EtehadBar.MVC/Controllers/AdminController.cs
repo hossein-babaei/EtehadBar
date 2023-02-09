@@ -2315,6 +2315,9 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) || a.LoadNumberGov.Equals(input.LoadNumberGov)))
+                    return NotFound("شماره بارنامه درج شده تکراری است.");
+
                 var config = await _configRepo.LoadFactorTax();
                 var loadFactor = new LoadFactor
                 {
@@ -2418,8 +2421,14 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                if (string.IsNullOrWhiteSpace(input.EntryNumber) && string.IsNullOrWhiteSpace(input.ExitNumber))
+                    return NotFound("لطفا شماره ورود یا خروج را وارد نمائید.");
+
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                    return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 var config = await _configRepo.LoadFactorTax();
                 var loadFactor = new LoadFactor
@@ -2433,7 +2442,6 @@ namespace EtehadBar.MVC.Controllers
                     DriverId = input.DriverId,
                     ExitNumber = input.ExitNumber,
                     LoadNumber = input.LoadNumber,
-                    LoadNumberGov = input.LoadNumberGov,
                     VehicleId = input.VehicleId,
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
@@ -2534,6 +2542,9 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                    return NotFound("شماره بارنامه درج شده تکراری است.");
+
                 var config = await _configRepo.LoadFactorTax();
                 var loadFactor = new LoadFactor
                 {
@@ -2546,7 +2557,6 @@ namespace EtehadBar.MVC.Controllers
                     DriverId = input.DriverId,
                     ExitNumber = input.ExitNumber,
                     LoadNumber = input.LoadNumber,
-                    LoadNumberGov = input.LoadNumberGov,
                     VehicleId = input.VehicleId,
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
@@ -2565,27 +2575,14 @@ namespace EtehadBar.MVC.Controllers
                     loadFactor.DriverFee = fee.DriverPrice;
                 }
 
-                var sazehGostarLoadFactor = new SazehGostarLoadFactor
-                {
-                    Certain = input.Certain,
-                    Count = input.Count,
-                    Description = input.Description,
-                    DetailedCostCenter = input.DetailedCostCenter,
-                    LoadFactorId = loadFactor.Id,
-                    Nature = input.Nature,
-                    RegisterCode = input.RegisterCode,
-                    Status = input.Status
-                };
-
                 loadFactor.SazehGostarLoadFactor = new SazehGostarLoadFactor
                 {
                     Certain = input.Certain,
                     Count = input.Count,
-                    Description = input.Description,
+                    Description = $"حمل کالا از {fee.Origin.Title} به {fee.Destination.Title} ({fee.Vehicle})",
                     DetailedCostCenter = input.DetailedCostCenter,
                     Nature = input.Nature,
                     RegisterCode = input.RegisterCode,
-                    Status = input.Status,
                     LoadFactor = loadFactor,
                     Sequence = input.Sequence
                 };
@@ -2682,6 +2679,9 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && (a.LoadNumber.Equals(input.LoadNumber) || a.LoadNumberGov.Equals(input.LoadNumberGov))))
+                    return NotFound("شماره بارنامه درج شده تکراری است.");
+
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
@@ -2741,6 +2741,12 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (string.IsNullOrWhiteSpace(input.EntryNumber) && string.IsNullOrWhiteSpace(input.ExitNumber))
+                    return NotFound("لطفا شماره ورود یا خروج را وارد نمائید.");
+
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber)))
+                    return NotFound("شماره بارنامه درج شده تکراری است.");
+
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
@@ -2760,7 +2766,6 @@ namespace EtehadBar.MVC.Controllers
                 item.DriverId = input.DriverId;
                 item.ExitNumber = input.ExitNumber;
                 item.LoadNumber = input.LoadNumber;
-                item.LoadNumberGov = input.LoadNumberGov;
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.Tonnage = input.Tonnage;
@@ -2806,6 +2811,9 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber)))
+                    return NotFound("شماره بارنامه درج شده تکراری است.");
+
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
@@ -2825,17 +2833,15 @@ namespace EtehadBar.MVC.Controllers
                 item.DriverId = input.DriverId;
                 item.ExitNumber = input.ExitNumber;
                 item.LoadNumber = input.LoadNumber;
-                item.LoadNumberGov = input.LoadNumberGov;
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
 
                 item.SazehGostarLoadFactor.Certain = input.Certain;
                 item.SazehGostarLoadFactor.Count = input.Count;
-                item.SazehGostarLoadFactor.Description = input.Description;
+                item.SazehGostarLoadFactor.Description = $"حمل کالا از {fee.Origin.Title} به {fee.Destination.Title} ({fee.Vehicle})";
                 item.SazehGostarLoadFactor.DetailedCostCenter = input.DetailedCostCenter;
                 item.SazehGostarLoadFactor.Nature = input.Nature;
                 item.SazehGostarLoadFactor.RegisterCode = input.RegisterCode;
-                item.SazehGostarLoadFactor.Status = input.Status;
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {

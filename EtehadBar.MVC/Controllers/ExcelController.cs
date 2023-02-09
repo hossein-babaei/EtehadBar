@@ -439,6 +439,8 @@ namespace EtehadBar.MVC.Controllers
 
                     var ws = workbook.Worksheets.Add($"Sheet{i}");
                     ws.RightToLeft = true;
+                    ws.Style.Font.FontName = "B Nazanin";
+                    ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
                     ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
                     ws.Cell("A1").Value = statusNumber;
@@ -578,6 +580,8 @@ namespace EtehadBar.MVC.Controllers
 
                 var ws = workbook.Worksheets.Add("Sheet1");
                 ws.RightToLeft = true;
+                ws.Style.Font.FontName = "B Nazanin";
+                ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
                 ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
                 ws.Cell("A1").Value = "ردیف";
@@ -595,12 +599,10 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell("M1").Value = "تفضیلی مرکز هزینه";
                 ws.Cell("N1").Value = "مبلغ";
                 ws.Cell("O1").Value = "شماره درخواست";
-                ws.Cell("P1").Value = "شماره ماشین";
-                ws.Cell("Q1").Value = "وضعیت";
-                ws.Cell("R1").Value = "مبدا";
-                ws.Cell("S1").Value = "مقصد";
+                ws.Cell("P1").Value = "راننده";
+                ws.Cell("Q1").Value = "پلاک";
 
-                ws.Range("A1:S1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
+                ws.Range("A1:Q1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
                     .Font.SetBold(true);
 
                 for (int index = 1; index <= allLoadFactors.Count; index++)
@@ -612,7 +614,7 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(index + 1, 3).Value = allLoadFactors[index - 1].SazehGostarLoadFactor.Certain;
                     ws.Cell(index + 1, 4).Value = allLoadFactors[index - 1].SazehGostarLoadFactor.Nature;
                     ws.Cell(index + 1, 5).Value = "*";
-                    ws.Cell(index + 1, 6).Value = allLoadFactors[index - 1].LoadNumberGov;
+                    ws.Cell(index + 1, 6).Value = allLoadFactors[index - 1].LoadNumber;
                     ws.Cell(index + 1, 7).Value = allLoadFactors[index - 1].Vehicle.Type;
                     ws.Cell(index + 1, 8).Value = pd.Day;
                     ws.Cell(index + 1, 9).Value = pd.Month;
@@ -622,18 +624,66 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(index + 1, 13).Value = allLoadFactors[index - 1].SazehGostarLoadFactor.DetailedCostCenter;
                     ws.Cell(index + 1, 14).Value = allLoadFactors[index - 1].Amount.ToString("N0");
                     ws.Cell(index + 1, 15).Value = allLoadFactors[index - 1].ExitNumber;
-                    ws.Cell(index + 1, 16).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
-                    ws.Cell(index + 1, 17).Value = allLoadFactors[index - 1].SazehGostarLoadFactor.Status;
-                    ws.Cell(index + 1, 18).Value = allLoadFactors[index - 1].Origin.Title;
-                    ws.Cell(index + 1, 19).Value = allLoadFactors[index - 1].Destination.Title;
+                    ws.Cell(index + 1, 16).Value = allLoadFactors[index - 1].ApplicationUser.Lastname;
+                    ws.Cell(index + 1, 17).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
                 }
 
-                ws.Cell($"A{allLoadFactors.Count + 1}").Value = "جمع";
-                ws.Range($"A{allLoadFactors.Count + 1}:M{allLoadFactors.Count + 1}").Row(1).Merge();
-                ws.Cell($"N{allLoadFactors.Count + 1}").Value = allLoadFactors.Sum(a => a.Amount).ToString("N0");
-                ws.Range($"O{allLoadFactors.Count + 1}:S{allLoadFactors.Count + 1}").Row(1).Merge();
-                ws.Range($"A{allLoadFactors.Count + 1}:S{allLoadFactors.Count + 1}").Style.Fill.SetBackgroundColor(XLColor.LightGray)
+                ws.Cell($"A{allLoadFactors.Count + 2}").Value = "جمع کل بارنامه ها";
+                ws.Range($"A{allLoadFactors.Count + 2}:K{allLoadFactors.Count + 2}").Row(1).Merge();
+                ws.Cell($"L{allLoadFactors.Count + 2}").Value = "1";
+                ws.Cell($"M{allLoadFactors.Count + 2}").Value = "800720";
+                ws.Cell($"N{allLoadFactors.Count + 2}").Value = allLoadFactors.Sum(a => a.Amount).ToString("N0");
+                ws.Range($"O{allLoadFactors.Count + 2}:Q{allLoadFactors.Count + 2}").Row(1).Merge();
+                ws.Range($"A{allLoadFactors.Count + 2}:Q{allLoadFactors.Count + 2}").Style.Fill.SetBackgroundColor(XLColor.LightGray)
                     .Font.SetBold(true);
+
+                ws.Cell($"A{allLoadFactors.Count + 3}").Value = allLoadFactors.Count + 1;
+                ws.Cell($"B{allLoadFactors.Count + 3}").Value = "906";
+                ws.Cell($"C{allLoadFactors.Count + 3}").Value = "1452";
+                ws.Cell($"D{allLoadFactors.Count + 3}").Value = "1";
+                ws.Cell($"E{allLoadFactors.Count + 3}").Value = "*";
+                ws.Cell($"F{allLoadFactors.Count + 3}").Value = "97001";
+                ws.Cell($"H{allLoadFactors.Count + 3}").Value = "0";
+                ws.Cell($"I{allLoadFactors.Count + 3}").Value = "0";
+                ws.Cell($"J{allLoadFactors.Count + 3}").Value = "0";
+                ws.Cell($"L{allLoadFactors.Count + 3}").Value = "0";
+
+                ws.Cell($"A{allLoadFactors.Count + 4}").Value = allLoadFactors.Count + 2;
+                ws.Cell($"B{allLoadFactors.Count + 4}").Value = "907";
+                ws.Cell($"C{allLoadFactors.Count + 4}").Value = "1453";
+                ws.Cell($"D{allLoadFactors.Count + 4}").Value = "1";
+                ws.Cell($"E{allLoadFactors.Count + 4}").Value = "*";
+                ws.Cell($"F{allLoadFactors.Count + 4}").Value = "97001";
+                ws.Cell($"H{allLoadFactors.Count + 4}").Value = "0";
+                ws.Cell($"I{allLoadFactors.Count + 4}").Value = "0";
+                ws.Cell($"J{allLoadFactors.Count + 4}").Value = "0";
+                ws.Cell($"L{allLoadFactors.Count + 4}").Value = "0";
+
+                ws.Cell($"A{allLoadFactors.Count + 5}").Value = allLoadFactors.Count + 3;
+                ws.Cell($"B{allLoadFactors.Count + 5}").Value = "472";
+                ws.Cell($"C{allLoadFactors.Count + 5}").Value = "3427";
+                ws.Cell($"D{allLoadFactors.Count + 5}").Value = "1";
+                ws.Cell($"E{allLoadFactors.Count + 5}").Value = "*";
+                ws.Cell($"F{allLoadFactors.Count + 5}").Value = "97001";
+                ws.Cell($"H{allLoadFactors.Count + 5}").Value = "0";
+                ws.Cell($"I{allLoadFactors.Count + 5}").Value = "0";
+                ws.Cell($"J{allLoadFactors.Count + 5}").Value = "0";
+                ws.Cell($"K{allLoadFactors.Count + 5}").Value = $"بیمه 7.8% خلاصه 2706/477 اتحاد بار {allLoadFactors.Count} بارنامه";
+                ws.Cell($"L{allLoadFactors.Count + 5}").Value = "0";
+                ws.Cell($"M{allLoadFactors.Count + 5}").Value = ((allLoadFactors.Sum(a => a.Amount) * 7.8) / 100).ToString("N0");
+
+                ws.Cell($"A{allLoadFactors.Count + 6}").Value = allLoadFactors.Count + 4;
+                ws.Cell($"B{allLoadFactors.Count + 6}").Value = "080";
+                ws.Cell($"C{allLoadFactors.Count + 6}").Value = "3442";
+                ws.Cell($"D{allLoadFactors.Count + 6}").Value = "1";
+                ws.Cell($"E{allLoadFactors.Count + 6}").Value = "*";
+                ws.Cell($"F{allLoadFactors.Count + 6}").Value = "97001";
+                ws.Cell($"H{allLoadFactors.Count + 6}").Value = "0";
+                ws.Cell($"I{allLoadFactors.Count + 6}").Value = "0";
+                ws.Cell($"J{allLoadFactors.Count + 6}").Value = "0";
+                ws.Cell($"K{allLoadFactors.Count + 6}").Value = $"خالص پرداختی خلاصه 2706/477 {allLoadFactors.Count} بارنامه";
+                ws.Cell($"L{allLoadFactors.Count + 6}").Value = "0";
+                ws.Cell($"M{allLoadFactors.Count + 6}").Value = (allLoadFactors.Sum(a => a.Amount) - ((allLoadFactors.Sum(a => a.Amount) * 7.8) / 100)).ToString("N0");
 
                 ws.Columns().AdjustToContents();
                 ws.LastColumnUsed().Style.Font.SetBold(true);
@@ -660,6 +710,8 @@ namespace EtehadBar.MVC.Controllers
 
                 var ws = workbook.Worksheets.Add("Sheet1");
                 ws.RightToLeft = true;
+                ws.Style.Font.FontName = "B Nazanin";
+                ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
                 ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
                 ws.Cell("A1").Value = "ردیف";
@@ -673,16 +725,18 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell("I1").Value = "سند خروج";
                 ws.Cell("J1").Value = "نوع خودرو";
                 ws.Cell("K1").Value = "نوع بار";
-                ws.Cell("L1").Value = "مبلغ قابل پرداخت";
+                ws.Cell("L1").Value = "اضافه تناژ";
+                ws.Cell("M1").Value = "نرخ اضافه تناژ";
+                ws.Cell("N1").Value = "قابل پرداخت";
 
-                ws.Range("A1:L1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
+                ws.Range("A1:N1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
                     .Font.SetBold(true)
                     .Font.SetFontSize(12);
 
                 for (int index = 1; index <= allLoadFactors.Count; index++)
                 {
                     ws.Cell(index + 1, 1).Value = index;
-                    ws.Cell(index + 1, 2).Value = allLoadFactors[index - 1].LoadNumberGov;
+                    ws.Cell(index + 1, 2).Value = allLoadFactors[index - 1].LoadNumber;
                     ws.Cell(index + 1, 3).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
                     ws.Cell(index + 1, 4).Value = allLoadFactors[index - 1].ApplicationUser.Lastname;
                     ws.Cell(index + 1, 5).Value = allLoadFactors[index - 1].Origin.Title;
@@ -692,13 +746,17 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(index + 1, 9).Value = allLoadFactors[index - 1].ExitNumber;
                     ws.Cell(index + 1, 10).Value = allLoadFactors[index - 1].Vehicle.Type;
                     ws.Cell(index + 1, 11).Value = allLoadFactors[index - 1].SaipaPressLoadFactor.LoadType;
-                    ws.Cell(index + 1, 12).Value = allLoadFactors[index - 1].Amount.ToString("N0");
+                    ws.Cell(index + 1, 12).Value = allLoadFactors[index - 1].Tonnage.HasValue ? allLoadFactors[index - 1].Tonnage.Value : "0";
+                    ws.Cell(index + 1, 13).Value = allLoadFactors[index - 1].DriverTonnagePrice.HasValue ? allLoadFactors[index - 1].DriverTonnagePrice.Value.ToString("N0") : "0";
+                    ws.Cell(index + 1, 14).Value = allLoadFactors[index - 1].Tonnage.HasValue ? (allLoadFactors[index - 1].Amount + (allLoadFactors[index - 1].Tonnage.Value * allLoadFactors[index - 1].DriverTonnagePrice.Value)).ToString("N0") : allLoadFactors[index - 1].Amount.ToString("N0");
                 }
 
-                ws.Cell($"A{allLoadFactors.Count + 1}").Value = "جمع";
-                ws.Range($"A{allLoadFactors.Count + 1}:K{allLoadFactors.Count + 1}").Row(1).Merge();
-                ws.Cell($"L{allLoadFactors.Count + 1}").Value = allLoadFactors.Sum(a => a.Amount).ToString("N0");
-                ws.Range($"A{allLoadFactors.Count + 1}:L{allLoadFactors.Count + 1}").Style.Fill.SetBackgroundColor(XLColor.LightGray)
+                ws.Cell($"A{allLoadFactors.Count + 2}").Value = "جمع";
+                ws.Range($"A{allLoadFactors.Count + 2}:M{allLoadFactors.Count + 2}").Row(1).Merge();
+                ws.Cell($"N{allLoadFactors.Count + 2}").Value = 
+                    (allLoadFactors.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.DriverTonnagePrice.Value) 
+                    + allLoadFactors.Sum(a => a.Amount)).ToString("N0");
+                ws.Range($"A{allLoadFactors.Count + 2}:N{allLoadFactors.Count + 2}").Style.Fill.SetBackgroundColor(XLColor.LightGray)
                     .Font.SetBold(true);
 
                 ws.Columns().AdjustToContents();
