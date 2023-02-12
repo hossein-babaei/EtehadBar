@@ -1,0 +1,170 @@
+﻿@model AccountBook
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 21;
+    var data = ViewBag.data as IPagedList<AccountBook>;
+    ViewData["Title"] = "صورت وضعیت";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+    if (data.PageNumber > 1)
+    {
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+    }
+}
+
+@section Scripts{
+    <script>
+        $('#search-modal form').submit(function (e) {
+            e.preventDefault();
+            filter();
+        });
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            if ($('#search-modal #param').val() != '' && $('#search-modal #param').val() != ' ') {
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("SearchAccountBook")',
+                    data: data,
+                    dataType: 'html',
+                    beforeSend: function () {
+                        preloader();
+                    },
+                    success: function (r) {
+                        $('#append').html(r);
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger')
+                    },
+                    complete: function () {
+                        preloader();
+                        UIkit.modal('#search-modal').hide();
+                    }
+                });
+            } else {
+                uiAlert('لطفا شماره مورد نظر را وارد نمایید.', 'danger');
+            }
+        }
+        function create() {
+            preloader();
+            $.get('@Url.Action("CreateAccountBook")', {}, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#create-form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditAccountBook")', { 'id': id }, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#edit-form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Number)</th>
+                    <th>@Html.DisplayNameFor(model => model.FactorNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
+                    <th>@Html.DisplayNameFor(model => model.IsOpen)</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">عملیات</th>
+                    <th width="50">بارنامه ها</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.Number)</td>
+                        @if (string.IsNullOrWhiteSpace(item.FactorNumber))
+                        {
+                            <td>---</td>
+                        }
+                        else
+                        {
+                            <td>@Html.DisplayFor(modelItem => item.FactorNumber)</td>
+                        }
+                        <td>@Html.DisplayFor(modelItem => item.Customer.Name)</td>
+                        @if (item.IsOpen)
+                        {
+                            <td class="uk-text-success">باز</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-danger">بسته</td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        @if (item.IsOpen)
+                        {
+                            <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CloseAccountBook" asp-route-rowId="@item.RowId" onclick="preloader()"><i class="fas fa-lock"></i></a></td>
+                        }
+                        else
+                        {
+                            <td><a class="uk-button uk-button-primary uk-button-small" asp-action="OpenAccountBook" asp-route-rowId="@item.RowId" onclick="preloader()"><i class="fas fa-lock-open"></i></a></td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-controller="Excel" asp-action="Customer" asp-route-customerId="@item.CustomerId" asp-route-statusNumber="@item.Number" asp-route-accountBookId="@item.Id"><i class="fas fa-clipboard-check"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("AccountBook", new { p = page }))
+        </div>
+    }
+</div>
+<div id="append-modal" uk-modal="bg-close: false"></div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجوی صورت وضعیت</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div>
+                    <label class="uk-form-label">شماره صورت وضعیت یا شماره فاکتور را وارد کنید</label>
+                    <input class="uk-input uk-border-rounded" id="param" name="param" autocomplete="off" placeholder="در این قسمت تایپ نمائید..." />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="AccountBook" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

@@ -19,6 +19,7 @@ namespace EtehadBar.Infra.Data.Context
         {
         }
 
+        public DbSet<AccountBook> AccountBook { get; set; }
         public DbSet<AdminTheme> AdminTheme { get; set; }
         public DbSet<ApplicationUser> ApplicationUser { get; set; }
         public DbSet<Calendar> Calendar { get; set; }
@@ -50,6 +51,8 @@ namespace EtehadBar.Infra.Data.Context
             //    .UseIdentityColumn(seed: 1, increment: 1);
 
             //modelBuilder.Entity<LoadFactor>().Property(u => u.Counter).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+
+            modelBuilder.Entity<LoadFactor>().HasOne(a => a.AccountBook).WithMany(a => a.LoadFactors).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Origin).WithMany().HasForeignKey(sf => sf.OriginId).OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Destination).WithMany().HasForeignKey(sf => sf.DestinationId).OnDelete(DeleteBehavior.NoAction);

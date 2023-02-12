@@ -7,6 +7,7 @@
     var calendars = (List<Calendar>)ViewData["Calendars"];
     long sequence = (long)ViewData["Sequence"];
     var loadTypes = (List<ShippingFeeLoadType>)ViewData["LoadTypes"];
+    var accountBooks = (List<AccountBook>)ViewData["AccountBooks"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -21,7 +22,17 @@
                     <input asp-for="Sequence" type="number" value="@sequence" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="Sequence" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-4-5@m">
+                <div class="uk-width-1-5@m">
+                    <label asp-for="AccountBookId" class="uk-form-label"></label>
+                    <select asp-for="AccountBookId" class="uk-select uk-border-rounded uk-form-small">
+                        @foreach (var accountBook in accountBooks)
+                        {
+                            <option value="@accountBook.Id">@accountBook.Number (@(accountBook.IsOpen ? "باز" : "بسته"))</option>
+                        }
+                    </select>
+                    <span asp-validation-for="AccountBookId" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-3-5@m">
                     <label asp-for="ContractId" class="uk-form-label"></label>
                     <select asp-for="ContractId" onchange="getShippingFees(this)" class="uk-select uk-border-rounded">
                         @foreach (var item in contract)
@@ -113,10 +124,10 @@
                 </div>
                 <div>
                     <label asp-for="EntryNumber" class="uk-form-label"></label>
-                    <input asp-for="EntryNumber" class="uk-input uk-border-rounded uk-form-small" />
+                    <input asp-for="EntryNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="EntryNumber" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-4@m">
                     <label asp-for="LoadType" class="uk-form-label"></label>
                     <select asp-for="LoadType" class="uk-select uk-border-rounded uk-form-small">
                         @foreach (var item in loadTypes)
@@ -125,6 +136,14 @@
                         }
                     </select>
                     <span asp-validation-for="LoadType" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-4@m">
+                    <label asp-for="PressFloorType" class="uk-form-label"></label>
+                    <select asp-for="PressFloorType" class="uk-select uk-border-rounded uk-form-small">
+                        <option value="@((int)SaipaPressLoadType.OneFloor)">یک طبقه</option>
+                        <option value="@((int)SaipaPressLoadType.TwoFloor)">دو طبقه</option>
+                    </select>
+                    <span asp-validation-for="PressFloorType" class="uk-text-danger"></span>
                 </div>
             </div>
         </form>

@@ -6,6 +6,7 @@
     var vehicles = (List<Vehicle>)ViewData["Vehicles"];
     var calendars = (List<Calendar>)ViewData["Calendars"];
     long sequence = (long)ViewData["Sequence"];
+    var accountBooks = (List<AccountBook>)ViewData["AccountBooks"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -20,7 +21,17 @@
                     <input asp-for="Sequence" type="number" value="@sequence" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="Sequence" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-4-5@m">
+                <div class="uk-width-1-5@m">
+                    <label asp-for="AccountBookId" class="uk-form-label"></label>
+                    <select asp-for="AccountBookId" class="uk-select uk-border-rounded uk-form-small">
+                        @foreach (var accountBook in accountBooks)
+                        {
+                            <option value="@accountBook.Id">@accountBook.Number (@(accountBook.IsOpen ? "باز" : "بسته"))</option>
+                        }
+                    </select>
+                    <span asp-validation-for="AccountBookId" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-3-5@m">
                     <label asp-for="ContractId" class="uk-form-label"></label>
                     <select asp-for="ContractId" onchange="getShippingFees(this)" class="uk-select uk-border-rounded">
                         @foreach (var item in contract)

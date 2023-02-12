@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using EtehadBar.Domain.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain
 {
@@ -472,5 +474,36 @@ namespace EtehadBar.Domain
         public bool LockoutEnabled { get; set; }
 
         public DateTimeOffset? LockoutEnd { get; set; }
+    }
+
+    public class CreateAccountBookVM
+    {
+        [Display(Name = "شماره")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Number { get; set; }
+
+        [Display(Name = "شماره فاکتور")]
+        public string FactorNumber { get; set; }
+
+        [Display(Name = "مشتری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CustomerId { get; set; }
+    }
+
+    public class EditAccountBookVM
+    {
+        [Required]
+        public long Id { get; set; }
+
+        [Display(Name = "شماره")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Number { get; set; }
+
+        [Display(Name = "شماره فاکتور")]
+        public string FactorNumber { get; set; }
+
+        [Display(Name = "مشتری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CustomerId { get; set; }
     }
 }

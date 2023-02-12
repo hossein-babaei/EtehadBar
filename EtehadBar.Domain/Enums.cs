@@ -37,4 +37,10 @@
         Origin,
         Destionation
     }
+
+    public enum SaipaPressLoadType
+    {
+        OneFloor,
+        TwoFloor
+    }
 }

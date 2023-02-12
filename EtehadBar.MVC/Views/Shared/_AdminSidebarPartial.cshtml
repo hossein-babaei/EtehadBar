@@ -16,6 +16,15 @@
     <li @if (param == 20) { <text> class="active" </text> }>
         <a asp-action="Users" asp-controller="Admin"><i class="uk-margin-left fas fa-users"></i>کاربران</a>
     </li>
+    <li @if (param == 13) { <text> class="active" </text> }>
+        <a asp-action="Customer" asp-controller="Admin"><i class="uk-margin-left fas fa-user"></i>مشتریان خدمات</a>
+    </li>
+    <li @if (param == 21) { <text> class="active" </text> }>
+        <a asp-action="AccountBook" asp-controller="Admin"><i class="uk-margin-left fas fa-window-restore"></i>صورت وضعیت</a>
+    </li>
+    <li @if (param == 6) { <text> class="active" </text> }>
+        <a asp-action="Vehicle" asp-controller="Admin"><i class="uk-margin-left fas fa-truck"></i>خودرو ها</a>
+    </li>
     <li @if (param == 3) { <text> class="active" </text> }>
         <a asp-action="Calendar" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar"></i>تقویم کاری</a>
     </li>
@@ -24,12 +33,6 @@
     </li>
     <li @if (param == 8) { <text> class="active" </text> }>
         <a asp-action="LoadFactor" asp-controller="Admin"><i class="uk-margin-left fas fa-clipboard-check"></i>بارنامه ها</a>
-    </li>
-    <li @if (param == 6) { <text> class="active" </text> }>
-        <a asp-action="Vehicle" asp-controller="Admin"><i class="uk-margin-left fas fa-truck"></i>خودرو ها</a>
-    </li>
-    <li @if (param == 13) { <text> class="active" </text> }>
-        <a asp-action="Customer" asp-controller="Admin"><i class="uk-margin-left fas fa-user"></i>مشتریان خدمات</a>
     </li>
     <li @if (param == 100) { <text> class="active" </text> }>
         <a asp-action="Config" asp-controller="Admin"><i class="uk-margin-left fas fa-cogs"></i>تنظیمات سیستم</a>
@@ -53,11 +56,11 @@
         </ul>
     </li>
     <li class="uk-parent @if (param == 2 || param == 30 || param == 31) { <text>uk-open</text> }">
-        <a><i class="uk-margin-left fas fa-money-bill"></i>تعاریف سیستم</a>
+        <a><i class="uk-margin-left fas fa-folder-plus"></i>تعاریف سیستم</a>
         <ul class="uk-nav-sub">
-            <li @if (param == 31) { <text> class="active" </text> }><a asp-action="LoadRoute" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>مسیر ها</a></li>
-            <li @if (param == 30) { <text> class="active" </text> }><a asp-action="ShippingFeeLoadType" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>نوع بار</a></li>
-            <li @if (param == 2) { <text> class="active" </text> }><a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-book-open"></i>نوع خودرو</a></li>
+            <li @if (param == 31) { <text> class="active" </text> }><a asp-action="LoadRoute" asp-controller="Admin"><i class="uk-margin-left fas fa-route"></i>مسیر ها</a></li>
+            <li @if (param == 30) { <text> class="active" </text> }><a asp-action="ShippingFeeLoadType" asp-controller="Admin"><i class="uk-margin-left fas fa-boxes"></i>نوع بار</a></li>
+            <li @if (param == 2) { <text> class="active" </text> }><a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-trailer"></i>نوع خودرو</a></li>
         </ul>
     </li>
 </ul>

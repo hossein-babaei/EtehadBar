@@ -60,6 +60,10 @@ namespace EtehadBar.Domain
 
         [Display(Name = "کرایه راننده (ریال)")]
         public double DriverFee { get; set; }
+
+        [Display(Name = "صورت وضعیت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long AccountBookId { get; set; }
     }
 
     public class ESaipaPlascoLoadFactorVM
@@ -122,6 +126,10 @@ namespace EtehadBar.Domain
 
         [Display(Name = "کرایه راننده (ریال)")]
         public double DriverFee { get; set; }
+
+        [Display(Name = "صورت وضعیت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long AccountBookId { get; set; }
     }
 
     public class CSaipaPressLoadFactorVM
@@ -195,6 +203,14 @@ namespace EtehadBar.Domain
 
         [Display(Name = "تناژ اضافه")]
         public double? Tonnage { get; set; } = 0;
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public SaipaPressLoadType PressFloorType { get; set; }
+
+        [Display(Name = "صورت وضعیت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long AccountBookId { get; set; }
     }
 
     public class ESaipaPressLoadFactorVM
@@ -274,6 +290,14 @@ namespace EtehadBar.Domain
 
         [Display(Name = "تناژ اضافه")]
         public double? Tonnage { get; set; } = 0;
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public SaipaPressLoadType PressFloorType { get; set; }
+
+        [Display(Name = "صورت وضعیت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long AccountBookId { get; set; }
     }
 
     public class CSazehGostarLoadFactorVM
@@ -353,6 +377,10 @@ namespace EtehadBar.Domain
 
         [Display(Name = "کرایه راننده (ریال)")]
         public double DriverFee { get; set; }
+
+        [Display(Name = "صورت وضعیت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long AccountBookId { get; set; }
     }
 
     public class ESazehGostarLoadFactorVM
@@ -441,5 +469,9 @@ namespace EtehadBar.Domain
 
         [Display(Name = "کرایه راننده (ریال)")]
         public double DriverFee { get; set; }
+
+        [Display(Name = "صورت وضعیت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long AccountBookId { get; set; }
     }
 }

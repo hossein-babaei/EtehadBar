@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230212061437_PressLoadType")]
+    partial class PressLoadType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,56 +24,6 @@ namespace EtehadBar.Infra.Data.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.AccountBook", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
-                    b.Property<DateTime>("CreateDatetime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatorId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<long>("CustomerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime?>("EditDatetime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EditorId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("FactorNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsOpen")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Number")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RowId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CustomerId");
-
-                    b.HasIndex("RowId")
-                        .IsUnique();
-
-                    b.ToTable("AccountBook", "dbo");
-                });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.AdminTheme", b =>
                 {
@@ -611,9 +563,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
-                    b.Property<long>("AccountBookId")
-                        .HasColumnType("bigint");
-
                     b.Property<string>("AdminId")
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
@@ -655,6 +604,7 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ExitNumber")
+                        .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
@@ -708,8 +658,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("float");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AccountBookId");
 
                     b.HasIndex("CalendarId");
 
@@ -902,6 +850,7 @@ namespace EtehadBar.Infra.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<string>("EntryNumber")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -1326,17 +1275,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.ToTable("AspNetUserTokens", "dbo");
                 });
 
-            modelBuilder.Entity("EtehadBar.Domain.Models.AccountBook", b =>
-                {
-                    b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
-                        .WithMany("AccountBooks")
-                        .HasForeignKey("CustomerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Customer");
-                });
-
             modelBuilder.Entity("EtehadBar.Domain.Models.Contract", b =>
                 {
                     b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
@@ -1394,12 +1332,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.LoadFactor", b =>
                 {
-                    b.HasOne("EtehadBar.Domain.Models.AccountBook", "AccountBook")
-                        .WithMany("LoadFactors")
-                        .HasForeignKey("AccountBookId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("EtehadBar.Domain.Models.Calendar", "Calendar")
                         .WithMany("LoadFactors")
                         .HasForeignKey("CalendarId")
@@ -1451,8 +1383,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasForeignKey("VehicleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("AccountBook");
 
                     b.Navigation("ApplicationUser");
 
@@ -1584,11 +1514,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("EtehadBar.Domain.Models.AccountBook", b =>
-                {
-                    b.Navigation("LoadFactors");
-                });
-
             modelBuilder.Entity("EtehadBar.Domain.Models.ApplicationUser", b =>
                 {
                     b.Navigation("Costs");
@@ -1620,8 +1545,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Customer", b =>
                 {
-                    b.Navigation("AccountBooks");
-
                     b.Navigation("Contracts");
 
                     b.Navigation("CustomerIncomes");

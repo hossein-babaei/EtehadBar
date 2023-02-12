@@ -1,4 +1,5 @@
-﻿using EtehadBar.Domain;
+﻿using Castle.Core.Resource;
+using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using Helpers;
@@ -23,6 +24,7 @@ namespace EtehadBar.MVC.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
+        private readonly IAccountBookRepository _accountBookRepository;
         private readonly IAdminThemeRepository _adminThemeRepo;
         private readonly ICalendarRepository _calendarRepo;
         private readonly IConfigRepository _configRepo;
@@ -41,6 +43,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ILoadRoutesRepository _loadRouteRepo;
 
         public AdminController(
+            IAccountBookRepository accountBookRepository,
             IAdminThemeRepository adminThemeRepository,
             ICalendarRepository calendarRepository,
             IConfigRepository configRepository,
@@ -58,6 +61,7 @@ namespace EtehadBar.MVC.Controllers
             IShippingFeeLoadTypeRepository shippingFeeLoadTypeRepo,
             ILoadRoutesRepository loadRouteRepo)
         {
+            _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
             _calendarRepo = calendarRepository;
             _configRepo = configRepository;
@@ -2283,6 +2287,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Drivers"] = await _userManager.GetUsersInRoleAsync("Driver");
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["AccountBooks"] = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
 
             long sequence;
             switch (customerType)
@@ -2335,7 +2340,8 @@ namespace EtehadBar.MVC.Controllers
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
-                    LoadFactorDeductions = config.LoadFactorDeductions
+                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    AccountBookId = input.AccountBookId
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -2350,6 +2356,7 @@ namespace EtehadBar.MVC.Controllers
                 }
                 loadFactor.SaipaPlascoLoadFactor = new SaipaPlascoLoadFactor
                 {
+                    LoadFactorId = loadFactor.Id,
                     LoadFactor = loadFactor,
                     Sequence = input.Sequence
                 };
@@ -2447,7 +2454,8 @@ namespace EtehadBar.MVC.Controllers
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
                     LoadFactorDeductions = config.LoadFactorDeductions,
-                    Tonnage = input.Tonnage
+                    Tonnage = input.Tonnage,
+                    AccountBookId = input.AccountBookId
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -2467,10 +2475,12 @@ namespace EtehadBar.MVC.Controllers
 
                 loadFactor.SaipaPressLoadFactor = new SaipaPressLoadFactor
                 {
+                    LoadFactorId = loadFactor.Id,
                     EntryNumber = input.EntryNumber,
                     LoadType = input.LoadType,
                     LoadFactor = loadFactor,
-                    Sequence = input.Sequence
+                    Sequence = input.Sequence,
+                    PressFloorType = input.PressFloorType
                 };
 
                 _loadFactorRepo.Create(loadFactor);
@@ -2561,7 +2571,8 @@ namespace EtehadBar.MVC.Controllers
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
-                    LoadFactorDeductions = config.LoadFactorDeductions
+                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    AccountBookId = input.AccountBookId
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -2577,6 +2588,7 @@ namespace EtehadBar.MVC.Controllers
 
                 loadFactor.SazehGostarLoadFactor = new SazehGostarLoadFactor
                 {
+                    LoadFactorId = loadFactor.Id,
                     Certain = input.Certain,
                     Count = input.Count,
                     Description = $"حمل کالا از {fee.Origin.Title} به {fee.Destination.Title} ({fee.Vehicle})",
@@ -2665,6 +2677,8 @@ namespace EtehadBar.MVC.Controllers
             if (customer.CustomerType == CustomerType.SaipaPress)
                 ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
 
+            ViewData["AccountBooks"] = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customer.Id)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
+
             return customer.CustomerType switch
             {
                 CustomerType.SaipaPlasco => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPlasco.cshtml", await _loadFactorRepo.GetSaipaPlascoLoadFactor(loadFactorId)),
@@ -2704,6 +2718,7 @@ namespace EtehadBar.MVC.Controllers
                 item.LoadNumberGov = input.LoadNumberGov;
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
+                item.AccountBookId = input.AccountBookId;
 
                 item.SaipaPlascoLoadFactor.Sequence = input.Sequence;
 
@@ -2753,7 +2768,7 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                if (await _loadFactorRepo.SequenceExistInSaipaPress(item.SaipaPlascoLoadFactorId.Value, input.Sequence))
+                if (await _loadFactorRepo.SequenceExistInSaipaPress(item.SaipaPressLoadFactorId.Value, input.Sequence))
                     return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
                 item.EditorId = _userManager.GetUserId(User);
@@ -2769,9 +2784,11 @@ namespace EtehadBar.MVC.Controllers
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.Tonnage = input.Tonnage;
+                item.AccountBookId = input.AccountBookId;
 
                 item.SaipaPressLoadFactor.EntryNumber = input.EntryNumber;
                 item.SaipaPressLoadFactor.LoadType = input.LoadType;
+                item.SaipaPressLoadFactor.PressFloorType = input.PressFloorType;
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
@@ -2820,7 +2837,7 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                if (await _loadFactorRepo.SequenceExistInSazehGostar(item.SaipaPlascoLoadFactorId.Value, input.Sequence))
+                if (await _loadFactorRepo.SequenceExistInSazehGostar(item.SazehGostarLoadFactorId.Value, input.Sequence))
                     return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
                 item.EditorId = _userManager.GetUserId(User);
@@ -2835,6 +2852,7 @@ namespace EtehadBar.MVC.Controllers
                 item.LoadNumber = input.LoadNumber;
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
+                item.AccountBookId = input.AccountBookId;
 
                 item.SazehGostarLoadFactor.Certain = input.Certain;
                 item.SazehGostarLoadFactor.Count = input.Count;
@@ -2987,6 +3005,160 @@ namespace EtehadBar.MVC.Controllers
             {
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
             }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region AccountBook
+
+        [HttpGet]
+        public async Task<IActionResult> AccountBook(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _accountBookRepository.AccountBooks().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SearchAccountBook(int? p, string param)
+        {
+            var pageNum = p ?? 1;
+            var onePageOfData = await _accountBookRepository.AccountBooks().Where(a => a.Number.Contains(param) || a.FactorNumber.Contains(param)).OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
+            ViewBag.data = onePageOfData;
+            ViewBag.param = param;
+
+            return PartialView("_AccountBook");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateAccountBook()
+        {
+            ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
+            return PartialView("~/Views/Admin/Create/AccountBook.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateAccountBook(CreateAccountBookVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _accountBookRepository.AccountBooks().AnyAsync(a => a.Number.Equals(c.Number)))
+                {
+                    TempData["msg"] = "شماره صورت وضعیت وارد شده تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                _accountBookRepository.Create(new AccountBook
+                {
+                    Number = c.Number,
+                    CreateDatetime = DateTime.Now,
+                    CustomerId = c.CustomerId,
+                    IsOpen = true,
+                    FactorNumber = c.FactorNumber,
+                    CreatorId = _userManager.GetUserId(User)
+                });
+                try
+                {
+                    await _accountBookRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditAccountBook(long id)
+        {
+            ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
+
+            var item = await _accountBookRepository.Get(id);
+
+            return PartialView("~/Views/Admin/Edit/AccountBook.cshtml", new EditAccountBookVM
+            {
+                Id = item.Id,
+                CustomerId = item.CustomerId,
+                FactorNumber = item.FactorNumber,
+                Number = item.Number
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditAccountBook(EditAccountBookVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _accountBookRepository.AccountBooks().AnyAsync(a => !a.Id.Equals(c.Id) && a.Number.Equals(c.Number)))
+                {
+                    TempData["msg"] = "شماره صورت وضعیت تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = await _accountBookRepository.Get(c.Id);
+                item.FactorNumber = c.FactorNumber;
+                item.Number = c.Number;
+                item.CustomerId = c.CustomerId;
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDatetime = DateTime.Now;
+                _accountBookRepository.Update(item);
+                try
+                {
+                    await _accountBookRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CloseAccountBook(string rowId)
+        {
+            var item = await _accountBookRepository.Get(rowId);
+            item.IsOpen = false;
+            try
+            {
+                await _accountBookRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> OpenAccountBook(string rowId)
+        {
+            var item = await _accountBookRepository.Get(rowId);
+            item.IsOpen = true;
+            try
+            {
+                await _accountBookRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+
             return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion

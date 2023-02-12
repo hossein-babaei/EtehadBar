@@ -1,10 +1,12 @@
 ﻿using ClosedXML.Excel;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
+using EtehadBar.Domain.Models;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,6 +21,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ILoadFactorRepository _loadFactorRepo;
         private readonly IPaymentRepository _paymentRepo;
         private readonly IVehicleRepository _vehicleRepo;
+        private readonly IAccountBookRepository _accountBookRepo;
 
         public ExcelController(
             ICalendarRepository calendarRepository,
@@ -26,7 +29,8 @@ namespace EtehadBar.MVC.Controllers
             ICustomerRepository customerRepository,
             ILoadFactorRepository loadFactorRepository,
             IPaymentRepository paymentRepository,
-            IVehicleRepository vehicleRepository)
+            IVehicleRepository vehicleRepository,
+            IAccountBookRepository accountBookRepo)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -34,9 +38,10 @@ namespace EtehadBar.MVC.Controllers
             _loadFactorRepo = loadFactorRepository;
             _paymentRepo = paymentRepository;
             _vehicleRepo = vehicleRepository;
+            _accountBookRepo = accountBookRepo;
         }
 
-        public async Task<IActionResult> Detailed(int calendarId)
+        public async Task<IActionResult> Detailed(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
             var cost = await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
@@ -157,7 +162,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
         }
 
-        public async Task<IActionResult> Cost(int calendarId)
+        public async Task<IActionResult> Cost(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
             var costs = await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync();
@@ -222,7 +227,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
         }
 
-        public async Task<IActionResult> Payment(int calendarId, byte? type, int vehicleId)
+        public async Task<IActionResult> Payment(long calendarId, byte? type, long vehicleId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
             var payments = await _paymentRepo.PaymentVMList(calendarId, type, vehicleId);
@@ -317,7 +322,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
         }
 
-        public async Task<IActionResult> VehicleLoadFactor(int calendarId, int vehicleId)
+        public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId)
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
             var calendar = await _calendarRepo.Get(calendarId);
@@ -410,15 +415,23 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
         }
 
-        public async Task<IActionResult> Customer(int customerId, int calendarId, string statusNumber)
+        public async Task<IActionResult> Customer(long customerId, long? calendarId, string statusNumber, long? accountBookId)
         {
             var customer = await _customerRepo.Get(customerId);
             if (customer == null) return NotFound("Customer not found");
 
-            var calendar = await _calendarRepo.Get(calendarId);
-            if (calendar == null) return NotFound("Calendar not found");
+            var calendar = new Calendar();
+            if (calendarId.HasValue)
+            {
+                calendar = await _calendarRepo.Get(calendarId.Value);
+                if (calendar == null) return NotFound("Calendar not found");
+            }
 
-            var allLoadFactors = await _loadFactorRepo.LoadFactors(customerId, calendarId);
+            var allLoadFactors = await _loadFactorRepo.LoadFactors(customerId, calendarId, accountBookId);
+
+            string docTitle = $"گزارش بارنامه {customer.Name}";
+            if (calendarId.HasValue)
+                docTitle += $" در {calendar.Title}";
 
             if (customer.CustomerType.Equals(CustomerType.SaipaPlasco))
             {
@@ -427,8 +440,6 @@ namespace EtehadBar.MVC.Controllers
                     TempData["msg"] = "عملیات با خطا مواجه شد. لطفا شماره صورت وضعیت را ارسال کنید. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
-
-                string docTitle = $"گزارش بارنامه {customer.Name} در {calendar.Title}";
 
                 using var workbook = new XLWorkbook();
                 decimal c = Convert.ToDecimal(allLoadFactors.Count / 20f);
@@ -449,7 +460,8 @@ namespace EtehadBar.MVC.Controllers
                     ws.Range("C1:E1").Row(1).Merge();
                     ws.Cell("H1").Value = "شرکت پلاسکو کار سایپا";
                     ws.Range("H1:I1").Row(1).Merge();
-                    ws.Cell("J1").Value = $"در تاریخ: {new PersianDateTime(calendar.EndDate).ToShortDateString()}";
+                    if (calendarId.HasValue)
+                        ws.Cell("J1").Value = $"در تاریخ: {new PersianDateTime(calendar.EndDate).ToShortDateString()}";
 
                     ws.Cell(2, 1).Value = "ردیف";
                     ws.Cell(2, 2).Value = "تاریخ";
@@ -574,8 +586,6 @@ namespace EtehadBar.MVC.Controllers
             }
             else if (customer.CustomerType.Equals(CustomerType.SazehGostar))
             {
-                string docTitle = $"گزارش بارنامه {customer.Name} در {calendar.Title}";
-
                 using var workbook = new XLWorkbook();
 
                 var ws = workbook.Worksheets.Add("Sheet1");
@@ -704,71 +714,33 @@ namespace EtehadBar.MVC.Controllers
             }
             else
             {
-                string docTitle = $"گزارش بارنامه {customer.Name} در {calendar.Title}";
-
                 using var workbook = new XLWorkbook();
 
-                var ws = workbook.Worksheets.Add("Sheet1");
-                ws.RightToLeft = true;
-                ws.Style.Font.FontName = "B Nazanin";
-                ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
-                ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+                var oneFloor = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.OneFloor && !a.Tonnage.HasValue).ToList();
 
-                ws.Cell("A1").Value = "ردیف";
-                ws.Cell("B1").Value = "بارنامه";
-                ws.Cell("C1").Value = "پلاک";
-                ws.Cell("D1").Value = "راننده";
-                ws.Cell("E1").Value = "مبدا";
-                ws.Cell("F1").Value = "مقصد";
-                ws.Cell("G1").Value = "تاریخ";
-                ws.Cell("H1").Value = "سند ورود";
-                ws.Cell("I1").Value = "سند خروج";
-                ws.Cell("J1").Value = "نوع خودرو";
-                ws.Cell("K1").Value = "نوع بار";
-                ws.Cell("L1").Value = "اضافه تناژ";
-                ws.Cell("M1").Value = "نرخ اضافه تناژ";
-                ws.Cell("N1").Value = "قابل پرداخت";
+                var ws = workbook.Worksheets.Add("یک طبقه");
+                MakePressSheet(oneFloor, ws);
 
-                ws.Range("A1:N1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
-                    .Font.SetBold(true)
-                    .Font.SetFontSize(12);
-
-                for (int index = 1; index <= allLoadFactors.Count; index++)
+                var twoFloor = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.TwoFloor && !a.Tonnage.HasValue).ToList();
+                if (twoFloor.Any())
                 {
-                    ws.Cell(index + 1, 1).Value = index;
-                    ws.Cell(index + 1, 2).Value = allLoadFactors[index - 1].LoadNumber;
-                    ws.Cell(index + 1, 3).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
-                    ws.Cell(index + 1, 4).Value = allLoadFactors[index - 1].ApplicationUser.Lastname;
-                    ws.Cell(index + 1, 5).Value = allLoadFactors[index - 1].Origin.Title;
-                    ws.Cell(index + 1, 6).Value = allLoadFactors[index - 1].Destination.Title;
-                    ws.Cell(index + 1, 7).Value = new PersianDateTime(allLoadFactors[index - 1].Date).ToString("yyyy/MM/dd");
-                    ws.Cell(index + 1, 8).Value = allLoadFactors[index - 1].SaipaPressLoadFactor.EntryNumber;
-                    ws.Cell(index + 1, 9).Value = allLoadFactors[index - 1].ExitNumber;
-                    ws.Cell(index + 1, 10).Value = allLoadFactors[index - 1].Vehicle.Type;
-                    ws.Cell(index + 1, 11).Value = allLoadFactors[index - 1].SaipaPressLoadFactor.LoadType;
-                    ws.Cell(index + 1, 12).Value = allLoadFactors[index - 1].Tonnage.HasValue ? allLoadFactors[index - 1].Tonnage.Value : "0";
-                    ws.Cell(index + 1, 13).Value = allLoadFactors[index - 1].DriverTonnagePrice.HasValue ? allLoadFactors[index - 1].DriverTonnagePrice.Value.ToString("N0") : "0";
-                    ws.Cell(index + 1, 14).Value = allLoadFactors[index - 1].Tonnage.HasValue ? (allLoadFactors[index - 1].Amount + (allLoadFactors[index - 1].Tonnage.Value * allLoadFactors[index - 1].DriverTonnagePrice.Value)).ToString("N0") : allLoadFactors[index - 1].Amount.ToString("N0");
+                    var ws2 = workbook.Worksheets.Add("دو طبقه");
+                    MakePressSheet(twoFloor, ws2);
                 }
 
-                ws.Cell($"A{allLoadFactors.Count + 2}").Value = "جمع";
-                ws.Range($"A{allLoadFactors.Count + 2}:M{allLoadFactors.Count + 2}").Row(1).Merge();
-                ws.Cell($"N{allLoadFactors.Count + 2}").Value = 
-                    (allLoadFactors.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.DriverTonnagePrice.Value) 
-                    + allLoadFactors.Sum(a => a.Amount)).ToString("N0");
-                ws.Range($"A{allLoadFactors.Count + 2}:N{allLoadFactors.Count + 2}").Style.Fill.SetBackgroundColor(XLColor.LightGray)
-                    .Font.SetBold(true);
+                var oneFloorWithTonnage = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.OneFloor && a.Tonnage.HasValue).ToList();
+                if (oneFloorWithTonnage.Any())
+                {
+                    var ws2 = workbook.Worksheets.Add("یک طبقه با تناژ اضافه");
+                    MakePressSheet(oneFloorWithTonnage, ws2);
+                }
 
-                ws.Columns().AdjustToContents();
-                ws.LastColumnUsed().Style.Font.SetBold(true);
-                ws.CellsUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                ws.CellsUsed().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-                ws.CellsUsed().Style.Font.FontColor = XLColor.Black;
-                ws.RowsUsed().Height = 20;
-                ws.RangeUsed().Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin)
-                    .Border.SetOutsideBorderColor(XLColor.Black)
-                    .Border.SetInsideBorder(XLBorderStyleValues.Thin)
-                    .Border.SetInsideBorderColor(XLColor.Black);
+                var twoFloorWithTonnage = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.TwoFloor && a.Tonnage.HasValue).ToList();
+                if (twoFloorWithTonnage.Any())
+                {
+                    var ws2 = workbook.Worksheets.Add("دو طبقه با تناژ اضافه");
+                    MakePressSheet(twoFloorWithTonnage, ws2);
+                }
 
                 await using var stream = new MemoryStream();
                 workbook.SaveAs(stream);
@@ -778,7 +750,71 @@ namespace EtehadBar.MVC.Controllers
             }
         }
 
-        public async Task<IActionResult> CustomerIncome(int? id, int calendarId)
+        private static void MakePressSheet(List<LoadFactor> data, IXLWorksheet ws)
+        {
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell("A1").Value = "ردیف";
+            ws.Cell("B1").Value = "بارنامه";
+            ws.Cell("C1").Value = "پلاک";
+            ws.Cell("D1").Value = "راننده";
+            ws.Cell("E1").Value = "مبدا";
+            ws.Cell("F1").Value = "مقصد";
+            ws.Cell("G1").Value = "تاریخ";
+            ws.Cell("H1").Value = "سند ورود";
+            ws.Cell("I1").Value = "سند خروج";
+            ws.Cell("J1").Value = "نوع خودرو";
+            ws.Cell("K1").Value = "نوع بار";
+            ws.Cell("L1").Value = "اضافه تناژ";
+            ws.Cell("M1").Value = "نرخ اضافه تناژ";
+            ws.Cell("N1").Value = "قابل پرداخت";
+
+            ws.Range("A1:N1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
+                .Font.SetBold(true)
+                .Font.SetFontSize(12);
+
+            for (int index = 1; index <= data.Count; index++)
+            {
+                ws.Cell(index + 1, 1).Value = index;
+                ws.Cell(index + 1, 2).Value = data[index - 1].LoadNumber;
+                ws.Cell(index + 1, 3).Value = $"{data[index - 1].Vehicle.RightNumber} {data[index - 1].Vehicle.NumberWord} {data[index - 1].Vehicle.LeftNumber}";
+                ws.Cell(index + 1, 4).Value = data[index - 1].ApplicationUser.Lastname;
+                ws.Cell(index + 1, 5).Value = data[index - 1].Origin.Title;
+                ws.Cell(index + 1, 6).Value = data[index - 1].Destination.Title;
+                ws.Cell(index + 1, 7).Value = new PersianDateTime(data[index - 1].Date).ToString("yyyy/MM/dd");
+                ws.Cell(index + 1, 8).Value = data[index - 1].SaipaPressLoadFactor.EntryNumber;
+                ws.Cell(index + 1, 9).Value = data[index - 1].ExitNumber;
+                ws.Cell(index + 1, 10).Value = data[index - 1].Vehicle.Type;
+                ws.Cell(index + 1, 11).Value = data[index - 1].SaipaPressLoadFactor.LoadType;
+                ws.Cell(index + 1, 12).Value = data[index - 1].Tonnage.HasValue ? data[index - 1].Tonnage.Value : "0";
+                ws.Cell(index + 1, 13).Value = data[index - 1].DriverTonnagePrice.HasValue ? data[index - 1].DriverTonnagePrice.Value.ToString("N0") : "0";
+                ws.Cell(index + 1, 14).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].Amount + (data[index - 1].Tonnage.Value * data[index - 1].DriverTonnagePrice.Value)).ToString("N0") : data[index - 1].Amount.ToString("N0");
+            }
+
+            ws.Cell($"A{data.Count + 2}").Value = "جمع";
+            ws.Range($"A{data.Count + 2}:M{data.Count + 2}").Row(1).Merge();
+            ws.Cell($"N{data.Count + 2}").Value =
+                (data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.DriverTonnagePrice.Value)
+                + data.Sum(a => a.Amount)).ToString("N0");
+            ws.Range($"A{data.Count + 2}:N{data.Count + 2}").Style.Fill.SetBackgroundColor(XLColor.LightGray)
+                .Font.SetBold(true);
+
+            ws.Columns().AdjustToContents();
+            ws.LastColumnUsed().Style.Font.SetBold(true);
+            ws.CellsUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            ws.CellsUsed().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            ws.CellsUsed().Style.Font.FontColor = XLColor.Black;
+            ws.RowsUsed().Height = 20;
+            ws.RangeUsed().Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetOutsideBorderColor(XLColor.Black)
+                .Border.SetInsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetInsideBorderColor(XLColor.Black);
+        }
+
+        public async Task<IActionResult> CustomerIncome(long? id, long calendarId)
         {
             if (!id.HasValue)
                 return BadRequest("parameter error");

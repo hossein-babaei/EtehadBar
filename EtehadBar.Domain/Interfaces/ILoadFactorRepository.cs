@@ -18,7 +18,7 @@ namespace EtehadBar.Domain.Interfaces
         Task<bool> SequenceExistInSaipaPress(long id, long sequence);
         Task<bool> SequenceExistInSazehGostar(long id, long sequence);
         IQueryable<LoadFactor> LoadFactors();
-        Task<List<LoadFactor>> LoadFactors(long customerId, long calendarId);
+        Task<List<LoadFactor>> LoadFactors(long customerId, long? calendarId, long? accountBookId);
         void Update(LoadFactor obj);
         void UpdateSaipaPress(SaipaPressLoadFactor obj);
         void UpdateSazehGostar(SazehGostarLoadFactor obj);

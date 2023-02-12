@@ -52,7 +52,6 @@ namespace EtehadBar.Domain.Models
         public string LoadNumberGov { get; set; }
 
         [Display(Name = "شماره خروج")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ExitNumber { get; set; }
 
@@ -97,6 +96,12 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "خودرو")]
         public long VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; }
+
+        [Required]
+        [Display(Name = "صورت وضعیت")]
+        [ForeignKey(nameof(AccountBook))]
+        public long AccountBookId { get; set; }
+        public virtual AccountBook AccountBook { get; set; }
 
         [ForeignKey(nameof(MehrcomParsLoadFactor))]
         public long? MehrcomParsLoadFactorId { get; set; }

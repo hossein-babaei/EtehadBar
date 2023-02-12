@@ -8,6 +8,7 @@ namespace EtehadBar.Infra.IoC
     {
         public static IServiceCollection RegisterServices(this IServiceCollection services)
         {
+            services.AddScoped<IAccountBookRepository, AccountBookRepository>();
             services.AddScoped<IAdminThemeRepository, AdminThemeRepository>();
             services.AddScoped<ICalendarRepository, CalendarRepository>();
             services.AddScoped<IConfigRepository, ConfigRepository>();
