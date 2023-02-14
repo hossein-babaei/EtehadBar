@@ -8,8 +8,7 @@
     public enum ApplicationRoleType
     {
         Admin,
-        User,
-        Driver
+        User
     }
 
     public enum PaymentType
@@ -42,5 +41,13 @@
     {
         OneFloor,
         TwoFloor
+    }
+
+    public enum ExcelExportType
+    {
+        WithAllPrices,
+        OnlyReceivingPrice,
+        OnlyDriverPrice,
+        WithoutPrice
     }
 }

@@ -201,6 +201,7 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Title)</th>
                     <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
                     <th>@Html.DisplayNameFor(model => model.OriginId)</th>
                     <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
@@ -230,6 +231,7 @@
 
                     <tr class="uk-text-center sm">
                         <td>@i</td>
+                        <td>@(string.IsNullOrWhiteSpace(item.Title) ? "---" : item.Title)</td>
                         <td>@item.Vehicle</td>
                         <td>@item.Origin.Title</td>
                         <td>@item.Destination.Title</td>

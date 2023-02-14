@@ -29,6 +29,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<Customer> Customer { get; set; }
         public DbSet<CustomerIncome> CustomerIncome { get; set; }
         public DbSet<Definition> Definition { get; set; }
+        public DbSet<Driver> Driver { get; set; }
         public DbSet<LoadFactor> LoadFactor { get; set; }
         public DbSet<LoadRoutes> LoadRoute { get; set; }
         public DbSet<Payment> Payment { get; set; }

@@ -41,6 +41,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IShippingFeeLoadTypeRepository _shippingFeeLoadTypeRepo;
         private readonly ILoadRoutesRepository _loadRouteRepo;
+        private readonly IDriverRepository _driverRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -59,7 +60,8 @@ namespace EtehadBar.MVC.Controllers
             RoleManager<IdentityRole> roleManager,
             UserManager<ApplicationUser> userManager,
             IShippingFeeLoadTypeRepository shippingFeeLoadTypeRepo,
-            ILoadRoutesRepository loadRouteRepo)
+            ILoadRoutesRepository loadRouteRepo,
+            IDriverRepository driverRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -78,6 +80,7 @@ namespace EtehadBar.MVC.Controllers
             _userManager = userManager;
             _shippingFeeLoadTypeRepo = shippingFeeLoadTypeRepo;
             _loadRouteRepo = loadRouteRepo;
+            _driverRepository = driverRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -494,14 +497,7 @@ namespace EtehadBar.MVC.Controllers
         public PartialViewResult GetUserCreateForm(byte type)
         {
             ViewBag.type = type;
-            if (type.Equals((byte)ApplicationRoleType.Driver))
-            {
-                return PartialView("~/Views/Admin/Create/Driver.cshtml");
-            }
-            else
-            {
-                return PartialView("~/Views/Admin/Create/User.cshtml");
-            }
+            return PartialView("~/Views/Admin/Create/User.cshtml");
         }
 
         [HttpPost]
@@ -1909,7 +1905,7 @@ namespace EtehadBar.MVC.Controllers
                     return Json(new { msg = "مبدا و مقصد نمی تواند یکی باشد.", status });
 
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
-                    .AnyAsync(a => a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId)))
+                    .AnyAsync(a => a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice)))
                     return Json(new { msg = "نرخ حمل و نقل ثبت شده تکراری است.", status });
 
                 if (s.ShippingFeeType == ShippingFeeType.Custom)
@@ -1967,7 +1963,7 @@ namespace EtehadBar.MVC.Controllers
                 }
 
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
-                    .AnyAsync(a => !a.Id.Equals(s.Id) && a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId)))
+                    .AnyAsync(a => !a.Id.Equals(s.Id) && a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice)))
                 {
                     TempData["msg"] = "نرخ حمل و نقل ثبت شده تکراری است. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
@@ -1993,6 +1989,7 @@ namespace EtehadBar.MVC.Controllers
                 item.ShippingFeeLoadTypeId = s.ShippingFeeLoadTypeId;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDate = DateTime.Now;
+                item.Title = s.Title;
 
                 _shippingFeeRepo.Update(item);
 
@@ -2895,12 +2892,13 @@ namespace EtehadBar.MVC.Controllers
         {
             return Json(await _shippingFeeRepo.ShippingFees().AsNoTracking().Where(a => a.ContractId.Equals(contractId)).OrderBy(a => a.Origin).Select(a => new
             {
-                a.Destination,
+                Destination = a.Destination.Title,
                 a.DriverPrice,
                 a.Id,
-                a.Origin,
+                Origin = a.Origin.Title,
                 price = a.Price.ToString("N0"),
-                a.Vehicle
+                a.Vehicle,
+                a.Title
             }).ToListAsync());
         }
 
@@ -3159,6 +3157,145 @@ namespace EtehadBar.MVC.Controllers
                 TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
             }
 
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> GetAccountBookListByCustomerId(long customerId)
+        {
+            return Json(await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId))
+                .Select(a => new
+                {
+                    a.Id,
+                    a.Number,
+                    a.IsOpen,
+                    Status = a.IsOpen ? "باز" : "بسته"
+                }).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync());
+        }
+        #endregion
+
+        #region Driver
+        [HttpGet]
+        public async Task<IActionResult> Driver(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _driverRepository.Drivers().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SearchDriver(int? p, string param)
+        {
+            var pageNum = p ?? 1;
+            var onePageOfData = await _driverRepository.Drivers().Where(a => (a.Firstname + " " + a.Lastname).Contains(param) || a.NationalNumber.Contains(param)).OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
+            ViewBag.data = onePageOfData;
+            ViewBag.param = param;
+
+            return PartialView("_Driver");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateDriver()
+        {
+            ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
+            return PartialView("~/Views/Admin/Create/Driver.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateDriver(Driver c)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _driverRepository.Drivers().AnyAsync(a => a.NationalNumber.Equals(c.NationalNumber)))
+                {
+                    TempData["msg"] = "کد ملی وارد شده تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                _driverRepository.Create(new Driver
+                {
+                    AccountBankName = c.AccountBankName,
+                    BankAccountNumber = c.BankAccountNumber,
+                    Firstname = c.Firstname,
+                    Lastname = c.Lastname,
+                    Phonenumber = c.Phonenumber,
+                    NationalNumber = c.NationalNumber,
+                    CreatorId = _userManager.GetUserId(User)
+                });
+                try
+                {
+                    await _driverRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditDriver(long id)
+        {
+            ViewData["Customers"] = await _driverRepository.Drivers().AsNoTracking().OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync();
+
+            var item = await _driverRepository.Get(id);
+
+            return PartialView("~/Views/Admin/Edit/Driver.cshtml", new Driver
+            {
+                Id = item.Id,
+                AccountBankName = item.AccountBankName,
+                BankAccountNumber = item.BankAccountNumber,
+                Firstname = item.Firstname,
+                Lastname = item.Lastname,
+                Phonenumber = item.Phonenumber,
+                NationalNumber = item.NationalNumber,
+                IsActive = item.IsActive,
+                EditDatetime = DateTime.Now,
+                EditorId = _userManager.GetUserId(User)
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditDriver(Driver c)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _driverRepository.Drivers().AnyAsync(a => !a.Id.Equals(c.Id) && a.NationalNumber.Equals(c.NationalNumber)))
+                {
+                    TempData["msg"] = "کد ملی وارد شده تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = await _driverRepository.Get(c.Id);
+                item.Firstname= c.Firstname;
+                item.Lastname= c.Lastname;
+                item.Phonenumber = c.Phonenumber;
+                item.NationalNumber = c.NationalNumber;
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDatetime = DateTime.Now;
+                item.IsActive = c.IsActive;
+                _driverRepository.Update(item);
+                try
+                {
+                    await _driverRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
             return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion

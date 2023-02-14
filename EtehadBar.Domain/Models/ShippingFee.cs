@@ -10,6 +10,10 @@ namespace EtehadBar.Domain.Models
         [Key]
         public long Id { get; set; }
 
+        [Display(Name = "عنوان (اختیاری)")]
+        [MaxLength(256, ErrorMessage = "{0} حداکثر باید {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+
         [Display(Name = "مبدأ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long OriginId { get; set; }

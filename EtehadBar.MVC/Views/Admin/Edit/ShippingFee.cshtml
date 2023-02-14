@@ -18,6 +18,11 @@
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
                 <div>
+                    <label asp-for="Title" class="uk-form-label"></label>
+                    <input asp-for="Title" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Title" class="uk-text-danger"></span>
+                </div>
+                <div>
                     <label asp-for="ShippingFeeType" class="uk-form-label"></label>
                     <select asp-for="ShippingFeeType" class="uk-select" onchange="shippingFeeTypeChangeHandler(this)">
                         <!option value="@((int)ShippingFeeType.Normal)" @if(Model.ShippingFeeType == ShippingFeeType.Normal){<text>selected="selected"</text>}>نرخ ثابت</!option>

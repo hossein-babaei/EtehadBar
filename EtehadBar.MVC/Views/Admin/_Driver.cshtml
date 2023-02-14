@@ -1,0 +1,86 @@
+﻿@model Driver
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var data = ViewBag.data as IPagedList<Driver>;
+    int i = 1;
+    if (data.PageNumber > 1)
+    {
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+    }
+}
+
+@if (data.Any())
+{
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Firstname)</th>
+                    <th>@Html.DisplayNameFor(model => model.Lastname)</th>
+                    <th>@Html.DisplayNameFor(model => model.NationalNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.AccountBankName)</th>
+                    <th>@Html.DisplayNameFor(model => model.BankAccountNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.IsActive)</th>
+                    <th width="50">ویرایش</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.Firstname)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Lastname)</td>
+                        <td>@Html.DisplayFor(modelItem => item.NationalNumber)</td>
+                        @if (string.IsNullOrWhiteSpace(item.AccountBankName))
+                        {
+                            <td>---</td>
+                        }
+                        else
+                        {
+                            <td>@Html.DisplayFor(modelItem => item.AccountBankName)</td>
+                        }
+                        @if (string.IsNullOrWhiteSpace(item.BankAccountNumber))
+                        {
+                            <td>---</td>
+                        }
+                        else
+                        {
+                            <td>@Html.DisplayFor(modelItem => item.BankAccountNumber)</td>
+                        }
+                        @if (item.IsActive)
+                        {
+                            <td class="uk-text-success">فعال</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-danger">غیر فعال</td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("SearchDriver", new { p = data.PageNumber, param = ViewBag.param }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+        </div>
+    }
+}
+else
+{
+    <div class="uk-margin-medium-top uk-margin-medium-bottom">
+        <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+            <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+            <div>
+                <h2>نتیجه ای یافت نشد.</h2>
+            </div>
+        </div>
+    </div>
+}

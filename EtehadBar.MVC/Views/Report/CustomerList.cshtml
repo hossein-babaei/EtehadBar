@@ -19,18 +19,32 @@
         $(document).ready(function () {
             $('#modal select[name=calendarId]').select2({ width: '100%' });
         });
-        function submitForm() {
-            $('#modal form').submit();
+        function submitForm(submitButton) {
+            let form = $(submitButton).parent().parent().find('form');
+            form.submit();
         }
-        function showForm(id, type) {
+        function showFormByCalendar(id, type) {
             $('#modal-append').html('');
-
-            if (type == @((byte)CustomerType.SaipaPlasco)) {
-                $('#modal-append').html('<label class= "uk-form-label"> لطفا شماره صورت وضعیت را وارد نمائید</label><input class="uk-input uk-border-rounded" name="statusNumber" />');
-            }
 
             $('#modal input[name=customerId]').val(id);
             UIkit.modal('#modal').show();
+        }
+        function showFormByAccountBook(id, type) {
+            const modal = $('#account-book-modal');
+            let options = '';
+
+            preloader();
+            $.post('@Url.Action("GetAccountBookListByCustomerId", "Admin")', { 'customerId': id }, (r) => {
+                $.each(r, (i, v) => {
+                    options += `<option value="${v.id}">${v.number} (${v.status})</option>`;
+                });
+                modal.find('select[name="accountBookId"]').html(options);
+            }, 'json').then(() => { preloader() });
+
+            modal.find('select[name=accountBookId]').select2({ width: '100%' });
+            modal.find('select[name=exportType]').select2({ width: '100%' });
+            modal.find('input[name=customerId]').val(id);
+            UIkit.modal('#account-book-modal').show();
         }
     </script>
 }
@@ -72,7 +86,10 @@
                             <td class="uk-text-bold uk-text-danger">غیر فعال</td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="showForm(@item.Id, @((byte)item.CustomerType))">بارنامه</a></td>
+                        <td>
+                            <a class="uk-button uk-button-primary uk-button-small" onclick="showFormByCalendar(@item.Id, @((byte)item.CustomerType))">بر اساس تقویم کاری</a>
+                            <a class="uk-button uk-button-primary uk-button-small uk-margin-small-right" onclick="showFormByAccountBook(@item.Id, @((byte)item.CustomerType))">بر اساس صورت وضعیت</a>
+                        </td>
                     </tr>
                     i++;
                 }
@@ -83,7 +100,7 @@
 <div id="modal" uk-modal>
     <div class="uk-modal-dialog">
         <div class="uk-modal-header uk-light">
-            <h2 class="uk-modal-title">فرم</h2>
+            <h2 class="uk-modal-title">خروجی بر اساس تقویم کاری</h2>
         </div>
         <div class="uk-modal-body">
             <form method="post" action="@Url.Action("Customer", "Excel")" autocomplete="off">
@@ -94,7 +111,9 @@
                         <select name="calendarId">
                             @foreach (var item in calendars)
                             {
-                                <!option value="@item.Id" @if (latestCal.Id.Equals(item)) { <text> selected="selected" </text> }>@item.Title</!option>
+                                <!option value="@item.Id" @if (latestCal.Id.Equals(item)) {
+                            <text> selected="selected" </text>
+                            }>@item.Title</!option>
                             }
                         </select>
                     </div>
@@ -103,7 +122,38 @@
             </form>
         </div>
         <div class="uk-modal-footer uk-text-center">
-            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm()">مشاهده</a>
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm(this)">مشاهده</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="account-book-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">خروجی بر اساس صورت وضعیت</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form method="post" action="@Url.Action("Customer", "Excel")" autocomplete="off">
+                <input type="hidden" name="customerId" value="" />
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <label class="uk-form-label">صورت وضعیت</label>
+                        <select name="accountBookId"></select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">نوع خروجی</label>
+                        <select name="exportType">
+                            <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
+                            <option value="@((int)ExcelExportType.WithAllPrices)">با تمامی نرخ ها</option>
+                            <option value="@((int)ExcelExportType.OnlyReceivingPrice)">با نرخ دریافتی</option>
+                            <option value="@((int)ExcelExportType.OnlyDriverPrice)">با نرخ پرداختی</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm(this)">مشاهده</a>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
     </div>

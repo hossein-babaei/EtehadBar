@@ -67,7 +67,7 @@
             $.post('@Url.Action("GetShippingFeeJson")', { 'contractId': $(t).val() }, function (r) {
                 form.find('#ShippingFeeId').html('');
                 $.each(r, function (i, v) {
-                    form.find('#ShippingFeeId').append('<option value="' + v.id + '">' + v.vehicle + ' (' + v.origin + ' به ' + v.destination + ') ' + v.price + '</option>');
+                    form.find('#ShippingFeeId').append(`<option value="${v.id}">${v.title != '' ? v.title : ''} ${v.vehicle} (${v.origin} به ${v.destination}) ${v.price}</option>`);
                 });
             }, 'json').then(function () {
                 parseValidator(form);
