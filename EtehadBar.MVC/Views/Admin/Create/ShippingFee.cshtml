@@ -100,6 +100,19 @@
                         <span asp-validation-for="DriverTonnagePrice" class="uk-text-danger"></span>
                     </div>
                 }
+                @if (contractInfo.Customer.HasLoadSleep)
+                {
+                    <div>
+                        <label asp-for="LoadSleepPrice" class="uk-form-label"></label>
+                        <input asp-for="LoadSleepPrice" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded format-number" />
+                        <span asp-validation-for="LoadSleepPrice" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="DriverLoadSleepPrice" class="uk-form-label"></label>
+                        <input asp-for="DriverLoadSleepPrice" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded format-number" />
+                        <span asp-validation-for="DriverLoadSleepPrice" class="uk-text-danger"></span>
+                    </div>
+                }
             </div>
         </form>
     </div>

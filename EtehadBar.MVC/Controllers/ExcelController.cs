@@ -110,7 +110,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 2, 10).Value = loadFactors[index - 1].VAT;
                 ws.Cell(index + 2, 11).Value = loadFactors[index - 1].LoadFactorDeductions;
                 ws.Cell(index + 2, 12).Value = loadFactors[index - 1].WithholdingTax;
-                ws.Cell(index + 2, 13).Value = $"{loadFactors[index - 1].ApplicationUser.Firstname} {loadFactors[index - 1].ApplicationUser.Lastname}";
+                ws.Cell(index + 2, 13).Value = $"{loadFactors[index - 1].Driver.Firstname} {loadFactors[index - 1].Driver.Lastname}";
                 ws.Cell(index + 2, 14).Value = loadFactors[index - 1].Vehicle.Type;
                 ws.Cell(index + 2, 15).Value = loadFactors[index - 1].Calendar.Title;
                 ws.Cell(index + 2, 16).Value = $"{loadFactors[index - 1].Contract.Customer.Name} {loadFactors[index - 1].Contract.Number}";
@@ -381,7 +381,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 2, 6).Value = loadFactors[index - 1].Origin.Title;
                 ws.Cell(index + 2, 7).Value = loadFactors[index - 1].Destination.Title;
                 ws.Cell(index + 2, 8).Value = loadFactors[index - 1].DriverFee.ToString("N0");
-                ws.Cell(index + 2, 9).Value = $"{loadFactors[index - 1].ApplicationUser.Firstname} {loadFactors[index - 1].ApplicationUser.Lastname}";
+                ws.Cell(index + 2, 9).Value = $"{loadFactors[index - 1].Driver.Firstname} {loadFactors[index - 1].Driver.Lastname}";
                 ws.Cell(index + 2, 10).Value = $"{loadFactors[index - 1].Contract.Customer.Name} {loadFactors[index - 1].Contract.Number}";
             }
 
@@ -489,7 +489,7 @@ namespace EtehadBar.MVC.Controllers
                 if (calendar == null) return NotFound("Calendar not found");
             }
 
-            var allLoadFactors = await _loadFactorRepo.LoadFactors(customerId, calendarId, accountBookId);
+            var allLoadFactors = await _loadFactorRepo.LoadFactors(customerId, calendarId, accountBookId, null);
 
             string docTitle = $"گزارش بارنامه {customer.Name}";
             if (calendarId.HasValue)
@@ -528,6 +528,7 @@ namespace EtehadBar.MVC.Controllers
                 using var workbook = new XLWorkbook();
                 decimal c = Convert.ToDecimal(allLoadFactors.Count / 20f);
                 double totalAmount = 0;
+                double totalDriverFee = 0;
                 for (int i = 1; i <= Convert.ToInt32(Math.Ceiling(c)); i++)
                 {
                     var loadFactors = allLoadFactors.Skip((i - 1) * 20).Take(i * 20).ToList();
@@ -593,8 +594,35 @@ namespace EtehadBar.MVC.Controllers
                     if (i != 1)
                     {
                         ws.Cell("A3").Value = "نقل از صفحه قبل";
-                        ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}3").Row(1).Merge();
-                        ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}3").Value = totalAmount.ToString("N0");
+                        if (exportType.HasValue)
+                        {
+                            switch (exportType.Value)
+                            {
+                                case ExcelExportType.WithAllPrices:
+                                    ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 3)).Letter}3").Row(1).Merge();
+                                    ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}3").Value = totalAmount.ToString("N0");
+                                    ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}3").Value = totalDriverFee.ToString("N0");
+                                    break;
+                                case ExcelExportType.OnlyReceivingPrice:
+                                    ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}3").Row(1).Merge();
+                                    ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}3").Value = totalAmount.ToString("N0");
+                                    break;
+                                case ExcelExportType.OnlyDriverPrice:
+                                    ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}3").Row(1).Merge();
+                                    ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}3").Value = totalDriverFee.ToString("N0");
+                                    break;
+                                case ExcelExportType.WithoutPrice:
+                                    ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}3").Row(1).Merge();
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}3").Row(1).Merge();
+                            ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}3").Value = totalAmount.ToString("N0");
+                        }
 
                         var rngHeader = ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}3");
                         rngHeader.Style.Fill.SetBackgroundColor(XLColor.LightGray);
@@ -633,7 +661,7 @@ namespace EtehadBar.MVC.Controllers
                     {
                         ws.Cell(index + rowIndex, 1).Value = ((20 * i) + (index - 1)) - (20 - 1);
                         ws.Cell(index + rowIndex, 2).Value = new PersianDateTime(loadFactors[index - 1].Date).ToString("yyyy/MM/dd");
-                        ws.Cell(index + rowIndex, 3).Value = loadFactors[index - 1].ApplicationUser.Lastname;
+                        ws.Cell(index + rowIndex, 3).Value = loadFactors[index - 1].Driver.Lastname;
                         ws.Cell(index + rowIndex, 4).Value = $"{loadFactors[index - 1].Vehicle.RightNumber} {loadFactors[index - 1].Vehicle.NumberWord} {loadFactors[index - 1].Vehicle.LeftNumber}";
                         if (string.IsNullOrWhiteSpace(loadFactors[index - 1].LoadNumberGov))
                         {
@@ -673,15 +701,60 @@ namespace EtehadBar.MVC.Controllers
                     }
 
                     totalAmount += loadFactors.Sum(a => a.Amount);
+                    totalDriverFee += loadFactors.Sum(a => a.DriverFee);
 
-                    ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "جمع";
-                    ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex}").Row(1).Merge();
-                    ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalAmount.ToString("N0");
-                    ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
+                    if (exportType.HasValue)
+                    {
+                        switch (exportType.Value)
+                        {
+                            case ExcelExportType.WithAllPrices:
+                                ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "جمع";
+                                ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 3)).Letter}{loadFactors.Count + rowIndex}").Row(1).Merge();
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalAmount.ToString("N0");
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalDriverFee.ToString("N0");
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
 
+                                ws.Cell($"A{loadFactors.Count + rowIndex + 2}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
+                                ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                                break;
+                            case ExcelExportType.OnlyReceivingPrice:
+                                ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "جمع";
+                                ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex}").Row(1).Merge();
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalAmount.ToString("N0");
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
 
-                    ws.Cell($"A{loadFactors.Count + rowIndex + 2}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
-                    ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                                ws.Cell($"A{loadFactors.Count + rowIndex + 2}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
+                                ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                                break;
+                            case ExcelExportType.OnlyDriverPrice:
+                                ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "جمع";
+                                ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex}").Row(1).Merge();
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalDriverFee.ToString("N0");
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
+
+                                ws.Cell($"A{loadFactors.Count + rowIndex + 2}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
+                                ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                                break;
+                            case ExcelExportType.WithoutPrice:
+
+                                ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
+                                ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "جمع";
+                        ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex}").Row(1).Merge();
+                        ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalAmount.ToString("N0");
+                        ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
+
+                        ws.Cell($"A{loadFactors.Count + rowIndex + 2}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
+                        ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                    }
+
 
                     if (i == 1)
                     {
@@ -820,7 +893,7 @@ namespace EtehadBar.MVC.Controllers
                         ws.Cell(index + 1, 14).Value = allLoadFactors[index - 1].Amount.ToString("N0");
 
                     ws.Cell(index + 1, switchCounter - 2).Value = allLoadFactors[index - 1].ExitNumber;
-                    ws.Cell(index + 1, switchCounter - 1).Value = allLoadFactors[index - 1].ApplicationUser.Lastname;
+                    ws.Cell(index + 1, switchCounter - 1).Value = allLoadFactors[index - 1].Driver.Lastname;
                     ws.Cell(index + 1, switchCounter).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
                 }
 
@@ -1100,7 +1173,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 1, 1).Value = index;
                 ws.Cell(index + 1, 2).Value = data[index - 1].LoadNumber;
                 ws.Cell(index + 1, 3).Value = $"{data[index - 1].Vehicle.RightNumber} {data[index - 1].Vehicle.NumberWord} {data[index - 1].Vehicle.LeftNumber}";
-                ws.Cell(index + 1, 4).Value = data[index - 1].ApplicationUser.Lastname;
+                ws.Cell(index + 1, 4).Value = data[index - 1].Driver.Lastname;
                 ws.Cell(index + 1, 5).Value = data[index - 1].Origin.Title;
                 ws.Cell(index + 1, 6).Value = data[index - 1].Destination.Title;
                 ws.Cell(index + 1, 7).Value = new PersianDateTime(data[index - 1].Date).ToString("yyyy/MM/dd");

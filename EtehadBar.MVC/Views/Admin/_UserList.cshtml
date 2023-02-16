@@ -27,8 +27,8 @@
                     string role = item.Role switch
                     {
                         ApplicationRoleType.Admin => "مدیر سیستم",
+                        ApplicationRoleType.RegisterUser => "کاربر ثبت",
                         ApplicationRoleType.User => "کاربر سیستم",
-                        ApplicationRoleType.Driver => "راننده",
                         _ => ""
                     };
 

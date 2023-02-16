@@ -50,11 +50,11 @@ namespace Helpers
                 IdentityResult roleResult = roleManager.CreateAsync(role).Result;
             }
 
-            if (!roleManager.RoleExistsAsync("Driver").Result)
+            if (!roleManager.RoleExistsAsync("RegisterUser").Result)
             {
                 IdentityRole role = new IdentityRole
                 {
-                    Name = "Driver"
+                    Name = "RegisterUser"
                 };
 
                 IdentityResult roleResult = roleManager.CreateAsync(role).Result;

@@ -1,10 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EtehadBar.Domain.Models
 {
@@ -18,6 +14,33 @@ namespace EtehadBar.Domain.Models
         [Required]
         [Display(Name = "ترتیب")]
         public long Sequence { get; set; }
+
+        [Display(Name = "شماره بارنامه دولتی برگشتی")]
+        public string LoadNumberGovReturn { get; set; }
+
+        [Required]
+        [Display(Name = "بار")]
+        public bool Load { get; set; } = false;
+
+        [Required]
+        [Display(Name = "پالت")]
+        public bool Palette { get; set; } = false;
+
+        [Required]
+        [Display(Name = "برگشتی")]
+        public bool Return { get; set; } = false;
+
+        [Display(Name = "نرخ باسکول")]
+        public double? WeighbridgePrice { get; set; }
+
+        [Display(Name = "میزان خواب (دقیقه)")]
+        public double? LoadSleepTime { get; set; }
+
+        [Display(Name = "مبلغ دریافتی خواب")]
+        public double? LoadSleepPrice { get; set; }
+
+        [Display(Name = "مبلغ پرداختی خواب")]
+        public double? DriverLoadSleepPrice{ get; set; }
 
         [Required]
         public long LoadFactorId { get; set; }

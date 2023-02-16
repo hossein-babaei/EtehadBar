@@ -1,4 +1,4 @@
-﻿@model CSaipaPressLoadFactorVM
+﻿@model CSaipaPlascoLoadFactorVM
 @{
     var fees = (List<ShippingFee>)ViewData["Fees"];
     var contract = (List<Contract>)ViewData["Contracts"];
@@ -6,12 +6,11 @@
     var vehicles = (List<Vehicle>)ViewData["Vehicles"];
     var calendars = (List<Calendar>)ViewData["Calendars"];
     long sequence = (long)ViewData["Sequence"];
-    var loadTypes = (List<ShippingFeeLoadType>)ViewData["LoadTypes"];
     var accountBooks = (List<AccountBook>)ViewData["AccountBooks"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
-        <h2 class="uk-modal-title">افزودن بارنامه سایپا پرس</h2>
+        <h2 class="uk-modal-title">افزودن بارنامه مهرکام پارس</h2>
     </div>
     <div class="uk-modal-body">
         <form id="create-form">
@@ -44,7 +43,7 @@
                 </div>
                 <div class="uk-width-1-1@m">
                     <label asp-for="ShippingFeeId" class="uk-form-label"></label>
-                    <select asp-for="ShippingFeeId" class="uk-select uk-border-rounded" data-last-type="@fees.First().ShippingFeeType" onchange="loadFactorFormShippingFeeChangeHandler(this, '@CustomerType.SaipaPress')">
+                    <select asp-for="ShippingFeeId" class="uk-select uk-border-rounded" data-last-type="@fees.First().ShippingFeeType" onchange="loadFactorFormShippingFeeChangeHandler(this, '@CustomerType.SaipaPlasco')">
                         @foreach (var item in fees)
                         {
                             <!option value="@item.Id" data-type="@item.ShippingFeeType" @if(item == fees.First()){ <text>selected="selected"</text> }>@(string.IsNullOrWhiteSpace(item.Title) ? "" : $"({item.Title}) ")@item.Vehicle - (@item.Origin.Title به @item.Destination.Title) - @(item.ShippingFeeType == ShippingFeeType.Normal ? item.DriverPrice.ToString("N0") : "نرخ آزاد")</!option>
@@ -108,11 +107,6 @@
                     <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
                 </div>
                 <div>
-                    <label asp-for="Tonnage" class="uk-form-label"></label>
-                    <input asp-for="Tonnage" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
-                    <span asp-validation-for="Tonnage" class="uk-text-danger"></span>
-                </div>
-                <div>
                     <label asp-for="ExitNumber" class="uk-form-label"></label>
                     <input asp-for="ExitNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="ExitNumber" class="uk-text-danger"></span>
@@ -123,33 +117,15 @@
                     <span asp-validation-for="LoadNumber" class="uk-text-danger"></span>
                 </div>
                 <div>
-                    <label asp-for="EntryNumber" class="uk-form-label"></label>
-                    <input asp-for="EntryNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
-                    <span asp-validation-for="EntryNumber" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-width-1-4@m">
-                    <label asp-for="LoadType" class="uk-form-label"></label>
-                    <select asp-for="LoadType" class="uk-select uk-border-rounded uk-form-small">
-                        @foreach (var item in loadTypes)
-                        {
-                            <option value="@item.Name">@item.Name</option>
-                        }
-                    </select>
-                    <span asp-validation-for="LoadType" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-width-1-4@m">
-                    <label asp-for="PressFloorType" class="uk-form-label"></label>
-                    <select asp-for="PressFloorType" class="uk-select uk-border-rounded uk-form-small">
-                        <option value="@((int)SaipaPressLoadType.OneFloor)">یک طبقه</option>
-                        <option value="@((int)SaipaPressLoadType.TwoFloor)">دو طبقه</option>
-                    </select>
-                    <span asp-validation-for="PressFloorType" class="uk-text-danger"></span>
+                    <label asp-for="LoadNumberGov" class="uk-form-label"></label>
+                    <input asp-for="LoadNumberGov" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="LoadNumberGov" class="uk-text-danger"></span>
                 </div>
             </div>
         </form>
     </div>
     <div class="uk-modal-footer uk-text-center">
-        <button class="uk-button uk-button-primary" type="button" onclick="submitCreate(@((byte)CustomerType.SaipaPress))">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-primary" type="button" onclick="submitCreate(@((byte)CustomerType.SaipaPlasco))">ثبت اطلاعات</button>
         <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
     </div>
 </div>

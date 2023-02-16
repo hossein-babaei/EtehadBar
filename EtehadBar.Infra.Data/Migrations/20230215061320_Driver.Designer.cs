@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230215061320_Driver")]
+    partial class Driver
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -457,9 +459,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<bool>("HasAddonTonnage")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("HasLoadSleep")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("HasLoadType")
                         .HasColumnType("bit");
 
@@ -489,7 +488,6 @@ namespace EtehadBar.Infra.Data.Migrations
                             Id = 1L,
                             CustomerType = 0,
                             HasAddonTonnage = false,
-                            HasLoadSleep = false,
                             HasLoadType = false,
                             Name = "پلاسکو کار سایپا",
                             RowId = "29f78114-f72a-427a-a3f1-8864e6eeb13c",
@@ -500,7 +498,6 @@ namespace EtehadBar.Infra.Data.Migrations
                             Id = 2L,
                             CustomerType = 1,
                             HasAddonTonnage = true,
-                            HasLoadSleep = false,
                             HasLoadType = true,
                             Name = "سایپا پرس",
                             RowId = "e1cbee6e-f7a1-4a84-a1c5-e740fb84fa7d",
@@ -511,7 +508,6 @@ namespace EtehadBar.Infra.Data.Migrations
                             Id = 3L,
                             CustomerType = 2,
                             HasAddonTonnage = false,
-                            HasLoadSleep = false,
                             HasLoadType = false,
                             Name = "سازه گستر",
                             RowId = "df204398-5c7c-4caf-98c0-0c9b9be54a6f",
@@ -521,9 +517,8 @@ namespace EtehadBar.Infra.Data.Migrations
                         {
                             Id = 4L,
                             CustomerType = 3,
-                            HasAddonTonnage = true,
-                            HasLoadSleep = true,
-                            HasLoadType = true,
+                            HasAddonTonnage = false,
+                            HasLoadType = false,
                             Name = "مهرکام پارس",
                             RowId = "e70bffab-fa42-4c66-8af8-d7090a6ccbea",
                             Status = true
@@ -849,29 +844,8 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
-                    b.Property<double?>("DriverLoadSleepPrice")
-                        .HasColumnType("float");
-
-                    b.Property<bool>("Load")
-                        .HasColumnType("bit");
-
                     b.Property<long>("LoadFactorId")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("LoadNumberGovReturn")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<double?>("LoadSleepPrice")
-                        .HasColumnType("float");
-
-                    b.Property<double?>("LoadSleepTime")
-                        .HasColumnType("float");
-
-                    b.Property<bool>("Palette")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Return")
-                        .HasColumnType("bit");
 
                     b.Property<string>("RowId")
                         .IsRequired()
@@ -880,9 +854,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.Property<long>("Sequence")
                         .HasColumnType("bigint");
-
-                    b.Property<double?>("WeighbridgePrice")
-                        .HasColumnType("float");
 
                     b.HasKey("Id");
 
@@ -1102,9 +1073,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<long>("DestinationId")
                         .HasColumnType("bigint");
 
-                    b.Property<double?>("DriverLoadSleepPrice")
-                        .HasColumnType("float");
-
                     b.Property<double>("DriverPrice")
                         .HasColumnType("float");
 
@@ -1116,9 +1084,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.Property<string>("EditorId")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<double?>("LoadSleepPrice")
-                        .HasColumnType("float");
 
                     b.Property<long>("OriginId")
                         .HasColumnType("bigint");

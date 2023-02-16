@@ -6,13 +6,38 @@
     var vehicle = (Vehicle)ViewData["vehicle"];
     var calendar = (Calendar)ViewData["calendar"];
     var payment = (double)ViewData["payment"];
+
+
+    var routes = new List<VehicleActivityVM>();
+
+    foreach (var origin in Model.DistinctBy(a => a.OriginId))
+    {
+        var destinations = Model.Where(a => a.OriginId.Equals(origin.OriginId)).ToList();
+        foreach (var destination in destinations)
+        {
+            routes.Add(new VehicleActivityVM
+                    {
+                        OriginId = origin.OriginId,
+                        DestinationId = destination.DestinationId,
+                        DestionationTitle = destination.Destination.Title,
+                        DriverFee = destination.DriverFee,
+                        DriverTonnagePrice = destination.DriverTonnagePrice,
+                        Tonnage = destination.Tonnage,
+                        TonnagePrice = destination.TonnagePrice,
+                        OriginTitle = origin.Origin.Title,
+                        Count = Model.Count(a => a.OriginId.Equals(origin.OriginId) && a.DestinationId.Equals(destination.DestinationId) && a.DriverFee.Equals(destination.DriverFee))
+                    });
+        }
+    }
+
+    routes = routes.DistinctBy(a => new { a.OriginId, a.DestinationId, a.DriverFee }).ToList();
 }
 
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
     <div class="uk-width-auto@m">
         <ul class="uk-breadcrumb">
             <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
-            <li><span>گزارش عملکرد خودرو | @vehicle.Type (ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber)</span></li>
+            <li><span>گزارش جزئیات عملکرد خودرو | @vehicle.Type (ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber)</span></li>
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
@@ -38,48 +63,23 @@
                 <thead>
                     <tr>
                         <th width="50">ردیف</th>
-                        <th>@Html.DisplayNameFor(model => model.Date)</th>
-                        <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
-                        <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
-                        <th>@Html.DisplayNameFor(model => model.ExitNumber)</th>
                         <th>@Html.DisplayNameFor(model => model.OriginId)</th>
                         <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
-                        @if (Model.Any(a => a.Tonnage.HasValue))
-                        {
-                            <th>@Html.DisplayNameFor(model => model.Tonnage)</th>
-                            <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
-                        }
-                        <th>@Html.DisplayNameFor(model => model.DriverId)</th>
-                        <th>@Html.DisplayNameFor(model => model.ContractId)</th>
+                        <th>تعداد</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var route in routes)
                     {
-                        var pd = new PersianDateTime(item.Date);
-
                         <tr class="uk-text-center xs">
                             <td>
                                 @i
                             </td>
-                            <td>@pd.ToString("yyyy/MM/dd")</td>
-                            <td>@item.LoadNumber</td>
-                            <td>@item.LoadNumberGov</td>
-                            <td>@item.ExitNumber</td>
-                            <td>@item.Origin.Title</td>
-                            <td>@item.Destination.Title</td>
-                            <td>@item.DriverFee.ToString("N0")</td>
-                            @if (Model.Any(a => a.Tonnage.HasValue))
-                            {
-                                if (item.Tonnage.HasValue)
-                                {
-                                    <td>@item.Tonnage.Value</td>
-                                    <td>@((item.Tonnage.Value * item.DriverTonnagePrice.Value).ToString("N0"))</td>
-                                }
-                            }
-                            <td>@item.Driver.Firstname @item.Driver.Lastname</td>
-                            <td>@item.Contract.Customer.Name - @item.Contract.Number</td>
+                            <td>@route.OriginTitle</td>
+                            <td>@route.DestionationTitle</td>
+                            <td>@route.DriverFee.ToString("N0")</td>
+                            <td>@route.Count</td>
                         </tr>
                         i++;
                     }
@@ -108,21 +108,38 @@
     @{
         double driverFeeTotal = Model.Sum(a => a.DriverFee);
     }
-    <div class="uk-grid-small" uk-grid>
-        <div class="uk-width-expand" uk-leader="fill: .">جمع کرایه عملکرد</div>
-        @if (Model.Any(a => a.Tonnage.HasValue))
-        {
-            foreach (var item in Model.Where(a => a.Tonnage.HasValue))
-            {
-                driverFeeTotal += item.Tonnage.Value * item.DriverTonnagePrice.Value;
+    @if (Model.Any(a => a.Tonnage.HasValue))
+    {
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع کل اضافه تناژ</div>
+            <div>@Model.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value)</div>
+        </div>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع کل مبلغ اضافه تناژ</div>
+            <div>@Model.Where(a => a.Tonnage.HasValue).Sum(a => a.DriverTonnagePrice.Value)</div>
+        </div>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع کل مبلغ بارنامه ها</div>
+            <div>@driverFeeTotal.ToString("N0")</div>
+        </div>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع کرایه عملکرد</div>
+            @{
+                foreach (var item in Model.Where(a => a.Tonnage.HasValue))
+                {
+                    driverFeeTotal += item.Tonnage.Value * item.DriverTonnagePrice.Value;
+                }
             }
             <div>@driverFeeTotal.ToString("N0") ریال</div>
-        }
-        else
-        {
+        </div>
+    }
+    else
+    {
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع کرایه عملکرد</div>
             <div>@driverFeeTotal.ToString("N0") ریال</div>
-        }
-    </div>
+        </div>
+    }
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع پرداختی (حقوق و مساعده)</div>
         <div>@payment.ToString("N0") ریال</div>

@@ -32,6 +32,10 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool HasLoadType { get; set; } = false;
 
+        [Display(Name = "خواب بار")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool HasLoadSleep { get; set; } = false;
+
         public virtual ICollection<AccountBook> AccountBooks { get; set; }
         public virtual ICollection<Contract> Contracts { get; set; }
         public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }

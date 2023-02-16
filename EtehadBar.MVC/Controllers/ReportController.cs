@@ -55,7 +55,7 @@ namespace EtehadBar.MVC.Controllers
             }).ToListAsync());
         }
 
-        public async Task<IActionResult> Customer(int? id, string statusNumber, int calendarId)
+        public async Task<IActionResult> Customer(long? id, string statusNumber, long calendarId)
         {
             if (Request.IsAjaxRequest())
             {
@@ -105,7 +105,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CustomerIncome(int? id)
+        public async Task<IActionResult> CustomerIncome(long? id)
         {
             if (!id.HasValue)
                 return BadRequest("parameter error");
@@ -122,7 +122,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CustomerIncome(int? id, int calendarId)
+        public async Task<IActionResult> CustomerIncome(long? id, long calendarId)
         {
             ViewData["customer"] = await _customerRepo.Get(id.Value);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
@@ -144,7 +144,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Detailed(int calendarId)
+        public async Task<IActionResult> Detailed(long calendarId)
         {
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
 
@@ -165,7 +165,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Cost(int calendarId)
+        public async Task<IActionResult> Cost(long calendarId)
         {
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
             return PartialView("_Cost", await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).ToListAsync());
@@ -182,7 +182,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Payment(int calendarId, byte type, int vehicleId)
+        public async Task<IActionResult> Payment(long calendarId, byte type, long vehicleId)
         {
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
             ViewData["type"] = type;
@@ -199,12 +199,28 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> VehicleLoadFactor(int calendarId, int vehicleId)
+        public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId)
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
             ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
             return PartialView("_VehicleLoadFactor", await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Id).ToListAsync());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> VehicleActivity()
+        {
+            ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId)
+        {
+            ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
+            ViewData["calendar"] = await _calendarRepo.Get(calendarId);
+            ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
+            return PartialView("_VehicleActivity", await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId) && a.VehicleId.Equals(vehicleId)).OrderBy(a => a.Id).ToListAsync());
         }
     }
 }

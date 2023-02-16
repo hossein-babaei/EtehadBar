@@ -206,7 +206,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> GetUserListExceptDriversPartial(int? p, string name)
         {
-            var data = _userManager.Users.Where(a => a.Role != ApplicationRoleType.Driver && a.Status);
+            var data = _userManager.Users.Where(a => a.Status);
 
             if (!string.IsNullOrWhiteSpace(name))
                 data = data.Where(a => (a.Firstname + " " + a.Lastname).Contains(name) || a.Firstname.Contains(name) || a.Lastname.Contains(name));
@@ -494,7 +494,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        public PartialViewResult GetUserCreateForm(byte type)
+        public PartialViewResult GetUserCreateForm(ApplicationRoleType type)
         {
             ViewBag.type = type;
             return PartialView("~/Views/Admin/Create/User.cshtml");
@@ -540,7 +540,9 @@ namespace EtehadBar.MVC.Controllers
                     Gender = u.Gender,
                     Role = u.Role,
                     Status = true,
-                    UserName = u.Username
+                    UserName = u.Username,
+                    BankAccountNumber = u.BankAccountNumber,
+                    AccountBankName = u.AccountBankName
                 };
 
                 string[] b = u.BirthString.PersianToEnglish().Split('/');
@@ -572,115 +574,12 @@ namespace EtehadBar.MVC.Controllers
                 var create = await _userManager.CreateAsync(user, u.Password);
                 if (create.Succeeded)
                 {
-                    if (u.Role.Equals((byte)ApplicationRoleType.Admin))
-                    {
+                    if (u.Role == ApplicationRoleType.Admin)
                         await _userManager.AddToRoleAsync(user, "Admin");
-                    }
+                    else if (u.Role == ApplicationRoleType.RegisterUser)
+                        await _userManager.AddToRoleAsync(user, "RegisterUser");
                     else
-                    {
                         await _userManager.AddToRoleAsync(user, "User");
-                    }
-
-                    TempData["msg"] = "عملیات موفقیت آمیز بود |success";
-                    return RedirectToAction("Users");
-                }
-                else
-                {
-                    string error = "";
-                    foreach (var item in create.Errors)
-                    {
-                        if (item.Equals(create.Errors.Last()))
-                        {
-                            error = error + item.Code + " " + item.Description;
-                        }
-                        else
-                        {
-                            error = error + item.Code + " " + item.Description + " | ";
-                        }
-                    }
-                    TempData["msg"] = $"خطا در ذخیره اطلاعات و برقراری ارتباط با پایگاه داده رخ داده است. لطفا مجدد تلاش کنید. جزئیات: {error} |danger";
-                }
-            }
-            else
-            {
-                TempData["msg"] = "خطای اعتبار سنجی رخ داده است. لطفا فرم را بررسی کنید |danger";
-            }
-            return Redirect(Request.Headers["Referer"].ToString());
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> CreateDriver(CreateDriverVM u)
-        {
-            if (ModelState.IsValid)
-            {
-                u.NationalId = u.NationalId.PersianToEnglish();
-                if (!u.NationalId.isNumber())
-                {
-                    TempData["msg"] = "کد ملی وارد شده باید یک عدد باشد |danger";
-                    return Redirect(Request.Headers["Referer"].ToString());
-                }
-                if (await _userManager.Users.AnyAsync(a => a.NationalId.Equals(u.NationalId)))
-                {
-                    TempData["msg"] = "کد ملی وارد شده در سیستم وجود دارد |danger";
-                    return Redirect(Request.Headers["Referer"].ToString());
-                }
-
-                u.Username = u.Username.PersianToEnglish();
-                if (!u.Username.isNumber())
-                {
-                    TempData["msg"] = "شماره تلفن همراه وارد شده باید یک عدد باشد |danger";
-                    return Redirect(Request.Headers["Referer"].ToString());
-                }
-
-                if (await _userManager.Users.AnyAsync(a => a.PhoneNumber.Equals(u.Username)))
-                {
-                    TempData["msg"] = "شماره تلفن همراه وارد شده در سیستم ثبت شده است. |danger";
-                    return Redirect(Request.Headers["Referer"].ToString());
-                }
-
-                ApplicationUser user = new ApplicationUser
-                {
-                    Firstname = u.Firstname,
-                    Lastname = u.Lastname,
-                    NationalId = u.NationalId,
-                    PhoneNumber = u.Username,
-                    PhoneNumberConfirmed = true,
-                    Gender = u.Gender,
-                    Role = u.Role,
-                    Status = true,
-                    UserName = u.Username
-                };
-
-                string[] b = u.BirthString.PersianToEnglish().Split('/');
-                user.Birth = new PersianDateTime(Convert.ToInt32(b[0]), Convert.ToInt32(b[1]), Convert.ToInt32(b[2])).ToDateTime();
-
-                var validTypes = new string[] { "image/jpeg", "image/png" };
-                if (u.Pic != null)
-                {
-                    if (validTypes.Contains(u.Pic.ContentType))
-                    {
-                        if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\user")))
-                        {
-                            Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\user"));
-                        }
-                        var fileName = Path.GetRandomFileName() + Path.GetExtension(u.Pic.FileName).ToLower();
-                        using (var stream = new FileStream(Path.Combine(_environment.WebRootPath, "img\\user", fileName), FileMode.Create))
-                        {
-                            await u.Pic.CopyToAsync(stream);
-                        }
-                        user.Avatar = fileName;
-                    }
-                    else
-                    {
-                        TempData["msg"] = $"فرمت فایل های ارسالی مجاز نیست. باید png یا jpg ارسال شود. |danger";
-                        return Redirect(Request.Headers["Referer"].ToString());
-                    }
-                }
-
-                var create = await _userManager.CreateAsync(user);
-                if (create.Succeeded)
-                {
-                    await _userManager.AddToRoleAsync(user, "Driver");
 
                     TempData["msg"] = "عملیات موفقیت آمیز بود |success";
                     return RedirectToAction("Users");
@@ -2220,10 +2119,10 @@ namespace EtehadBar.MVC.Controllers
                     return RedirectToAction("Vehicle");
                 }
 
-                if (!await _userManager.Users.AsNoTracking().AnyAsync(a => a.Role.Equals(ApplicationRoleType.Driver)))
+                if (!await _driverRepository.Drivers().AnyAsync())
                 {
                     TempData["msg"] = "برای ثبت بارنامه، باید حداقل یک راننده ثبت نمائید. |danger";
-                    return RedirectToAction("Users");
+                    return RedirectToAction("Driver");
                 }
             }
             ViewData["Customer"] = await _customerRepo.GetAllActive();
@@ -2281,7 +2180,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Contracts"] = contracts;
 
             ViewData["Year"] = await _configRepo.CurrentYear();
-            ViewData["Drivers"] = await _userManager.GetUsersInRoleAsync("Driver");
+            ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["AccountBooks"] = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
@@ -2302,6 +2201,8 @@ namespace EtehadBar.MVC.Controllers
                     sequence = await _loadFactorRepo.GetBiggestSequenceInSazehGostar();
                     ViewData["Sequence"] = CalcNextSequenceForLoadFactor(sequence);
                     return PartialView("~/Views/Admin/Create/LoadFactor/SazehGostar.cshtml");
+                case (byte)CustomerType.MehrcomPars:
+                    return PartialView("~/Views/Admin/Create/LoadFactor/MehrcomPars.cshtml");
                 default:
                     return NoContent();
             }
@@ -2317,8 +2218,12 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) || a.LoadNumberGov.Equals(input.LoadNumberGov)))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
+
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                        return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
 
                 var config = await _configRepo.LoadFactorTax();
                 var loadFactor = new LoadFactor
@@ -2655,6 +2560,89 @@ namespace EtehadBar.MVC.Controllers
             return Json(new { msg, status, sequence = CalcNextSequenceForLoadFactor(input.Sequence) });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> CreateMehrcomParsLoadFactor(CMehrcomParsLoadFactorVM input)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                    return NotFound("شماره بارنامه درج شده تکراری است.");
+
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                        return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
+
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGovReturn))
+                    if (await _loadFactorRepo.CheckMehrcomParsLoadFactorGovNumber(input.LoadNumberGovReturn))
+                        return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
+
+                var config = await _configRepo.LoadFactorTax();
+                var loadFactor = new LoadFactor
+                {
+                    AdminId = _userManager.GetUserId(User),
+                    OriginId = fee.OriginId,
+                    DestinationId = fee.DestinationId,
+                    CalendarId = input.CalendarId,
+                    ContractId = input.ContractId,
+                    Date = new PersianDateTime(input.Year, input.Month, input.Day, 0, 0, 0).ToDateTime(),
+                    DriverId = input.DriverId,
+                    LoadNumber = input.LoadNumber,
+                    LoadNumberGov = input.LoadNumberGov,
+                    VehicleId = input.VehicleId,
+                    ShippingFeeId = input.ShippingFeeId,
+                    WithholdingTax = config.WithholdingTax,
+                    VAT = config.VAT,
+                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    AccountBookId = input.AccountBookId
+                };
+
+                if (fee.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    loadFactor.Amount = input.Amount;
+                    loadFactor.DriverFee = input.DriverFee;
+                }
+                else
+                {
+                    loadFactor.Amount = fee.Price;
+                    loadFactor.DriverFee = fee.DriverPrice;
+                }
+                loadFactor.MehrcomParsLoadFactor = new MehrcomParsLoadFactor
+                {
+                    Load = input.Load,
+                    LoadNumberGovReturn = input.LoadNumberGovReturn,
+                    Palette = input.Palette,
+                    WeighbridgePrice = input.WeighbridgePrice,
+                    Return = input.Return,
+                    LoadFactor = loadFactor,
+                    LoadFactorId = loadFactor.Id,
+                    Sequence = await _loadFactorRepo.BiggestSequenceInMehrcomPars()
+                };
+
+                _loadFactorRepo.Create(loadFactor);
+
+                try
+                {
+                    await _loadFactorRepo.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+            return Json(new { msg, status, sequence = 1 });
+        }
+
         [HttpGet]
         public async Task<IActionResult> EditLoadFactor(int loadFactorId)
         {
@@ -2667,7 +2655,7 @@ namespace EtehadBar.MVC.Controllers
             if (!contracts.Any()) return NotFound("قراردادی پیدا نشد.");
 
             ViewData["Contracts"] = contracts;
-            ViewData["Drivers"] = await _userManager.GetUsersInRoleAsync("Driver");
+            ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
@@ -2681,6 +2669,7 @@ namespace EtehadBar.MVC.Controllers
                 CustomerType.SaipaPlasco => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPlasco.cshtml", await _loadFactorRepo.GetSaipaPlascoLoadFactor(loadFactorId)),
                 CustomerType.SaipaPress => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPress.cshtml", await _loadFactorRepo.GetSaipaPressLoadFactor(loadFactorId)),
                 CustomerType.SazehGostar => PartialView("~/Views/Admin/Edit/LoadFactor/SazehGostar.cshtml", await _loadFactorRepo.GetSazehGostarLoadFactor(loadFactorId)),
+                CustomerType.MehrcomPars => PartialView("~/Views/Admin/Edit/LoadFactor/MehrcomPars.cshtml", await _loadFactorRepo.GetMehrcomParsLoadFactor(loadFactorId)),
                 _ => NoContent(),
             };
         }
@@ -2690,8 +2679,12 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && (a.LoadNumber.Equals(input.LoadNumber) || a.LoadNumberGov.Equals(input.LoadNumberGov))))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && (a.LoadNumber.Equals(input.LoadNumber))))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
+
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber)))
+                        return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
 
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
@@ -2857,6 +2850,72 @@ namespace EtehadBar.MVC.Controllers
                 item.SazehGostarLoadFactor.DetailedCostCenter = input.DetailedCostCenter;
                 item.SazehGostarLoadFactor.Nature = input.Nature;
                 item.SazehGostarLoadFactor.RegisterCode = input.RegisterCode;
+
+                if (fee.ShippingFeeType == ShippingFeeType.Custom)
+                {
+                    item.Amount = input.Amount;
+                    item.DriverFee = input.DriverFee;
+                }
+                else
+                {
+                    item.Amount = fee.Price;
+                    item.DriverFee = fee.DriverPrice;
+                }
+
+                _loadFactorRepo.Update(item);
+                try
+                {
+                    await _loadFactorRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditMehrcomParsLoadFactor(EMehrcomParsLoadFactorVM input)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && (a.LoadNumber.Equals(input.LoadNumber))))
+                    return NotFound("شماره بارنامه درج شده تکراری است.");
+
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber)))
+                        return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
+
+                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var item = await _loadFactorRepo.Get(input.Id);
+                if (item == null) return NotFound();
+
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDateTime = DateTime.Now;
+                item.OriginId = fee.OriginId;
+                item.DestinationId = fee.DestinationId;
+                item.CalendarId = input.CalendarId;
+                item.ContractId = input.ContractId;
+                item.Date = new PersianDateTime(input.Year, input.Month, input.Day, 0, 0, 0).ToDateTime();
+                item.DriverId = input.DriverId;
+                item.LoadNumber = input.LoadNumber;
+                item.LoadNumberGov = input.LoadNumberGov;
+                item.VehicleId = input.VehicleId;
+                item.ShippingFeeId = input.ShippingFeeId;
+                item.AccountBookId = input.AccountBookId;
+
+                item.MehrcomParsLoadFactor.LoadNumberGovReturn = input.LoadNumberGovReturn;
+                item.MehrcomParsLoadFactor.Return = input.Return;
+                item.MehrcomParsLoadFactor.Load = input.Load;
+                item.MehrcomParsLoadFactor.WeighbridgePrice = input.WeighbridgePrice;
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
@@ -3221,6 +3280,7 @@ namespace EtehadBar.MVC.Controllers
                     Lastname = c.Lastname,
                     Phonenumber = c.Phonenumber,
                     NationalNumber = c.NationalNumber,
+                    IsActive = c.IsActive,
                     CreatorId = _userManager.GetUserId(User)
                 });
                 try
@@ -3274,13 +3334,15 @@ namespace EtehadBar.MVC.Controllers
                 }
 
                 var item = await _driverRepository.Get(c.Id);
-                item.Firstname= c.Firstname;
-                item.Lastname= c.Lastname;
+                item.Firstname = c.Firstname;
+                item.Lastname = c.Lastname;
                 item.Phonenumber = c.Phonenumber;
                 item.NationalNumber = c.NationalNumber;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
                 item.IsActive = c.IsActive;
+                item.BankAccountNumber = c.BankAccountNumber;
+                item.AccountBankName = c.AccountBankName;
                 _driverRepository.Update(item);
                 try
                 {
@@ -3297,6 +3359,14 @@ namespace EtehadBar.MVC.Controllers
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> GetDriverListAsJson()
+        {
+            return Json(await _driverRepository.Drivers().AsNoTracking()
+                .Select(a => new { a.Firstname, a.Lastname, a.Id, a.NationalNumber })
+                .OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync());
         }
         #endregion
     }

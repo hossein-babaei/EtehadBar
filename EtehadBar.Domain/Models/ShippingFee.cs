@@ -43,6 +43,12 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
         public double? DriverTonnagePrice { get; set; }
 
+        [Display(Name = "نرخ خواب بار (ریال)")]
+        public double? LoadSleepPrice { get; set; }
+
+        [Display(Name = "نرخ خواب بار راننده (ریال)")]
+        public double? DriverLoadSleepPrice { get; set; }
+
         [Display(Name = "نوع نرخ")]
         public ShippingFeeType ShippingFeeType { get; set; } = ShippingFeeType.Normal;
 

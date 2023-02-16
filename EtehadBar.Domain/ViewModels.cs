@@ -506,4 +506,32 @@ namespace EtehadBar.Domain
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerId { get; set; }
     }
+
+    public class VehicleActivityVM
+    {
+        public string DriverName { get; set; }
+        public long OriginId { get; set; }
+        public long DestinationId { get; set; }
+
+        [Display(Name = "مبدأ")]
+        public string OriginTitle { get; set; }
+
+        [Display(Name = "مقصد")]
+        public string DestionationTitle { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "تعداد")]
+        public int Count { get; set; }
+    }
 }

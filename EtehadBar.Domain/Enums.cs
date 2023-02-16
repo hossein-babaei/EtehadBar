@@ -8,7 +8,8 @@
     public enum ApplicationRoleType
     {
         Admin,
-        User
+        User,
+        RegisterUser
     }
 
     public enum PaymentType

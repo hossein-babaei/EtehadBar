@@ -1,10 +1,10 @@
 ﻿@model CreateUserVM
 @{
     var type = "مدیر سیستم";
-    if (ViewBag.type == (byte)ApplicationRoleType.User)
-    {
+    if (ViewBag.type == ApplicationRoleType.User)
         type = "کاربر سیستم";
-    }
+    else if (ViewBag.type == ApplicationRoleType.RegisterUser)
+        type = "کاربر ثبت";
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">

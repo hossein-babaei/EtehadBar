@@ -86,11 +86,10 @@ namespace EtehadBar.Domain.Models
         public virtual Calendar Calendar { get; set; }
 
         [Required]
-        [StringLength(450)]
         [Display(Name = "راننده")]
         [ForeignKey("ApplicationUser")]
-        public string DriverId { get; set; }
-        public virtual ApplicationUser ApplicationUser { get; set; }
+        public long DriverId { get; set; }
+        public virtual Driver Driver { get; set; }
 
         [Required]
         [Display(Name = "خودرو")]

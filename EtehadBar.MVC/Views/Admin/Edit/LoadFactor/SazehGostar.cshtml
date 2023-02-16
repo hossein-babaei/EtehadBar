@@ -2,7 +2,7 @@
 @{
     var fees = (List<ShippingFee>)ViewData["Fees"];
     var contract = (List<Contract>)ViewData["Contracts"];
-    var drivers = (List<ApplicationUser>)ViewData["Drivers"];
+    var drivers = (List<Driver>)ViewData["Drivers"];
     var vehicles = (List<Vehicle>)ViewData["Vehicles"];
     var calendars = (List<Calendar>)ViewData["Calendars"];
     var currentFee = fees.Where(a => a.Id.Equals(Model.ShippingFeeId)).First();
@@ -81,7 +81,7 @@
                     <select asp-for="DriverId" class="uk-select uk-border-rounded">
                         @foreach (var item in drivers)
                         {
-                            <!option value="@item.Id" @if (item.Id.Equals(Model.DriverId)) { <text> selected="selected" </text> }>@item.Firstname @item.Lastname (@item.NationalId)</!option>
+                            <!option value="@item.Id" @if (item.Id.Equals(Model.DriverId)) { <text> selected="selected" </text> }>@item.Firstname @item.Lastname (@item.NationalNumber)</!option>
                         }
                     </select>
                     <span asp-validation-for="DriverId" class="uk-text-danger"></span>

@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain.Models
@@ -44,6 +45,8 @@ namespace EtehadBar.Domain.Models
         public string CreatorId { get; set; }
         public DateTime? EditDatetime { get; set; }
         public string EditorId { get; set; }
+
+        public virtual ICollection<LoadFactor> LoadFactors { get; set; }
 
         [Required]
         [StringLength(36)]

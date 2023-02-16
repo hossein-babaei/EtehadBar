@@ -176,7 +176,7 @@ namespace EtehadBar.Infra.Data.Repository
             };
         }
 
-        public async Task<List<LoadFactor>> LoadFactors(long customerId, long? calendarId, long? accountBookId)
+        public async Task<List<LoadFactor>> LoadFactors(long customerId, long? calendarId, long? accountBookId, long? driverId)
         {
             if (!calendarId.HasValue)
             {
@@ -184,10 +184,9 @@ namespace EtehadBar.Infra.Data.Repository
                            join b in db.Contract on a.ContractId equals b.Id
                            where b.CustomerId.Equals(customerId)
                            select a;
-                if (accountBookId.HasValue)
-                    return await data.Where(a => a.AccountBookId.Equals(accountBookId.Value)).OrderBy(a => a.Date).ToListAsync();
-                else
-                    return await data.OrderBy(a => a.Date).ToListAsync();
+
+                return await data.Where(a => accountBookId.HasValue ? a.AccountBookId.Equals(accountBookId.Value) : true &&
+                driverId.HasValue ? a.DriverId.Equals(driverId.Value) : true).OrderBy(a => a.Date).ToListAsync();
             }
             else
             {
@@ -195,10 +194,9 @@ namespace EtehadBar.Infra.Data.Repository
                            join b in db.Contract on a.ContractId equals b.Id
                            where a.CalendarId.Equals(calendarId.Value) && b.CustomerId.Equals(customerId)
                            select a;
-                if (accountBookId.HasValue)
-                    return await data.Where(a => a.AccountBookId.Equals(accountBookId.Value)).OrderBy(a => a.Date).ToListAsync();
-                else
-                    return await data.OrderBy(a => a.Date).ToListAsync();
+
+                return await data.Where(a => accountBookId.HasValue ? a.AccountBookId.Equals(accountBookId.Value) : true &&
+                driverId.HasValue ? a.DriverId.Equals(driverId.Value) : true).OrderBy(a => a.Date).ToListAsync();
             }
         }
 
@@ -226,6 +224,14 @@ namespace EtehadBar.Infra.Data.Repository
                 return 0;
         }
 
+        public async Task<long> GetBiggestSequenceInMehrcomPars()
+        {
+            if (await db.MehrcomParsLoadFactor.AsNoTracking().AnyAsync())
+                return await db.MehrcomParsLoadFactor.AsNoTracking().MaxAsync(a => a.Sequence);
+            else
+                return 0;
+        }
+
         public async Task<bool> SequenceExistInSaipaPlasco(long id, long sequence)
         {
             return await db.SaipaPlascoLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.Id.Equals(id));
@@ -239,6 +245,66 @@ namespace EtehadBar.Infra.Data.Repository
         public async Task<bool> SequenceExistInSazehGostar(long id, long sequence)
         {
             return await db.SazehGostarLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.Id.Equals(id));
+        }
+
+        public async Task<EMehrcomParsLoadFactorVM> GetMehrcomParsLoadFactor(long loadFactorId)
+        {
+            var loadFactor = await db.LoadFactor.SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
+            if (loadFactor == null) return new EMehrcomParsLoadFactorVM();
+
+            var pd = new PersianDateTime(loadFactor.Date);
+            return new EMehrcomParsLoadFactorVM
+            {
+                Id = loadFactor.Id,
+                CalendarId = loadFactor.CalendarId,
+                ContractId = loadFactor.ContractId,
+                Day = pd.Day,
+                Month = pd.Month,
+                Year = pd.Year,
+                DriverId = loadFactor.DriverId,
+                LoadNumber = loadFactor.LoadNumber,
+                ShippingFeeId = loadFactor.ShippingFeeId,
+                VehicleId = loadFactor.VehicleId,
+                Amount = loadFactor.Amount,
+                DriverFee = loadFactor.DriverFee,
+                AccountBookId = loadFactor.AccountBookId,
+                Load = loadFactor.MehrcomParsLoadFactor.Load,
+                LoadNumberGov= loadFactor.LoadNumberGov,
+                LoadNumberGovReturn = loadFactor.MehrcomParsLoadFactor.LoadNumberGovReturn,
+                Palette = loadFactor.MehrcomParsLoadFactor.Palette,
+                Return = loadFactor.MehrcomParsLoadFactor.Return,
+                WeighbridgePrice = loadFactor.MehrcomParsLoadFactor.WeighbridgePrice
+            };
+        }
+
+        public async Task<bool> SequenceExistInMehrcomPars(long id, long sequence)
+        {
+            return await db.MehrcomParsLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.Id.Equals(id));
+        }
+
+        public async Task<bool> CheckMehrcomParsLoadFactorGovNumber(string number)
+        {
+            return await db.MehrcomParsLoadFactor.AsNoTracking().AnyAsync(a => a.LoadNumberGovReturn.Equals(number));
+        }
+
+        public void UpdateMehrcomPars(MehrcomParsLoadFactor obj)
+        {
+            db.Update(obj);
+        }
+
+        public void CreateMehrcomPars(MehrcomParsLoadFactor obj)
+        {
+            db.Add(obj);
+        }
+
+        public void DeleteMehrcomPars(MehrcomParsLoadFactor obj)
+        {
+            db.Remove(obj);
+        }
+
+        public async Task<long> BiggestSequenceInMehrcomPars()
+        {
+            return await db.MehrcomParsLoadFactor.AsNoTracking().MaxAsync(a => a.Sequence);
         }
     }
 }
