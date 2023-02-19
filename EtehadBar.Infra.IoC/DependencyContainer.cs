@@ -23,6 +23,7 @@ namespace EtehadBar.Infra.IoC
             services.AddScoped<IShippingFeeLoadTypeRepository, ShippingFeeLoadTypeRepository>();
             services.AddScoped<ILoadRoutesRepository, LoadRoutesRepository>();
             services.AddScoped<IDriverRepository, DriverRepository>();
+            services.AddScoped<IMehrcomParsCategoryRepository, MehrcomParsCategoryRepository>();
 
             return services;
         }

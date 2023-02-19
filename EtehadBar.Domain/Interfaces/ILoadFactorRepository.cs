@@ -26,17 +26,18 @@ namespace EtehadBar.Domain.Interfaces
         void Update(LoadFactor obj);
         void UpdateSaipaPress(SaipaPressLoadFactor obj);
         void UpdateSazehGostar(SazehGostarLoadFactor obj);
+        void UpdateSaipaPlasco(SaipaPlascoLoadFactor obj);
         void UpdateMehrcomPars(MehrcomParsLoadFactor obj);
         void UpdateRange(List<LoadFactor> list);
         void Create(LoadFactor obj);
         void CreateSaipaPress(SaipaPressLoadFactor obj);
         void CreateSazehGostar(SazehGostarLoadFactor obj);
+        void CreateSaipaPlasco(SaipaPlascoLoadFactor obj);
         void CreateMehrcomPars(MehrcomParsLoadFactor obj);
         void Delete(LoadFactor obj);
         void DeleteSaipaPress(SaipaPressLoadFactor obj);
         void DeleteSazehGostar(SazehGostarLoadFactor obj);
         void DeleteMehrcomPars(MehrcomParsLoadFactor obj);
-        Task<long> BiggestSequenceInMehrcomPars();
         Task<int> Save();
     }
 }

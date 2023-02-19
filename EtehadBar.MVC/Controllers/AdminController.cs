@@ -42,6 +42,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IShippingFeeLoadTypeRepository _shippingFeeLoadTypeRepo;
         private readonly ILoadRoutesRepository _loadRouteRepo;
         private readonly IDriverRepository _driverRepository;
+        private readonly IMehrcomParsCategoryRepository _mehrcomParsCategoryRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -61,7 +62,8 @@ namespace EtehadBar.MVC.Controllers
             UserManager<ApplicationUser> userManager,
             IShippingFeeLoadTypeRepository shippingFeeLoadTypeRepo,
             ILoadRoutesRepository loadRouteRepo,
-            IDriverRepository driverRepository)
+            IDriverRepository driverRepository,
+            IMehrcomParsCategoryRepository mehrcomParsCategoryRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -81,6 +83,7 @@ namespace EtehadBar.MVC.Controllers
             _shippingFeeLoadTypeRepo = shippingFeeLoadTypeRepo;
             _loadRouteRepo = loadRouteRepo;
             _driverRepository = driverRepository;
+            _mehrcomParsCategoryRepository = mehrcomParsCategoryRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -1788,7 +1791,7 @@ namespace EtehadBar.MVC.Controllers
             };
             ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.DefinitionType)).ToListAsync();
             ViewData["LoadRoutes"] = await _loadRouteRepo.LoadRoutes().AsNoTracking().ToListAsync();
-            ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().Where(a => a.Id > 0).AsNoTracking().ToListAsync();
+            ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().ToListAsync();
 
             return PartialView("~/Views/Admin/Create/ShippingFee.cshtml");
         }
@@ -1804,7 +1807,7 @@ namespace EtehadBar.MVC.Controllers
                     return Json(new { msg = "مبدا و مقصد نمی تواند یکی باشد.", status });
 
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
-                    .AnyAsync(a => a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice)))
+                    .AnyAsync(a => a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice) && a.Title.Equals(s.Title)))
                     return Json(new { msg = "نرخ حمل و نقل ثبت شده تکراری است.", status });
 
                 if (s.ShippingFeeType == ShippingFeeType.Custom)
@@ -1862,7 +1865,7 @@ namespace EtehadBar.MVC.Controllers
                 }
 
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
-                    .AnyAsync(a => !a.Id.Equals(s.Id) && a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice)))
+                    .AnyAsync(a => !a.Id.Equals(s.Id) && a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice) && a.Title.Equals(s.Title)))
                 {
                     TempData["msg"] = "نرخ حمل و نقل ثبت شده تکراری است. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
@@ -2202,6 +2205,7 @@ namespace EtehadBar.MVC.Controllers
                     ViewData["Sequence"] = CalcNextSequenceForLoadFactor(sequence);
                     return PartialView("~/Views/Admin/Create/LoadFactor/SazehGostar.cshtml");
                 case (byte)CustomerType.MehrcomPars:
+                    ViewData["Categories"] = await _mehrcomParsCategoryRepository.Categories().AsNoTracking().OrderBy(a => a.Title).ToListAsync();
                     return PartialView("~/Views/Admin/Create/LoadFactor/MehrcomPars.cshtml");
                 default:
                     return NoContent();
@@ -2258,7 +2262,6 @@ namespace EtehadBar.MVC.Controllers
                 }
                 loadFactor.SaipaPlascoLoadFactor = new SaipaPlascoLoadFactor
                 {
-                    LoadFactorId = loadFactor.Id,
                     LoadFactor = loadFactor,
                     Sequence = input.Sequence
                 };
@@ -2579,7 +2582,7 @@ namespace EtehadBar.MVC.Controllers
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGovReturn))
                     if (await _loadFactorRepo.CheckMehrcomParsLoadFactorGovNumber(input.LoadNumberGovReturn))
-                        return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
+                        return NotFound("شماره بارنامه برگشتی درج شده تکراری است.");
 
                 var config = await _configRepo.LoadFactorTax();
                 var loadFactor = new LoadFactor
@@ -2620,7 +2623,10 @@ namespace EtehadBar.MVC.Controllers
                     Return = input.Return,
                     LoadFactor = loadFactor,
                     LoadFactorId = loadFactor.Id,
-                    Sequence = await _loadFactorRepo.BiggestSequenceInMehrcomPars()
+                    LoadSleepTime = input.LoadSleepTime,
+                    LoadSleepPrice = input.LoadSleepPrice,
+                    DriverLoadSleepPrice = input.DriverLoadSleepPrice,
+                    Sequence = await _loadFactorRepo.GetBiggestSequenceInMehrcomPars()
                 };
 
                 _loadFactorRepo.Create(loadFactor);
@@ -2661,6 +2667,8 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
             if (customer.CustomerType == CustomerType.SaipaPress)
                 ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
+            else if (customer.CustomerType == CustomerType.MehrcomPars)
+                ViewData["Categories"] = await _mehrcomParsCategoryRepository.Categories().AsNoTracking().OrderBy(a => a.Title).ToListAsync();
 
             ViewData["AccountBooks"] = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customer.Id)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
 
@@ -2692,7 +2700,7 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                if (await _loadFactorRepo.SequenceExistInSaipaPlasco(item.SaipaPlascoLoadFactorId.Value, input.Sequence))
+                if (await _loadFactorRepo.SequenceExistInSaipaPlasco(item.Id, input.Sequence))
                     return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
                 item.EditorId = _userManager.GetUserId(User);
@@ -2758,7 +2766,7 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                if (await _loadFactorRepo.SequenceExistInSaipaPress(item.SaipaPressLoadFactorId.Value, input.Sequence))
+                if (await _loadFactorRepo.SequenceExistInSaipaPress(item.Id, input.Sequence))
                     return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
                 item.EditorId = _userManager.GetUserId(User);
@@ -2827,7 +2835,7 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                if (await _loadFactorRepo.SequenceExistInSazehGostar(item.SazehGostarLoadFactorId.Value, input.Sequence))
+                if (await _loadFactorRepo.SequenceExistInSazehGostar(item.Id, input.Sequence))
                     return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
                 item.EditorId = _userManager.GetUserId(User);
@@ -3367,6 +3375,90 @@ namespace EtehadBar.MVC.Controllers
             return Json(await _driverRepository.Drivers().AsNoTracking()
                 .Select(a => new { a.Firstname, a.Lastname, a.Id, a.NationalNumber })
                 .OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync());
+        }
+        #endregion
+
+        #region MehrcomParsCategory
+        [HttpGet]
+        public async Task<IActionResult> MehrcomParsCategory(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _mehrcomParsCategoryRepository.Categories().OrderBy(a => a.Title).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        public PartialViewResult CreateMehrcomParsCategory()
+        {
+            return PartialView("~/Views/Admin/Create/MehrcomParsCategory.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateMehrcomParsCategory(MehrcomParsCategory v)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _mehrcomParsCategoryRepository.Categories().AnyAsync(a => a.Title.Equals(v.Title)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. عنوان در سیستم وجود دارد. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                _mehrcomParsCategoryRepository.Create(v);
+                try
+                {
+                    await _mehrcomParsCategoryRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditMehrcomParsCategory(int id)
+        {
+            return PartialView("~/Views/Admin/Edit/MehrcomParsCategory.cshtml", await _mehrcomParsCategoryRepository.Get(id));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditMehrcomParsCategory(MehrcomParsCategory v)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _mehrcomParsCategoryRepository.Categories().AnyAsync(a => a.Title.Equals(v.Title)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. نام در سیستم وجود دارد. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = await _mehrcomParsCategoryRepository.Get(v.Id);
+                item.Title = v.Title;
+
+                _mehrcomParsCategoryRepository.Update(item);
+                try
+                {
+                    await _mehrcomParsCategoryRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion
     }

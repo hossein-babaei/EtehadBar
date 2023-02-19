@@ -56,13 +56,14 @@
             @*<li @if (param == 15) { <text> class="active" </text> }><a asp-action="PaymentByDriver" asp-controller="Report">حقوق و مساعده جزء</a></li>*@
         </ul>
     </li>
-    <li class="uk-parent @if (param == 2 || param == 30 || param == 31 || param == 22) { <text>uk-open</text> }">
+    <li class="uk-parent @if (param == 2 || param == 30 || param == 31 || param == 22 || param == 32) { <text>uk-open</text> }">
         <a><i class="uk-margin-left fas fa-folder-plus"></i>تعاریف سیستم</a>
         <ul class="uk-nav-sub">
             <li @if (param == 31) { <text> class="active" </text> }><a asp-action="LoadRoute" asp-controller="Admin"><i class="uk-margin-left fas fa-route"></i>مسیر ها</a></li>
             <li @if (param == 30) { <text> class="active" </text> }><a asp-action="ShippingFeeLoadType" asp-controller="Admin"><i class="uk-margin-left fas fa-boxes"></i>نوع بار</a></li>
             <li @if (param == 2) { <text> class="active" </text> }><a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-trailer"></i>نوع خودرو</a></li>
             <li @if (param == 22) { <text> class="active" </text> }><a asp-action="Driver" asp-controller="Admin"><i class="uk-margin-left fas fa-trailer"></i>راننده</a></li>
+            <li @if (param == 32) { <text> class="active" </text> }><a asp-action="MehrcomParsCategory" asp-controller="Admin"><i class="uk-margin-left fas fa-trailer"></i>دسته بندی مهرکام پارس</a></li>
         </ul>
     </li>
 </ul>

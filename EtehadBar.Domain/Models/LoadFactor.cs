@@ -102,20 +102,9 @@ namespace EtehadBar.Domain.Models
         public long AccountBookId { get; set; }
         public virtual AccountBook AccountBook { get; set; }
 
-        [ForeignKey(nameof(MehrcomParsLoadFactor))]
-        public long? MehrcomParsLoadFactorId { get; set; }
         public virtual MehrcomParsLoadFactor MehrcomParsLoadFactor { get; set; }
-
-        [ForeignKey(nameof(SaipaPlascoLoadFactor))]
-        public long? SaipaPlascoLoadFactorId { get; set; }
         public virtual SaipaPlascoLoadFactor SaipaPlascoLoadFactor { get; set; }
-
-        [ForeignKey(nameof(SaipaPressLoadFactor))]
-        public long? SaipaPressLoadFactorId { get; set; }
         public virtual SaipaPressLoadFactor SaipaPressLoadFactor { get; set; }
-
-        [ForeignKey(nameof(SazehGostarLoadFactor))]
-        public long? SazehGostarLoadFactorId { get; set; }
         public virtual SazehGostarLoadFactor SazehGostarLoadFactor { get; set; }
 
         [Required]

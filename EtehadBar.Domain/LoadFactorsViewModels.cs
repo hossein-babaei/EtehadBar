@@ -537,6 +537,33 @@ namespace EtehadBar.Domain
 
         [Display(Name = "نرخ باسکول")]
         public double? WeighbridgePrice { get; set; }
+
+        [Display(Name = "میزان خواب (دقیقه)")]
+        public double? LoadSleepTime { get; set; }
+
+        [Display(Name = "مبلغ دریافتی خواب")]
+        public double? LoadSleepPrice { get; set; }
+
+        [Display(Name = "مبلغ پرداختی خواب")]
+        public double? DriverLoadSleepPrice { get; set; }
+
+        [Display(Name = "دسته بندی")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CategoryId { get; set; }
+
+        [Display(Name = "نوع بار")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128)]
+        public string LoadType { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; } = 0;
     }
 
     public class EMehrcomParsLoadFactorVM
@@ -608,5 +635,32 @@ namespace EtehadBar.Domain
 
         [Display(Name = "نرخ باسکول")]
         public double? WeighbridgePrice { get; set; }
+
+        [Display(Name = "میزان خواب (دقیقه)")]
+        public double? LoadSleepTime { get; set; }
+
+        [Display(Name = "مبلغ دریافتی خواب")]
+        public double? LoadSleepPrice { get; set; }
+
+        [Display(Name = "مبلغ پرداختی خواب")]
+        public double? DriverLoadSleepPrice { get; set; }
+
+        [Display(Name = "دسته بندی")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CategoryId { get; set; }
+
+        [Display(Name = "نوع بار")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128)]
+        public string LoadType { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; } = 0;
     }
 }

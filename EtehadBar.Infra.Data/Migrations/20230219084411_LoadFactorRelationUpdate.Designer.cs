@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230219084411_LoadFactorRelationUpdate")]
+    partial class LoadFactorRelationUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -813,32 +815,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.ToTable("LoadRoute", "dbo");
                 });
 
-            modelBuilder.Entity("EtehadBar.Domain.Models.MehrcomParsCategory", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
-                    b.Property<string>("RowId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RowId")
-                        .IsUnique();
-
-                    b.ToTable("MehrcomParsCategory", "dbo");
-                });
-
             modelBuilder.Entity("EtehadBar.Domain.Models.MehrcomParsLoadFactor", b =>
                 {
                     b.Property<long>("Id")
@@ -846,9 +822,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
-                    b.Property<long>("CategoryId")
-                        .HasColumnType("bigint");
 
                     b.Property<double?>("DriverLoadSleepPrice")
                         .HasColumnType("float");
@@ -868,11 +841,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<double?>("LoadSleepTime")
                         .HasColumnType("float");
 
-                    b.Property<string>("LoadType")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
                     b.Property<bool>("Palette")
                         .HasColumnType("bit");
 
@@ -891,8 +859,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("float");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
 
                     b.HasIndex("LoadFactorId")
                         .IsUnique();
@@ -1568,19 +1534,11 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.MehrcomParsLoadFactor", b =>
                 {
-                    b.HasOne("EtehadBar.Domain.Models.MehrcomParsCategory", "Category")
-                        .WithMany("LoadFactors")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("EtehadBar.Domain.Models.LoadFactor", "LoadFactor")
                         .WithOne("MehrcomParsLoadFactor")
                         .HasForeignKey("EtehadBar.Domain.Models.MehrcomParsLoadFactor", "LoadFactorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Category");
 
                     b.Navigation("LoadFactor");
                 });
@@ -1782,11 +1740,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("SaipaPressLoadFactor");
 
                     b.Navigation("SazehGostarLoadFactor");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.MehrcomParsCategory", b =>
-                {
-                    b.Navigation("LoadFactors");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Vehicle", b =>

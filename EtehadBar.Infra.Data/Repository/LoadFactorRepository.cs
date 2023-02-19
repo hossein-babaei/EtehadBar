@@ -234,17 +234,17 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<bool> SequenceExistInSaipaPlasco(long id, long sequence)
         {
-            return await db.SaipaPlascoLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.Id.Equals(id));
+            return await db.SaipaPlascoLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.LoadFactorId.Equals(id));
         }
 
         public async Task<bool> SequenceExistInSaipaPress(long id, long sequence)
         {
-            return await db.SaipaPressLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.Id.Equals(id));
+            return await db.SaipaPressLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.LoadFactorId.Equals(id));
         }
 
         public async Task<bool> SequenceExistInSazehGostar(long id, long sequence)
         {
-            return await db.SazehGostarLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.Id.Equals(id));
+            return await db.SazehGostarLoadFactor.AsNoTracking().AnyAsync(a => a.Sequence.Equals(sequence) && !a.LoadFactorId.Equals(id));
         }
 
         public async Task<EMehrcomParsLoadFactorVM> GetMehrcomParsLoadFactor(long loadFactorId)
@@ -302,9 +302,14 @@ namespace EtehadBar.Infra.Data.Repository
             db.Remove(obj);
         }
 
-        public async Task<long> BiggestSequenceInMehrcomPars()
+        public void UpdateSaipaPlasco(SaipaPlascoLoadFactor obj)
         {
-            return await db.MehrcomParsLoadFactor.AsNoTracking().MaxAsync(a => a.Sequence);
+            db.Update(obj);
+        }
+
+        public void CreateSaipaPlasco(SaipaPlascoLoadFactor obj)
+        {
+            db.Add(obj);
         }
     }
 }

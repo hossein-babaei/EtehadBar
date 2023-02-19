@@ -107,8 +107,10 @@
                     url = '@Url.Action("CreateSaipaPlascoLoadFactor")';
                 } else if (type == @((byte)CustomerType.SaipaPress)) {
                     url = '@Url.Action("CreateSaipaPressLoadFactor")';
-                } else {
+                } else if (type == @((byte)CustomerType.SazehGostar)) {
                     url = '@Url.Action("CreateSazehGostarLoadFactor")';
+                } else {
+                    url = '@Url.Action("CreateMehrcomParsLoadFactor")';
                 }
                 $.ajax({
                     type: 'POST',
@@ -173,7 +175,7 @@
             if (type == '@ShippingFeeType.Normal' && lastType != '@ShippingFeeType.Normal') {
                 $(select).parent().next().remove();
                 $(select).parent().next().remove();
-                if (customerType == '@CustomerType.SaipaPress') {
+                if (customerType == '@CustomerType.SaipaPress' || customerType == '@CustomerType.MehrcomPars') {
                     $(select).parent().next().remove();
                     $(select).parent().next().remove();
                 }
@@ -188,7 +190,7 @@
                         <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="DriverFee" name="DriverFee" value="">
                         <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverFee" data-valmsg-replace="true"></span>
                     </div>
-                    ${customerType == '@CustomerType.SaipaPress' ?
+                    ${(customerType == '@CustomerType.SaipaPress'  || customerType == '@CustomerType.MehrcomPars') ?
                     `<div class="uk-grid-margin uk-first-column">
                         <label class="uk-form-label" for="TonnagePrice">نرخ تناژ اضافه (ریال)</label>
                         <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="TonnagePrice" name="TonnagePrice" value="">

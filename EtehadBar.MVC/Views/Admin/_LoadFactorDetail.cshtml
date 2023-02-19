@@ -24,28 +24,28 @@
             }
             </div>
             </div>*@
-            @if (Model.SaipaPlascoLoadFactorId.HasValue)
+            @if (Model.SaipaPlascoLoadFactor is not null)
             {
                 <div>
                     <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.SaipaPlascoLoadFactor.Sequence)</p>
                     <span class="sm">@Html.DisplayFor(model => model.SaipaPlascoLoadFactor.Sequence)</span>
                 </div>
             }
-            else if (Model.SaipaPressLoadFactorId.HasValue)
+            else if (Model.SaipaPressLoadFactor is not null)
             {
                 <div>
                     <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.SaipaPressLoadFactor.Sequence)</p>
                     <span class="sm">@Html.DisplayFor(model => model.SaipaPressLoadFactor.Sequence)</span>
                 </div>
             }
-            else if (Model.SazehGostarLoadFactorId.HasValue)
+            else if (Model.SazehGostarLoadFactor is not null)
             {
                 <div>
                     <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.SazehGostarLoadFactor.Sequence)</p>
                     <span class="sm">@Html.DisplayFor(model => model.SazehGostarLoadFactor.Sequence)</span>
                 </div>
             }
-            else if (Model.MehrcomParsLoadFactorId.HasValue)
+            else if (Model.MehrcomParsLoadFactor is not null)
             {
                 <div>
                     <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.MehrcomParsLoadFactor.Sequence)</p>
