@@ -1,4 +1,7 @@
 ﻿@model MehrcomParsCategory
+@{
+    var sequence = (int)ViewData["Sequence"];
+}
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
         <h2 class="uk-modal-title">افزودن جدید</h2>
@@ -7,6 +10,11 @@
         <form id="create-form" asp-action="CreateMehrcomParsCategory" method="post">
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="Sequence" class="uk-form-label"></label>
+                    <input asp-for="Sequence" dir="ltr" class="uk-input uk-border-rounded" value="@sequence" />
+                    <span asp-validation-for="Sequence" class="uk-text-danger"></span>
+                </div>
                 <div>
                     <label asp-for="Title" class="uk-form-label"></label>
                     <input asp-for="Title" class="uk-input uk-border-rounded" />

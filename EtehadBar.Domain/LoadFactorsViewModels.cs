@@ -625,13 +625,13 @@ namespace EtehadBar.Domain
         public long AccountBookId { get; set; }
 
         [Display(Name = "بار")]
-        public bool Load { get; set; } = false;
+        public bool Load { get; set; }
 
         [Display(Name = "پالت")]
-        public bool Palette { get; set; } = false;
+        public bool Palette { get; set; }
 
         [Display(Name = "برگشتی")]
-        public bool Return { get; set; } = false;
+        public bool Return { get; set; }
 
         [Display(Name = "نرخ باسکول")]
         public double? WeighbridgePrice { get; set; }

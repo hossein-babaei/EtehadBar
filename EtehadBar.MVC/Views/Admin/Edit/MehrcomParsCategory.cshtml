@@ -10,6 +10,11 @@
             <input asp-for="Id" type="hidden" />
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
                 <div>
+                    <label asp-for="Sequence" class="uk-form-label"></label>
+                    <input asp-for="Sequence" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Sequence" class="uk-text-danger"></span>
+                </div>
+                <div>
                     <label asp-for="Title" class="uk-form-label"></label>
                     <input asp-for="Title" class="uk-input uk-border-rounded" />
                     <span asp-validation-for="Title" class="uk-text-danger"></span>

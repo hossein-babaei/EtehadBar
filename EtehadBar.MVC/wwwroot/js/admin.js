@@ -52,6 +52,10 @@ function numberWithCommas(n) {
     return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+function checkboxBoolean(checkbox) {
+    $(checkbox).val($(checkbox).is(':checked'));
+}
+
 $(document).ready(function () {
     new StickySidebar('#sidebar', {
         containerSelector: '#main-content',

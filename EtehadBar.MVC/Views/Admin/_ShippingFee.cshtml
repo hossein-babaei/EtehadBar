@@ -42,13 +42,13 @@
                     <td>@item.Origin.Title</td>
                     <td>@item.Destination.Title</td>
                     <td>@type</td>
-                    @if (!item.ShippingFeeLoadTypeId.Equals(-1))
+                    @if (contractInfo.Customer.HasLoadType)
                     {
                         <td>@item.ShippingFeeLoadType.Name</td>
                     }
                     <td>@item.Price.ToString("N0")</td>
                     <td>@item.DriverPrice.ToString("N0")</td>
-                    @if (item.TonnagePrice.HasValue)
+                    @if (contractInfo.Customer.HasAddonTonnage)
                     {
                         <td>@(item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : "---")</td>
                         <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>

@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
@@ -23,6 +24,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IPaymentRepository _paymentRepo;
         private readonly IVehicleRepository _vehicleRepo;
         private readonly IAccountBookRepository _accountBookRepo;
+        private readonly IMehrcomParsCategoryRepository _mehrcomParsCategoryRepository;
 
         public ExcelController(
             ICalendarRepository calendarRepository,
@@ -31,7 +33,8 @@ namespace EtehadBar.MVC.Controllers
             ILoadFactorRepository loadFactorRepository,
             IPaymentRepository paymentRepository,
             IVehicleRepository vehicleRepository,
-            IAccountBookRepository accountBookRepo)
+            IAccountBookRepository accountBookRepo,
+            IMehrcomParsCategoryRepository mehrcomParsCategoryRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -40,6 +43,7 @@ namespace EtehadBar.MVC.Controllers
             _paymentRepo = paymentRepository;
             _vehicleRepo = vehicleRepository;
             _accountBookRepo = accountBookRepo;
+            _mehrcomParsCategoryRepository = mehrcomParsCategoryRepository;
         }
 
         public async Task<IActionResult> Detailed(long calendarId)
@@ -520,7 +524,8 @@ namespace EtehadBar.MVC.Controllers
                 ("N", 14),
                 ("O", 15),
                 ("P", 16),
-                ("Q", 17)
+                ("Q", 17),
+                ("R", 18)
             };
 
             if (customer.CustomerType.Equals(CustomerType.SaipaPlasco))
@@ -1054,7 +1059,7 @@ namespace EtehadBar.MVC.Controllers
 
                 return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
             }
-            else
+            else if (customer.CustomerType.Equals(CustomerType.SaipaPress))
             {
                 using var workbook = new XLWorkbook();
 
@@ -1088,6 +1093,225 @@ namespace EtehadBar.MVC.Controllers
                 workbook.SaveAs(stream);
                 var content = stream.ToArray();
 
+                return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
+            }
+            else
+            {
+                using var workbook = new XLWorkbook();
+
+                if (accountBookId.HasValue)
+                {
+                    var ws = workbook.Worksheets.Add($"1");
+                    ws.RightToLeft = true;
+                    ws.Style.Font.FontName = "B Nazanin";
+                    ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+                    ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+                    ws.Cell("A4").Value = "ردیف";
+                    ws.Cell("B4").Value = "شماره زونکن";
+                    ws.Cell("C4").Value = "تاریخ";
+                    ws.Cell("D4").Value = "شماره بارنامه داخلی";
+                    ws.Cell("E4").Value = "نوع خودرو";
+                    ws.Cell("F4").Value = "نام راننده";
+                    ws.Cell("G4").Value = "شماره خودرو";
+                    ws.Cell("H4").Value = "مبدا";
+                    ws.Cell("I4").Value = "مقصد";
+                    ws.Cell("J4").Value = "دولتی";
+                    ws.Cell("K4").Value = "دولتی برگشتی";
+                    ws.Cell("L4").Value = "بار";
+                    ws.Cell("M4").Value = "پالت";
+                    ws.Cell("N4").Value = "برگشتی";
+                    int switchCounter = 14;
+                    if (exportType.HasValue)
+                    {
+                        switch (exportType.Value)
+                        {
+                            case ExcelExportType.WithAllPrices:
+                                ws.Cell(4, 15).Value = "نرخ دریافتی";
+                                ws.Cell(4, 16).Value = "نرخ پرداختی";
+                                switchCounter += 2;
+                                break;
+                            case ExcelExportType.OnlyReceivingPrice:
+                                ws.Cell(4, 15).Value = "مبلغ بارنامه";
+                                switchCounter++;
+                                break;
+                            case ExcelExportType.OnlyDriverPrice:
+                                ws.Cell(4, 15).Value = "مبلغ بارنامه";
+                                switchCounter++;
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        ws.Cell(4, 15).Value = "مبلغ بارنامه";
+                        switchCounter++;
+                    }
+                    ws.Cell(4, switchCounter + 1).Value = "ماه";
+                    ws.Cell(4, switchCounter + 2).Value = "سال";
+
+                    for (int i = 0; i < allLoadFactors.Count; i++)
+                    {
+                        var vehicle = allLoadFactors[i].Vehicle;
+                        var carNumber = $"{vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber} ایران {vehicle.IranStateNumber}";
+                        var date = new PersianDateTime(allLoadFactors[i].Date);
+                        ws.Cell($"A{i + 5}").Value = i + 1;
+                        ws.Cell($"B{i + 5}").Value = accountBook.Number;
+                        ws.Cell($"C{i + 5}").Value = date.ToString("yyyy/MM/dd");
+                        ws.Cell($"D{i + 5}").Value = allLoadFactors[i].LoadNumber;
+                        ws.Cell($"E{i + 5}").Value = vehicle.Type;
+                        ws.Cell($"F{i + 5}").Value = allLoadFactors[i].Driver.Firstname + " " + allLoadFactors[i].Driver.Lastname;
+                        ws.Cell($"G{i + 5}").Value = carNumber;
+                        ws.Cell($"H{i + 5}").Value = allLoadFactors[i].Origin.Title;
+                        ws.Cell($"I{i + 5}").Value = allLoadFactors[i].Destination.Title;
+                        ws.Cell($"J{i + 5}").Value = allLoadFactors[i].LoadNumberGov;
+                        ws.Cell($"K{i + 5}").Value = allLoadFactors[i].MehrcomParsLoadFactor.LoadNumberGovReturn;
+                        ws.Cell($"L{i + 5}").Value = allLoadFactors[i].MehrcomParsLoadFactor.Load ? "1" : "0";
+                        ws.Cell($"M{i + 5}").Value = allLoadFactors[i].MehrcomParsLoadFactor.Palette ? "1" : "0";
+                        ws.Cell($"N{i + 5}").Value = allLoadFactors[i].MehrcomParsLoadFactor.Return ? "1" : "0";
+                        if (exportType.HasValue)
+                        {
+                            switch (exportType.Value)
+                            {
+                                case ExcelExportType.WithAllPrices:
+                                    ws.Cell(i + 5, 15).Value = allLoadFactors[i].Amount.ToString("N0");
+                                    ws.Cell(i + 5, 16).Value = allLoadFactors[i].DriverFee.ToString("N0");
+                                    break;
+                                case ExcelExportType.OnlyReceivingPrice:
+                                    ws.Cell(i + 5, 15).Value = allLoadFactors[i].Amount.ToString("N0");
+                                    break;
+                                case ExcelExportType.OnlyDriverPrice:
+                                    ws.Cell(i + 5, 15).Value = allLoadFactors[i].DriverFee.ToString("N0");
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                        else
+                            ws.Cell(i + 5, 15).Value = allLoadFactors[i].DriverFee.ToString("N0");
+
+                        ws.Cell(i + 5, switchCounter + 1).Value = date.ToString("MMMM");
+                        ws.Cell(i + 5, switchCounter + 2).Value = date.ToString("yyyy");
+                    }
+
+                    //making header
+                    ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}1").Merge();
+                    ws.Range($"A2:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}2").Merge();
+                    ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}3").Merge();
+                    ws.Cell("A1").Value = "اتحاد بار آسیا";
+                    ws.Cell("A2").Value = $"اطلاعات زونکن شماره {accountBook.Number}";
+                    ws.Range($"A4:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}4").Style.Fill.SetBackgroundColor(XLColor.LightGray);
+                    ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}4").Style.Font.SetFontSize(12);
+
+                    if (exportType.HasValue)
+                    {
+                        switch (exportType.Value)
+                        {
+                            case ExcelExportType.WithAllPrices:
+                                ws.Cell(allLoadFactors.Count + 5, 15).Value = allLoadFactors.Sum(a => a.Amount).ToString("N0");
+                                ws.Cell(allLoadFactors.Count + 5, 16).Value = allLoadFactors.Sum(a => a.DriverFee).ToString("N0");
+                                break;
+                            case ExcelExportType.OnlyReceivingPrice:
+                                ws.Cell(allLoadFactors.Count + 5, 15).Value = allLoadFactors.Sum(a => a.Amount).ToString("N0");
+                                break;
+                            case ExcelExportType.OnlyDriverPrice:
+                                ws.Cell(allLoadFactors.Count + 5, 15).Value = allLoadFactors.Sum(a => a.DriverFee).ToString("N0");
+                                break;
+                            case ExcelExportType.WithoutPrice:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                        ws.Cell(allLoadFactors.Count + 5, 15).Value = allLoadFactors.Sum(a => a.DriverFee).ToString("N0");
+
+                    ws.CellsUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    ws.CellsUsed().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    ws.CellsUsed().Style.Font.Bold = true;
+                    ws.CellsUsed().Style.Font.FontColor = XLColor.Black;
+                    ws.CellsUsed().Style.Border.BottomBorderColor = XLColor.Black;
+                    var table = ws.Range($"A4:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}{allLoadFactors.Count + 5}").CreateTable();
+                    table.Theme = XLTableTheme.None;
+                    table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+                    ws.RowsUsed().Height = 25;
+                }
+                else
+                {
+                    var categories = await _mehrcomParsCategoryRepository.Categories().AsNoTracking().OrderBy(a => a.Sequence).ToListAsync();
+                    foreach (var category in categories)
+                    {
+                        var ws = workbook.Worksheets.Add(category.Title);
+                        ws.RightToLeft = true;
+                        ws.Style.Font.FontName = "B Nazanin";
+                        ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+                        ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+                        var data = allLoadFactors.Where(a => a.MehrcomParsLoadFactor.CategoryId.Equals(category.Id)).OrderBy(a => a.Date).ToList();
+
+                        int totalCounter = 4;
+                        decimal c = Convert.ToDecimal(data.Count / 30f);
+
+                        for (int i = 0; i < Convert.ToInt32(Math.Ceiling(c)); i++)
+                        {
+                            ws.Cell("A4").Value = "ردیف";
+                            ws.Cell("B4").Value = "شماره زونکن";
+                            ws.Cell("C4").Value = "تاریخ";
+                            ws.Cell("D4").Value = "شماره بارنامه داخلی";
+                            ws.Cell("E4").Value = "نوع خودرو";
+                            ws.Cell("F4").Value = "نام راننده";
+                            ws.Cell("G4").Value = "شماره خودرو";
+                            ws.Cell("H4").Value = "مبدا";
+                            ws.Cell("I4").Value = "مقصد";
+                            ws.Cell("J4").Value = "دولتی";
+                            ws.Cell("K4").Value = "دولتی برگشتی";
+                            ws.Cell("L4").Value = "بار";
+                            ws.Cell("M4").Value = "پالت";
+                            ws.Cell("N4").Value = "برگشتی";
+                            int switchCounter = 14;
+                            if (exportType.HasValue)
+                            {
+                                switch (exportType.Value)
+                                {
+                                    case ExcelExportType.WithAllPrices:
+                                        ws.Cell(4, 15).Value = "نرخ دریافتی";
+                                        ws.Cell(4, 16).Value = "نرخ پرداختی";
+                                        switchCounter += 2;
+                                        break;
+                                    case ExcelExportType.OnlyReceivingPrice:
+                                        ws.Cell(4, 15).Value = "مبلغ بارنامه";
+                                        switchCounter++;
+                                        break;
+                                    case ExcelExportType.OnlyDriverPrice:
+                                        ws.Cell(4, 15).Value = "مبلغ بارنامه";
+                                        switchCounter++;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                ws.Cell(4, 15).Value = "مبلغ بارنامه";
+                                switchCounter++;
+                            }
+                            ws.Cell(4, switchCounter + 1).Value = "ماه";
+                            ws.Cell(4, switchCounter + 2).Value = "سال";
+                        }
+
+                        ws.CellsUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                        ws.CellsUsed().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                        ws.CellsUsed().Style.Font.Bold = true;
+                        ws.CellsUsed().Style.Font.FontColor = XLColor.Black;
+                        ws.CellsUsed().Style.Border.BottomBorderColor = XLColor.Black;
+                        ws.RowsUsed().Height = 25;
+                    }
+                }
+
+                await using var stream = new MemoryStream();
+                workbook.SaveAs(stream);
+                var content = stream.ToArray();
                 return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}-parsmvc.xlsx");
             }
         }

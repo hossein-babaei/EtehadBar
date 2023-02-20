@@ -48,7 +48,7 @@
                 </div>
                 <div class="uk-width-1-1@m">
                     <label asp-for="ShippingFeeId" class="uk-form-label"></label>
-                    <select asp-for="ShippingFeeId" class="uk-select uk-border-rounded" data-last-type="@fees.First().ShippingFeeType" onchange="loadFactorFormShippingFeeChangeHandler(this, '@CustomerType.SaipaPlasco')">
+                    <select asp-for="ShippingFeeId" class="uk-select uk-border-rounded" data-last-type="@fees.First().ShippingFeeType" onchange="loadFactorFormShippingFeeChangeHandler(this, '@CustomerType.MehrcomPars')">
                         @foreach (var item in fees)
                         {
                             <!option value="@item.Id" data-vehicle-type="@item.Vehicle" data-type="@item.ShippingFeeType" @if(item == fees.First()){ <text>selected="selected"</text> }>@(string.IsNullOrWhiteSpace(item.Title) ? "" : $"({item.Title}) ")@item.Vehicle - (@item.Origin.Title به @item.Destination.Title) - @(item.ShippingFeeType == ShippingFeeType.Normal ? item.DriverPrice.ToString("N0") : "نرخ آزاد")</!option>

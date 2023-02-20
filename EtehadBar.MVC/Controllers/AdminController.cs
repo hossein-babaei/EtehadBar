@@ -1,5 +1,4 @@
-﻿using Castle.Core.Resource;
-using EtehadBar.Domain;
+﻿using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using Helpers;
@@ -11,7 +10,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using NUglify.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -2601,18 +2599,23 @@ namespace EtehadBar.MVC.Controllers
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
                     LoadFactorDeductions = config.LoadFactorDeductions,
-                    AccountBookId = input.AccountBookId
+                    AccountBookId = input.AccountBookId,
+                    Tonnage = input.Tonnage
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
                     loadFactor.Amount = input.Amount;
                     loadFactor.DriverFee = input.DriverFee;
+                    loadFactor.TonnagePrice = input.TonnagePrice;
+                    loadFactor.DriverTonnagePrice = input.DriverTonnagePrice;
                 }
                 else
                 {
                     loadFactor.Amount = fee.Price;
                     loadFactor.DriverFee = fee.DriverPrice;
+                    loadFactor.TonnagePrice = fee.TonnagePrice;
+                    loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
                 }
                 loadFactor.MehrcomParsLoadFactor = new MehrcomParsLoadFactor
                 {
@@ -2626,7 +2629,9 @@ namespace EtehadBar.MVC.Controllers
                     LoadSleepTime = input.LoadSleepTime,
                     LoadSleepPrice = input.LoadSleepPrice,
                     DriverLoadSleepPrice = input.DriverLoadSleepPrice,
-                    Sequence = await _loadFactorRepo.GetBiggestSequenceInMehrcomPars()
+                    LoadType = input.LoadType,
+                    CategoryId = input.CategoryId,
+                    Sequence = await _loadFactorRepo.GetBiggestSequenceInMehrcomPars() + 1
                 };
 
                 _loadFactorRepo.Create(loadFactor);
@@ -2919,21 +2924,32 @@ namespace EtehadBar.MVC.Controllers
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.AccountBookId = input.AccountBookId;
+                item.Tonnage = input.Tonnage;
 
                 item.MehrcomParsLoadFactor.LoadNumberGovReturn = input.LoadNumberGovReturn;
                 item.MehrcomParsLoadFactor.Return = input.Return;
+                item.MehrcomParsLoadFactor.Palette = input.Palette;
                 item.MehrcomParsLoadFactor.Load = input.Load;
                 item.MehrcomParsLoadFactor.WeighbridgePrice = input.WeighbridgePrice;
+                item.MehrcomParsLoadFactor.CategoryId = input.CategoryId;
+                item.MehrcomParsLoadFactor.DriverLoadSleepPrice = input.DriverLoadSleepPrice;
+                item.MehrcomParsLoadFactor.LoadSleepPrice = input.LoadSleepPrice;
+                item.MehrcomParsLoadFactor.LoadSleepTime = input.LoadSleepTime;
+                item.MehrcomParsLoadFactor.LoadType = input.LoadType;
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
                     item.Amount = input.Amount;
                     item.DriverFee = input.DriverFee;
+                    item.TonnagePrice = input.TonnagePrice;
+                    item.DriverTonnagePrice = input.DriverTonnagePrice;
                 }
                 else
                 {
                     item.Amount = fee.Price;
                     item.DriverFee = fee.DriverPrice;
+                    item.TonnagePrice = fee.TonnagePrice;
+                    item.DriverTonnagePrice = fee.DriverTonnagePrice;
                 }
 
                 _loadFactorRepo.Update(item);
@@ -3383,14 +3399,15 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> MehrcomParsCategory(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _mehrcomParsCategoryRepository.Categories().OrderBy(a => a.Title).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await _mehrcomParsCategoryRepository.Categories().OrderBy(a => a.Sequence).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             return View();
         }
 
         [HttpGet]
-        public PartialViewResult CreateMehrcomParsCategory()
+        public async Task<PartialViewResult> CreateMehrcomParsCategory()
         {
+            ViewData["Sequence"] = await _mehrcomParsCategoryRepository.Categories().AsNoTracking().MaxAsync(a => a.Sequence) + 1;
             return PartialView("~/Views/Admin/Create/MehrcomParsCategory.cshtml");
         }
 
@@ -3402,6 +3419,12 @@ namespace EtehadBar.MVC.Controllers
                 if (await _mehrcomParsCategoryRepository.Categories().AnyAsync(a => a.Title.Equals(v.Title)))
                 {
                     TempData["msg"] = "عملیات با خطا مواجه شد. عنوان در سیستم وجود دارد. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                if (await _mehrcomParsCategoryRepository.Categories().AnyAsync(a => a.Sequence.Equals(v.Sequence)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. ترتیب تکراری است. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
 
@@ -3434,14 +3457,21 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _mehrcomParsCategoryRepository.Categories().AnyAsync(a => a.Title.Equals(v.Title)))
+                if (await _mehrcomParsCategoryRepository.Categories().AnyAsync(a => !a.Id.Equals(v.Id) && a.Title.Equals(v.Title)))
                 {
                     TempData["msg"] = "عملیات با خطا مواجه شد. نام در سیستم وجود دارد. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
 
+                if (await _mehrcomParsCategoryRepository.Categories().AnyAsync(a => !a.Id.Equals(v.Id) && a.Sequence.Equals(v.Sequence)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. ترتیب تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
                 var item = await _mehrcomParsCategoryRepository.Get(v.Id);
                 item.Title = v.Title;
+                item.Sequence = v.Sequence;
 
                 _mehrcomParsCategoryRepository.Update(item);
                 try

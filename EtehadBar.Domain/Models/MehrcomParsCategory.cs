@@ -11,6 +11,10 @@ namespace EtehadBar.Domain.Models
         [Key]
         public long Id { get; set; }
 
+        [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Sequence { get; set; }
+
         [Display(Name = "عنوان")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]

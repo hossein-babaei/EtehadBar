@@ -273,7 +273,15 @@ namespace EtehadBar.Infra.Data.Repository
                 LoadNumberGovReturn = loadFactor.MehrcomParsLoadFactor.LoadNumberGovReturn,
                 Palette = loadFactor.MehrcomParsLoadFactor.Palette,
                 Return = loadFactor.MehrcomParsLoadFactor.Return,
-                WeighbridgePrice = loadFactor.MehrcomParsLoadFactor.WeighbridgePrice
+                WeighbridgePrice = loadFactor.MehrcomParsLoadFactor.WeighbridgePrice,
+                CategoryId = loadFactor.MehrcomParsLoadFactor.CategoryId,
+                DriverLoadSleepPrice = loadFactor.MehrcomParsLoadFactor.DriverLoadSleepPrice,
+                DriverTonnagePrice = loadFactor.DriverTonnagePrice,
+                Tonnage = loadFactor.Tonnage,
+                LoadType = loadFactor.MehrcomParsLoadFactor.LoadType,
+                TonnagePrice = loadFactor.TonnagePrice,
+                LoadSleepPrice = loadFactor.MehrcomParsLoadFactor.LoadSleepPrice,
+                LoadSleepTime = loadFactor.MehrcomParsLoadFactor.LoadSleepTime
             };
         }
 

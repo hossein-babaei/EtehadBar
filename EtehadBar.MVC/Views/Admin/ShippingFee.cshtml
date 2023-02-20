@@ -236,7 +236,7 @@
                         <td>@item.Origin.Title</td>
                         <td>@item.Destination.Title</td>
                         <td>@type</td>
-                        @if (!item.ShippingFeeLoadTypeId.Equals(-1) || (contractInfo.Customer.CustomerType == CustomerType.MehrcomPars && item.ShippingFeeLoadTypeId.Equals(-1)))
+                        @if (contractInfo.Customer.HasLoadType)
                         {
                             <td>@item.ShippingFeeLoadType.Name</td>
                         }
