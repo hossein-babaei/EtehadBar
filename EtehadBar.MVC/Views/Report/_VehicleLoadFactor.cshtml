@@ -77,6 +77,11 @@
                                     <td>@item.Tonnage.Value</td>
                                     <td>@((item.Tonnage.Value * item.DriverTonnagePrice.Value).ToString("N0"))</td>
                                 }
+                                else
+                                {
+                                    <td>0</td>
+                                    <td>0</td>
+                                }
                             }
                             <td>@item.Driver.Firstname @item.Driver.Lastname</td>
                             <td>@item.Contract.Customer.Name - @item.Contract.Number</td>

@@ -22,40 +22,40 @@
             form.submit();
         }
         function showFormByCalendar(id, type) {
-            if (vehicleList.length == 0) {
-                $.ajax({
-                    type: 'POST',
-                    url: '@Url.Action("GetVehicleListJson", "Report")',
-                    data: {},
-                    dataType: 'json',
-                    async: false,
-                    beforeSend: function () {
-                        preloader();
-                    },
-                    success: function (r) {
-                        vehicleList = r;
-                    },
-                    error: function (e) {
-                        uiAlert(e.responseText, 'danger')
-                    },
-                    complete: function () {
-                        preloader();
-                    }
-                });
-            }
+            //if (vehicleList.length == 0) {
+            //    $.ajax({
+            //        type: 'POST',
+            //        url: '@Url.Action("GetVehicleListJson", "Report")',
+            //        data: {},
+            //        dataType: 'json',
+            //        async: false,
+            //        beforeSend: function () {
+            //            preloader();
+            //        },
+            //        success: function (r) {
+            //            vehicleList = r;
+            //        },
+            //        error: function (e) {
+            //            uiAlert(e.responseText, 'danger')
+            //        },
+            //        complete: function () {
+            //            preloader();
+            //        }
+            //    });
+            //}
 
-            let options = '<option value="0">همه راننده ها</option>';
-            $.each(vehicleList, (i, v) => {
-                options += `<option value="${v.id}">${v.number} (${v.type})</option>`;
-            });
-            $('#modal select[name=vehicleId]').html(options);
+            //let options = '<option value="0">همه راننده ها</option>';
+            //$.each(vehicleList, (i, v) => {
+            //    options += `<option value="${v.id}">${v.number} (${v.type})</option>`;
+            //});
+            //$('#modal select[name=vehicleId]').html(options);
             $('#modal-append').html('');
 
             $('#modal input[name=customerId]').val(id);
 
             $('#modal select[name=calendarId]').select2({ width: '100%' });
             $('#modal select[name=exportType]').select2({ width: '100%' });
-            $('#modal select[name=vehicleId]').select2({ width: '100%' });
+            //$('#modal select[name=vehicleId]').select2({ width: '100%' });
             UIkit.modal('#modal').show();
         }
         function showFormByAccountBook(id, type) {
@@ -146,10 +146,10 @@
                             }
                         </select>
                     </div>
-                    <div>
+                    @*<div>
                         <label class="uk-form-label">خودرو</label>
                         <select name="vehicleId"></select>
-                    </div>
+                    </div>*@
                     <div>
                         <label class="uk-form-label">نوع خروجی</label>
                         <select name="exportType">
