@@ -1,11 +1,173 @@
-﻿using EtehadBar.Domain.Models;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain
 {
+    public class CreateFreeLoadFactorVM
+    {
+        [Display(Name = "مبدا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Origin { get; set; }
+
+        [Display(Name = "مقصد")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Destination { get; set; }
+
+        [Display(Name = "نام متقاضی")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string ApplicantName { get; set; }
+
+        [Display(Name = "نام راننده")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string DriverName { get; set; }
+
+        [Display(Name = "نوع خودرو")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string VehicleType { get; set; }
+
+        [Display(Name = "شماره خودرو")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string VehicleNumber { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double DriverFee { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "شماره بارنامه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string LoadNumber { get; set; }
+
+        [Display(Name = "شماره بارنامه دولتی")]
+        public string LoadNumberGov { get; set; }
+
+        [Display(Name = "تقویم کاری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CalendarId { get; set; }
+    }
+
+    public class EditFreeLoadFactorVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "مبدا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Origin { get; set; }
+
+        [Display(Name = "مقصد")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Destination { get; set; }
+
+        [Display(Name = "نام متقاضی")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string ApplicantName { get; set; }
+
+        [Display(Name = "نام راننده")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string DriverName { get; set; }
+
+        [Display(Name = "نوع خودرو")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string VehicleType { get; set; }
+
+        [Display(Name = "شماره خودرو")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string VehicleNumber { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double DriverFee { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "شماره بارنامه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string LoadNumber { get; set; }
+
+        [Display(Name = "شماره بارنامه دولتی")]
+        public string LoadNumberGov { get; set; }
+
+        [Display(Name = "تقویم کاری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CalendarId { get; set; }
+    }
+
+    public class UserProfileCacheVM
+    {
+        public string Id { get; set; }
+        public string Firstname { get; set; }
+        public string Lastname { get; set; }
+        public string Phonenumber { get; set; }
+        public string AccountBankName { get; set; }
+        public string BankAccountNumber { get; set; }
+        public ApplicationRoleType Role { get; set; }
+        public string NationalId { get; set; }
+    }
+
+    public class LogDetailFormFileVM
+    {
+        public LogDetailFormFileVM(string fileName, long fileSize, string contentType)
+        {
+            FileName = fileName;
+            FileSize = fileSize;
+            ContentType = contentType;
+        }
+
+        public string FileName { get; set; }
+        public long FileSize { get; set; }
+        public string ContentType { get; set; }
+    }
+
     public class CreateContractVM
     {
         [Display(Name = "روز شروع")]

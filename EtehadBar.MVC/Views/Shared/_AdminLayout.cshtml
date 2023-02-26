@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="language" content="FA-IR">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <partial name="_Favicon" />
     <title>@ViewData["Title"] | اتحاد بار آسیا</title>
     <link href="~/lib/uikit/css/uikit-rtl.min.css" rel="stylesheet" />
     <link href="~/css/pagedlist.min.css" rel="stylesheet" />
@@ -42,7 +43,7 @@
                             </ul>
                         </div>
                     </li>
-                    <li id="notification-icon">
+                    @*<li id="notification-icon">
                         <a class="uk-position-relative">
                             <i class="lg fas fa-bell"></i>
                         </a>
@@ -51,7 +52,7 @@
                                 <li><a asp-action="Contact" asp-controller="Admin">تماس ها<span id="n-contact" class="n-badge uk-border-pill">-</span></a></li>
                             </ul>
                         </div>
-                    </li>
+                    </li>*@
                     <li id="user-icon" class="uk-margin-left user">
                         <a class="uk-position-relative">
                             <span class="uk-position-absolute"></span>
@@ -59,8 +60,8 @@
                         </a>
                         <div class="uk-navbar-dropdown" uk-dropdown="mode: click;pos: bottom-center;offset: 5;animation: uk-animation-scale-up; duration: 350;toggle: #user-icon">
                             <ul class="uk-nav uk-navbar-dropdown-nav">
-                                @*<li><a asp-action="Index" asp-controller="Profile"><i class="uk-margin-left fas fa-cog"></i>تنظیمات پروفایل</a></li>
-                                    <li class="uk-nav-divider"></li>*@
+                                <li><a asp-action="ChangePassword" asp-controller="Admin"><i class="uk-margin-left fas fa-lock"></i>تغییر کلمه عبور</a></li>
+                                    <li class="uk-nav-divider"></li>
                                 <li><a onclick="$('#logout-form').submit()"><i class="uk-margin-left fas fa-sign-out-alt"></i>خروج</a></li>
                             </ul>
                         </div>

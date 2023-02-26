@@ -85,7 +85,7 @@
             </div>
             <div>
                 <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.DriverId)</p>
-                <span class="sm">@Model.Driver.Firstname @Model.Driver.Lastname (@(string.IsNullOrWhiteSpace(Model.Driver.Phonenumber) ? "" : Model.Driver.Phonenumber + " - ")@Model.Driver.NationalNumber)</span>
+                <span class="sm">@Model.Driver.Fullname (@(string.IsNullOrWhiteSpace(Model.Driver.Phonenumber) ? "" : Model.Driver.Phonenumber + " - ")@Model.Driver.NationalNumber)</span>
             </div>
             <div>
                 <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.VehicleId)</p>

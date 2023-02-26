@@ -1,0 +1,70 @@
+﻿@model FreeLoadFactor
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var data = ViewBag.data as IPagedList<FreeLoadFactor>;
+    int i = 1;
+    if (data.PageNumber > 1)
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+}
+
+<input name="count" type="hidden" value="@data.TotalItemCount" />
+@if (data.Count > 0)
+{
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.ApplicantName)</th>
+                    <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                    <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                    <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                    <th width="50">جزئیات</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.ApplicantName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Origin)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Destination)</td>
+                        <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
+                        <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                        <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                        <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="getEditForm('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("SearchFreeLoadFactor", new { p = page, param = ViewBag.param }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+        </div>
+    }
+}
+else
+{
+    <div class="uk-margin-medium-top uk-margin-medium-bottom">
+        <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+            <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+            <div>
+                <h2>نتیجه ای یافت نشد.</h2>
+            </div>
+        </div>
+    </div>
+}

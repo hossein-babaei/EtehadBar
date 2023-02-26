@@ -11,15 +11,10 @@ namespace EtehadBar.Domain.Models
         [Key]
         public long Id { get; set; }
 
-        [Display(Name = "نام خانوادگی")]
+        [Display(Name = "نام و نام خانوادگی")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
-        public string Firstname { get; set; }
-
-        [Display(Name = "نام خانوادگی")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
-        public string Lastname { get; set; }
+        public string Fullname { get; set; }
 
         [Display(Name = "نام بانک")]
         [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]

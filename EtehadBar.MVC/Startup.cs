@@ -1,6 +1,8 @@
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
 using EtehadBar.Infra.IoC;
+using EtehadBar.MVC.Filters;
+using EtehadBar.MVC.Middlewares;
 using Helpers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -60,6 +62,7 @@ namespace EtehadBar.MVC
                 option.LowercaseUrls = true;
             });
 
+            services.AddScoped<ActionLogFilter>();
             services.AddControllersWithViews();
             services.AddRazorPages();
 
@@ -128,6 +131,8 @@ namespace EtehadBar.MVC
                 }
                 await next.Invoke();
             });
+
+            app.UseInitialCacheMiddleware();
 
             app.UseEndpoints(endpoints =>
             {

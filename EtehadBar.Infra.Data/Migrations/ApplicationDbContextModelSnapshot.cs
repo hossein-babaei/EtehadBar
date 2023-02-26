@@ -638,18 +638,13 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<string>("EditorId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Firstname")
+                    b.Property<string>("Fullname")
                         .IsRequired()
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Lastname")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("NationalNumber")
                         .HasMaxLength(10)
@@ -670,6 +665,105 @@ namespace EtehadBar.Infra.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Driver", "dbo");
+                });
+
+            modelBuilder.Entity("EtehadBar.Domain.Models.FreeLoadFactor", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
+
+                    b.Property<double>("Amount")
+                        .HasColumnType("float");
+
+                    b.Property<string>("ApplicantName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("CalendarId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("CreateDatetime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatorId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Destination")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("DriverFee")
+                        .HasColumnType("float");
+
+                    b.Property<string>("DriverName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("DriverTonnagePrice")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime?>("EditDatetime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EditorId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<double>("LoadFactorDeductions")
+                        .HasColumnType("float");
+
+                    b.Property<string>("LoadNumber")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("LoadNumberGov")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RowId")
+                        .IsRequired()
+                        .HasMaxLength(36)
+                        .HasColumnType("nvarchar(36)");
+
+                    b.Property<double?>("Tonnage")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("TonnagePrice")
+                        .HasColumnType("float");
+
+                    b.Property<double>("VAT")
+                        .HasColumnType("float");
+
+                    b.Property<string>("VehicleNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VehicleType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double>("WithholdingTax")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CalendarId");
+
+                    b.HasIndex("RowId")
+                        .IsUnique();
+
+                    b.ToTable("FreeLoadFactor", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.LoadFactor", b =>
@@ -1256,12 +1350,10 @@ namespace EtehadBar.Infra.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
                     b.Property<string>("AccountBankName")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("BankAccountNumber")
-                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
@@ -1510,6 +1602,17 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("EtehadBar.Domain.Models.FreeLoadFactor", b =>
+                {
+                    b.HasOne("EtehadBar.Domain.Models.Calendar", "Calendar")
+                        .WithMany("FreeLoadFactors")
+                        .HasForeignKey("CalendarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Calendar");
+                });
+
             modelBuilder.Entity("EtehadBar.Domain.Models.LoadFactor", b =>
                 {
                     b.HasOne("EtehadBar.Domain.Models.AccountBook", "AccountBook")
@@ -1747,6 +1850,8 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("Costs");
 
                     b.Navigation("CustomerIncomes");
+
+                    b.Navigation("FreeLoadFactors");
 
                     b.Navigation("LoadFactors");
 

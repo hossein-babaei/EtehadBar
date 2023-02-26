@@ -51,4 +51,37 @@
         OnlyDriverPrice,
         WithoutPrice
     }
+
+    public enum SystemCacheNames
+    {
+        UserProfileList
+    }
+
+    public enum SystemLogEventType
+    {
+        //debug
+        GenerateItems = 1000,
+
+        //information
+        ListItems = 1001,
+        GetItem = 1002,
+        AddItem = 1003,
+        UpdateItem = 1004,
+        DeleteItem = 1005,
+
+        ActionExecuting = 1100,
+        ActionExecuted = 1101,
+
+        //fatal
+        TestItem = 3000,
+
+
+        //fatal
+        GetItemNotFound = 4000,
+        UpdateItemNotFound = 4001,
+        DeleteItemNotFound = 4002,
+
+        //error
+        DatabaseException = 5000
+    }
 }

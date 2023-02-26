@@ -24,6 +24,7 @@ namespace EtehadBar.Infra.IoC
             services.AddScoped<ILoadRoutesRepository, LoadRoutesRepository>();
             services.AddScoped<IDriverRepository, DriverRepository>();
             services.AddScoped<IMehrcomParsCategoryRepository, MehrcomParsCategoryRepository>();
+            services.AddScoped<IFreeLoadFactorRepository, FreeLoadFactorRepository>();
 
             return services;
         }

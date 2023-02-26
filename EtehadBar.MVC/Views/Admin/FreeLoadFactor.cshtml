@@ -1,0 +1,203 @@
+﻿@model FreeLoadFactor
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 24;
+    var data = ViewBag.data as IPagedList<FreeLoadFactor>;
+    ViewData["Title"] = "بارنامه آزاد";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+    if (data.PageNumber > 1)
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+}
+
+@section Scripts{
+    <script>
+        $('#search-modal form').submit(function (e) {
+            e.preventDefault();
+            filter();
+        });
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            if ($('#search-modal #param').val() != '' && $('#search-modal #param').val() != ' ') {
+                $.ajax({
+                    type: 'GET',
+                    url: '@Url.Action("SearchLoadFactor")',
+                    data: data,
+                    dataType: 'html',
+                    beforeSend: function () {
+                        preloader();
+                    },
+                    success: function (r) {
+                        $('#append').html(r);
+                        $('#total-count').html('(' + $('input[name="count"]').val() + ')');
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger')
+                    },
+                    complete: function () {
+                        preloader();
+                        UIkit.modal('#search-modal').hide();
+                    }
+                });
+            } else {
+                uiAlert('لطفا مقدار مورد نظر را وارد نمایید.', 'danger');
+            }
+        }
+        function viewDetail(id) {
+            preloader();
+            $.get('@Url.Action("FreeLoadFactorDetail")', { 'id': id }, function (r) {
+                $('#create-modal').html(r);
+            }, 'html').then(function () {
+                preloader();
+                UIkit.modal('#create-modal').show();
+            });
+        }
+        function getCreateForm() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CreateFreeLoadFactor")',
+                data: { },
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#create-modal').html(r);
+                    parseValidator('#create-modal form');
+                    UIkit.modal('#create-modal').show();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function getEditForm(id) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("EditFreeLoadFactor")',
+                data: { 'id': id },
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#edit-modal').html(r);
+                    parseValidator('#edit-modal form');
+                    UIkit.modal('#edit-modal').show();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"] <span id="total-count">(@data.TotalItemCount)</span></span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="getCreateForm()" class="uk-button uk-button-primary">افزودن</a>
+        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.ApplicantName)</th>
+                    <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                    <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                    <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                    <th width="50">جزئیات</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.ApplicantName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Origin)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Destination)</td>
+                        <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
+                        <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                        <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                        <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="getEditForm('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("LoadFactor", new { p = page }))
+        </div>
+    }
+</div>
+<div id="edit-modal" class="uk-modal-container" uk-modal="bg-close: false"></div>
+<div id="create-modal" class="uk-modal-container" uk-modal="bg-close: false"></div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجوی بارنامه</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div>
+                    <label class="uk-form-label">شماره بارنامه</label>
+                    <input class="uk-input uk-border-rounded" id="param" name="param" autocomplete="off" placeholder="در این قسمت تایپ نمائید..." />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="FreeLoadFactor" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteFreeLoadFactor" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+

@@ -18,8 +18,7 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.Firstname)</th>
-                    <th>@Html.DisplayNameFor(model => model.Lastname)</th>
+                    <th>@Html.DisplayNameFor(model => model.Fullname)</th>
                     <th>@Html.DisplayNameFor(model => model.NationalNumber)</th>
                     <th>@Html.DisplayNameFor(model => model.AccountBankName)</th>
                     <th>@Html.DisplayNameFor(model => model.BankAccountNumber)</th>
@@ -32,8 +31,7 @@
                 {
                     <tr class="uk-text-center">
                         <td>@i</td>
-                        <td>@Html.DisplayFor(modelItem => item.Firstname)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Lastname)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Fullname)</td>
                         <td>@Html.DisplayFor(modelItem => item.NationalNumber)</td>
                         @if (string.IsNullOrWhiteSpace(item.AccountBankName))
                         {

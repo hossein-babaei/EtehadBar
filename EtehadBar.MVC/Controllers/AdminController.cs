@@ -1,6 +1,8 @@
-﻿using EtehadBar.Domain;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
+using EtehadBar.MVC.Filters;
 using Helpers;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
@@ -8,10 +10,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +23,8 @@ using X.PagedList;
 
 namespace EtehadBar.MVC.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
+    [ServiceFilter(typeof(ActionLogFilter))]
     public class AdminController : Controller
     {
         private readonly IAccountBookRepository _accountBookRepository;
@@ -41,6 +46,8 @@ namespace EtehadBar.MVC.Controllers
         private readonly ILoadRoutesRepository _loadRouteRepo;
         private readonly IDriverRepository _driverRepository;
         private readonly IMehrcomParsCategoryRepository _mehrcomParsCategoryRepository;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IFreeLoadFactorRepository _freeLoadFactorRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -61,7 +68,9 @@ namespace EtehadBar.MVC.Controllers
             IShippingFeeLoadTypeRepository shippingFeeLoadTypeRepo,
             ILoadRoutesRepository loadRouteRepo,
             IDriverRepository driverRepository,
-            IMehrcomParsCategoryRepository mehrcomParsCategoryRepository)
+            IMehrcomParsCategoryRepository mehrcomParsCategoryRepository,
+            SignInManager<ApplicationUser> signInManager,
+            IFreeLoadFactorRepository freeLoadFactorRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -82,6 +91,8 @@ namespace EtehadBar.MVC.Controllers
             _loadRouteRepo = loadRouteRepo;
             _driverRepository = driverRepository;
             _mehrcomParsCategoryRepository = mehrcomParsCategoryRepository;
+            _signInManager = signInManager;
+            _freeLoadFactorRepository = freeLoadFactorRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -136,12 +147,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Config()
         {
             return View(await _configRepo.First());
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<JsonResult> Config(Config c)
         {
             string status = "danger";
@@ -220,6 +233,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UserLock(string id, string note)
         {
             if (!string.IsNullOrEmpty(id))
@@ -261,6 +275,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> UserUnlock(string id)
         {
             if (!string.IsNullOrEmpty(id))
@@ -298,6 +313,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<JsonResult> EditUserRole(string userId, string roleName, bool Value)
         {
             var appUser = await _userManager.FindByIdAsync(userId);
@@ -320,6 +336,7 @@ namespace EtehadBar.MVC.Controllers
             }
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Users(int? p)
         {
             var pageNumber = p ?? 1;
@@ -362,6 +379,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -390,6 +408,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditUser(EditUserVM u, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -495,6 +514,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public PartialViewResult GetUserCreateForm(ApplicationRoleType type)
         {
             ViewBag.type = type;
@@ -502,6 +522,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateUser(CreateUserVM u)
         {
             if (ModelState.IsValid)
@@ -531,7 +552,7 @@ namespace EtehadBar.MVC.Controllers
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
 
-                ApplicationUser user = new ApplicationUser
+                ApplicationUser user = new()
                 {
                     Firstname = u.Firstname,
                     Lastname = u.Lastname,
@@ -608,10 +629,46 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
+
+        [HttpGet]
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordVM m)
+        {
+            if (!ModelState.IsValid)
+                return View();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+                TempData["msg"] = "کاربر پیدا نشد |danger";
+
+            m.OldPassword = m.OldPassword.PersianToEnglish();
+            m.NewPassword = m.NewPassword.PersianToEnglish();
+            var changePasswordResult = await _userManager.ChangePasswordAsync(user, m.OldPassword, m.NewPassword);
+            if (!changePasswordResult.Succeeded)
+            {
+                string msg = "";
+                foreach (var error in changePasswordResult.Errors)
+                    msg += $"{error.Description} - ";
+
+                TempData["msg"] = $"{msg} |danger";
+                return View();
+            }
+
+            await _signInManager.RefreshSignInAsync(user);
+            TempData["msg"] = "عملیات موفقیت آمیز بود |success";
+
+            return View();
+        }
         #endregion
 
         #region Definition
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Definition(int? p)
         {
             var pageNumber = p ?? 1;
@@ -621,12 +678,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public PartialViewResult CreateDefinition()
         {
             return PartialView("~/Views/Admin/Create/Definition.cshtml");
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateDefinition(Definition d)
         {
             if (ModelState.IsValid)
@@ -650,12 +709,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditDefinition(int id)
         {
             return PartialView("~/Views/Admin/Edit/Definition.cshtml", await _definitionRepo.Get(id));
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditDefinition(Definition d)
         {
             if (ModelState.IsValid)
@@ -682,6 +743,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> DeleteDefinition(int id)
         {
             var item = await _definitionRepo.Get(id);
@@ -740,6 +802,12 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await _vehicleRepo.Vehicles().AnyAsync(a => a.IranStateNumber.Equals(v.IranStateNumber) && a.RightNumber.Equals(v.RightNumber) && a.NumberWord.Equals(v.NumberWord) && a.LeftNumber.Equals(v.LeftNumber)))
+                {
+                    TempData["msg"] = "شماره خودرو وارد شده قبلا ثبت شده است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
                 _vehicleRepo.Create(v);
                 try
                 {
@@ -770,6 +838,12 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (await _vehicleRepo.Vehicles().AnyAsync(a => !a.Id.Equals(v.Id) && a.IranStateNumber.Equals(v.IranStateNumber) && a.RightNumber.Equals(v.RightNumber) && a.NumberWord.Equals(v.NumberWord) && a.LeftNumber.Equals(v.LeftNumber)))
+                {
+                    TempData["msg"] = "شماره خودرو وارد شده قبلا ثبت شده است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
                 var item = await _vehicleRepo.Get(v.Id);
                 item.IranStateNumber = v.IranStateNumber;
                 item.LeftNumber = v.LeftNumber;
@@ -801,6 +875,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Calendar
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Calendar(int? p)
         {
             var pageNumber = p ?? 1;
@@ -810,6 +885,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateCalendar()
         {
             ViewBag.year = await _configRepo.CurrentYear();
@@ -817,6 +893,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateCalendar(CreateCalendarVM c)
         {
             if (ModelState.IsValid)
@@ -836,7 +913,7 @@ namespace EtehadBar.MVC.Controllers
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
 
-                _calendarRepo.Create(new Calendar
+                _calendarRepo.Create(new Domain.Models.Calendar
                 {
                     StartDate = startDate,
                     EndDate = endDate,
@@ -861,6 +938,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditCalendar(int id)
         {
             var item = await _calendarRepo.Get(id);
@@ -881,6 +959,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditCalendar(EditCalendarVM c)
         {
             if (ModelState.IsValid)
@@ -925,6 +1004,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> DeleteCalendar(int id)
         {
             var item = await _calendarRepo.Get(id);
@@ -952,6 +1032,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Cost
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Cost(int? p)
         {
             ViewData["UserId"] = _userManager.GetUserId(User);
@@ -964,6 +1045,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Cost(Cost c, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1019,6 +1101,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditCost(int id)
         {
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -1026,6 +1109,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditCost(Cost c, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1098,6 +1182,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> DeleteCost(int id)
         {
             var item = await _costRepo.Get(id);
@@ -1128,6 +1213,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Payment
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Payment(int? p)
         {
             var pageNumber = p ?? 1;
@@ -1137,6 +1223,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> CreatePayment(string itemId, string type)
         {
             ViewData["AdminId"] = _userManager.GetUserId(User);
@@ -1152,6 +1239,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreatePayment(Payment p, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1207,6 +1295,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditPayment(int id)
         {
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -1214,6 +1303,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditPayment(Payment p, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1287,6 +1377,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> DeletePayment(int id)
         {
             var item = await _paymentRepo.Get(id);
@@ -1317,12 +1408,14 @@ namespace EtehadBar.MVC.Controllers
 
         #region Customer
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Customer()
         {
             return View(await _customerRepo.GetAll());
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Customer(Customer c)
         {
             if (ModelState.IsValid)
@@ -1346,12 +1439,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditCustomer(int id)
         {
             return PartialView("~/Views/Admin/Edit/Customer.cshtml", await _customerRepo.Get(id));
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditCustomer(Customer c)
         {
             if (ModelState.IsValid)
@@ -1381,6 +1476,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CustomerIncome(int id, int? p)
         {
             var customer = await _customerRepo.Get(id);
@@ -1398,6 +1494,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CustomerIncome([Bind("Amount,Description,CustomerId")] CustomerIncome c, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1454,6 +1551,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditCustomerIncome(int id)
         {
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -1461,6 +1559,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditCustomerIncome(CustomerIncome p, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1532,6 +1631,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> DeleteCustomerIncome(int id)
         {
             var item = await _customerRepo.GetIncome(id);
@@ -1562,6 +1662,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Contract
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Contract(int? p)
         {
             var pageNumber = p ?? 1;
@@ -1571,6 +1672,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateContract()
         {
             ViewData["Year"] = await _configRepo.CurrentYear();
@@ -1584,6 +1686,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateContract(CreateContractVM c)
         {
             if (ModelState.IsValid)
@@ -1646,6 +1749,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditContract(int id)
         {
             var item = await _contractRepo.Get(id);
@@ -1669,6 +1773,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditContract(EditContractVM c)
         {
             if (ModelState.IsValid)
@@ -1730,6 +1835,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> DeleteContract(int id)
         {
             var item = await _contractRepo.Get(id);
@@ -1758,6 +1864,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region ShippingFee
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> ShippingFee(string contractId)
         {
             if (string.IsNullOrWhiteSpace(contractId)) return BadRequest();
@@ -1770,6 +1877,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> ShippingFeePartial(string contractId)
         {
             var contract = await _contractRepo.Get(contractId);
@@ -1780,6 +1888,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateShippingFee(string contractId)
         {
             ViewData["Contract"] = await _contractRepo.Get(contractId);
@@ -1795,6 +1904,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateShippingFee(ShippingFee s)
         {
             string msg;
@@ -1838,6 +1948,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditShippingFee(int id)
         {
             List<DefinitionType> types = new()
@@ -1852,6 +1963,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditShippingFee(ShippingFee s)
         {
             if (ModelState.IsValid)
@@ -1932,6 +2044,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> DeleteShippingFee(int id)
         {
             var item = await _shippingFeeRepo.Get(id);
@@ -1952,6 +2065,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> ChangeShippingFee(int contractId, double amount, double driverAmount, string type, string driverType)
         {
             string msg;
@@ -2025,6 +2139,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region ShippingFeeLoadType
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> ShippingFeeLoadType(int? p)
         {
             var pageNumber = p ?? 1;
@@ -2034,12 +2149,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public PartialViewResult CreateShippingFeeLoadType()
         {
             return PartialView("~/Views/Admin/Create/ShippingFeeLoadType.cshtml");
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateShippingFeeLoadType(ShippingFeeLoadType v)
         {
             if (ModelState.IsValid)
@@ -2069,12 +2186,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditShippingFeeLoadType(int id)
         {
             return PartialView("~/Views/Admin/Edit/ShippingFeeLoadType.cshtml", await _shippingFeeLoadTypeRepo.Get(id));
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditShippingFeeLoadType(ShippingFeeLoadType v)
         {
             if (ModelState.IsValid)
@@ -2181,7 +2300,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Contracts"] = contracts;
 
             ViewData["Year"] = await _configRepo.CurrentYear();
-            ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync();
+            ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Fullname).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["AccountBooks"] = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
@@ -2220,11 +2339,15 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                var vehicle = await _vehicleRepo.Get(input.VehicleId);
+                if (vehicle.Type != fee.Vehicle)
+                    return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
+
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
-                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumberGov.Equals(input.LoadNumberGov)))
                         return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
 
                 var config = await _configRepo.LoadFactorTax();
@@ -2336,6 +2459,10 @@ namespace EtehadBar.MVC.Controllers
 
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var vehicle = await _vehicleRepo.Get(input.VehicleId);
+                if (vehicle.Type != fee.Vehicle)
+                    return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
@@ -2455,6 +2582,10 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                var vehicle = await _vehicleRepo.Get(input.VehicleId);
+                if (vehicle.Type != fee.Vehicle)
+                    return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
+
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
@@ -2571,11 +2702,25 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                var vehicle = await _vehicleRepo.Get(input.VehicleId);
+                if (vehicle.Type != fee.Vehicle)
+                    return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
+
+                if ((!input.Load && !input.Palette && !input.Return) ||
+                    (input.Load && input.Palette && !input.Return && !fee.Title.Contains("بار/پالت")) ||
+                    (input.Load && !input.Palette && !input.Return && (!fee.Title.Contains("بار") || fee.Title.Contains("پالت") || fee.Title.Contains("برگشت"))) ||
+                    (!input.Load && input.Palette && !input.Return && (!fee.Title.Contains("پالت") || fee.Title.Contains("بار") || fee.Title.Contains("برگشت"))) ||
+                    (!input.Load && !input.Palette && input.Return && (!fee.Title.Contains("برگشت") || fee.Title.Contains("پالت") || fee.Title.Contains("بار"))) ||
+                    (input.Load && !input.Palette && input.Return && !fee.Title.Contains("بار/برگشت")) ||
+                    (!input.Load && input.Palette && input.Return && !fee.Title.Contains("پالت/برگشت"))
+                    )
+                    return NotFound("مقادیر بار/پالت/برگشت با نرخ انتخابی تناسب ندارد.");
+
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
-                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumberGov.Equals(input.LoadNumberGov)))
                         return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGovReturn))
@@ -2666,7 +2811,7 @@ namespace EtehadBar.MVC.Controllers
             if (!contracts.Any()) return NotFound("قراردادی پیدا نشد.");
 
             ViewData["Contracts"] = contracts;
-            ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync();
+            ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().OrderBy(a => a.Fullname).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
@@ -2696,11 +2841,15 @@ namespace EtehadBar.MVC.Controllers
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
-                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber)))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumberGov.Equals(input.LoadNumberGov)))
                         return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
 
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var vehicle = await _vehicleRepo.Get(input.VehicleId);
+                if (vehicle.Type != fee.Vehicle)
+                    return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
@@ -2767,6 +2916,10 @@ namespace EtehadBar.MVC.Controllers
 
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var vehicle = await _vehicleRepo.Get(input.VehicleId);
+                if (vehicle.Type != fee.Vehicle)
+                    return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
@@ -2837,6 +2990,10 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                var vehicle = await _vehicleRepo.Get(input.VehicleId);
+                if (vehicle.Type != fee.Vehicle)
+                    return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
+
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
@@ -2902,11 +3059,25 @@ namespace EtehadBar.MVC.Controllers
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
-                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber)))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumberGov.Equals(input.LoadNumberGov)))
                         return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
 
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
+
+                var vehicle = await _vehicleRepo.Get(input.VehicleId);
+                if (vehicle.Type != fee.Vehicle)
+                    return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
+
+                if ((!input.Load && !input.Palette && !input.Return) ||
+                    (input.Load && input.Palette && !input.Return && !fee.Title.Contains("بار/پالت")) ||
+                    (input.Load && !input.Palette && !input.Return && (!fee.Title.Contains("بار") || fee.Title.Contains("پالت") || fee.Title.Contains("برگشت"))) ||
+                    (!input.Load && input.Palette && !input.Return && (!fee.Title.Contains("پالت") || fee.Title.Contains("بار") || fee.Title.Contains("برگشت"))) ||
+                    (!input.Load && !input.Palette && input.Return && (!fee.Title.Contains("برگشت") || fee.Title.Contains("پالت") || fee.Title.Contains("بار"))) ||
+                    (input.Load && !input.Palette && input.Return && !fee.Title.Contains("بار/برگشت")) ||
+                    (!input.Load && input.Palette && input.Return && !fee.Title.Contains("پالت/برگشت"))
+                    )
+                    return NotFound("مقادیر بار/پالت/برگشت با نرخ انتخابی تناسب ندارد.");
 
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
@@ -3013,6 +3184,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region LoadRoute
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> LoadRoute(int? p)
         {
             var pageNumber = p ?? 1;
@@ -3022,17 +3194,19 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public PartialViewResult CreateLoadRoute()
         {
             return PartialView("~/Views/Admin/Create/LoadRoute.cshtml");
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateLoadRoute(LoadRoutes v)
         {
             if (ModelState.IsValid)
             {
-                if (await _loadRouteRepo.CheckNameExist(v.Title))
+                if (await _loadRouteRepo.LoadRoutes().AnyAsync(a => a.Title.Equals(v.Title) && a.RouteType.Equals(v.RouteType)))
                 {
                     TempData["msg"] = "عملیات با خطا مواجه شد. عنوان در سیستم وجود دارد. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
@@ -3057,16 +3231,24 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditLoadRoute(int id)
         {
             return PartialView("~/Views/Admin/Edit/LoadRoute.cshtml", await _loadRouteRepo.Get(id));
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditLoadRoute(LoadRoutes v)
         {
             if (ModelState.IsValid)
             {
+                if (await _loadRouteRepo.LoadRoutes().AnyAsync(a => !a.Id.Equals(v.Id) && a.Title.Equals(v.Title) && a.RouteType.Equals(v.RouteType)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. عنوان در سیستم وجود دارد. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
                 var item = await _loadRouteRepo.Get(v.Id);
                 item.Title = v.Title;
                 item.RouteType = v.RouteType;
@@ -3271,7 +3453,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> SearchDriver(int? p, string param)
         {
             var pageNum = p ?? 1;
-            var onePageOfData = await _driverRepository.Drivers().Where(a => (a.Firstname + " " + a.Lastname).Contains(param) || a.NationalNumber.Contains(param)).OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
+            var onePageOfData = await _driverRepository.Drivers().Where(a => a.Fullname.Contains(param) || a.NationalNumber.Contains(param)).OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
             ViewBag.data = onePageOfData;
             ViewBag.param = param;
 
@@ -3300,8 +3482,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     AccountBankName = c.AccountBankName,
                     BankAccountNumber = c.BankAccountNumber,
-                    Firstname = c.Firstname,
-                    Lastname = c.Lastname,
+                    Fullname = c.Fullname,
                     Phonenumber = c.Phonenumber,
                     NationalNumber = c.NationalNumber,
                     IsActive = c.IsActive,
@@ -3327,7 +3508,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<PartialViewResult> EditDriver(long id)
         {
-            ViewData["Customers"] = await _driverRepository.Drivers().AsNoTracking().OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync();
+            ViewData["Customers"] = await _driverRepository.Drivers().AsNoTracking().OrderBy(a => a.Fullname).ToListAsync();
 
             var item = await _driverRepository.Get(id);
 
@@ -3336,8 +3517,7 @@ namespace EtehadBar.MVC.Controllers
                 Id = item.Id,
                 AccountBankName = item.AccountBankName,
                 BankAccountNumber = item.BankAccountNumber,
-                Firstname = item.Firstname,
-                Lastname = item.Lastname,
+                Fullname = item.Fullname,
                 Phonenumber = item.Phonenumber,
                 NationalNumber = item.NationalNumber,
                 IsActive = item.IsActive,
@@ -3358,8 +3538,7 @@ namespace EtehadBar.MVC.Controllers
                 }
 
                 var item = await _driverRepository.Get(c.Id);
-                item.Firstname = c.Firstname;
-                item.Lastname = c.Lastname;
+                item.Fullname = c.Fullname;
                 item.Phonenumber = c.Phonenumber;
                 item.NationalNumber = c.NationalNumber;
                 item.EditorId = _userManager.GetUserId(User);
@@ -3389,13 +3568,14 @@ namespace EtehadBar.MVC.Controllers
         public async Task<JsonResult> GetDriverListAsJson()
         {
             return Json(await _driverRepository.Drivers().AsNoTracking()
-                .Select(a => new { a.Firstname, a.Lastname, a.Id, a.NationalNumber })
-                .OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync());
+                .Select(a => new { a.Fullname, a.Id, a.NationalNumber })
+                .OrderBy(a => a.Fullname).ToListAsync());
         }
         #endregion
 
         #region MehrcomParsCategory
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> MehrcomParsCategory(int? p)
         {
             var pageNumber = p ?? 1;
@@ -3405,6 +3585,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> CreateMehrcomParsCategory()
         {
             ViewData["Sequence"] = await _mehrcomParsCategoryRepository.Categories().AsNoTracking().MaxAsync(a => a.Sequence) + 1;
@@ -3412,6 +3593,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> CreateMehrcomParsCategory(MehrcomParsCategory v)
         {
             if (ModelState.IsValid)
@@ -3447,12 +3629,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditMehrcomParsCategory(int id)
         {
             return PartialView("~/Views/Admin/Edit/MehrcomParsCategory.cshtml", await _mehrcomParsCategoryRepository.Get(id));
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> EditMehrcomParsCategory(MehrcomParsCategory v)
         {
             if (ModelState.IsValid)
@@ -3487,6 +3671,190 @@ namespace EtehadBar.MVC.Controllers
             else
             {
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region FreeLoadFactor
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> FreeLoadFactor(int? p)
+        {
+            var pageNumber = p ?? 1;
+
+            var onePageOfData = await _freeLoadFactorRepository.Query().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SearchFreeLoadFactor(int? p, string param)
+        {
+            var pageNum = p ?? 1;
+            var onePageOfData = await _freeLoadFactorRepository.Query().Where(a => a.LoadNumber.Contains(param) || a.LoadNumberGov.Contains(param)).OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
+            ViewBag.data = onePageOfData;
+            ViewBag.param = param;
+
+            return PartialView("_FreeLoadFactor");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> FreeLoadFactorDetail(long id)
+        {
+            var item = await _freeLoadFactorRepository.Get(id);
+            ViewData["Admin"] = await _userManager.FindByIdAsync(item.CreatorId);
+            return PartialView("_FreeLoadFactorDetail", item);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> CreateFreeLoadFactor()
+        {
+            ViewData["Year"] = await _configRepo.CurrentYear();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["VehicleTypes"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType.Equals(DefinitionType.Car)).OrderBy(a => a.Title).ToListAsync();
+            return PartialView("~/Views/Admin/Create/FreeLoadFactor.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateFreeLoadFactor(CreateFreeLoadFactorVM v)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _freeLoadFactorRepository.Query().AnyAsync(a => a.LoadNumber.Equals(v.LoadNumber)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. شماره بارنامه تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                if (!string.IsNullOrWhiteSpace(v.LoadNumberGov))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumberGov.Equals(v.LoadNumberGov)))
+                        return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
+
+                var config = await _configRepo.LoadFactorTax();
+                var item = new FreeLoadFactor
+                {
+                    Amount = v.Amount,
+                    ApplicantName = v.ApplicantName,
+                    CalendarId = v.CalendarId,
+                    CreateDatetime = DateTime.Now,
+                    CreatorId = _userManager.GetUserId(User),
+                    Destination = v.Destination,
+                    DriverFee = v.DriverFee,
+                    DriverName = v.DriverName,
+                    DriverTonnagePrice = v.DriverTonnagePrice,
+                    Origin = v.Origin,
+                    LoadNumber = v.LoadNumber,
+                    LoadNumberGov = v.LoadNumberGov,
+                    Tonnage = v.Tonnage,
+                    TonnagePrice = v.TonnagePrice,
+                    VehicleNumber = v.VehicleNumber,
+                    VehicleType = v.VehicleType,
+                    WithholdingTax = config.WithholdingTax,
+                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    VAT = config.VAT,
+                    Date = new PersianDateTime(v.Year, v.Month, v.Day, 0, 0, 0).ToDateTime()
+                };
+
+                _freeLoadFactorRepository.Create(item);
+                try
+                {
+                    await _freeLoadFactorRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> EditFreeLoadFactor(long id)
+        {
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["VehicleTypes"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType.Equals(DefinitionType.Car)).OrderBy(a => a.Title).ToListAsync();
+            return PartialView("~/Views/Admin/Edit/FreeLoadFactor.cshtml", await _freeLoadFactorRepository.GetEditData(id));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditFreeLoadFactor(EditFreeLoadFactorVM v)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _freeLoadFactorRepository.Query().AnyAsync(a => !a.Id.Equals(v.Id) && a.LoadNumber.Equals(v.LoadNumber)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. شماره بارنامه تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                if (!string.IsNullOrWhiteSpace(v.LoadNumberGov))
+                    if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(v.Id) && a.LoadNumberGov.Equals(v.LoadNumberGov)))
+                        return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
+
+                var item = await _freeLoadFactorRepository.Get(v.Id);
+                item.LoadNumber = v.LoadNumber;
+                item.LoadNumberGov = v.LoadNumberGov;
+                item.ApplicantName = v.ApplicantName;
+                item.TonnagePrice = v.TonnagePrice;
+                item.DriverTonnagePrice = v.DriverTonnagePrice;
+                item.Amount = v.Amount;
+                item.Date = new PersianDateTime(v.Year, v.Month, v.Day, 0, 0, 0).ToDateTime();
+                item.Destination = v.Destination;
+                item.Origin = v.Origin;
+                item.EditDatetime = DateTime.Now;
+                item.EditorId = _userManager.GetUserId(User);
+                item.VehicleNumber = v.VehicleNumber;
+                item.VehicleType = v.VehicleType;
+                item.DriverFee = v.DriverFee;
+                item.DriverName = v.DriverName;
+                item.CalendarId = v.CalendarId;
+
+                _freeLoadFactorRepository.Update(item);
+                try
+                {
+                    await _freeLoadFactorRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteFreeLoadFactor(long id)
+        {
+            var item = await _freeLoadFactorRepository.Get(id);
+            if (item == null) return NotFound();
+
+            _freeLoadFactorRepository.Delete(item);
+            try
+            {
+                await _freeLoadFactorRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }

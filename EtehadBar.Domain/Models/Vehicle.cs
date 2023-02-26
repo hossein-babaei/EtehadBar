@@ -47,12 +47,10 @@ namespace EtehadBar.Domain.Models
 
         [Display(Name = "نام بانک")]
         [StringLength(64)]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string AccountBankName { get; set; }
 
         [Display(Name = "شماره حساب بانکی")]
         [StringLength(64)]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string BankAccountNumber { get; set; }
 
         public virtual ICollection<Payment> Payments { get; set; }

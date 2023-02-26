@@ -18,9 +18,9 @@ namespace Helpers
             {
                 var user = new ApplicationUser()
                 {
-                    Firstname = "ادمین",
-                    Lastname = "سیستم",
-                    Email = "admin@example.com",
+                    Firstname = "حسین",
+                    Lastname = "بابائی",
+                    Email = "hossein.babaei.dev@gmail.com",
                     EmailConfirmed = true,
                     PhoneNumber = "09108897900",
                     PhoneNumberConfirmed = true,

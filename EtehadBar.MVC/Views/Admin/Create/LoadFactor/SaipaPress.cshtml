@@ -67,7 +67,7 @@
                     <select asp-for="DriverId" class="uk-select uk-border-rounded">
                         @foreach (var item in drivers)
                         {
-                            <option value="@item.Id">@item.Firstname @item.Lastname (@item.NationalNumber)</option>
+                            <option value="@item.Id">@item.Fullname (@item.NationalNumber)</option>
                         }
                     </select>
                     <span asp-validation-for="DriverId" class="uk-text-danger"></span>

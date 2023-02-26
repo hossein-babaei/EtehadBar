@@ -1,10 +1,10 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
-using Humanizer;
+using EtehadBar.MVC.Filters;
 using MD.PersianDateTime.Standard;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 
 namespace EtehadBar.MVC.Controllers
 {
+    [Authorize]
+    [ServiceFilter(typeof(ActionLogFilter))]
     public class ExcelController : Controller
     {
         private readonly ICalendarRepository _calendarRepo;
@@ -46,6 +48,7 @@ namespace EtehadBar.MVC.Controllers
             _mehrcomParsCategoryRepository = mehrcomParsCategoryRepository;
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Detailed(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -114,7 +117,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 2, 10).Value = loadFactors[index - 1].VAT;
                 ws.Cell(index + 2, 11).Value = loadFactors[index - 1].LoadFactorDeductions;
                 ws.Cell(index + 2, 12).Value = loadFactors[index - 1].WithholdingTax;
-                ws.Cell(index + 2, 13).Value = $"{loadFactors[index - 1].Driver.Firstname} {loadFactors[index - 1].Driver.Lastname}";
+                ws.Cell(index + 2, 13).Value = $"{loadFactors[index - 1].Driver.Fullname}";
                 ws.Cell(index + 2, 14).Value = loadFactors[index - 1].Vehicle.Type;
                 ws.Cell(index + 2, 15).Value = loadFactors[index - 1].Calendar.Title;
                 ws.Cell(index + 2, 16).Value = $"{loadFactors[index - 1].Contract.Customer.Name} {loadFactors[index - 1].Contract.Number}";
@@ -167,6 +170,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
+        [Authorize("Admin, User")]
         public async Task<IActionResult> Cost(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -232,6 +236,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
+        [Authorize("Admin, User")]
         public async Task<IActionResult> Payment(long calendarId, byte? type, long vehicleId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -339,6 +344,9 @@ namespace EtehadBar.MVC.Controllers
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("گزارش عملکرد");
             ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
             ws.Cell(1, 1).Value = docTitle;
 
@@ -385,7 +393,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 2, 6).Value = loadFactors[index - 1].Origin.Title;
                 ws.Cell(index + 2, 7).Value = loadFactors[index - 1].Destination.Title;
                 ws.Cell(index + 2, 8).Value = loadFactors[index - 1].DriverFee.ToString("N0");
-                ws.Cell(index + 2, 9).Value = $"{loadFactors[index - 1].Driver.Firstname} {loadFactors[index - 1].Driver.Lastname}";
+                ws.Cell(index + 2, 9).Value = $"{loadFactors[index - 1].Driver.Fullname}";
                 ws.Cell(index + 2, 10).Value = $"{loadFactors[index - 1].Contract.Customer.Name} {loadFactors[index - 1].Contract.Number}";
             }
 
@@ -420,6 +428,148 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
+        public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId)
+        {
+            var vehicle = await _vehicleRepo.Get(vehicleId);
+            var calendar = await _calendarRepo.Get(calendarId);
+            var payment = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
+            var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Id).ToListAsync();
+
+            var routes = new List<VehicleActivityVM>();
+
+            foreach (var origin in loadFactors.DistinctBy(a => a.OriginId))
+            {
+                var destinations = loadFactors.Where(a => a.OriginId.Equals(origin.OriginId)).ToList();
+                foreach (var destination in destinations)
+                {
+                    routes.Add(new VehicleActivityVM
+                    {
+                        OriginId = origin.OriginId,
+                        DestinationId = destination.DestinationId,
+                        DestionationTitle = destination.Destination.Title,
+                        DriverFee = destination.DriverFee,
+                        DriverTonnagePrice = destination.DriverTonnagePrice,
+                        Tonnage = destination.Tonnage,
+                        TonnagePrice = destination.TonnagePrice,
+                        OriginTitle = origin.Origin.Title,
+                        Count = loadFactors.Count(a => a.OriginId.Equals(origin.OriginId) && a.DestinationId.Equals(destination.DestinationId) && a.DriverFee.Equals(destination.DriverFee))
+                    });
+                }
+            }
+
+            routes = routes.DistinctBy(a => new { a.OriginId, a.DestinationId, a.DriverFee }).ToList();
+
+            string docTitle = $"گزارش جزئیات عملکرد {vehicle.Type} به شماره (ایران {vehicle.IranStateNumber} - {vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber}) در {calendar.Title}";
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("گزارش جزئیات عملکرد");
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+            ws.Cell(2, 1).Value = "#";
+            ws.Cell(2, 2).Value = "مبدا";
+            ws.Cell(2, 3).Value = "مقصد";
+            ws.Cell(2, 4).Value = "کرایه";
+            ws.Cell(2, 5).Value = "تعداد";
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(loadFactors.Count + 2, 5));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetBold()
+                .Font.SetFontSize(14)
+                    .Fill.SetBackgroundColor(XLColor.LightGray)
+                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 5)); // The address is relative to rngTable (NOT the worksheet)
+            rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            rngHeaders.Style.Font.Bold = true;
+            rngHeaders.Style.Font.FontColor = XLColor.Black;
+
+            for (int i = 0; i < routes.Count; i++)
+            {
+                ws.Cell(i + 3, 1).Value = i + 1;
+                ws.Cell(i + 3, 2).Value = routes[i].OriginTitle;
+                ws.Cell(i + 3, 3).Value = routes[i].DestionationTitle;
+                ws.Cell(i + 3, 4).Value = routes[i].DriverFee.ToString("N0");
+                ws.Cell(i + 3, 5).Value = routes[i].Count;
+            }
+
+            ws.Cell($"B{routes.Count + 3}").Value = "تعداد کل بارنامه ها";
+            ws.Range($"B{routes.Count + 3}:D{routes.Count + 3}").Row(1).Merge();
+            ws.Cell(routes.Count + 3, 5).Value = loadFactors.Count;
+
+            double driverFeeTotal = loadFactors.Sum(a => a.DriverFee);
+
+            if (loadFactors.Any(a => a.Tonnage.HasValue))
+            {
+                ws.Cell($"B{routes.Count + 4}").Value = "جمع کل اضافه تناژ";
+                ws.Range($"B{routes.Count + 4}:D{routes.Count + 4}").Row(1).Merge();
+                ws.Cell(routes.Count + 4, 5).Value = loadFactors.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value);
+
+                ws.Cell($"B{routes.Count + 5}").Value = "جمع کل مبلغ اضافه تناژ";
+                ws.Range($"B{routes.Count + 5}:D{routes.Count + 5}").Row(1).Merge();
+                ws.Cell(routes.Count + 5, 5).Value = loadFactors.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.DriverTonnagePrice.Value).ToString("N0");
+
+                ws.Cell($"B{routes.Count + 6}").Value = "جمع کل مبلغ بارنامه ها";
+                ws.Range($"B{routes.Count + 6}:D{routes.Count + 6}").Row(1).Merge();
+                ws.Cell(routes.Count + 6, 5).Value = driverFeeTotal.ToString("N0");
+
+                ws.Cell($"B{routes.Count + 7}").Value = "جمع کرایه عملکرد";
+                ws.Range($"B{routes.Count + 7}:D{routes.Count + 7}").Row(1).Merge();
+
+                foreach (var item in loadFactors.Where(a => a.Tonnage.HasValue))
+                    driverFeeTotal += item.Tonnage.Value * item.DriverTonnagePrice.Value;
+
+                ws.Cell(routes.Count + 7, 5).Value = driverFeeTotal.ToString("N0");
+
+                ws.Cell($"B{routes.Count + 8}").Value = "جمع پرداختی (حقوق و مساعده)";
+                ws.Range($"B{routes.Count + 8}:D{routes.Count + 8}").Row(1).Merge();
+                ws.Cell(routes.Count + 8, 5).Value = payment.ToString("N0");
+
+                ws.Cell($"B{routes.Count + 9}").Value = "مجموع قابل پرداخت";
+                ws.Range($"B{routes.Count + 9}:D{routes.Count + 9}").Row(1).Merge();
+                ws.Cell(routes.Count + 9, 5).Value = (driverFeeTotal - payment).ToString("N0");
+
+                var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:E{loadFactors.Count + 9}");
+                rngTable2.RangeUsed().Style
+                    .Font.SetBold()
+                    .Font.SetFontSize(12);
+            }
+            else
+            {
+                ws.Cell($"B{routes.Count + 4}").Value = "جمع کرایه عملکرد";
+                ws.Range($"B{routes.Count + 4}:D{routes.Count + 4}").Row(1).Merge();
+                ws.Cell(routes.Count + 4, 5).Value = driverFeeTotal.ToString("N0");
+
+                ws.Cell($"B{routes.Count + 5}").Value = "جمع پرداختی (حقوق و مساعده)";
+                ws.Range($"B{routes.Count + 5}:D{routes.Count + 5}").Row(1).Merge();
+                ws.Cell(routes.Count + 5, 5).Value = payment.ToString("N0");
+
+                ws.Cell($"B{routes.Count + 6}").Value = "مجموع قابل پرداخت";
+                ws.Range($"B{routes.Count + 6}:D{routes.Count + 6}").Row(1).Merge();
+                ws.Cell(routes.Count + 6, 5).Value = (driverFeeTotal - payment).ToString("N0");
+
+                var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:E{loadFactors.Count + 6}");
+                rngTable2.RangeUsed().Style
+                    .Font.SetBold()
+                    .Font.SetFontSize(12);
+            }
+
+            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
+            ws.Columns().AdjustToContents();
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+        }
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CustomerIncome(long? id, long calendarId)
         {
             if (!id.HasValue)
@@ -666,7 +816,7 @@ namespace EtehadBar.MVC.Controllers
                     {
                         ws.Cell(index + rowIndex, 1).Value = ((20 * i) + (index - 1)) - (20 - 1);
                         ws.Cell(index + rowIndex, 2).Value = new PersianDateTime(loadFactors[index - 1].Date).ToString("yyyy/MM/dd");
-                        ws.Cell(index + rowIndex, 3).Value = loadFactors[index - 1].Driver.Lastname;
+                        ws.Cell(index + rowIndex, 3).Value = loadFactors[index - 1].Driver.Fullname;
                         ws.Cell(index + rowIndex, 4).Value = $"{loadFactors[index - 1].Vehicle.RightNumber} {loadFactors[index - 1].Vehicle.NumberWord} {loadFactors[index - 1].Vehicle.LeftNumber}";
                         if (string.IsNullOrWhiteSpace(loadFactors[index - 1].LoadNumberGov))
                         {
@@ -898,7 +1048,7 @@ namespace EtehadBar.MVC.Controllers
                         ws.Cell(index + 1, 14).Value = allLoadFactors[index - 1].Amount.ToString("N0");
 
                     ws.Cell(index + 1, switchCounter - 2).Value = allLoadFactors[index - 1].ExitNumber;
-                    ws.Cell(index + 1, switchCounter - 1).Value = allLoadFactors[index - 1].Driver.Lastname;
+                    ws.Cell(index + 1, switchCounter - 1).Value = allLoadFactors[index - 1].Driver.Fullname;
                     ws.Cell(index + 1, switchCounter).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
                 }
 
@@ -1181,7 +1331,7 @@ namespace EtehadBar.MVC.Controllers
                         ws.Cell($"C{i + 5}").Value = date.ToString("yyyy/MM/dd");
                         ws.Cell($"D{i + 5}").Value = allLoadFactors[i].LoadNumber;
                         ws.Cell($"E{i + 5}").Value = vehicle.Type;
-                        ws.Cell($"F{i + 5}").Value = allLoadFactors[i].Driver.Firstname + " " + allLoadFactors[i].Driver.Lastname;
+                        ws.Cell($"F{i + 5}").Value = allLoadFactors[i].Driver.Fullname;
                         ws.Cell($"G{i + 5}").Value = carNumber;
                         ws.Cell($"H{i + 5}").Value = allLoadFactors[i].Origin.Title;
                         ws.Cell($"I{i + 5}").Value = allLoadFactors[i].Destination.Title;
@@ -1370,7 +1520,7 @@ namespace EtehadBar.MVC.Controllers
                     ws2.Cell("D2").Value = $"تاریخ: {new PersianDateTime(endDate).ToString("yyyy/MM/dd")}";
                     ws2.Cell("F2").Value = $"کارکرد: {monthName} ماه";
                     ws2.RowsUsed().Last().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center).Alignment.SetVertical(XLAlignmentVerticalValues.Center);
-                    
+
                     #endregion
                 }
                 else
@@ -1385,7 +1535,7 @@ namespace EtehadBar.MVC.Controllers
                         ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
                         var data = allLoadFactors.Where(a => a.MehrcomParsLoadFactor.CategoryId.Equals(category.Id)).OrderBy(a => a.Date).ToList();
-                        
+
                         ws.Cell("A4").Value = "ردیف";
                         ws.Cell("B4").Value = "شماره زونکن";
                         ws.Cell("C4").Value = "تاریخ";
@@ -1466,7 +1616,7 @@ namespace EtehadBar.MVC.Controllers
                                 ws.Cell($"C{totalCounter}").Value = date.ToString("yyyy/MM/dd");
                                 ws.Cell($"D{totalCounter}").Value = loadFactors[i].LoadNumber;
                                 ws.Cell($"E{totalCounter}").Value = vehicle.Type;
-                                ws.Cell($"F{totalCounter}").Value = loadFactors[i].Driver.Firstname + " " + loadFactors[i].Driver.Lastname;
+                                ws.Cell($"F{totalCounter}").Value = loadFactors[i].Driver.Fullname;
                                 ws.Cell($"G{totalCounter}").Value = carNumber;
                                 ws.Cell($"H{totalCounter}").Value = loadFactors[i].Origin.Title;
                                 ws.Cell($"I{totalCounter}").Value = loadFactors[i].Destination.Title;
@@ -1669,7 +1819,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 1, 1).Value = index;
                 ws.Cell(index + 1, 2).Value = data[index - 1].LoadNumber;
                 ws.Cell(index + 1, 3).Value = $"{data[index - 1].Vehicle.RightNumber} {data[index - 1].Vehicle.NumberWord} {data[index - 1].Vehicle.LeftNumber}";
-                ws.Cell(index + 1, 4).Value = data[index - 1].Driver.Lastname;
+                ws.Cell(index + 1, 4).Value = data[index - 1].Driver.Fullname;
                 ws.Cell(index + 1, 5).Value = data[index - 1].Origin.Title;
                 ws.Cell(index + 1, 6).Value = data[index - 1].Destination.Title;
                 ws.Cell(index + 1, 7).Value = new PersianDateTime(data[index - 1].Date).ToString("yyyy/MM/dd");
