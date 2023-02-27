@@ -376,6 +376,10 @@ namespace EtehadBar.Domain
         [Display(Name = "صورت وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long AccountBookId { get; set; }
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public SazehGostarLoadType SazehLoadType { get; set; }
     }
 
     public class ESazehGostarLoadFactorVM
@@ -467,6 +471,10 @@ namespace EtehadBar.Domain
         [Display(Name = "صورت وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long AccountBookId { get; set; }
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public SazehGostarLoadType SazehLoadType { get; set; }
     }
 
     public class CMehrcomParsLoadFactorVM

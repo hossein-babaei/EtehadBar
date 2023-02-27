@@ -98,6 +98,28 @@
                 parent.find('#DriverTonnagePrice').parent().hide();
             }
         }
+        function createFreeFee(id) {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CreateShippingFreeFeeTypeFromNormal")',
+                data: { 'id': id },
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $.get('@Url.Action("ShippingFeePartial")', { 'contractId': contractId }, function (r) {
+                        $('#append').html(r);
+                    }, 'html');
+                },
+                error: function (e) {
+                    notify(e.responseText, 'error');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -218,6 +240,7 @@
                         <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
                     }
                     <th width="50">بارنامه ها</th>
+                    <th width="50">نرخ آزاد</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -248,6 +271,14 @@
                             <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small"><i class="fas fa-clipboard-check"></i></a></td>
+                        @if (item.ShippingFeeType == ShippingFeeType.Normal)
+                        {
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="createFreeFee('@item.Id')"><i class="fas fa-sync-alt"></i></a></td>
+                        }
+                        else
+                        {
+                            <td><a class="uk-button uk-button-primary uk-button-small"><i class="fas fa-sync-alt"></i></a></td>
+                        }
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

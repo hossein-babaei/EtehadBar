@@ -36,6 +36,9 @@ namespace EtehadBar.Domain.Models
         public string DetailedCostCenter { get; set; }
 
         [Required]
+        public SazehGostarLoadType SazehLoadType { get; set; }
+
+        [Required]
         public long LoadFactorId { get; set; }
         public virtual LoadFactor LoadFactor { get; set; }
 

@@ -46,7 +46,7 @@
                     <select asp-for="ShippingFeeId" class="uk-select uk-border-rounded" data-last-type="@fees.First().ShippingFeeType" onchange="loadFactorFormShippingFeeChangeHandler(this, '@CustomerType.SazehGostar')">
                         @foreach (var item in fees)
                         {
-                            <!option value="@item.Id" data-vehicle-type="@item.Vehicle" data-type="@item.ShippingFeeType" @if(item == fees.First()){ <text>selected="selected"</text> }>@(string.IsNullOrWhiteSpace(item.Title) ? "" : $"({item.Title}) ")@item.Vehicle - (@item.Origin.Title به @item.Destination.Title) - @(item.ShippingFeeType == ShippingFeeType.Normal ? item.DriverPrice.ToString("N0") : "نرخ آزاد")</!option>
+                            <!option value="@item.Id" data-vehicle-type="@item.Vehicle" data-type="@item.ShippingFeeType" @if(item == fees.First()){ <text>selected="selected"</text> }>@(string.IsNullOrWhiteSpace(item.Title) ? "" : $"({item.Title}) ")@item.Vehicle - (@item.Origin.Title به @item.Destination.Title - @item.ShippingFeeLoadType.Name) - @(item.ShippingFeeType == ShippingFeeType.Normal ? item.DriverPrice.ToString("N0") : "نرخ آزاد")</!option>
                         }
                     </select>
                     <span asp-validation-for="ShippingFeeId" class="uk-text-danger"></span>
@@ -131,15 +131,23 @@
                     <input asp-for="Nature" dir="ltr" class="uk-input uk-border-rounded uk-form-small" value="1" readonly />
                     <span asp-validation-for="Nature" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-3@m">
                     <label asp-for="DetailedCostCenter" class="uk-form-label"></label>
                     <input asp-for="DetailedCostCenter" class="uk-input uk-border-rounded uk-form-small" value="800720" readonly />
                     <span asp-validation-for="DetailedCostCenter" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-3@m">
                     <label asp-for="Count" class="uk-form-label"></label>
                     <input asp-for="Count" dir="ltr" class="uk-input uk-border-rounded uk-form-small" value="1" readonly />
                     <span asp-validation-for="Count" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label asp-for="SazehLoadType" class="uk-form-label"></label>
+                    <select asp-for="SazehLoadType" class="uk-select uk-border-rounded uk-form-small">
+                        <option value="@((int)SazehGostarLoadType.OneWay)">رفت</option>
+                        <option value="@((int)SazehGostarLoadType.TwoWay)">رفت و برگشت</option>
+                    </select>
+                    <span asp-validation-for="SazehLoadType" class="uk-text-danger"></span>
                 </div>
             </div>
         </form>

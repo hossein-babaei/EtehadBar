@@ -9,6 +9,7 @@
         <thead>
             <tr>
                 <th>ردیف</th>
+                <th>@Html.DisplayNameFor(model => model.Title)</th>
                 <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
                 <th>@Html.DisplayNameFor(model => model.OriginId)</th>
                 <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
@@ -25,6 +26,7 @@
                     <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
                 }
                 <th width="50">بارنامه ها</th>
+                <th width="50">نرخ آزاد</th>
                 <th width="50">ویرایش</th>
                 <th width="50">حذف</th>
             </tr>
@@ -38,6 +40,7 @@
 
                 <tr class="uk-text-center sm">
                     <td>@i</td>
+                    <td>@(string.IsNullOrWhiteSpace(item.Title) ? "---" : item.Title)</td>
                     <td>@item.Vehicle</td>
                     <td>@item.Origin.Title</td>
                     <td>@item.Destination.Title</td>
@@ -54,6 +57,14 @@
                         <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
                     }
                     <td><a class="uk-button uk-button-primary uk-button-small"><i class="fas fa-clipboard-check"></i></a></td>
+                    @if (item.ShippingFeeType == ShippingFeeType.Normal)
+                    {
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="createFreeFee('@item.Id')"><i class="fas fa-sync-alt"></i></a></td>
+                    }
+                    else
+                    {
+                        <td><a class="uk-button uk-button-primary uk-button-small"><i class="fas fa-sync-alt"></i></a></td>
+                    }
                     <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                     <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                 </tr>

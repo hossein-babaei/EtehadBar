@@ -172,7 +172,8 @@ namespace EtehadBar.Infra.Data.Repository
                 RegisterCode = loadFactor.SazehGostarLoadFactor.RegisterCode,
                 Amount = loadFactor.Amount,
                 DriverFee = loadFactor.DriverFee,
-                AccountBookId = loadFactor.AccountBookId
+                AccountBookId = loadFactor.AccountBookId,
+                SazehLoadType = loadFactor.SazehGostarLoadFactor.SazehLoadType
             };
         }
 

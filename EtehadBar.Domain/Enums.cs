@@ -44,6 +44,12 @@
         TwoFloor
     }
 
+    public enum SazehGostarLoadType
+    {
+        OneWay,
+        TwoWay
+    }
+
     public enum ExcelExportType
     {
         WithAllPrices,
