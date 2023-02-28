@@ -96,7 +96,10 @@
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.Name)</th>
                     <th>@Html.DisplayNameFor(model => model.Status)</th>
-                    <th>گزارش دریافتی</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th>گزارش دریافتی</th>
+                    }
                     <th>گزارش بارنامه</th>
                 </tr>
             </thead>
@@ -114,7 +117,10 @@
                         {
                             <td class="uk-text-bold uk-text-danger">غیر فعال</td>
                         }
-                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a></td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a></td>
+                        }
                         <td>
                             <a class="uk-button uk-button-primary uk-button-small" onclick="showFormByCalendar(@item.Id, @((byte)item.CustomerType))">بر اساس تقویم کاری</a>
                             <a class="uk-button uk-button-primary uk-button-small uk-margin-small-right" onclick="showFormByAccountBook(@item.Id, @((byte)item.CustomerType))">بر اساس صورت وضعیت</a>
@@ -147,18 +153,33 @@
                         </select>
                     </div>
                     @*<div>
-                        <label class="uk-form-label">خودرو</label>
-                        <select name="vehicleId"></select>
+                    <label class="uk-form-label">خودرو</label>
+                    <select name="vehicleId"></select>
                     </div>*@
-                    <div>
-                        <label class="uk-form-label">نوع خروجی</label>
-                        <select name="exportType">
-                            <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
-                            <option value="@((int)ExcelExportType.WithAllPrices)">با تمامی نرخ ها</option>
-                            <option value="@((int)ExcelExportType.OnlyReceivingPrice)">با نرخ دریافتی</option>
-                            <option value="@((int)ExcelExportType.OnlyDriverPrice)">با نرخ پرداختی</option>
-                        </select>
-                    </div>
+                    @if (User.IsInRole("Admin") || User.IsInRole("User"))
+                    {
+                        <div>
+                            <label class="uk-form-label">نوع خروجی</label>
+                            <select name="exportType">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
+                                    <option value="@((int)ExcelExportType.WithAllPrices)">با تمامی نرخ ها</option>
+                                    <option value="@((int)ExcelExportType.OnlyReceivingPrice)">با نرخ دریافتی</option>
+                                    <option value="@((int)ExcelExportType.OnlyDriverPrice)">با نرخ پرداختی</option>
+                                }
+                                else
+                                {
+                                    <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
+                                    <option value="@((int)ExcelExportType.OnlyReceivingPrice)">با نرخ دریافتی</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <input name="exportType" type="hidden" value="@((int)ExcelExportType.OnlyReceivingPrice)" />
+                    }
                     <div id="modal-append"></div>
                 </div>
             </form>
@@ -182,15 +203,30 @@
                         <label class="uk-form-label">صورت وضعیت</label>
                         <select name="accountBookId"></select>
                     </div>
-                    <div>
-                        <label class="uk-form-label">نوع خروجی</label>
-                        <select name="exportType">
-                            <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
-                            <option value="@((int)ExcelExportType.WithAllPrices)">با تمامی نرخ ها</option>
-                            <option value="@((int)ExcelExportType.OnlyReceivingPrice)">با نرخ دریافتی</option>
-                            <option value="@((int)ExcelExportType.OnlyDriverPrice)">با نرخ پرداختی</option>
-                        </select>
-                    </div>
+                    @if (User.IsInRole("Admin") || User.IsInRole("User"))
+                    {
+                        <div>
+                            <label class="uk-form-label">نوع خروجی</label>
+                            <select name="exportType">
+                                @if (User.IsInRole("Admin"))
+                                {
+                                    <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
+                                    <option value="@((int)ExcelExportType.WithAllPrices)">با تمامی نرخ ها</option>
+                                    <option value="@((int)ExcelExportType.OnlyReceivingPrice)">با نرخ دریافتی</option>
+                                    <option value="@((int)ExcelExportType.OnlyDriverPrice)">با نرخ پرداختی</option>
+                                }
+                                else
+                                {
+                                    <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
+                                    <option value="@((int)ExcelExportType.OnlyReceivingPrice)">با نرخ دریافتی</option>
+                                }
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <input name="exportType" type="hidden" value="@((int)ExcelExportType.OnlyReceivingPrice)" />
+                    }
                 </div>
             </form>
         </div>

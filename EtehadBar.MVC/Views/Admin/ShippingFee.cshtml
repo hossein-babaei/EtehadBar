@@ -83,7 +83,7 @@
         function shippingFeeTypeChangeHandler(select) {
             let value = $(select).val(),
                 parent = $(select).parents('form');
-                
+
             parent.find('#Price').val(0);
             parent.find('#DriverPrice').val(0);
             if (value == 0) {
@@ -108,12 +108,38 @@
                     preloader();
                 },
                 success: function (r) {
-                    $.get('@Url.Action("ShippingFeePartial")', { 'contractId': contractId }, function (r) {
+                    $.get('@Url.Action("ShippingFeePartial")', { 'contractId': contractId, 'customerId': @contractInfo.CustomerId }, function (r) {
                         $('#append').html(r);
                     }, 'html');
                 },
                 error: function (e) {
-                    notify(e.responseText, 'error');
+                    UIkit.notification({ message: e.responseText, status: 'danger', pos: 'bottom-center', timeout: 10000 });
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function copyFeeFromOldContract() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CreateShippingFreeFeeTypeFromNormal")',
+                data: { 'contractRowId': contractId },
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    let options = '';
+                    $.each(r, function (i, v) {
+                        options += `<option value="${v.rowId}">${v.number}</option>`;
+                    });
+                    $('select[name=contractRowId]').html(options);
+
+                    UIkit.modal('#copy-modal').show();
+                },
+                error: function (e) {
+                    UIkit.notification({ message: e.responseText, status: 'danger', pos: 'bottom-center', timeout: 10000 });
                 },
                 complete: function () {
                     preloader();
@@ -137,7 +163,7 @@
         }
         else
         {
-            <button disabled class="uk-button uk-button-default uk-margin-small-left">تغییر نرخ کلی</button>
+            <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="copyFeeFromOldContract()">کپی نرخ از قرارداد</a>
         }
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
     </div>
@@ -300,6 +326,20 @@
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
             </div>
         </form>
+    </div>
+</div>
+<div id="copy-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="copy-form" action="@Url.Action("DoCreateShippingFreeFeeTypeFromNormal")" method="post">
+            <input type="hidden" name="newContractRowId" value="@contractInfo.RowId" />
+            <h4 class="uk-text-light">تمامی نرخ ها از قرارداد انتخابی شما کپی خواهد شد.</h4>
+            <label class="uk-form-label">قراردادی که میخواهید نرخ ها از آن کپی شود</label>
+            <select name="contractRowId" class="uk-select uk-border-rounded"></select>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="$('#copy-form').submit()" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
     </div>
 </div>
 <div id="change-modal" class="uk-flex-top" uk-modal>

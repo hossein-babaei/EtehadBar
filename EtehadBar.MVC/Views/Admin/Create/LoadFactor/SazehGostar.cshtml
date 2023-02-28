@@ -46,7 +46,7 @@
                     <select asp-for="ShippingFeeId" class="uk-select uk-border-rounded" data-last-type="@fees.First().ShippingFeeType" onchange="loadFactorFormShippingFeeChangeHandler(this, '@CustomerType.SazehGostar')">
                         @foreach (var item in fees)
                         {
-                            <!option value="@item.Id" data-vehicle-type="@item.Vehicle" data-type="@item.ShippingFeeType" @if(item == fees.First()){ <text>selected="selected"</text> }>@(string.IsNullOrWhiteSpace(item.Title) ? "" : $"({item.Title}) ")@item.Vehicle - (@item.Origin.Title به @item.Destination.Title - @item.ShippingFeeLoadType.Name) - @(item.ShippingFeeType == ShippingFeeType.Normal ? item.DriverPrice.ToString("N0") : "نرخ آزاد")</!option>
+                            <!option value="@item.Id" data-vehicle-type="@item.Vehicle" data-type="@item.ShippingFeeType" @if(item == fees.First()){ <text>selected="selected"</text> }>@(string.IsNullOrWhiteSpace(item.Title) ? "" : $"({item.Title}) ")@item.Vehicle - (@item.Origin.Title به @item.Destination.Title - @item.ShippingFeeLoadType.Name) - @(item.ShippingFeeType == ShippingFeeType.Normal ? item.Price.ToString("N0") : "نرخ آزاد")</!option>
                         }
                     </select>
                     <span asp-validation-for="ShippingFeeId" class="uk-text-danger"></span>

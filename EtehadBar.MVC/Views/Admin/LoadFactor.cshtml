@@ -68,7 +68,7 @@
                 console.log(r);
                 form.find('#ShippingFeeId').html('');
                 $.each(r, function (i, v) {
-                    form.find('#ShippingFeeId').append(`<option value="${v.id}">${v.title != '' ? v.title : ''} ${v.vehicle} (${v.origin} به ${v.destination} - ${v.loadType}) ${v.driverPrice}</option>`);
+                    form.find('#ShippingFeeId').append(`<option value="${v.id}">${v.title != '' ? v.title : ''} ${v.vehicle} (${v.origin} به ${v.destination} - ${v.loadType}) ${v.price}</option>`);
                 });
             }, 'json').then(function () {
                 parseValidator(form);
@@ -232,7 +232,16 @@
                     <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
                     <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
-                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    <th>مشتری</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                    }
+                    else
+                    {
+                        <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    }
                     <th width="50">جزئیات</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
@@ -253,7 +262,16 @@
                             <td>@Html.DisplayFor(modelItem => item.LoadNumberGov)</td>
                         }
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
-                        <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                        <td>@item.Contract.Customer.Name</td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                            <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                        }
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="getEditForm('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>

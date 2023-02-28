@@ -2182,6 +2182,55 @@ namespace EtehadBar.MVC.Controllers
             }
             return Json(new { msg, status });
         }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> CreateShippingFreeFeeTypeFromNormal(string contractRowId, long customerId)
+        {
+            var latestContracts = await _contractRepo.Contracts().AsNoTracking().Where(a => !a.RowId.Equals(contractRowId) && a.CustomerId.Equals(customerId))
+                .Select(a => new { a.Number, a.RowId, a.EndDate }).OrderByDescending(a => a.EndDate).ToListAsync();
+            if (latestContracts.Count == 0)
+                return NotFound("قراردادی وجود ندارد.");
+
+            return Json(latestContracts);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> DoCreateShippingFreeFeeTypeFromNormal(string contractRowId, string newContractRowId)
+        {
+            var newContract = await _contractRepo.Get(newContractRowId);
+            var contract = await _contractRepo.Get(contractRowId);
+            foreach (var item in contract.ShippingFees)
+            {
+                _shippingFeeRepo.Create(new Domain.Models.ShippingFee
+                {
+                    ContractId = newContract.Id,
+                    CreateDate = DateTime.Now,
+                    CreatorId = _userManager.GetUserId(User),
+                    DestinationId = item.DestinationId,
+                    DriverPrice= item.DriverPrice,
+                    DriverTonnagePrice= item.DriverTonnagePrice,
+                    OriginId = item.OriginId,
+                    Price = item.Price,
+                    ShippingFeeLoadTypeId = item.ShippingFeeLoadTypeId,
+                    ShippingFeeType=item.ShippingFeeType,
+                    Title=item.Title,
+                    TonnagePrice = item.TonnagePrice,
+                    Vehicle = item.Vehicle
+                });
+            }
+            try
+            {
+                await _shippingFeeRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
         #endregion
 
         #region ShippingFeeLoadType
@@ -2391,7 +2440,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (vehicle.Type != fee.Vehicle)
+                if (!vehicle.Type.StartsWith(fee.Vehicle))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
@@ -2512,7 +2561,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (vehicle.Type != fee.Vehicle)
+                if (!vehicle.Type.StartsWith(fee.Vehicle))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
@@ -2634,7 +2683,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (vehicle.Type != fee.Vehicle)
+                if (!vehicle.Type.StartsWith(fee.Vehicle))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
@@ -2755,7 +2804,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (vehicle.Type != fee.Vehicle)
+                if (!vehicle.Type.StartsWith(fee.Vehicle))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 if ((!input.Load && !input.Palette && !input.Return) ||
@@ -2903,7 +2952,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (vehicle.Type != fee.Vehicle)
+                if (!vehicle.Type.StartsWith(fee.Vehicle))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 var item = await _loadFactorRepo.Get(input.Id);
@@ -2973,7 +3022,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (vehicle.Type != fee.Vehicle)
+                if (!vehicle.Type.StartsWith(fee.Vehicle))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 var item = await _loadFactorRepo.Get(input.Id);
@@ -3046,7 +3095,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (vehicle.Type != fee.Vehicle)
+                if (!vehicle.Type.StartsWith(fee.Vehicle))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 var item = await _loadFactorRepo.Get(input.Id);
@@ -3122,7 +3171,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (vehicle.Type != fee.Vehicle)
+                if (!vehicle.Type.StartsWith(fee.Vehicle))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 if ((!input.Load && !input.Palette && !input.Return) ||
@@ -3207,7 +3256,7 @@ namespace EtehadBar.MVC.Controllers
             return Json(await query.OrderBy(a => a.Origin).Select(a => new
             {
                 Destination = a.Destination.Title,
-                a.DriverPrice,
+                driverPrice = a.DriverPrice.ToString("N0"),
                 a.Id,
                 Origin = a.Origin.Title,
                 price = a.Price.ToString("N0"),

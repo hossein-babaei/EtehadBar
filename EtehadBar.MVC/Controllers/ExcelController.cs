@@ -1006,7 +1006,7 @@ namespace EtehadBar.MVC.Controllers
                 switchCounter++;
                 ws.Cell(1, switchCounter).Value = "پلاک";
 
-                ws.Range($"A1:{switchCounter}1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
+                ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
                     .Font.SetBold(true);
 
                 for (int index = 1; index <= allLoadFactors.Count; index++)
