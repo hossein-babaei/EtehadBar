@@ -56,6 +56,27 @@ function checkboxBoolean(checkbox) {
     $(checkbox).val($(checkbox).is(':checked'));
 }
 
+function ignoreSpecialCharAndWhitespaceInSelect2(params, data) {
+    if (params.term == '' || typeof (params.term) === 'undefined')
+        return data;
+
+    let term = params.term.split(' ');
+    let text = data.text;
+
+    let founded = 0;
+    $.each(term, function (i, v) {
+        if ($.trim(v) != '')
+            if (text.indexOf(v) > -1) {
+                founded++;
+            }
+    });
+
+    if (founded == term.length)
+        return data;
+    else
+        return null;
+}
+
 $(document).ready(function () {
     new StickySidebar('#sidebar', {
         containerSelector: '#main-content',

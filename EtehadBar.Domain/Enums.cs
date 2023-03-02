@@ -63,6 +63,12 @@
         UserProfileList
     }
 
+    public enum BankAccountBookAmountType
+    {
+        Debtor,
+        Creditor
+    }
+
     public enum SystemLogEventType
     {
         //debug

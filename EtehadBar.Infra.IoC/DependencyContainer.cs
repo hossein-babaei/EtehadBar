@@ -10,6 +10,8 @@ namespace EtehadBar.Infra.IoC
         {
             services.AddScoped<IAccountBookRepository, AccountBookRepository>();
             services.AddScoped<IAdminThemeRepository, AdminThemeRepository>();
+            services.AddScoped<IBankAccountBookRepository, BankAccountBookRepository>();
+            services.AddScoped<IBankAccountRepository, BankAccountRepository>();
             services.AddScoped<ICalendarRepository, CalendarRepository>();
             services.AddScoped<IConfigRepository, ConfigRepository>();
             services.AddScoped<IContractRepository, ContractRepository>();

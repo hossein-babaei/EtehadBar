@@ -58,9 +58,6 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "مالیات ارزش افزوده (%)")]
         public double VAT { get; set; }
 
-        [Display(Name = "سپرده بیمه (%)")]
-        public double LoadFactorDeductions { get; set; }
-
         [Display(Name = "مالیات تکلیفی (%)")]
         public double WithholdingTax { get; set; }
 

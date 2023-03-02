@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using EtehadBar.Domain;
+﻿using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.MVC.Filters;
@@ -10,12 +9,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -48,6 +45,8 @@ namespace EtehadBar.MVC.Controllers
         private readonly IMehrcomParsCategoryRepository _mehrcomParsCategoryRepository;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IFreeLoadFactorRepository _freeLoadFactorRepository;
+        private readonly IBankAccountRepository _bankAccountRepository;
+        private readonly IBankAccountBookRepository _bankAccountBookRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -70,7 +69,9 @@ namespace EtehadBar.MVC.Controllers
             IDriverRepository driverRepository,
             IMehrcomParsCategoryRepository mehrcomParsCategoryRepository,
             SignInManager<ApplicationUser> signInManager,
-            IFreeLoadFactorRepository freeLoadFactorRepository)
+            IFreeLoadFactorRepository freeLoadFactorRepository,
+            IBankAccountRepository bankAccountRepository,
+            IBankAccountBookRepository bankAccountBookRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -93,6 +94,8 @@ namespace EtehadBar.MVC.Controllers
             _mehrcomParsCategoryRepository = mehrcomParsCategoryRepository;
             _signInManager = signInManager;
             _freeLoadFactorRepository = freeLoadFactorRepository;
+            _bankAccountRepository = bankAccountRepository;
+            _bankAccountBookRepository = bankAccountBookRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -2399,11 +2402,15 @@ namespace EtehadBar.MVC.Controllers
             
             ViewData["Contracts"] = contracts;
 
+            var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
+            if (!accountBooks.Any())
+                return NotFound($"صورت وضعیت باز در سیستم وجود ندارد.");
+            ViewData["AccountBooks"] = accountBooks;
+
             ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Fullname).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
-            ViewData["AccountBooks"] = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
 
             long sequence;
             switch (customerType)
@@ -2436,6 +2443,9 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
+                var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
+
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
@@ -2467,7 +2477,7 @@ namespace EtehadBar.MVC.Controllers
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
-                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    LoadFactorDeductions = customerLoadFactorDeduction,
                     AccountBookId = input.AccountBookId
                 };
 
@@ -2554,6 +2564,9 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
+                var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
+
                 if (string.IsNullOrWhiteSpace(input.EntryNumber) && string.IsNullOrWhiteSpace(input.ExitNumber))
                     return NotFound("لطفا شماره ورود یا خروج را وارد نمائید.");
 
@@ -2583,7 +2596,7 @@ namespace EtehadBar.MVC.Controllers
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
-                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    LoadFactorDeductions = customerLoadFactorDeduction,
                     Tonnage = input.Tonnage,
                     AccountBookId = input.AccountBookId
                 };
@@ -2679,6 +2692,9 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
+                var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
+
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
@@ -2705,7 +2721,7 @@ namespace EtehadBar.MVC.Controllers
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
-                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    LoadFactorDeductions = customerLoadFactorDeduction,
                     AccountBookId = input.AccountBookId
                 };
 
@@ -2800,6 +2816,9 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
+                var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
+
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
@@ -2844,7 +2863,7 @@ namespace EtehadBar.MVC.Controllers
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
-                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    LoadFactorDeductions = customerLoadFactorDeduction,
                     AccountBookId = input.AccountBookId,
                     Tonnage = input.Tonnage
                 };
@@ -2924,7 +2943,10 @@ namespace EtehadBar.MVC.Controllers
             else if (customer.CustomerType == CustomerType.MehrcomPars)
                 ViewData["Categories"] = await _mehrcomParsCategoryRepository.Categories().AsNoTracking().OrderBy(a => a.Title).ToListAsync();
 
-            ViewData["AccountBooks"] = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customer.Id)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
+            var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customer.Id)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
+            if (!accountBooks.Any())
+                return NotFound($"صورت وضعیت باز در سیستم برای {customer.Name} وجود ندارد.");
+            ViewData["AccountBooks"] = accountBooks;
 
             return customer.CustomerType switch
             {
@@ -3582,11 +3604,12 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _driverRepository.Drivers().AnyAsync(a => a.NationalNumber.Equals(c.NationalNumber)))
-                {
-                    TempData["msg"] = "کد ملی وارد شده تکراری است. |danger";
-                    return Redirect(Request.Headers["Referer"].ToString());
-                }
+                if (!string.IsNullOrWhiteSpace(c.NationalNumber))
+                    if (await _driverRepository.Drivers().AnyAsync(a => a.NationalNumber.Equals(c.NationalNumber)))
+                    {
+                        TempData["msg"] = "کد ملی وارد شده تکراری است. |danger";
+                        return Redirect(Request.Headers["Referer"].ToString());
+                    }
 
                 _driverRepository.Create(new Driver
                 {
@@ -3641,11 +3664,12 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _driverRepository.Drivers().AnyAsync(a => !a.Id.Equals(c.Id) && a.NationalNumber.Equals(c.NationalNumber)))
-                {
-                    TempData["msg"] = "کد ملی وارد شده تکراری است. |danger";
-                    return Redirect(Request.Headers["Referer"].ToString());
-                }
+                if (!string.IsNullOrWhiteSpace(c.NationalNumber))
+                    if (await _driverRepository.Drivers().AnyAsync(a => !a.Id.Equals(c.Id) && a.NationalNumber.Equals(c.NationalNumber)))
+                    {
+                        TempData["msg"] = "کد ملی وارد شده تکراری است. |danger";
+                        return Redirect(Request.Headers["Referer"].ToString());
+                    }
 
                 var item = await _driverRepository.Get(c.Id);
                 item.Fullname = c.Fullname;
@@ -3869,7 +3893,7 @@ namespace EtehadBar.MVC.Controllers
                     VehicleNumber = v.VehicleNumber,
                     VehicleType = v.VehicleType,
                     WithholdingTax = config.WithholdingTax,
-                    LoadFactorDeductions = config.LoadFactorDeductions,
+                    LoadFactorDeductions = 0,
                     VAT = config.VAT,
                     Date = new PersianDateTime(v.Year, v.Month, v.Day, 0, 0, 0).ToDateTime()
                 };
@@ -3969,6 +3993,198 @@ namespace EtehadBar.MVC.Controllers
             catch (Exception e)
             {
                 TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region BankAccount
+        [HttpGet]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> BankAccount(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _bankAccountRepository.Query().Where(a => a.OwnerUserId.Equals(_userManager.GetUserId(User))).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User")]
+        public PartialViewResult CreateBankAccount()
+        {
+            ViewData["UserId"] = _userManager.GetUserId(User);
+            return PartialView("~/Views/Admin/Create/BankAccount.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> CreateBankAccount(BankAccount v)
+        {
+            if (ModelState.IsValid)
+            {
+                _bankAccountRepository.Create(v);
+                try
+                {
+                    await _bankAccountRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<PartialViewResult> EditBankAccount(int id)
+        {
+            return PartialView("~/Views/Admin/Edit/BankAccount.cshtml", await _bankAccountRepository.Get(id));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> EditBankAccount(BankAccount v)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _bankAccountRepository.Get(v.Id);
+                item.AccountBankName = v.AccountBankName;
+                item.BankAccountNumber = v.BankAccountNumber;
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDatetime = DateTime.Now;
+
+                _bankAccountRepository.Update(item);
+                try
+                {
+                    await _bankAccountRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region BankAccountBook
+        [HttpGet]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> BankAccountBook(string id, int? p)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return Redirect(Request.Headers["Referer"].ToString());
+
+            var bankAccountId = await _bankAccountRepository.Query().AsNoTracking()
+                .Where(a => a.RowId.Equals(id)).Select(a => a.Id).FirstOrDefaultAsync();
+
+            ViewData["Id"] = id;
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _bankAccountBookRepository.Query().Where(a => a.BankAccountId.Equals(bankAccountId)).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User")]
+        public PartialViewResult CreateBankAccountBook()
+        {
+            ViewData["UserId"] = _userManager.GetUserId(User);
+            return PartialView("~/Views/Admin/Create/BankAccountBook.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> CreateBankAccountBook(CreateBankAccountBookVM v)
+        {
+            if (ModelState.IsValid)
+            {
+                var lastItem = await _bankAccountBookRepository.Query().AsNoTracking().Where(a => a.BankAccountId.Equals(v.BankAccountId))
+                    .OrderByDescending(a => a.Id).FirstOrDefaultAsync();
+
+                var balance = lastItem is null ? 0 : lastItem.Balance;
+
+                _bankAccountBookRepository.Create(new Domain.Models.BankAccountBook
+                {
+                    Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime(),
+                    BankAccountId = v.BankAccountId,
+                    CreatorId = _userManager.GetUserId(User),
+                    ReferenceNo = v.ReferenceNo,
+                    Description = v.Description,
+                    Creditor = v.AmountType == BankAccountBookAmountType.Creditor ? v.Amount : 0,
+                    Debtor = v.AmountType == BankAccountBookAmountType.Debtor ? v.Amount : 0,
+                    Balance = v.AmountType == BankAccountBookAmountType.Creditor ? v.Amount + balance : balance - v.Amount
+                });
+                try
+                {
+                    await _bankAccountBookRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<PartialViewResult> EditBankAccountBook(int id)
+        {
+            return PartialView("~/Views/Admin/Edit/BankAccountBook.cshtml", await _bankAccountBookRepository.Get(id));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> EditBankAccountBook(EditBankAccountBookVM v)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _bankAccountBookRepository.Get(v.Id);
+                item.ReferenceNo = v.ReferenceNo;
+                item.Description = v.Description;
+                item.Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDatetime = DateTime.Now;
+
+                if ((item.Debtor!= v.Amount || item.Creditor !=v.Amount) ||
+                    (v.AmountType == BankAccountBookAmountType.Debtor && item.Debtor == 0) || 
+                    (v.AmountType == BankAccountBookAmountType.Creditor && item.Creditor == 0))
+                {
+
+                }
+
+                _bankAccountBookRepository.Update(item);
+                try
+                {
+                    await _bankAccountBookRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }

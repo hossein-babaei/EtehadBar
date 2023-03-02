@@ -87,8 +87,14 @@
                 success: function (r) {
                     $('#create-modal').html(r);
                     $('#create-modal #ContractId').select2({ width: '100%' });
-                    $('#create-modal #ShippingFeeId').select2({ width: '100%' });
-                    $('#create-modal #VehicleId').select2({ width: '100%' });
+                    $('#create-modal #ShippingFeeId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#create-modal #VehicleId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
                     $('#create-modal #DriverId').select2({ width: '100%' });
                     parseValidator('#create-modal form');
                     UIkit.modal('#create-modal').show();
@@ -152,8 +158,14 @@
                 success: function (r) {
                     $('#edit-modal').html(r);
                     $('#edit-modal #ContractId').select2({ width: '100%' });
-                    $('#edit-modal #ShippingFeeId').select2({ width: '100%' });
-                    $('#edit-modal #VehicleId').select2({ width: '100%' });
+                    $('#edit-modal #ShippingFeeId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#edit-modal #VehicleId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
                     $('#edit-modal #DriverId').select2({ width: '100%' });
                     parseValidator('#edit-modal form');
                     UIkit.modal('#edit-modal').show();
@@ -182,26 +194,26 @@
                 }
             } else if (type == '@ShippingFeeType.Custom' && lastType != '@ShippingFeeType.Custom') {
                 $(`<div class="uk-grid-margin uk-first-column">
-                        <label class="uk-form-label" for="Amount">مبلغ (دریافتی)</label>
-                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="Amount" name="Amount" value="">
-                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="Amount" data-valmsg-replace="true"></span>
-                    </div>
-                    <div class="uk-grid-margin uk-first-column">
-                        <label class="uk-form-label" for="DriverFee">کرایه راننده (ریال)</label>
-                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="DriverFee" name="DriverFee" value="">
-                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverFee" data-valmsg-replace="true"></span>
-                    </div>
-                    ${(customerType == '@CustomerType.SaipaPress'  || customerType == '@CustomerType.MehrcomPars') ?
-                    `<div class="uk-grid-margin uk-first-column">
-                        <label class="uk-form-label" for="TonnagePrice">نرخ تناژ اضافه (ریال)</label>
-                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="TonnagePrice" name="TonnagePrice" value="">
-                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="TonnagePrice" data-valmsg-replace="true"></span>
-                    </div>
-                    <div class="uk-grid-margin uk-first-column">
-                        <label class="uk-form-label" for="DriverTonnagePrice">نرخ تناژ اضافه راننده (ریال)</label>
-                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="DriverTonnagePrice" name="DriverTonnagePrice" value="">
-                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverTonnagePrice" data-valmsg-replace="true"></span>
-                    </div>` : ''}`).insertAfter($(select).parent());
+                                        <label class="uk-form-label" for="Amount">مبلغ (دریافتی)</label>
+                                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="Amount" name="Amount" value="">
+                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="Amount" data-valmsg-replace="true"></span>
+                                    </div>
+                                    <div class="uk-grid-margin uk-first-column">
+                                        <label class="uk-form-label" for="DriverFee">کرایه راننده (ریال)</label>
+                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="DriverFee" name="DriverFee" value="">
+                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverFee" data-valmsg-replace="true"></span>
+                                    </div>
+                                    ${(customerType == '@CustomerType.SaipaPress' || customerType == '@CustomerType.MehrcomPars') ?
+                        `<div class="uk-grid-margin uk-first-column">
+                                        <label class="uk-form-label" for="TonnagePrice">نرخ تناژ اضافه (ریال)</label>
+                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="TonnagePrice" name="TonnagePrice" value="">
+                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="TonnagePrice" data-valmsg-replace="true"></span>
+                                    </div>
+                                    <div class="uk-grid-margin uk-first-column">
+                                        <label class="uk-form-label" for="DriverTonnagePrice">نرخ تناژ اضافه راننده (ریال)</label>
+                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="DriverTonnagePrice" name="DriverTonnagePrice" value="">
+                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverTonnagePrice" data-valmsg-replace="true"></span>
+                                    </div>` : ''}`).insertAfter($(select).parent());
             }
 
             $(select).parents('form').data('validator', null);

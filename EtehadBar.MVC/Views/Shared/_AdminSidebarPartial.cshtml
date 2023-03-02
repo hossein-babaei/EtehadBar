@@ -30,6 +30,9 @@
         <li @if (param == 7) { <text> class="active" </text> }>
             <a asp-action="Contract" asp-controller="Admin"><i class="uk-margin-left fas fa-hand-holding-usd"></i>قرارداد ها</a>
         </li>
+        <li @if (param == 25) { <text> class="active" </text> }>
+            <a asp-action="BankAccount" asp-controller="Admin"><i class="uk-margin-left fas fa-money-check-alt"></i>حساب های من</a>
+        </li>
         <li @if (param == 100) { <text> class="active" </text> }>
             <a asp-action="Config" asp-controller="Admin"><i class="uk-margin-left fas fa-cogs"></i>تنظیمات سیستم</a>
         </li>
@@ -94,7 +97,7 @@
                 <li @if (param == 2) { <text> class="active" </text> }><a asp-action="Definition" asp-controller="Admin"><i class="uk-margin-left fas fa-trailer"></i>نوع خودرو</a></li>
                 <li @if (param == 32) { <text> class="active" </text> }><a asp-action="MehrcomParsCategory" asp-controller="Admin"><i class="uk-margin-left fas fa-trailer"></i>دسته بندی مهرکام پارس</a></li>
             }
-            <li @if (param == 22) { <text> class="active" </text> }><a asp-action="Driver" asp-controller="Admin"><i class="uk-margin-left fas fa-trailer"></i>راننده</a></li>
+            <li @if (param == 22) { <text> class="active" </text> }><a asp-action="Driver" asp-controller="Admin"><i class="uk-margin-left fas fa-user"></i>راننده</a></li>
         </ul>
     </li>
 </ul>

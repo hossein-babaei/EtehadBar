@@ -31,7 +31,6 @@ namespace EtehadBar.Infra.Data.Repository
         {
             return await db.Config.AsNoTracking().Select(a => new LoadFactorConfigVM
             {
-                LoadFactorDeductions = a.LoadFactorDeductions,
                 VAT = a.VAT,
                 WithholdingTax = a.WithholdingTax
             }).FirstAsync();

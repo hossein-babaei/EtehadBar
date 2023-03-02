@@ -36,6 +36,10 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool HasLoadSleep { get; set; } = false;
 
+        [Display(Name = "سپرده بیمه (%)")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double LoadFactorDeductions { get; set; }
+
         public virtual ICollection<AccountBook> AccountBooks { get; set; }
         public virtual ICollection<Contract> Contracts { get; set; }
         public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }

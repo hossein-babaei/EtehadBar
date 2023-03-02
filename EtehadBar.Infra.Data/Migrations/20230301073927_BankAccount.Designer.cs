@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230301073927_BankAccount")]
+    partial class BankAccount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -392,6 +394,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
+                    b.Property<double>("LoadFactorDeductions")
+                        .HasColumnType("float");
+
                     b.Property<string>("MailDisplayName")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
@@ -446,6 +451,7 @@ namespace EtehadBar.Infra.Data.Migrations
                         new
                         {
                             Id = 1,
+                            LoadFactorDeductions = 5.0,
                             RowId = "8bd8d4c9-7595-4b03-95c7-91ab91046965",
                             VAT = 9.0,
                             WithholdingTax = 3.0,
@@ -567,9 +573,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<bool>("HasLoadType")
                         .HasColumnType("bit");
 
-                    b.Property<double>("LoadFactorDeductions")
-                        .HasColumnType("float");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -598,7 +601,6 @@ namespace EtehadBar.Infra.Data.Migrations
                             HasAddonTonnage = false,
                             HasLoadSleep = false,
                             HasLoadType = false,
-                            LoadFactorDeductions = 5.0,
                             Name = "پلاسکو کار سایپا",
                             RowId = "29f78114-f72a-427a-a3f1-8864e6eeb13c",
                             Status = true
@@ -610,7 +612,6 @@ namespace EtehadBar.Infra.Data.Migrations
                             HasAddonTonnage = true,
                             HasLoadSleep = false,
                             HasLoadType = true,
-                            LoadFactorDeductions = 5.0,
                             Name = "سایپا پرس",
                             RowId = "e1cbee6e-f7a1-4a84-a1c5-e740fb84fa7d",
                             Status = true
@@ -622,7 +623,6 @@ namespace EtehadBar.Infra.Data.Migrations
                             HasAddonTonnage = false,
                             HasLoadSleep = false,
                             HasLoadType = false,
-                            LoadFactorDeductions = 7.7999999999999998,
                             Name = "سازه گستر",
                             RowId = "df204398-5c7c-4caf-98c0-0c9b9be54a6f",
                             Status = true
@@ -634,7 +634,6 @@ namespace EtehadBar.Infra.Data.Migrations
                             HasAddonTonnage = true,
                             HasLoadSleep = true,
                             HasLoadType = true,
-                            LoadFactorDeductions = 5.0,
                             Name = "مهرکام پارس",
                             RowId = "e70bffab-fa42-4c66-8af8-d7090a6ccbea",
                             Status = true

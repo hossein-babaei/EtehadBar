@@ -88,6 +88,7 @@
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.Fullname)</th>
                     <th>@Html.DisplayNameFor(model => model.NationalNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.Phonenumber)</th>
                     <th>@Html.DisplayNameFor(model => model.AccountBankName)</th>
                     <th>@Html.DisplayNameFor(model => model.BankAccountNumber)</th>
                     <th>@Html.DisplayNameFor(model => model.IsActive)</th>
@@ -100,7 +101,22 @@
                     <tr class="uk-text-center">
                         <td>@i</td>
                         <td>@Html.DisplayFor(modelItem => item.Fullname)</td>
-                        <td>@Html.DisplayFor(modelItem => item.NationalNumber)</td>
+                        @if (string.IsNullOrWhiteSpace(item.NationalNumber))
+                        {
+                            <td>---</td>
+                        }
+                        else
+                        {
+                            <td>@Html.DisplayFor(modelItem => item.NationalNumber)</td>
+                        }
+                        @if (string.IsNullOrWhiteSpace(item.Phonenumber))
+                        {
+                            <td>---</td>
+                        }
+                        else
+                        {
+                            <td>@Html.DisplayFor(modelItem => item.Phonenumber)</td>
+                        }
                         @if (string.IsNullOrWhiteSpace(item.AccountBankName))
                         {
                             <td>---</td>

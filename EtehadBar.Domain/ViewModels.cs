@@ -1,9 +1,81 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using EtehadBar.Domain.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain
 {
+    public class CreateBankAccountBookVM
+    {
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "شرح")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Description { get; set; }
+
+        [Display(Name = "شماره پیگیری/مرجع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string ReferenceNo { get; set; }
+
+        [Display(Name = "مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public BankAccountBookAmountType AmountType { get; set; }
+
+        [Display(Name = "حساب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long BankAccountId { get; set; }
+    }
+
+    public class EditBankAccountBookVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "شرح")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Description { get; set; }
+
+        [Display(Name = "شماره پیگیری/مرجع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string ReferenceNo { get; set; }
+
+        [Display(Name = "مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public BankAccountBookAmountType AmountType { get; set; }
+    }
+
     public class CreateFreeLoadFactorVM
     {
         [Display(Name = "مبدا")]
@@ -338,7 +410,6 @@ namespace EtehadBar.Domain
     public class LoadFactorConfigVM
     {
         public double VAT { get; set; }
-        public double LoadFactorDeductions { get; set; }
         public double WithholdingTax { get; set; }
     }
 
