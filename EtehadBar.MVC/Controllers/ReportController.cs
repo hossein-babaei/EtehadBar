@@ -163,7 +163,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize("Admin, User")]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Cost()
         {
             var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -174,7 +174,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize("Admin, User")]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Cost(long calendarId)
         {
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
@@ -182,7 +182,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize("Admin, User")]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Payment()
         {
             var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -193,7 +193,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize("Admin, User")]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Payment(long calendarId, byte type, long vehicleId)
         {
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);

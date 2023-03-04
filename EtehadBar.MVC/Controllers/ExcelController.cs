@@ -69,20 +69,20 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 2).Value = "تاریخ";
             ws.Cell(2, 3).Value = "شماره بارنامه";
             ws.Cell(2, 4).Value = "شماره بارنامه دولتی";
-            ws.Cell(2, 5).Value = "شماره خروج";
-            ws.Cell(2, 6).Value = "مبدا";
-            ws.Cell(2, 7).Value = "مقصد";
-            ws.Cell(2, 8).Value = "مبلغ";
-            ws.Cell(2, 9).Value = "کرایه راننده";
-            ws.Cell(2, 10).Value = "مالیات ارزش افزوده";
-            ws.Cell(2, 11).Value = "سپرده بیمه";
-            ws.Cell(2, 12).Value = "مالیات تکلیفی";
-            ws.Cell(2, 13).Value = "راننده";
-            ws.Cell(2, 14).Value = "خودرو";
-            ws.Cell(2, 15).Value = "تقویم کاری";
-            ws.Cell(2, 16).Value = "مشتری - شماره قرارداد";
+            //ws.Cell(2, 5).Value = "شماره خروج";
+            ws.Cell(2, 5).Value = "مبدا";
+            ws.Cell(2, 6).Value = "مقصد";
+            ws.Cell(2, 7).Value = "مبلغ";
+            ws.Cell(2, 8).Value = "کرایه راننده";
+            //ws.Cell(2, 10).Value = "مالیات ارزش افزوده";
+            ws.Cell(2, 9).Value = "سپرده بیمه";
+            ws.Cell(2, 10).Value = "مالیات تکلیفی";
+            ws.Cell(2, 11).Value = "راننده";
+            ws.Cell(2, 12).Value = "خودرو";
+            ws.Cell(2, 13).Value = "تقویم کاری";
+            ws.Cell(2, 14).Value = "مشتری - شماره قرارداد";
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(loadFactors.Count + 2, 16));
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(loadFactors.Count + 2, 14));
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
@@ -91,7 +91,7 @@ namespace EtehadBar.MVC.Controllers
                     .Fill.SetBackgroundColor(XLColor.LightGray)
                         .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 16)); // The address is relative to rngTable (NOT the worksheet)
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 15)); // The address is relative to rngTable (NOT the worksheet)
             rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             rngHeaders.Style.Font.Bold = true;
             rngHeaders.Style.Font.FontColor = XLColor.Black;
@@ -99,63 +99,60 @@ namespace EtehadBar.MVC.Controllers
             for (int index = 1; index <= loadFactors.Count; index++)
             {
                 ws.Cell(index + 2, 1).Value = index;
-                ws.Cell(index + 2, 2).Value = new PersianDateTime(loadFactors[index - 1].Date).ToString("yyyy/MM/dd"); if (string.IsNullOrWhiteSpace(loadFactors[index - 1].LoadNumberGov))
-                {
-                    ws.Cell(index + 2, 3).Value = loadFactors[index - 1].LoadNumber;
+                ws.Cell(index + 2, 2).Value = new PersianDateTime(loadFactors[index - 1].Date).ToString("yyyy/MM/dd");
+                ws.Cell(index + 2, 3).Value = loadFactors[index - 1].LoadNumber;
+
+                if (string.IsNullOrWhiteSpace(loadFactors[index - 1].LoadNumberGov))
                     ws.Cell(index + 2, 4).Value = "---";
-                }
                 else
-                {
-                    ws.Cell(index + 2, 3).Value = loadFactors[index - 1].LoadNumber;
                     ws.Cell(index + 2, 4).Value = loadFactors[index - 1].LoadNumberGov;
-                }
-                ws.Cell(index + 2, 5).Value = loadFactors[index - 1].ExitNumber;
-                ws.Cell(index + 2, 6).Value = loadFactors[index - 1].Origin.Title;
-                ws.Cell(index + 2, 7).Value = loadFactors[index - 1].Destination.Title;
-                ws.Cell(index + 2, 8).Value = loadFactors[index - 1].Amount.ToString("N0");
-                ws.Cell(index + 2, 9).Value = loadFactors[index - 1].DriverFee.ToString("N0");
-                ws.Cell(index + 2, 10).Value = loadFactors[index - 1].VAT;
-                ws.Cell(index + 2, 11).Value = loadFactors[index - 1].LoadFactorDeductions;
-                ws.Cell(index + 2, 12).Value = loadFactors[index - 1].WithholdingTax;
-                ws.Cell(index + 2, 13).Value = $"{loadFactors[index - 1].Driver.Fullname}";
-                ws.Cell(index + 2, 14).Value = loadFactors[index - 1].Vehicle.Type;
-                ws.Cell(index + 2, 15).Value = loadFactors[index - 1].Calendar.Title;
-                ws.Cell(index + 2, 16).Value = $"{loadFactors[index - 1].Contract.Customer.Name} {loadFactors[index - 1].Contract.Number}";
+
+                ws.Cell(index + 2, 5).Value = loadFactors[index - 1].Origin.Title;
+                ws.Cell(index + 2, 6).Value = loadFactors[index - 1].Destination.Title;
+                ws.Cell(index + 2, 7).Value = loadFactors[index - 1].Amount.ToString("N0");
+                ws.Cell(index + 2, 8).Value = loadFactors[index - 1].DriverFee.ToString("N0");
+                //ws.Cell(index + 2, 10).Value = loadFactors[index - 1].VAT;
+                ws.Cell(index + 2, 9).Value = loadFactors[index - 1].LoadFactorDeductions;
+                ws.Cell(index + 2, 10).Value = loadFactors[index - 1].WithholdingTax;
+                ws.Cell(index + 2, 11).Value = $"{loadFactors[index - 1].Driver.Fullname}";
+                ws.Cell(index + 2, 12).Value = loadFactors[index - 1].Vehicle.Type;
+                ws.Cell(index + 2, 13).Value = loadFactors[index - 1].Calendar.Title;
+                ws.Cell(index + 2, 14).Value = $"{loadFactors[index - 1].Contract.Customer.Name} {loadFactors[index - 1].Contract.Number}";
             }
 
             ws.Cell($"B{loadFactors.Count + 3}").Value = "تعداد کل بارنامه ها";
             ws.Range($"B{loadFactors.Count + 3}:O{loadFactors.Count + 3}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 3, 16).Value = loadFactors.Count;
+            ws.Cell(loadFactors.Count + 3, 14).Value = loadFactors.Count;
 
             ws.Cell($"B{loadFactors.Count + 4}").Value = "مبلغ بارنامه ها";
             ws.Range($"B{loadFactors.Count + 4}:O{loadFactors.Count + 4}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 4, 16).Value = loadFactors.Sum(a => a.Amount).ToString("N0");
+            ws.Cell(loadFactors.Count + 4, 14).Value = loadFactors.Sum(a => a.Amount).ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 5}").Value = "مبلغ قابل پرداخت به رانندگان";
             ws.Range($"B{loadFactors.Count + 5}:O{loadFactors.Count + 5}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 5, 16).Value = loadFactors.Sum(a => a.DriverFee).ToString("N0");
+            ws.Cell(loadFactors.Count + 5, 14).Value = loadFactors.Sum(a => a.DriverFee).ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 6}").Value = "حقوق مساعده پرداختی";
             ws.Range($"B{loadFactors.Count + 6}:O{loadFactors.Count + 6}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 6, 16).Value = payment.ToString("N0");
+            ws.Cell(loadFactors.Count + 6, 14).Value = payment.ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 7}").Value = "هزینه های جاری";
             ws.Range($"B{loadFactors.Count + 7}:O{loadFactors.Count + 7}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 7, 16).Value = cost.ToString("N0");
+            ws.Cell(loadFactors.Count + 7, 14).Value = cost.ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 8}").Value = "کل هزینه ها";
             ws.Range($"B{loadFactors.Count + 8}:O{loadFactors.Count + 8}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 8, 16).Value = (payment + cost).ToString("N0");
+            ws.Cell(loadFactors.Count + 8, 14).Value = (payment + cost).ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 9}").Value = "حقوق مساعده پرداختی";
             ws.Range($"B{loadFactors.Count + 9}:O{loadFactors.Count + 9}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 9, 16).Value = payment.ToString("N0");
+            ws.Cell(loadFactors.Count + 9, 14).Value = payment.ToString("N0");
 
-            ws.Cell($"B{loadFactors.Count + 10}").Value = "جمع کل دریافتی";
-            ws.Range($"B{loadFactors.Count + 10}:O{loadFactors.Count + 10}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 10, 16).Value = income.ToString("N0");
+            //ws.Cell($"B{loadFactors.Count + 10}").Value = "جمع کل دریافتی";
+            //ws.Range($"B{loadFactors.Count + 10}:O{loadFactors.Count + 10}").Row(1).Merge();
+            //ws.Cell(loadFactors.Count + 10, 16).Value = income.ToString("N0");
 
-            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:P{loadFactors.Count + 10}");
+            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:P{loadFactors.Count + 9}");
             rngTable2.RangeUsed().Style
                 .Font.SetBold()
                 .Font.SetFontSize(12);
@@ -170,7 +167,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        [Authorize("Admin, User")]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Cost(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -236,7 +233,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        [Authorize("Admin, User")]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Payment(long calendarId, byte? type, long vehicleId)
         {
             var calendar = await _calendarRepo.Get(calendarId);

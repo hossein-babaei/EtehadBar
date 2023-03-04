@@ -2016,7 +2016,7 @@ namespace EtehadBar.MVC.Controllers
                     if (latestContractAddon == null)
                         latestContractAddon = await _contractRepo.Get(item.ContractId);
 
-                    var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(item.ContractId) && a.Date >= latestContractAddon.StartDate).ToListAsync();
+                    var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(item.ContractId) && a.ShippingFeeId.Equals(item.Id) && a.Date >= latestContractAddon.StartDate).ToListAsync();
                     if (loadFactors.Any())
                     {
                         foreach (var factor in loadFactors)

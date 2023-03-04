@@ -51,12 +51,12 @@
                         <th>@Html.DisplayNameFor(model => model.Date)</th>
                         <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
                         <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
-                        <th>@Html.DisplayNameFor(model => model.ExitNumber)</th>
+                        @*<th>@Html.DisplayNameFor(model => model.ExitNumber)</th>*@
                         <th>@Html.DisplayNameFor(model => model.OriginId)</th>
                         <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
-                        <th>@Html.DisplayNameFor(model => model.VAT)</th>
+                        @*<th>@Html.DisplayNameFor(model => model.VAT)</th>*@
                         <th>@Html.DisplayNameFor(model => model.LoadFactorDeductions)</th>
                         <th>@Html.DisplayNameFor(model => model.WithholdingTax)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverId)</th>
@@ -77,13 +77,13 @@
                             </td>
                             <td>@pd.ToString("yyyy/MM/dd")</td>
                             <td>@item.LoadNumber</td>
-                            <td>@item.LoadNumberGov</td>
-                            <td>@item.ExitNumber</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.LoadNumberGov) ? "---" : item.LoadNumberGov)</td>
+                            @*<td>@item.ExitNumber</td>*@
                             <td>@item.Origin.Title</td>
                             <td>@item.Destination.Title</td>
                             <td>@item.Amount.ToString("N0")</td>
                             <td>@item.DriverFee.ToString("N0")</td>
-                            <td>@item.VAT</td>
+                            @*<td>@item.VAT</td>*@
                             <td>@item.LoadFactorDeductions</td>
                             <td>@item.WithholdingTax</td>
                             <td>@item.Driver.Fullname</td>
@@ -123,10 +123,10 @@
         <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ عملکرد <span class="sm">(قابل پرداخت به رانندگان)</span></div>
         <div>@driverFeeSum.ToString("N0") ریال</div>
     </div>
-    <div class="uk-grid-small" uk-grid>
+    @*<div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع ارزش افزوده</div>
         <div>@vatAmountSum.ToString("N0") ریال</div>
-    </div>
+    </div>*@
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع سپرده بیمه</div>
         <div>@deductionAmountSum.ToString("N0") ریال</div>
@@ -147,10 +147,10 @@
         <div class="uk-width-expand" uk-leader="fill: .">جمع کل هزینه ها</div>
         <div>@((totalPayment + totalCost).ToString("N0")) ریال</div>
     </div>
-    <div class="uk-grid-small" uk-grid>
+    @*<div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع کل دریافتی</div>
         <div>@totalIncome.ToString("N0") ریال</div>
-    </div>
+    </div>*@
     @*<div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">سود <span class="sm">[جمع مبلغ بارنامه ها - (حقوق/مساعده پرداختی + هزینه های جاری + کسورات)]</span></div>
             <div><span dir="ltr">@((amount - (totalPayment + totalCost + deductionAmountSum)).ToString("N0"))</span> ریال</div>

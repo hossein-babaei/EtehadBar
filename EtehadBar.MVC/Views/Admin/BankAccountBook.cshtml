@@ -9,9 +9,7 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     int i = 1;
     if (data.PageNumber > 1)
-    {
         i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
-    }
 }
 
 @section Scripts{
