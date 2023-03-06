@@ -1,4 +1,4 @@
-﻿@model IEnumerable<LoadFactor>
+﻿@model IEnumerable<GlobalLoadFactorVM>
 
 @{
     int i = 1;
@@ -7,9 +7,6 @@
     var totalCost = (double)ViewData["cost"];
     var totalPayment = (double)ViewData["payment"];
     var totalIncome = (double)ViewData["income"];
-
-    var amount = Model.Sum(a => a.Amount);
-    var driverFeeSum = Model.Sum(a => a.DriverFee);
 
     //double netAmount = 0;
 
@@ -52,17 +49,16 @@
                         <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
                         <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
                         @*<th>@Html.DisplayNameFor(model => model.ExitNumber)</th>*@
-                        <th>@Html.DisplayNameFor(model => model.OriginId)</th>
-                        <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
+                        <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                        <th>@Html.DisplayNameFor(model => model.Destination)</th>
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
                         @*<th>@Html.DisplayNameFor(model => model.VAT)</th>*@
                         <th>@Html.DisplayNameFor(model => model.LoadFactorDeductions)</th>
                         <th>@Html.DisplayNameFor(model => model.WithholdingTax)</th>
-                        <th>@Html.DisplayNameFor(model => model.DriverId)</th>
-                        <th>@Html.DisplayNameFor(model => model.VehicleId)</th>
-                        <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
-                        <th>@Html.DisplayNameFor(model => model.ContractId)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverName)</th>
+                        <th>@Html.DisplayNameFor(model => model.VehicleType)</th>
+                        <th>@Html.DisplayNameFor(model => model.CustomerName)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -79,17 +75,26 @@
                             <td>@item.LoadNumber</td>
                             <td>@(string.IsNullOrWhiteSpace(item.LoadNumberGov) ? "---" : item.LoadNumberGov)</td>
                             @*<td>@item.ExitNumber</td>*@
-                            <td>@item.Origin.Title</td>
-                            <td>@item.Destination.Title</td>
-                            <td>@item.Amount.ToString("N0")</td>
-                            <td>@item.DriverFee.ToString("N0")</td>
+                            <td>@item.Origin</td>
+                            <td>@item.Destination</td>
+                            @if (item.Tonnage.HasValue)
+                            {
+                                item.Amount = item.Amount + (item.Tonnage.Value * item.TonnagePrice.Value);
+                                item.DriverFee = item.DriverFee + (item.Tonnage.Value * item.DriverTonnagePrice.Value);
+                                <td>@item.Amount.ToString("N0")</td>
+                                <td>@item.DriverFee.ToString("N0")</td>
+                            }
+                            else
+                            {
+                                <td>@item.Amount.ToString("N0")</td>
+                                <td>@item.DriverFee.ToString("N0")</td>
+                            }
                             @*<td>@item.VAT</td>*@
                             <td>@item.LoadFactorDeductions</td>
                             <td>@item.WithholdingTax</td>
-                            <td>@item.Driver.Fullname</td>
-                            <td>@item.Vehicle.Type</td>
-                            <td>@item.Calendar.Title</td>
-                            <td>@item.Contract.Customer.Name - @item.Contract.Number</td>
+                            <td>@item.DriverName</td>
+                            <td>@item.VehicleType</td>
+                            <td>@item.CustomerName</td>
                         </tr>
                         i++;
                     }
@@ -109,6 +114,10 @@
         </div>
     }
 </div>
+@{
+    var amount = Model.Sum(a => a.Amount);
+    var driverFeeSum = Model.Sum(a => a.DriverFee);
+}
 <div class="box" style="padding:15px 30px">
     <h3 class="uk-heading-divider uk-text-center">گزارش تفصیلی بارنامه در <span class="underline">@calendar.Title</span></h3>
     <div class="uk-grid-small" uk-grid>

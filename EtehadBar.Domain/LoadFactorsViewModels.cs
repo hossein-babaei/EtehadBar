@@ -559,10 +559,10 @@ namespace EtehadBar.Domain
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CategoryId { get; set; }
 
-        [Display(Name = "نوع بار")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128)]
-        public string LoadType { get; set; }
+        //[Display(Name = "نوع بار")]
+        //[Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        //[StringLength(128)]
+        //public string LoadType { get; set; }
 
         [Display(Name = "نرخ تناژ اضافه (ریال)")]
         public double? TonnagePrice { get; set; }
@@ -657,10 +657,10 @@ namespace EtehadBar.Domain
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CategoryId { get; set; }
 
-        [Display(Name = "نوع بار")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128)]
-        public string LoadType { get; set; }
+        //[Display(Name = "نوع بار")]
+        //[Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        //[StringLength(128)]
+        //public string LoadType { get; set; }
 
         [Display(Name = "نرخ تناژ اضافه (ریال)")]
         public double? TonnagePrice { get; set; }

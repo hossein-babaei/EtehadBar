@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Rewrite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using reCAPTCHA.AspNetCore;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
@@ -98,7 +97,7 @@ namespace EtehadBar.MVC
 
             app.UseStatusCodePages();
             app.UseRewriter(new RewriteOptions().Add(new RedirectLowerCaseRule()));
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();

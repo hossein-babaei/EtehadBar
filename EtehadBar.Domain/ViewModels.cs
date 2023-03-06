@@ -1,11 +1,64 @@
-﻿using EtehadBar.Domain.Models;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain
 {
+    public class GlobalLoadFactorVM
+    {
+        [Display(Name = "مبدا")]
+        public string Origin { get; set; }
+
+        [Display(Name = "مقصد")]
+        public string Destination { get; set; }
+
+        [Display(Name = "مشتری - شماره قرارداد")]
+        public string CustomerName { get; set; }
+
+        [Display(Name = "نام راننده")]
+        public string DriverName { get; set; }
+
+        [Display(Name = "نوع خودرو")]
+        public string VehicleType { get; set; }
+
+        [Display(Name = "تاریخ")]
+        public DateTime Date { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "شماره بارنامه")]
+        public string LoadNumber { get; set; }
+
+        [Display(Name = "بارنامه دولتی")]
+        public string LoadNumberGov { get; set; }
+
+        [Display(Name = "ارزش افزوده (%)")]
+        public double VAT { get; set; } = 0;
+
+        [Display(Name = "سپرده بیمه (%)")]
+        public double LoadFactorDeductions { get; set; } = 0;
+
+        [Display(Name = "مالیات تکلیفی (%)")]
+        public double WithholdingTax { get; set; } = 0;
+
+        public long Id { get; set; }
+
+        public string RowId { get; set; }
+    }
+
     public class CreateBankAccountBookVM
     {
         [Display(Name = "سال")]

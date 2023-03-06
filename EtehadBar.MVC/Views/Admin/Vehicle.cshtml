@@ -17,7 +17,7 @@
     <script>
         function create() {
             preloader();
-            $.get('@Url.Action("CreateVehicle")', { }, function (r) {
+            $.get('@Url.Action("CreateVehicle")', {}, function (r) {
                 $('#create-modal').html(r);
             }, 'html').then(function () {
                 parseValidator('#create-modal form');
@@ -64,7 +64,10 @@
                     <th>@Html.DisplayNameFor(model => model.AccountBankName)</th>
                     <th>@Html.DisplayNameFor(model => model.BankAccountNumber)</th>
                     <th>@Html.DisplayNameFor(model => model.Status)</th>
-                    <th width="50">ویرایش</th>
+                    @if (!User.IsInRole("RegisterUser"))
+                    {
+                        <th width="50">ویرایش</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -85,7 +88,10 @@
                         {
                             <td class="uk-text-danger">غیر فعال</td>
                         }
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        @if (!User.IsInRole("RegisterUser"))
+                        {
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        }
                     </tr>
                     i++;
                 }

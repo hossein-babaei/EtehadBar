@@ -138,33 +138,33 @@
                     <input asp-for="Tonnage" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="Tonnage" class="uk-text-danger"></span>
                 </div>
-                <div>
+                @*<div>
                     <label asp-for="LoadType" class="uk-form-label"></label>
                     <select asp-for="LoadType" class="uk-select uk-border-rounded uk-form-small">
                         <option value="کالا">کالا</option>
                         <option value="صندلی">صندلی</option>
                     </select>
                     <span asp-validation-for="LoadType" class="uk-text-danger"></span>
+                </div>*@
+                <div>
+                    <label asp-for="WeighbridgePrice" class="uk-form-label"></label>
+                    <input asp-for="WeighbridgePrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="WeighbridgePrice" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-4@m">
+                <div class="uk-width-1-3@m">
                     <label asp-for="LoadSleepTime" class="uk-form-label"></label>
                     <input asp-for="LoadSleepTime" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="LoadSleepTime" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-4@m">
+                <div class="uk-width-1-3@m">
                     <label asp-for="LoadSleepPrice" class="uk-form-label"></label>
                     <input asp-for="LoadSleepPrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="LoadSleepPrice" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-4@m">
+                <div class="uk-width-1-3@m">
                     <label asp-for="DriverLoadSleepPrice" class="uk-form-label"></label>
                     <input asp-for="DriverLoadSleepPrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="DriverLoadSleepPrice" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-width-1-4@m">
-                    <label asp-for="WeighbridgePrice" class="uk-form-label"></label>
-                    <input asp-for="WeighbridgePrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
-                    <span asp-validation-for="WeighbridgePrice" class="uk-text-danger"></span>
                 </div>
             </div>
         </form>

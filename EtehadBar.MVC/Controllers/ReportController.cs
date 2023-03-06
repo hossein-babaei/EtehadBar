@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ILoadFactorRepository _loadFactorRepo;
         private readonly IPaymentRepository _paymentRepo;
         private readonly IVehicleRepository _vehicleRepo;
+        private readonly IFreeLoadFactorRepository _freeLoadFactorRepository;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public ReportController(
@@ -31,7 +33,8 @@ namespace EtehadBar.MVC.Controllers
             ILoadFactorRepository loadFactorRepository,
             IPaymentRepository paymentRepository,
             IVehicleRepository vehicleRepository,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IFreeLoadFactorRepository freeLoadFactorRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -40,6 +43,7 @@ namespace EtehadBar.MVC.Controllers
             _paymentRepo = paymentRepository;
             _vehicleRepo = vehicleRepository;
             _userManager = userManager;
+            _freeLoadFactorRepository = freeLoadFactorRepository;
         }
 
         [HttpPost]
@@ -159,7 +163,57 @@ namespace EtehadBar.MVC.Controllers
             ViewData["cost"] = await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
             ViewData["payment"] = await _paymentRepo.Payments().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
             ViewData["income"] = await _customerRepo.CustomerIncomes().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
-            return PartialView("_Detailed", await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync());
+
+            var data = new List<GlobalLoadFactorVM>();
+            var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId)).Select(a => new GlobalLoadFactorVM
+            {
+                Amount = a.Amount,
+                CustomerName = a.Contract.Customer.Name + " " + a.Contract.Number,
+                Date = a.Date,
+                Destination = a.Destination.Title,
+                Origin = a.Origin.Title,
+                DriverFee = a.DriverFee,
+                DriverName = a.Driver.Fullname,
+                LoadFactorDeductions = a.LoadFactorDeductions,
+                LoadNumber = a.LoadNumber,
+                LoadNumberGov = a.LoadNumberGov,
+                Id = a.Id,
+                RowId = a.RowId,
+                VAT = a.VAT,
+                VehicleType = a.Vehicle.Type,
+                WithholdingTax = a.WithholdingTax,
+                Tonnage = a.Tonnage,
+                TonnagePrice = a.TonnagePrice,
+                DriverTonnagePrice = a.DriverTonnagePrice
+            }).ToListAsync();
+
+            data.AddRange(loadFactors);
+
+            var freeLoadFactors = await _freeLoadFactorRepository.Query().Where(a => a.CalendarId.Equals(calendarId)).Select(a => new GlobalLoadFactorVM
+            {
+                Amount = a.Amount,
+                CustomerName = a.ApplicantName,
+                Date = a.Date,
+                Destination = a.Destination,
+                Origin = a.Origin,
+                DriverFee = a.DriverFee,
+                DriverName = a.DriverName,
+                LoadFactorDeductions = a.LoadFactorDeductions,
+                LoadNumber = a.LoadNumber,
+                LoadNumberGov = a.LoadNumberGov,
+                Id = a.Id,
+                RowId = a.RowId,
+                VAT = a.VAT,
+                VehicleType = a.VehicleType,
+                WithholdingTax = a.WithholdingTax,
+                Tonnage = a.Tonnage,
+                TonnagePrice = a.TonnagePrice,
+                DriverTonnagePrice = a.DriverTonnagePrice
+            }).ToListAsync();
+
+            data.AddRange(freeLoadFactors);
+
+            return PartialView("_Detailed", data.OrderBy(a => a.Date).ToList());
         }
 
         [HttpGet]
@@ -204,6 +258,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> VehicleLoadFactor()
         {
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -211,6 +266,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId)
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
@@ -220,6 +276,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> VehicleActivity()
         {
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -227,6 +284,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId)
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);

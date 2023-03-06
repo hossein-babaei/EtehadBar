@@ -6,6 +6,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Views\Report\Customer\**" />
+    <Content Remove="Views\Report\Customer\**" />
+    <EmbeddedResource Remove="Views\Report\Customer\**" />
+    <None Remove="Views\Report\Customer\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="bundleconfig.json" />
   </ItemGroup>
 
@@ -36,10 +43,6 @@
   <ItemGroup>
     <ProjectReference Include="..\EtehadBar.Infra.Data\EtehadBar.Infra.Data.csproj" />
     <ProjectReference Include="..\EtehadBar.Infra.IoC\EtehadBar.Infra.IoC.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Views\Report\Customer\" />
   </ItemGroup>
 
 </Project>

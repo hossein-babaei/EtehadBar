@@ -2403,7 +2403,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Contracts"] = contracts;
 
             var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
-            if (!accountBooks.Any())
+            if (!accountBooks.Any(a => a.IsOpen))
                 return NotFound($"صورت وضعیت باز در سیستم وجود ندارد.");
             ViewData["AccountBooks"] = accountBooks;
 
@@ -2450,7 +2450,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (!vehicle.Type.StartsWith(fee.Vehicle))
+                if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
@@ -2574,7 +2574,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (!vehicle.Type.StartsWith(fee.Vehicle))
+                if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
@@ -2698,8 +2698,12 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                if ((input.SazehLoadType == SazehGostarLoadType.OneWay && fee.Title.Equals("رفت و برگشت")) ||
+                    (input.SazehLoadType == SazehGostarLoadType.TwoWay && fee.Title.Equals("رفت")))
+                    return NotFound("نوع انتخابی بارنامه با نوع رفت و برگشت درج شده در نرخ انتخابی تطابق ندارد.");
+
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (!vehicle.Type.StartsWith(fee.Vehicle))
+                if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
@@ -2823,16 +2827,18 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (!vehicle.Type.StartsWith(fee.Vehicle))
+                if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
+                string loadType = fee.ShippingFeeLoadType.Name;
+
                 if ((!input.Load && !input.Palette && !input.Return) ||
-                    (input.Load && input.Palette && !input.Return && !fee.Title.Contains("بار/پالت")) ||
-                    (input.Load && !input.Palette && !input.Return && (!fee.Title.Contains("بار") || fee.Title.Contains("پالت") || fee.Title.Contains("برگشت"))) ||
-                    (!input.Load && input.Palette && !input.Return && (!fee.Title.Contains("پالت") || fee.Title.Contains("بار") || fee.Title.Contains("برگشت"))) ||
-                    (!input.Load && !input.Palette && input.Return && (!fee.Title.Contains("برگشت") || fee.Title.Contains("پالت") || fee.Title.Contains("بار"))) ||
-                    (input.Load && !input.Palette && input.Return && !fee.Title.Contains("بار/برگشت")) ||
-                    (!input.Load && input.Palette && input.Return && !fee.Title.Contains("پالت/برگشت"))
+                    (input.Load && input.Palette && !input.Return && !loadType.Contains("بار/پالت")) ||
+                    (input.Load && !input.Palette && !input.Return && (!loadType.Contains("بار") || loadType.Contains("پالت") || loadType.Contains("برگشت"))) ||
+                    (!input.Load && input.Palette && !input.Return && (!loadType.Contains("پالت") || loadType.Contains("بار") || loadType.Contains("برگشت"))) ||
+                    (!input.Load && !input.Palette && input.Return && (!loadType.Contains("برگشت") || loadType.Contains("پالت") || loadType.Contains("بار"))) ||
+                    (input.Load && !input.Palette && input.Return && !loadType.Contains("بار/برگشت")) ||
+                    (!input.Load && input.Palette && input.Return && !loadType.Contains("پالت/برگشت"))
                     )
                     return NotFound("مقادیر بار/پالت/برگشت با نرخ انتخابی تناسب ندارد.");
 
@@ -2894,7 +2900,6 @@ namespace EtehadBar.MVC.Controllers
                     LoadSleepTime = input.LoadSleepTime,
                     LoadSleepPrice = input.LoadSleepPrice,
                     DriverLoadSleepPrice = input.DriverLoadSleepPrice,
-                    LoadType = input.LoadType,
                     CategoryId = input.CategoryId,
                     Sequence = await _loadFactorRepo.GetBiggestSequenceInMehrcomPars() + 1
                 };
@@ -2938,6 +2943,7 @@ namespace EtehadBar.MVC.Controllers
                 ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
             else
                 ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId) && a.ShippingFeeType == ShippingFeeType.Normal).OrderBy(a => a.Origin).ToListAsync();
+            
             if (customer.CustomerType == CustomerType.SaipaPress)
                 ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
             else if (customer.CustomerType == CustomerType.MehrcomPars)
@@ -2974,7 +2980,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (!vehicle.Type.StartsWith(fee.Vehicle))
+                if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 var item = await _loadFactorRepo.Get(input.Id);
@@ -3044,7 +3050,7 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (!vehicle.Type.StartsWith(fee.Vehicle))
+                if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 var item = await _loadFactorRepo.Get(input.Id);
@@ -3116,8 +3122,12 @@ namespace EtehadBar.MVC.Controllers
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
+                if ((input.SazehLoadType == SazehGostarLoadType.OneWay && fee.Title.Equals("رفت و برگشت")) ||
+                    (input.SazehLoadType == SazehGostarLoadType.TwoWay && fee.Title.Equals("رفت")))
+                    return NotFound("نوع انتخابی بارنامه با نوع رفت و برگشت درج شده در نرخ انتخابی تطابق ندارد.");
+
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (!vehicle.Type.StartsWith(fee.Vehicle))
+                if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
                 var item = await _loadFactorRepo.Get(input.Id);
@@ -3193,16 +3203,18 @@ namespace EtehadBar.MVC.Controllers
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
-                if (!vehicle.Type.StartsWith(fee.Vehicle))
+                if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
+                string loadType = fee.ShippingFeeLoadType.Name;
+
                 if ((!input.Load && !input.Palette && !input.Return) ||
-                    (input.Load && input.Palette && !input.Return && !fee.Title.Contains("بار/پالت")) ||
-                    (input.Load && !input.Palette && !input.Return && (!fee.Title.Contains("بار") || fee.Title.Contains("پالت") || fee.Title.Contains("برگشت"))) ||
-                    (!input.Load && input.Palette && !input.Return && (!fee.Title.Contains("پالت") || fee.Title.Contains("بار") || fee.Title.Contains("برگشت"))) ||
-                    (!input.Load && !input.Palette && input.Return && (!fee.Title.Contains("برگشت") || fee.Title.Contains("پالت") || fee.Title.Contains("بار"))) ||
-                    (input.Load && !input.Palette && input.Return && !fee.Title.Contains("بار/برگشت")) ||
-                    (!input.Load && input.Palette && input.Return && !fee.Title.Contains("پالت/برگشت"))
+                    (input.Load && input.Palette && !input.Return && !loadType.Contains("بار/پالت")) ||
+                    (input.Load && !input.Palette && !input.Return && (!loadType.Contains("بار") || loadType.Contains("پالت") || loadType.Contains("برگشت"))) ||
+                    (!input.Load && input.Palette && !input.Return && (!loadType.Contains("پالت") || loadType.Contains("بار") || loadType.Contains("برگشت"))) ||
+                    (!input.Load && !input.Palette && input.Return && (!loadType.Contains("برگشت") || loadType.Contains("پالت") || loadType.Contains("بار"))) ||
+                    (input.Load && !input.Palette && input.Return && !loadType.Contains("بار/برگشت")) ||
+                    (!input.Load && input.Palette && input.Return && !loadType.Contains("پالت/برگشت"))
                     )
                     return NotFound("مقادیر بار/پالت/برگشت با نرخ انتخابی تناسب ندارد.");
 
@@ -3233,7 +3245,6 @@ namespace EtehadBar.MVC.Controllers
                 item.MehrcomParsLoadFactor.DriverLoadSleepPrice = input.DriverLoadSleepPrice;
                 item.MehrcomParsLoadFactor.LoadSleepPrice = input.LoadSleepPrice;
                 item.MehrcomParsLoadFactor.LoadSleepTime = input.LoadSleepTime;
-                item.MehrcomParsLoadFactor.LoadType = input.LoadType;
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
@@ -4101,7 +4112,6 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin, User")]
         public PartialViewResult CreateBankAccountBook()
         {
-            ViewData["UserId"] = _userManager.GetUserId(User);
             return PartialView("~/Views/Admin/Create/BankAccountBook.cshtml");
         }
 

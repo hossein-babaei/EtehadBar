@@ -103,10 +103,31 @@
                 <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.CalendarId)</p>
                 <span class="sm">@Model.Calendar.Title - (@(new PersianDateTime(Model.Calendar.StartDate).ToString("yyyy/MM/dd")) الی @(new PersianDateTime(Model.Calendar.EndDate).ToString("yyyy/MM/dd")))</span>
             </div>
-            <div>
-                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Amount)</p>
-                <span class="sm">@Model.DriverFee.ToString("N0")</span>
-            </div>
+            @if (User.IsInRole("Admin"))
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Amount)</p>
+                    <span class="sm">@Model.Amount.ToString("N0")</span>
+                </div>
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.DriverFee)</p>
+                    <span class="sm">@Model.DriverFee.ToString("N0")</span>
+                </div>
+            }
+            else if (User.IsInRole("User"))
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Amount)</p>
+                    <span class="sm">@Model.DriverFee.ToString("N0")</span>
+                </div>
+            }
+            else if (User.IsInRole("RegisterUser"))
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Amount)</p>
+                    <span class="sm">@Model.Amount.ToString("N0")</span>
+                </div>
+            }
         </div>
     </div>
     <div class="uk-modal-footer uk-text-center">

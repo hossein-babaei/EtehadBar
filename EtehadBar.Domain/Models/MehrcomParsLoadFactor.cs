@@ -31,10 +31,10 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "برگشتی")]
         public bool Return { get; set; } = false;
 
-        [Display(Name = "نوع بار")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128)]
-        public string LoadType { get; set; }
+        //[Display(Name = "نوع بار")]
+        //[Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        //[StringLength(128)]
+        //public string LoadType { get; set; }
 
         [Display(Name = "نرخ باسکول")]
         public double? WeighbridgePrice { get; set; }
