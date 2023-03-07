@@ -36,13 +36,24 @@
                 </div>
                 <div>
                     <label asp-for="ReferenceNo" class="uk-form-label"></label>
-                    <input asp-for="ReferenceNo" class="uk-input uk-border-rounded" />
+                    <input asp-for="ReferenceNo" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="ReferenceNo" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-expand@m">
                     <label asp-for="Amount" class="uk-form-label"></label>
-                    <input asp-for="Amount" class="uk-input uk-border-rounded format-number" />
+                    <input asp-for="Amount" class="uk-input uk-border-rounded uk-form-small format-number" />
                     <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-auto@m">
+                    <div class="uk-margin-top">
+                        <label><input class="uk-radio" type="radio" name="AmountType" value="@((int)BankAccountBookAmountType.Debtor)" checked> بدهکار</label>
+                        <label><input class="uk-radio" type="radio" name="AmountType" value="@((int)BankAccountBookAmountType.Creditor)"> بستانکار</label>
+                    </div>
+                </div>
+                <div>
+                    <label asp-for="Description" class="uk-form-label"></label>
+                    <textarea asp-for="Description" class="uk-textarea uk-border-rounded uk-form-small" rows="3"></textarea>
+                    <span asp-validation-for="Description" class="uk-text-danger"></span>
                 </div>
             </div>
         </form>

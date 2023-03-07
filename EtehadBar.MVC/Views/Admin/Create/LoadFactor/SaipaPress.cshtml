@@ -108,16 +108,6 @@
                     <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
                 </div>
                 <div>
-                    <label asp-for="Tonnage" class="uk-form-label"></label>
-                    <input asp-for="Tonnage" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
-                    <span asp-validation-for="Tonnage" class="uk-text-danger"></span>
-                </div>
-                <div>
-                    <label asp-for="ExitNumber" class="uk-form-label"></label>
-                    <input asp-for="ExitNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
-                    <span asp-validation-for="ExitNumber" class="uk-text-danger"></span>
-                </div>
-                <div>
                     <label asp-for="LoadNumber" class="uk-form-label"></label>
                     <input asp-for="LoadNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="LoadNumber" class="uk-text-danger"></span>
@@ -127,7 +117,17 @@
                     <input asp-for="EntryNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="EntryNumber" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-4@m">
+                <div>
+                    <label asp-for="ExitNumber" class="uk-form-label"></label>
+                    <input asp-for="ExitNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="ExitNumber" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label asp-for="Tonnage" class="uk-form-label"></label>
+                    <input asp-for="Tonnage" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Tonnage" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-3@m">
                     <label asp-for="LoadType" class="uk-form-label"></label>
                     <select asp-for="LoadType" class="uk-select uk-border-rounded uk-form-small">
                         @foreach (var item in loadTypes)
@@ -137,7 +137,7 @@
                     </select>
                     <span asp-validation-for="LoadType" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-4@m">
+                <div class="uk-width-1-3@m">
                     <label asp-for="PressFloorType" class="uk-form-label"></label>
                     <select asp-for="PressFloorType" class="uk-select uk-border-rounded uk-form-small">
                         <option value="@((int)SaipaPressLoadType.OneFloor)">یک طبقه</option>

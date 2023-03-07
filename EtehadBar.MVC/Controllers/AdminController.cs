@@ -667,6 +667,25 @@ namespace EtehadBar.MVC.Controllers
 
             return View();
         }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ResetPassword(string userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                await _userManager.RemovePasswordAsync(user);
+                await _userManager.AddPasswordAsync(user, "1234@User");
+
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
         #endregion
 
         #region Definition
@@ -2346,8 +2365,11 @@ namespace EtehadBar.MVC.Controllers
             }
             ViewData["Customer"] = await _customerRepo.GetAllActive();
 
-            var onePageOfData = await _loadFactorRepo.LoadFactors().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 15);
-            ViewBag.data = onePageOfData;
+            var query = _loadFactorRepo.LoadFactors();
+            if (User.IsInRole("RegisterUser"))
+                query = query.Where(a => a.AdminId.Equals(_userManager.GetUserId(User)));
+
+            ViewBag.data = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 15);
             return View();
         }
 
@@ -2355,8 +2377,12 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> LoadFactorPartial(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _loadFactorRepo.LoadFactors().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 15);
-            ViewBag.data = onePageOfData;
+
+            var query = _loadFactorRepo.LoadFactors();
+            if (User.IsInRole("RegisterUser"))
+                query = query.Where(a => a.AdminId.Equals(_userManager.GetUserId(User)));
+
+            ViewBag.data = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 15);
             ViewBag.isSearch = false;
             return PartialView("_LoadFactor");
         }
@@ -2375,8 +2401,12 @@ namespace EtehadBar.MVC.Controllers
             if (!string.IsNullOrWhiteSpace(param))
             {
                 var pageNum = p ?? 1;
-                var onePageOfData = await _loadFactorRepo.LoadFactors().Where(a => a.LoadNumber.Contains(param) || a.LoadNumberGov.Contains(param)).OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
-                ViewBag.data = onePageOfData;
+
+                var query = _loadFactorRepo.LoadFactors().Where(a => a.LoadNumber.Contains(param) || a.LoadNumberGov.Contains(param));
+                if (User.IsInRole("RegisterUser"))
+                    query = query.Where(a => a.AdminId.Equals(_userManager.GetUserId(User)));
+
+                ViewBag.data = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
                 ViewBag.page = pageNum;
                 ViewBag.param = param;
                 ViewBag.isSearch = true;
@@ -2876,15 +2906,15 @@ namespace EtehadBar.MVC.Controllers
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
-                    loadFactor.Amount = input.Amount;
-                    loadFactor.DriverFee = input.DriverFee;
+                    loadFactor.Amount = input.HasAddonMessage ? input.Amount + (input.Amount * 0.3) : input.Amount;
+                    loadFactor.DriverFee = input.HasAddonMessage ? input.DriverFee + (input.DriverFee * 0.3) : input.DriverFee;
                     loadFactor.TonnagePrice = input.TonnagePrice;
                     loadFactor.DriverTonnagePrice = input.DriverTonnagePrice;
                 }
                 else
                 {
-                    loadFactor.Amount = fee.Price;
-                    loadFactor.DriverFee = fee.DriverPrice;
+                    loadFactor.Amount = input.HasAddonMessage ? fee.Price + (fee.Price * 0.3) : fee.Price;
+                    loadFactor.DriverFee = input.HasAddonMessage ? fee.DriverPrice + (fee.DriverPrice * 0.3) : fee.DriverPrice;
                     loadFactor.TonnagePrice = fee.TonnagePrice;
                     loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
                 }
@@ -2901,6 +2931,7 @@ namespace EtehadBar.MVC.Controllers
                     LoadSleepPrice = input.LoadSleepPrice,
                     DriverLoadSleepPrice = input.DriverLoadSleepPrice,
                     CategoryId = input.CategoryId,
+                    HasAddonMessage = input.HasAddonMessage,
                     Sequence = await _loadFactorRepo.GetBiggestSequenceInMehrcomPars() + 1
                 };
 
@@ -3245,18 +3276,19 @@ namespace EtehadBar.MVC.Controllers
                 item.MehrcomParsLoadFactor.DriverLoadSleepPrice = input.DriverLoadSleepPrice;
                 item.MehrcomParsLoadFactor.LoadSleepPrice = input.LoadSleepPrice;
                 item.MehrcomParsLoadFactor.LoadSleepTime = input.LoadSleepTime;
+                item.MehrcomParsLoadFactor.HasAddonMessage = input.HasAddonMessage;
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
-                    item.Amount = input.Amount;
-                    item.DriverFee = input.DriverFee;
+                    item.Amount = input.HasAddonMessage ? input.Amount + (input.Amount * 0.3) : input.Amount;
+                    item.DriverFee = input.HasAddonMessage ? input.DriverFee + (input.DriverFee * 0.3) : input.DriverFee;
                     item.TonnagePrice = input.TonnagePrice;
                     item.DriverTonnagePrice = input.DriverTonnagePrice;
                 }
                 else
                 {
-                    item.Amount = fee.Price;
-                    item.DriverFee = fee.DriverPrice;
+                    item.Amount = input.HasAddonMessage ? fee.Price + (fee.Price * 0.3) : fee.Price;
+                    item.DriverFee = input.HasAddonMessage ? fee.DriverPrice + (fee.DriverPrice * 0.3) : fee.DriverPrice;
                     item.TonnagePrice = fee.TonnagePrice;
                     item.DriverTonnagePrice = fee.DriverTonnagePrice;
                 }
@@ -4101,7 +4133,8 @@ namespace EtehadBar.MVC.Controllers
             var bankAccountId = await _bankAccountRepository.Query().AsNoTracking()
                 .Where(a => a.RowId.Equals(id)).Select(a => a.Id).FirstOrDefaultAsync();
 
-            ViewData["Id"] = id;
+            ViewData["BankAccountId"] = bankAccountId;
+            ViewData["BankAccountRowId"] = id;
             var pageNumber = p ?? 1;
             var onePageOfData = await _bankAccountBookRepository.Query().Where(a => a.BankAccountId.Equals(bankAccountId)).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;

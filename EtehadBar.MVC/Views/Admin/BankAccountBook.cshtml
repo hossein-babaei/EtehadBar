@@ -14,9 +14,11 @@
 
 @section Scripts{
     <script>
+        const bankAccountId = @((long)ViewData["BankAccountId"]),
+            bankAccountRowId = '@ViewData["BankAccountRowId"].ToString()';
         function create() {
             preloader();
-            $.get('@Url.Action("CreateBankAccount")', {}, function (r) {
+            $.get('@Url.Action("CreateBankAccountBook")', {}, function (r) {
                 $('#append-modal').html(r);
             }, 'html').then(function () {
                 parseValidator('#create-form');
@@ -26,7 +28,7 @@
         }
         function edit(id) {
             preloader();
-            $.get('@Url.Action("EditBankAccount")', { 'id': id }, function (r) {
+            $.get('@Url.Action("EditBankAccountBook")', { 'id': id }, function (r) {
                 $('#append-modal').html(r);
             }, 'html').then(function () {
                 parseValidator('#edit-form');
@@ -88,7 +90,7 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("BankAccountBook", new { id = ViewData["Id"].ToString(), p = page }))
+            @Html.PagedListPager(data, page => Url.Action("BankAccountBook", new { id = ViewData["BankAccountRowId"].ToString(), p = page }))
         </div>
     }
 </div>

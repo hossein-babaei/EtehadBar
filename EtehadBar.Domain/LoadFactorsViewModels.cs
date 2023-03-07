@@ -572,6 +572,9 @@ namespace EtehadBar.Domain
 
         [Display(Name = "تناژ اضافه")]
         public double? Tonnage { get; set; } = 0;
+
+        [Display(Name = "افزایش 30%")]
+        public bool HasAddonMessage { get; set; } = false;
     }
 
     public class EMehrcomParsLoadFactorVM
@@ -670,5 +673,8 @@ namespace EtehadBar.Domain
 
         [Display(Name = "تناژ اضافه")]
         public double? Tonnage { get; set; } = 0;
+
+        [Display(Name = "افزایش 30%")]
+        public bool HasAddonMessage { get; set; } = false;
     }
 }

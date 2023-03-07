@@ -48,6 +48,9 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "مبلغ پرداختی خواب")]
         public double? DriverLoadSleepPrice { get; set; }
 
+        [Display(Name = "افزایش 30%")]
+        public bool HasAddonMessage { get; set; } = false;
+
         [ForeignKey(nameof(Category))]
         [Display(Name = "دسته بندی")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]

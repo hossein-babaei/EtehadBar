@@ -119,9 +119,12 @@
                     <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
                 </div>
                 <div>
-                    <label asp-for="ExitNumber" class="uk-form-label"></label>
-                    <input asp-for="ExitNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
-                    <span asp-validation-for="ExitNumber" class="uk-text-danger"></span>
+                    <label asp-for="SazehLoadType" class="uk-form-label"></label>
+                    <select asp-for="SazehLoadType" class="uk-select uk-border-rounded uk-form-small">
+                        <!option value="@((int)SazehGostarLoadType.OneWay)" @if(Model.SazehLoadType == SazehGostarLoadType.OneWay){<text>selected="selected"</text>}>رفت</!option>
+                        <!option value="@((int)SazehGostarLoadType.TwoWay)" @if(Model.SazehLoadType == SazehGostarLoadType.TwoWay){<text>selected="selected"</text>}>رفت و برگشت</!option>
+                    </select>
+                    <span asp-validation-for="SazehLoadType" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="LoadNumber" class="uk-form-label"></label>
@@ -129,37 +132,34 @@
                     <span asp-validation-for="LoadNumber" class="uk-text-danger"></span>
                 </div>
                 <div>
+                    <label asp-for="ExitNumber" class="uk-form-label"></label>
+                    <input asp-for="ExitNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="ExitNumber" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-5@m">
                     <label asp-for="RegisterCode" class="uk-form-label"></label>
                     <input asp-for="RegisterCode" dir="ltr" class="uk-input uk-border-rounded uk-form-small" readonly />
                     <span asp-validation-for="RegisterCode" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-5@m">
                     <label asp-for="Certain" class="uk-form-label"></label>
                     <input asp-for="Certain" dir="ltr" class="uk-input uk-border-rounded uk-form-small" readonly />
                     <span asp-validation-for="Certain" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-5@m">
                     <label asp-for="Nature" class="uk-form-label"></label>
                     <input asp-for="Nature" dir="ltr" class="uk-input uk-border-rounded uk-form-small" readonly />
                     <span asp-validation-for="Nature" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-3@m">
+                <div class="uk-width-1-5@m">
                     <label asp-for="DetailedCostCenter" class="uk-form-label"></label>
                     <input asp-for="DetailedCostCenter" class="uk-input uk-border-rounded uk-form-small" readonly />
                     <span asp-validation-for="DetailedCostCenter" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-3@m">
+                <div class="uk-width-1-5@m">
                     <label asp-for="Count" class="uk-form-label"></label>
                     <input asp-for="Count" dir="ltr" class="uk-input uk-border-rounded uk-form-small" readonly />
                     <span asp-validation-for="Count" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-width-1-3@m">
-                    <label asp-for="SazehLoadType" class="uk-form-label"></label>
-                    <select asp-for="SazehLoadType" class="uk-select uk-border-rounded uk-form-small">
-                        <!option value="@((int)SazehGostarLoadType.OneWay)" @if(Model.SazehLoadType == SazehGostarLoadType.OneWay){<text>selected="selected"</text>}>رفت</!option>
-                        <!option value="@((int)SazehGostarLoadType.TwoWay)" @if(Model.SazehLoadType == SazehGostarLoadType.TwoWay){<text>selected="selected"</text>}>رفت و برگشت</!option>
-                    </select>
-                    <span asp-validation-for="SazehLoadType" class="uk-text-danger"></span>
                 </div>
             </div>
         </form>

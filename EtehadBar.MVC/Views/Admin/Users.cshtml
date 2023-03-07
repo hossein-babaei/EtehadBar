@@ -83,6 +83,10 @@
                 UIkit.modal('#create-modal').show();
             });
         }
+        function resetPassword(id) {
+            $('#reset-modal input').val(id);
+            UIkit.modal('#reset-modal').show();
+        }
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -110,6 +114,7 @@
                     <th>تاریخ عضویت</th>
                     <th>نقش</th>
                     <th width="50">ویرایش</th>
+                    <th width="50">ریست کلمه عبور</th>
                 </tr>
             </thead>
             <tbody>
@@ -142,6 +147,7 @@
                         <td>@register</td>
                         <td>@role</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="EditUser" asp-route-id="@item.Id"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="resetPassword('@item.Id')"><i class="fas fa-lock"></i></a></td>
                     </tr>
                     i++;
                 }
@@ -191,5 +197,18 @@
             <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
+    </div>
+</div>
+<div id="reset-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="reset-form" method="post" asp-action="ResetPassword" asp-controller="Admin">
+            <input type="hidden" name="userId" />
+            <h3>آیا از ریست کردن کلمه عبور این کاربر اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#reset-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
     </div>
 </div>

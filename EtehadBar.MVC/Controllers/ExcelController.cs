@@ -1313,7 +1313,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     var ws = workbook.Worksheets.Add($"1");
                     ws.RightToLeft = true;
-                    ws.Style.Font.FontName = "B Nazanin";
+                    ws.Style.Font.FontName = "B Titr";
                     ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
                     ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
@@ -1364,7 +1364,7 @@ namespace EtehadBar.MVC.Controllers
                     for (int i = 0; i < allLoadFactors.Count; i++)
                     {
                         var vehicle = allLoadFactors[i].Vehicle;
-                        var carNumber = $"{vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber} ایران {vehicle.IranStateNumber}";
+                        var carNumber = $"{vehicle.RightNumber}{vehicle.NumberWord}{vehicle.LeftNumber}ایران{vehicle.IranStateNumber}";
                         var date = new PersianDateTime(allLoadFactors[i].Date);
 
                         #region handling sleep time and weighbridge

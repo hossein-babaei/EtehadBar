@@ -281,7 +281,8 @@ namespace EtehadBar.Infra.Data.Repository
                 Tonnage = loadFactor.Tonnage,
                 TonnagePrice = loadFactor.TonnagePrice,
                 LoadSleepPrice = loadFactor.MehrcomParsLoadFactor.LoadSleepPrice,
-                LoadSleepTime = loadFactor.MehrcomParsLoadFactor.LoadSleepTime
+                LoadSleepTime = loadFactor.MehrcomParsLoadFactor.LoadSleepTime,
+                HasAddonMessage = loadFactor.MehrcomParsLoadFactor.HasAddonMessage
             };
         }
 
