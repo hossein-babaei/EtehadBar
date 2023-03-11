@@ -1590,7 +1590,7 @@ namespace EtehadBar.MVC.Controllers
                     {
                         var ws = workbook.Worksheets.Add(category.Title);
                         ws.RightToLeft = true;
-                        ws.Style.Font.FontName = "B Nazanin";
+                        ws.Style.Font.FontName = "B Titr";
                         ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
                         ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
@@ -1645,7 +1645,7 @@ namespace EtehadBar.MVC.Controllers
 
                         for (int index = 1; index <= Convert.ToInt32(Math.Ceiling(c)); index++)
                         {
-                            var loadFactors = data.Skip((index - 1) * 30).Take(index * 30).ToList();
+                            var loadFactors = data.Skip((index - 1) * 30).Take(30).ToList();
 
                             for (int i = 0; i < loadFactors.Count; i++)
                             {

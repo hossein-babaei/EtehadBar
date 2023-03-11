@@ -1750,13 +1750,15 @@ namespace EtehadBar.MVC.Controllers
                     await _contractRepo.Save();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
 
-                    if (!c.ParentContractId.HasValue || (c.ParentContractId.HasValue && c.ParentContractId.Value == 0))
-                        return RedirectToAction("ShippingFee", new { contractId = contract.RowId });
-                    else
-                    {
-                        string parentRowId = await _contractRepo.Contracts().Where(a => a.Id.Equals(contract.ParentContractId.Value)).Select(a => a.RowId).FirstAsync();
-                        return RedirectToAction("ShippingFee", new { contractId = parentRowId });
-                    }
+                    //if (!c.ParentContractId.HasValue || (c.ParentContractId.HasValue && c.ParentContractId.Value == 0))
+                    //    return RedirectToAction("ShippingFee", new { contractId = contract.RowId });
+                    //else
+                    //{
+                    //    string parentRowId = await _contractRepo.Contracts().Where(a => a.Id.Equals(contract.ParentContractId.Value)).Select(a => a.RowId).FirstAsync();
+                    //    return RedirectToAction("ShippingFee", new { contractId = parentRowId });
+                    //}
+
+                    return RedirectToAction("ShippingFee", new { contractId = contract.RowId });
                 }
                 catch (Exception e)
                 {
@@ -2135,13 +2137,17 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, User")]
-        public async Task<IActionResult> ChangeShippingFee(int contractId, double amount, double driverAmount, string type, string driverType)
+        public async Task<IActionResult> ChangeShippingFee(int contractId,
+            string amountDate, double amount, string type,
+            string driverAmountDate, double driverAmount, string driverType,
+            string tonnageAmountDate, double tonnageAmount, string tonnageType,
+            string tonnageDriverAmountDate, double tonnageDriverAmount, string driverTonnageType)
         {
             string msg;
             string status = "danger";
             if (ModelState.IsValid)
             {
-                if (amount == 0 || driverAmount == 0)
+                if (amount == 0 && driverAmount == 0 && tonnageAmount == 0 && tonnageDriverAmount == 0)
                     return Json(new { msg = "میزان تغییر باید بزرگتر یا کوچکتر از صفر باشد.", status });
 
                 if (type.Equals("percent") && (amount > 100 || amount < -100))
@@ -2149,6 +2155,24 @@ namespace EtehadBar.MVC.Controllers
 
                 if (driverType.Equals("percent") && (driverAmount > 100 || driverAmount < -100))
                     return Json(new { msg = "درصد تغییر نرخ راننده مناسب نیست.", status });
+
+                if (tonnageType.Equals("percent") && (tonnageAmount > 100 || tonnageAmount < -100))
+                    return Json(new { msg = "درصد تغییر نرخ تناژ مناسب نیست.", status });
+
+                if (driverTonnageType.Equals("percent") && (tonnageDriverAmount > 100 || tonnageDriverAmount < -100))
+                    return Json(new { msg = "درصد تغییر نرخ تناژ راننده مناسب نیست.", status });
+
+                var amountDateArray = amountDate.PersianToEnglish().Split('/');
+                var amountDatetime = new PersianDateTime(Convert.ToInt32(amountDateArray[0]), Convert.ToInt32(amountDateArray[1]), Convert.ToInt32(amountDateArray[2])).ToDateTime();
+
+                var driverAmountDateArray = driverAmountDate.PersianToEnglish().Split('/');
+                var driverAmountDatetime = new PersianDateTime(Convert.ToInt32(driverAmountDateArray[0]), Convert.ToInt32(driverAmountDateArray[1]), Convert.ToInt32(driverAmountDateArray[2])).ToDateTime();
+
+                var tonnageAmountDateArray = tonnageAmountDate.PersianToEnglish().Split('/');
+                var tonnageAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageAmountDateArray[0]), Convert.ToInt32(tonnageAmountDateArray[1]), Convert.ToInt32(tonnageAmountDateArray[2])).ToDateTime();
+
+                var tonnageDriverAmountDateArray = tonnageDriverAmountDate.PersianToEnglish().Split('/');
+                var tonnageDriverAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageDriverAmountDateArray[0]), Convert.ToInt32(tonnageDriverAmountDateArray[1]), Convert.ToInt32(tonnageDriverAmountDateArray[2])).ToDateTime();
 
                 var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
                 if (latestContractAddon == null)
@@ -2159,27 +2183,62 @@ namespace EtehadBar.MVC.Controllers
 
                 foreach (var fee in feeList)
                 {
-                    if (type.Equals("percent"))
+                    if (amount != 0)
                     {
-                        var a = fee.Price * amount / 100;
-                        fee.Price += a;
+                        if (type.Equals("percent"))
+                        {
+                            var a = fee.Price * amount / 100;
+                            fee.Price += a;
+                        }
+                        else fee.Price += amount;
                     }
-                    else fee.Price += amount;
 
-                    if (driverAmount.Equals("percent"))
+                    if (driverAmount != 0)
                     {
-                        var a = fee.DriverPrice * driverAmount / 100;
-                        fee.DriverPrice += a;
+                        if (driverType.Equals("percent"))
+                        {
+                            var a = fee.DriverPrice * driverAmount / 100;
+                            fee.DriverPrice += a;
+                        }
+                        else fee.DriverPrice += driverAmount;
                     }
-                    else fee.DriverPrice += driverAmount;
+
+                    if (fee.TonnagePrice.HasValue && tonnageAmount != 0)
+                    {
+                        if (tonnageType.Equals("percent"))
+                        {
+                            var a = fee.TonnagePrice.Value * tonnageAmount / 100;
+                            fee.TonnagePrice = fee.TonnagePrice.Value + a;
+                        }
+                        else fee.TonnagePrice = fee.TonnagePrice.Value + tonnageAmount;
+                    }
+
+                    if (fee.DriverTonnagePrice.HasValue && tonnageDriverAmount != 0)
+                    {
+                        if (driverTonnageType.Equals("percent"))
+                        {
+                            var a = fee.DriverTonnagePrice.Value * tonnageDriverAmount / 100;
+                            fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + a;
+                        }
+                        else fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + tonnageDriverAmount;
+                    }
 
                     var thisLoadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id)).ToList();
                     if (thisLoadFactor.Any())
                     {
                         foreach (var loadFactor in thisLoadFactor)
                         {
-                            loadFactor.Amount = fee.Price;
-                            loadFactor.DriverFee = fee.DriverPrice;
+                            if (loadFactor.Date >= amountDatetime)
+                                loadFactor.Amount = fee.Price;
+
+                            if (loadFactor.Date >= driverAmountDatetime)
+                                loadFactor.DriverFee = fee.DriverPrice;
+
+                            if (loadFactor.Date >= tonnageAmountDatetime && loadFactor.TonnagePrice.HasValue)
+                                loadFactor.TonnagePrice = fee.TonnagePrice;
+
+                            if (loadFactor.Date >= tonnageDriverAmountDatetime && loadFactor.DriverTonnagePrice.HasValue)
+                                loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
                         }
                         _shippingFeeRepo.UpdateLoadFactors(thisLoadFactor);
                     }
@@ -2207,7 +2266,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin, User")]
-        public async Task<IActionResult> CreateShippingFreeFeeTypeFromNormal(string contractRowId, long customerId)
+        public async Task<IActionResult> CreateShippingFeeTypeFromNormal(string contractRowId, long customerId)
         {
             var latestContracts = await _contractRepo.Contracts().AsNoTracking().Where(a => !a.RowId.Equals(contractRowId) && a.CustomerId.Equals(customerId))
                 .Select(a => new { a.Number, a.RowId, a.EndDate }).OrderByDescending(a => a.EndDate).ToListAsync();
@@ -2219,7 +2278,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, User")]
-        public async Task<IActionResult> DoCreateShippingFreeFeeTypeFromNormal(string contractRowId, string newContractRowId)
+        public async Task<IActionResult> DoCreateShippingFeeTypeFromNormal(string contractRowId, string newContractRowId)
         {
             var newContract = await _contractRepo.Get(newContractRowId);
             var contract = await _contractRepo.Get(contractRowId);
@@ -3344,6 +3403,58 @@ namespace EtehadBar.MVC.Controllers
                 _loadFactorRepo.DeleteSaipaPress(item.SaipaPressLoadFactor);
 
             _loadFactorRepo.Delete(item);
+            try
+            {
+                await _loadFactorRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> MoveLoadFactorsToNewContract(string contractRowId, string newContractRowId, string dateString)
+        {
+            var dateArr = dateString.PersianToEnglish().Split("/");
+            var date = new PersianDateTime(Convert.ToInt32(dateArr[0]), Convert.ToInt32(dateArr[1]), Convert.ToInt32(dateArr[2])).ToDateTime();
+                
+            var newContract = await _contractRepo.Get(newContractRowId);
+            var newShippingFees = newContract.ShippingFees;
+            var contract = await _contractRepo.Get(contractRowId);
+            var shippingFees = contract.ShippingFees;
+
+            var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(contract.Id) && a.Date >= date).ToListAsync();
+
+            foreach (var item in loadFactors)
+            {
+                var shippingFee = shippingFees.Single(a => a.Id.Equals(item.ShippingFeeId));
+                var newShippingFeeQuery = newShippingFees.Where(a => a.Vehicle.Equals(shippingFee.Vehicle)
+                && a.OriginId.Equals(shippingFee.OriginId) && a.DestinationId.Equals(shippingFee.DestinationId)
+                && a.ShippingFeeLoadTypeId.Equals(shippingFee.ShippingFeeLoadTypeId) && a.ShippingFeeType.Equals(shippingFee.ShippingFeeType));
+
+                if (!string.IsNullOrWhiteSpace(shippingFee.Title))
+                    newShippingFeeQuery = newShippingFeeQuery.Where(a => a.Title.Equals(shippingFee.Title));
+
+                var newShippingFee = newShippingFeeQuery.Single();
+
+                item.ContractId = newContract.Id;
+                item.ShippingFeeId = newShippingFee.Id;
+
+                if (newShippingFee.ShippingFeeType != ShippingFeeType.Custom)
+                {
+                    item.Amount = newShippingFee.Price;
+                    item.DriverFee = newShippingFee.DriverPrice;
+                    item.TonnagePrice = newShippingFee.TonnagePrice;
+                    item.DriverTonnagePrice = newShippingFee.DriverTonnagePrice;
+                }
+                _loadFactorRepo.Update(item);
+            }
+
+
             try
             {
                 await _loadFactorRepo.Save();

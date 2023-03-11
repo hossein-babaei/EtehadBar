@@ -13,32 +13,83 @@
     int i = 1;
 }
 
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+}
 @section Scripts{
+    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="~/lib/select2/select2.min.js"></script>
+    <script src="~/lib/persian-date/persian-date.min.js"></script>
+    <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
     <script>
         var contractId = '@contractInfo.RowId';
 
+        let datePickerConfig = {
+            initialValue: true,
+            autoClose: true,
+            timePicker: {
+                enabled: false
+            },
+            format: 'YYYY/MM/DD',
+            navigator: {
+                enabled: true,
+                scroll: {
+                    "enabled": true
+                },
+                text: {
+                    btnNextText: '>',
+                    btnPrevText: '<'
+                }
+            },
+            toolbox: {
+                calendarSwitch: {
+                    enabled: false
+                }
+            }
+        };
+        $('#move-date').persianDatepicker(datePickerConfig);
+        $('#amountDate').persianDatepicker(datePickerConfig);
+        $('#driverAmountDate').persianDatepicker(datePickerConfig);
+        $('#tonnageAmountDate').persianDatepicker(datePickerConfig);
+        $('#tonnageDriverAmountDate').persianDatepicker(datePickerConfig);
+
         function submitChange() {
             var form = $('#change-form');
-            var value = form.find('input[name=amount]').val();
-            if (value != 0) {
+
+            preloader();
+            $.post('@Url.Action("ChangeShippingFee")', form.serialize(), function (r) {
+                uiAlert(r.msg, r.status);
+                if (r.status == 'success') {
+                    setTimeout(function () {
+                        window.location.reload(true);
+                    }, 1000);
+                }
+            }, 'json').then(function () {
                 preloader();
-                $.post('@Url.Action("ChangeShippingFee")', form.serialize(), function (r) {
-                    uiAlert(r.msg, r.status);
-                    if (r.status == 'success') {
-                        setTimeout(function () {
-                            window.location.reload(true);
-                        }, 1000);
-                    }
-                }, 'json').then(function () {
-                    preloader();
-                });
-            }
+            });
         }
         function create() {
             preloader();
             $.get('@Url.Action("CreateShippingFee")', { 'contractId': contractId }, function (r) {
                 $('#append-modal').html(r);
             }, 'html').then(function () {
+                $('#create-form #ShippingFeeType').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#create-form #Vehicle').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#create-form #OriginId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#create-form #DestinationId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
                 parseValidator('#append-modal form');
                 preloader();
                 UIkit.modal('#append-modal').show();
@@ -66,6 +117,22 @@
             $.get('@Url.Action("EditShippingFee")', { 'id': id }, function (r) {
                 $('#append-modal').html(r);
             }, 'html').then(function () {
+                $('#edit-form #ShippingFeeType').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#edit-form #Vehicle').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#edit-form #OriginId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#edit-form #DestinationId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
                 parseValidator('#append-modal form');
                 preloader();
                 UIkit.modal('#append-modal').show();
@@ -123,8 +190,8 @@
         function copyFeeFromOldContract() {
             $.ajax({
                 type: 'GET',
-                url: '@Url.Action("CreateShippingFreeFeeTypeFromNormal")',
-                data: { 'contractRowId': contractId },
+                url: '@Url.Action("CreateShippingFeeTypeFromNormal")',
+                data: { 'contractRowId': contractId, 'customerId': @contractInfo.CustomerId },
                 dataType: 'json',
                 beforeSend: function () {
                     preloader();
@@ -134,9 +201,35 @@
                     $.each(r, function (i, v) {
                         options += `<option value="${v.rowId}">${v.number}</option>`;
                     });
-                    $('select[name=contractRowId]').html(options);
+                    $('#copy-modal select[name=contractRowId]').html(options);
 
                     UIkit.modal('#copy-modal').show();
+                },
+                error: function (e) {
+                    UIkit.notification({ message: e.responseText, status: 'danger', pos: 'bottom-center', timeout: 10000 });
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function moveLoadfactor() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CreateShippingFeeTypeFromNormal")',
+                data: { 'contractRowId': contractId, 'customerId': @contractInfo.CustomerId },
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    let options = '';
+                    $.each(r, function (i, v) {
+                        options += `<option value="${v.rowId}">${v.number}</option>`;
+                    });
+                    $('#move-modal select[name=contractRowId]').html(options);
+
+                    UIkit.modal('#move-modal').show();
                 },
                 error: function (e) {
                     UIkit.notification({ message: e.responseText, status: 'danger', pos: 'bottom-center', timeout: 10000 });
@@ -157,6 +250,7 @@
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="moveLoadfactor()" class="uk-button uk-button-danger uk-margin-small-left">انتقال</a>
         @if (Model.Any())
         {
             <a uk-toggle="#change-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ کلی</a>
@@ -179,7 +273,10 @@
                     <th>@Html.DisplayNameFor(model => contractInfo.Subject)</th>
                     <th>@Html.DisplayNameFor(model => contractInfo.StartDate)</th>
                     <th>@Html.DisplayNameFor(model => contractInfo.EndDate)</th>
-                    <th width="50">الحاقیه</th>
+                    @if (!contractInfo.ParentContractId.HasValue)
+                    {
+                        <th width="50">الحاقیه</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -190,13 +287,16 @@
                     <td>@Html.DisplayFor(modelItem => contractInfo.Subject)</td>
                     <td>@startPersianDate.ToShortDateString()</td>
                     <td>@endPersianDate.ToShortDateString()</td>
-                    @if (addons.Any())
+                    @if (!contractInfo.ParentContractId.HasValue)
                     {
-                        <td><button onclick="toggleAddons(this)" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
-                    }
-                    else
-                    {
-                        <td><button disabled class="uk-button uk-button-default uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
+                        if (addons.Any())
+                        {
+                            <td><button onclick="toggleAddons(this)" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
+                        }
+                        else
+                        {
+                            <td><button disabled class="uk-button uk-button-default uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
+                        }
                     }
                 </tr>
                 @if (addons.Any())
@@ -330,7 +430,7 @@
 </div>
 <div id="copy-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
-        <form id="copy-form" action="@Url.Action("DoCreateShippingFreeFeeTypeFromNormal")" method="post">
+        <form id="copy-form" action="@Url.Action("DoCreateShippingFeeTypeFromNormal")" method="post">
             <input type="hidden" name="newContractRowId" value="@contractInfo.RowId" />
             <h4 class="uk-text-light">تمامی نرخ ها از قرارداد انتخابی شما کپی خواهد شد.</h4>
             <label class="uk-form-label">قراردادی که میخواهید نرخ ها از آن کپی شود</label>
@@ -338,6 +438,23 @@
         </form>
         <div class="uk-modal-footer uk-text-center">
             <button class="uk-button uk-button-primary" onclick="$('#copy-form').submit()" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="move-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="move-form" action="@Url.Action("MoveLoadFactorsToNewContract")" method="post">
+            <input type="hidden" name="newContractRowId" value="@contractInfo.RowId" />
+            <h4 class="uk-text-light">تمامی بارنامه های ثبت شده در قرارداد انتخابی شما که از تاریخ مد نظر شما به بعد وجود داشته باشند، به این قرارداد منتقل می شوند.</h4>
+            <label class="uk-form-label">قراردادی که میخواهید بارنامه ها از آن کپی شود</label>
+            <select name="contractRowId" class="uk-select uk-border-rounded uk-form-small"></select>
+            <div class="uk-margin-top"></div>
+            <label class="uk-form-label">از تاریخ زیر به بعد</label>
+            <input id="move-date" name="dateString" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="$('#move-form').submit()" type="button">ثبت تغییرات</button>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
         </div>
     </div>
@@ -353,8 +470,13 @@
                 <li>تا پایان عملیات مرورگر خود را نبندید و از تازه سازی (رفرش) صفحه خودداری نمائید.</li>
                 <li>این عملیات ممکن است بر اساس تعداد نرخ ها و بارنامه هایی را که شامل می شود، طولانی و زمان بر باشد. لطفا از داشتن اتصال اینترنت مناسب و مطمئن اطمینان حاصل نمائید.</li>
             </ul>
+            <label class="uk-form-label">تغییر نرخ بارنامه های مرتبط از تاریخ</label>
+            <input id="amountDate" name="amountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            <br />
             <label class="uk-form-label">میزان تغییر نرخ کرایه</label>
-            <input name="amount" dir="ltr" class="uk-input uk-border-rounded" type="number" value="0" step="0.1" />
+            <div>
+                <input name="amount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
             <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
             <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
                 <label><input class="uk-radio" type="radio" name="type" value="amount" checked /> مبلغ ثابت</label>
@@ -362,12 +484,45 @@
             </div>
             <hr />
 
+            <label class="uk-form-label">تغییر نرخ پرداختی بارنامه های مرتبط از تاریخ</label>
+            <input id="driverAmountDate" name="driverAmountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            <br />
             <label class="uk-form-label">میزان تغییر نرخ کرایه راننده</label>
-            <input name="driverAmount" dir="ltr" class="uk-input uk-border-rounded" type="number" value="0" step="0.1" />
+            <div>
+                <input name="driverAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
             <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
             <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
                 <label><input class="uk-radio" type="radio" name="driverType" value="amount" checked /> مبلغ ثابت</label>
                 <label><input class="uk-radio" type="radio" name="driverType" value="percent" /> درصد</label>
+            </div>
+            <hr />
+
+            <label class="uk-form-label">تغییر نرخ دریافتی اضافه تناژ بارنامه های مرتبط از تاریخ</label>
+            <input id="tonnageAmountDate" name="tonnageAmountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            <br />
+            <label class="uk-form-label">میزان تغییر نرخ اضافه تناژ</label>
+            <div>
+                <input name="tonnageAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
+            <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                <label><input class="uk-radio" type="radio" name="tonnageType" value="amount" checked /> مبلغ ثابت</label>
+                <label><input class="uk-radio" type="radio" name="tonnageType" value="percent" /> درصد</label>
+            </div>
+            <hr />
+
+            <label class="uk-form-label">تغییر نرخ پرداختی اضافه تناژ بارنامه های مرتبط از تاریخ</label>
+            <input id="tonnageDriverAmountDate" name="tonnageDriverAmountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            <br />
+            <label class="uk-form-label">میزان تغییر نرخ پرداختی اضافه تناژ</label>
+            <div>
+                <input name="tonnageDriverAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
+            <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                <label><input class="uk-radio" type="radio" name="driverTonnageType" value="amount" checked /> مبلغ ثابت</label>
+                <label><input class="uk-radio" type="radio" name="driverTonnageType" value="percent" /> درصد</label>
             </div>
         </form>
         <div class="uk-modal-footer uk-text-center">

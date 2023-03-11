@@ -5,5 +5,86 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<h1>داشبورد</h1>
+@section Links {
+    <link href="~/calendar/main.css" rel="stylesheet" />
+}
+
+@section Scripts {
+    <script src="~/calendar/calendarobject.js"></script>
+    <script src="~/calendar/app.js"></script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+        </ul>
+    </div>
+    @*<div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a uk-toggle="#customer-modal" class="uk-button uk-button-primary">افزودن</a>
+        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
+    </div>*@
+</div>
+
+<div class="uk-grid-small" uk-grid>
+
+    <div class="uk-width-1-1">
+        <div class="uk-flex uk-flex-center">
+            <div class="calendar-container">
+
+                <div class="calendar-wrapper">
+                    <div class="calendar-base">
+
+                        <div class="year-wrapper">
+                        </div>
+
+                        <div class="months">
+                            <span class="month-hover month-letter month-letter-1" data-num="1">فروردین</span>
+                            <span class="month-hover month-letter month-letter-2" data-num="2">اردیبهشت</span>
+                            <span class="month-hover month-letter month-letter-3" data-num="3">خرداد</span>
+                            <span class="month-hover month-letter month-letter-4" data-num="4">تیر</span>
+                            <span class="month-hover month-letter month-letter-5" data-num="5">مرداد</span>
+                            <span class="month-hover month-letter month-letter-6" data-num="6">شهریور</span>
+                            <span class="month-hover month-letter month-letter-7" data-num="7">مهر</span>
+                            <span class="month-hover month-letter month-letter-8" data-num="8">آبان</span>
+                            <span class="month-hover month-letter month-letter-9" data-num="9">آذر</span>
+                            <span class="month-hover month-letter month-letter-10" data-num="10">دی</span>
+                            <span class="month-hover month-letter month-letter-11" data-num="11">بهمن</span>
+                            <span class="month-hover month-letter month-letter-12" data-num="12">اسفند</span>
+                        </div>
+                        <hr class="month-line" />
+
+                        <div class="days">
+                            <ul class="weeks">
+                                <li>شنبه</li>
+                                <li>یکشنبه</li>
+                                <li>دوشنبه</li>
+                                <li>سه شنبه</li>
+                                <li>چهارشنبه</li>
+                                <li>پنجشنبه</li>
+                                <li>جمعه</li>
+                                <div class="clearfix"></div>
+                            </ul>
+                        </div>
+
+                        <div class="num-dates"></div>
+
+                    </div>
+
+                    <div class="calendar-left active-season">
+
+                        <div class="num-date">X</div>
+                        <div class="day">X</div>
+
+
+
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
 
