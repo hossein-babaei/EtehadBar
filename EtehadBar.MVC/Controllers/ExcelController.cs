@@ -510,7 +510,7 @@ namespace EtehadBar.MVC.Controllers
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("گزارش جزئیات عملکرد");
             ws.RightToLeft = true;
-            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontName = "B Titr";
             ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
             ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
@@ -580,7 +580,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Range($"B{routes.Count + 9}:D{routes.Count + 9}").Row(1).Merge();
                 ws.Cell(routes.Count + 9, 5).Value = (driverFeeTotal - payment).ToString("N0");
 
-                var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:E{loadFactors.Count + 9}");
+                var rngTable2 = ws.Range($"B{routes.Count + 3}:E{routes.Count + 9}");
                 rngTable2.RangeUsed().Style
                     .Font.SetBold()
                     .Font.SetFontSize(12);
@@ -599,7 +599,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Range($"B{routes.Count + 6}:D{routes.Count + 6}").Row(1).Merge();
                 ws.Cell(routes.Count + 6, 5).Value = (driverFeeTotal - payment).ToString("N0");
 
-                var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:E{loadFactors.Count + 6}");
+                var rngTable2 = ws.Range($"B{routes.Count + 3}:E{routes.Count + 6}");
                 rngTable2.RangeUsed().Style
                     .Font.SetBold()
                     .Font.SetFontSize(12);
@@ -1499,6 +1499,17 @@ namespace EtehadBar.MVC.Controllers
                     table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
                     ws.RowsUsed().Height = 25;
 
+                    ws.Column("A").Width = 4.5;
+                    ws.Column("B").Width = 6;
+                    ws.Column("C").Width = 10;
+                    ws.Column("F").Width = 12.5;
+                    ws.Column("H").Width = 10;
+                    ws.Column("I").Width = 10;
+                    ws.Column("G").Width = 13.5;
+                    ws.Column("L").Width = 3;
+                    ws.Column("M").Width = 3;
+                    ws.Column("N").Width = 3;
+
                     #region Summary
                     var ws2 = workbook.Worksheets.Add($"2");
                     ws2.RightToLeft = true;
@@ -1788,6 +1799,17 @@ namespace EtehadBar.MVC.Controllers
                         ws.CellsUsed().Style.Font.FontColor = XLColor.Black;
                         ws.CellsUsed().Style.Border.BottomBorderColor = XLColor.Black;
                         ws.RowsUsed().Height = 25;
+
+                        ws.Column("A").Width = 4.5;
+                        ws.Column("B").Width = 6;
+                        ws.Column("C").Width = 10;
+                        ws.Column("F").Width = 12.5;
+                        ws.Column("H").Width = 10;
+                        ws.Column("I").Width = 10;
+                        ws.Column("G").Width = 13.5;
+                        ws.Column("L").Width = 3;
+                        ws.Column("M").Width = 3;
+                        ws.Column("N").Width = 3;
                     }
                 }
 

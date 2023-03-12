@@ -13,7 +13,6 @@
     <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
 }
 @section Scripts{
-    <script src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
     <script src="~/lib/select2/select2.min.js"></script>
     <script>
         let vehicleList = [];
@@ -171,7 +170,7 @@
                                 else
                                 {
                                     <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
-                                    <option value="@((int)ExcelExportType.OnlyReceivingPrice)">با نرخ دریافتی</option>
+                                    <option value="@((int)ExcelExportType.OnlyDriverPrice)">با نرخ پرداختی</option>
                                 }
                             </select>
                         </div>
@@ -218,7 +217,7 @@
                                 else
                                 {
                                     <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
-                                    <option value="@((int)ExcelExportType.OnlyReceivingPrice)">با نرخ دریافتی</option>
+                                    <option value="@((int)ExcelExportType.OnlyDriverPrice)">با نرخ پرداختی</option>
                                 }
                             </select>
                         </div>

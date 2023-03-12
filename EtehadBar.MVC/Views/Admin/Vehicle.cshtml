@@ -15,6 +15,36 @@
 }
 @section Scripts{
     <script>
+        $('#search-modal form').submit(function (e) {
+            e.preventDefault();
+            filter();
+        });
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            if ($('#search-modal #param').val() != '' && $('#search-modal #param').val() != ' ') {
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("SearchVehicle")',
+                    data: data,
+                    dataType: 'html',
+                    beforeSend: function () {
+                        preloader();
+                    },
+                    success: function (r) {
+                        $('#append').html(r);
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger')
+                    },
+                    complete: function () {
+                        preloader();
+                        UIkit.modal('#search-modal').hide();
+                    }
+                });
+            } else {
+                uiAlert('لطفا نام یا نام خانوادگی را وارد نمایید.', 'danger');
+            }
+        }
         function create() {
             preloader();
             $.get('@Url.Action("CreateVehicle")', {}, function (r) {
@@ -50,6 +80,7 @@
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
     </div>
 </div>
 <div id="append" class="box">
@@ -107,3 +138,25 @@
 </div>
 <div id="edit-modal" uk-modal="bg-close: false"></div>
 <div id="create-modal" uk-modal="bg-close: false"></div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجوی خودرو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div>
+                    <label class="uk-form-label">نام مالک یا 3 رقم سمت راست پلاک را وارد کنید</label>
+                    <input class="uk-input uk-border-rounded" id="param" name="param" autocomplete="off" placeholder="در این قسمت تایپ نمائید..." />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="Vehicle" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

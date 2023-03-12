@@ -106,7 +106,10 @@
                     <th>@Html.DisplayNameFor(model => model.StartDate)</th>
                     <th>@Html.DisplayNameFor(model => model.EndDate)</th>
                     <th width="50">الحاقیه</th>
-                    <th width="50">کرایه</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th width="50">کرایه</th>
+                    }
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -133,7 +136,10 @@
                         {
                             <td><button disabled class="uk-button uk-button-default uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
                         }
-                        <td><a asp-action="ShippingFee" asp-route-contractId="@item.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td><a asp-action="ShippingFee" asp-route-contractId="@item.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
+                        }
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

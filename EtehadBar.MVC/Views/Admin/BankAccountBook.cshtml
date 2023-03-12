@@ -21,6 +21,7 @@
             $.get('@Url.Action("CreateBankAccountBook")', {}, function (r) {
                 $('#append-modal').html(r);
             }, 'html').then(function () {
+                $('#create-form').prepend(`<input type="hidden" name="BankAccountId" value="${bankAccountId}" />`);
                 parseValidator('#create-form');
                 preloader();
                 UIkit.modal('#append-modal').show();

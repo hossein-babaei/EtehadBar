@@ -19,11 +19,13 @@
                 <tr>
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
-                    <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
+                    <th>مسیر</th>
+                    <th>خودرو</th>
+                    <th>راننده</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
-                    <th>مشتری</th>
                     @if (User.IsInRole("Admin"))
                     {
+                        <th>مشتری</th>
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
                     }
@@ -42,18 +44,13 @@
                     <tr class="uk-text-center sm">
                         <td>@i</td>
                         <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
-                        @if (string.IsNullOrWhiteSpace(item.LoadNumberGov))
-                        {
-                            <td>---</td>
-                        }
-                        else
-                        {
-                            <td>@Html.DisplayFor(modelItem => item.LoadNumberGov)</td>
-                        }
+                        <td>@item.Origin.Title<br />@item.Destination.Title</td>
+                        <td>@item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
+                        <td>@item.Driver.Fullname</td>
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
-                        <td>@item.Contract.Customer.Name</td>
                         @if (User.IsInRole("Admin"))
                         {
+                            <td>@item.Contract.Customer.Name</td>
                             <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
                             <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
                         }

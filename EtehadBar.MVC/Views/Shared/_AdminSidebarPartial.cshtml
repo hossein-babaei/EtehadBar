@@ -18,15 +18,15 @@
         <li @if (param == 20) { <text> class="active" </text> }>
             <a asp-action="Users" asp-controller="Admin"><i class="uk-margin-left fas fa-users"></i>کاربران</a>
         </li>
-    }
-    @if(User.IsInRole("Admin") || User.IsInRole("User"))
-    {
         <li @if (param == 13) { <text> class="active" </text> }>
             <a asp-action="Customer" asp-controller="Admin"><i class="uk-margin-left fas fa-user"></i>مشتریان خدمات</a>
         </li>
         <li @if (param == 3) { <text> class="active" </text> }>
             <a asp-action="Calendar" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar"></i>تقویم کاری</a>
         </li>
+    }
+    @if(User.IsInRole("Admin") || User.IsInRole("User"))
+    {
         <li @if (param == 7) { <text> class="active" </text> }>
             <a asp-action="Contract" asp-controller="Admin"><i class="uk-margin-left fas fa-hand-holding-usd"></i>قرارداد ها</a>
         </li>
