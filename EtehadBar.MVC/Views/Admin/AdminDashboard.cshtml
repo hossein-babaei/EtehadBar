@@ -1,0 +1,241 @@
+﻿@model AdminDashboardVM
+
+@{
+    ViewData["pageId"] = 1;
+    ViewData["Title"] = "داشبورد";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Links {
+    <link href="~/calendar/main.css" rel="stylesheet" />
+    <style>
+        #box-1 .uk-tile {
+            padding: 0;
+            width: 210px;
+            height: 210px;
+            line-height: 210px
+        }
+        .user-avatar {
+            width: 70px;
+            height: 70px;
+            text-align: center;
+            line-height: 70px;
+            color: #bbb;
+            border-radius: 100%;
+            overflow: hidden
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/calendar/calendarobject.js"></script>
+    <script src="~/calendar/app.js"></script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد مدیریت</a></li>
+        </ul>
+    </div>
+    @*<div class="uk-width-expand@m uk-flex uk-flex-left">
+    <a uk-toggle="#customer-modal" class="uk-button uk-button-primary">افزودن</a>
+    <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
+    </div>*@
+</div>
+
+<div class="uk-grid-medium uk-child-width-1-1" uk-grid>
+    <div>
+        <div id="box-1" class="box">
+            <div class="uk-grid-medium uk-child-width-1-2 uk-child-width-1-5@m" uk-grid>
+                <div>
+                    <div class="uk-tile uk-tile-secondary uk-border-circle uk-flex uk-flex-middle uk-flex-center uk-text-center">
+                        <div>
+                            <p class="uk-h5">مبلغ دریافتی بارنامه ها</p>
+                            <p class="uk-h6 uk-margin-remove">@Model.LoadFactorsAmount.ToString("N0")</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-secondary uk-border-circle uk-flex uk-flex-middle uk-flex-center uk-text-center">
+                        <div>
+                            <p class="uk-h5">مبلغ قابل پرداخت بارنامه ها</p>
+                            <p class="uk-h6 uk-margin-remove">@Model.LoadFactorsDriverFee.ToString("N0")</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-secondary uk-border-circle uk-flex uk-flex-middle uk-flex-center uk-text-center">
+                        <div>
+                            <p class="uk-h5">تعداد بارنامه های ثبت شده</p>
+                            <p class="uk-h6 uk-margin-remove">@Model.RegisteredLoadFactorCount فقره</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-muted uk-border-circle uk-flex uk-flex-middle uk-flex-center uk-text-center">
+                        <div>
+                            <p class="uk-h5">حقوق و مساعده</p>
+                            <p class="uk-h6 uk-margin-remove">@Model.PaymentAmount.ToString("N0")</p>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-muted uk-border-circle uk-flex uk-flex-middle uk-flex-center uk-text-center">
+                        <div>
+                            <p class="uk-h5">هزینه های جاری</p>
+                            <p class="uk-h6 uk-margin-remove">@Model.CostAmount.ToString("N0")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div id="box-2" class="box">
+            <div class="uk-grid-medium uk-child-width-1-2 uk-child-width-1-4@m" uk-grid>
+                <div>
+                    <div class="uk-tile uk-tile-secondary uk-padding-small uk-border-rounded uk-text-center">
+                        <p class="uk-h5">مبلغ دریافتی مهرکام</p>
+                        <p class="uk-h6">@Model.MehrcomParsAmount.ToString("N0")</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-secondary uk-padding-small uk-border-rounded uk-text-center">
+                        <p class="uk-h5">مبلغ پرداختی مهرکام</p>
+                        <p class="uk-h6">@Model.MehrcomParsDriverFee.ToString("N0")</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-muted uk-padding-small uk-border-rounded uk-text-center">
+                        <p class="uk-h5">مبلغ دریافتی سازه گستر</p>
+                        <p class="uk-h6">@Model.SazehGostarAmount.ToString("N0")</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-muted uk-padding-small uk-border-rounded uk-text-center">
+                        <p class="uk-h5">مبلغ پرداختی سازه گستر</p>
+                        <p class="uk-h6">@Model.SazehGostarDriverFee.ToString("N0")</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-muted uk-padding-small uk-border-rounded uk-text-center">
+                        <p class="uk-h5">مبلغ دریافتی پلاسکو</p>
+                        <p class="uk-h6">@Model.SaipaPlascoAmount.ToString("N0")</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-muted uk-padding-small uk-border-rounded uk-text-center">
+                        <p class="uk-h5">مبلغ پرداختی پلاسکو</p>
+                        <p class="uk-h6">@Model.SaipaPlascoDriverFee.ToString("N0")</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-secondary uk-padding-small uk-border-rounded uk-text-center">
+                        <p class="uk-h5">مبلغ دریافتی پرس</p>
+                        <p class="uk-h6">@Model.SaipaPressAmount.ToString("N0")</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-secondary uk-padding-small uk-border-rounded uk-text-center">
+                        <p class="uk-h5">مبلغ پرداختی پرس</p>
+                        <p class="uk-h6">@Model.SaipaPressDeriverFee.ToString("N0")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div id="box-3" class="box">
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                @foreach (var item in Model.UserActivity)
+                {
+                    <div>
+                        <div class="box">
+                            <div class="uk-grid-medium" uk-grid>
+                                <div class="uk-width-auto">
+                                    <div class="user-avatar uk-box-shadow-medium">
+                                        @if (string.IsNullOrEmpty(item.Avatar))
+                                        {
+                                            <i class="fas fa-2x fa-user"></i>
+                                        }
+                                        else
+                                        {
+                                            <img src="~/img/user/@item.Avatar" width="80" />
+                                        }
+                                    </div>
+                                </div>
+                                <div class="uk-width-expand">
+                                    <h3>@item.Fullname</h3>
+                                    <h5 class="uk-margin-remove uk-text-light">تعداد بارنامه های ثبت شده: <b>@item.LoadFactorRegisterdCount</b> فقره</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="uk-flex uk-flex-center">
+            <div class="calendar-container">
+
+                <div class="calendar-wrapper">
+                    <div class="calendar-base">
+
+                        <div class="year-wrapper">
+                        </div>
+
+                        <div class="months">
+                            <span class="month-hover month-letter month-letter-1" data-num="1">فروردین</span>
+                            <span class="month-hover month-letter month-letter-2" data-num="2">اردیبهشت</span>
+                            <span class="month-hover month-letter month-letter-3" data-num="3">خرداد</span>
+                            <span class="month-hover month-letter month-letter-4" data-num="4">تیر</span>
+                            <span class="month-hover month-letter month-letter-5" data-num="5">مرداد</span>
+                            <span class="month-hover month-letter month-letter-6" data-num="6">شهریور</span>
+                            <span class="month-hover month-letter month-letter-7" data-num="7">مهر</span>
+                            <span class="month-hover month-letter month-letter-8" data-num="8">آبان</span>
+                            <span class="month-hover month-letter month-letter-9" data-num="9">آذر</span>
+                            <span class="month-hover month-letter month-letter-10" data-num="10">دی</span>
+                            <span class="month-hover month-letter month-letter-11" data-num="11">بهمن</span>
+                            <span class="month-hover month-letter month-letter-12" data-num="12">اسفند</span>
+                        </div>
+                        <hr class="month-line" />
+
+                        <div class="days">
+                            <ul class="weeks">
+                                <li>شنبه</li>
+                                <li>یکشنبه</li>
+                                <li>دوشنبه</li>
+                                <li>سه شنبه</li>
+                                <li>چهارشنبه</li>
+                                <li>پنجشنبه</li>
+                                <li>جمعه</li>
+                                <div class="clearfix"></div>
+                            </ul>
+                        </div>
+
+                        <div class="num-dates"></div>
+
+                    </div>
+
+                    <div class="calendar-left active-season">
+
+                        <div class="num-date">X</div>
+                        <div class="day">X</div>
+
+
+
+                    </div>
+                </div>
+                <div class="clearfix"></div>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+

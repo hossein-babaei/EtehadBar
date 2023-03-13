@@ -1,4 +1,11 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var avatar = HttpContextAccessor.HttpContext.Session.GetString("Avatar");
+}
+
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="utf-8" />
@@ -10,6 +17,15 @@
     <link href="~/css/pagedlist.min.css" rel="stylesheet" />
     @await Component.InvokeAsync("AdminTheme")
     <link href="~/fontawesome/css/all.min.css" rel="stylesheet" />
+    <style>
+        .layout-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 100%;
+            overflow: hidden;
+            line-height: 28px
+        }
+    </style>
     @RenderSection("Links", false)
     <script src="~/lib/uikit/js/uikit.min.js"></script>
 </head>
@@ -56,7 +72,14 @@
                     <li id="user-icon" class="uk-margin-left user">
                         <a class="uk-position-relative">
                             <span class="uk-position-absolute"></span>
-                            <i class="fas fa-2x fa-user-circle"></i>
+                            @if (string.IsNullOrEmpty(avatar))
+                            {
+                                <i class="fas fa-2x fa-user-circle"></i>
+                            }
+                            else
+                            {
+                                <img class="layout-avatar" src="~/img/user/@avatar" width="28" />
+                            }
                         </a>
                         <div class="uk-navbar-dropdown" uk-dropdown="mode: click;pos: bottom-center;offset: 5;animation: uk-animation-scale-up; duration: 350;toggle: #user-icon">
                             <ul class="uk-nav uk-navbar-dropdown-nav">

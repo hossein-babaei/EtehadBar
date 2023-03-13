@@ -1,9 +1,36 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain
 {
+    public class AdminDashboardVM
+    {
+        public int RegisteredLoadFactorCount { get; set; }
+        public double LoadFactorsAmount { get; set; }
+        public double LoadFactorsDriverFee { get; set; }
+        public double PaymentAmount { get; set; }
+        public double CostAmount { get; set; }
+        public double MehrcomParsAmount { get; set; }
+        public double MehrcomParsDriverFee { get; set; }
+        public double SazehGostarAmount { get; set; }
+        public double SazehGostarDriverFee { get; set; }
+        public double SaipaPlascoAmount { get; set; }
+        public double SaipaPlascoDriverFee { get; set; }
+        public double SaipaPressAmount { get; set; }
+        public double SaipaPressDeriverFee { get; set; }
+        public List<AdminDashboardUserActivityBoxVM> UserActivity { get; set; }
+    }
+
+    public class AdminDashboardUserActivityBoxVM
+    {
+        public string UserId { get; set; }
+        public string Avatar { get; set; }
+        public string Fullname { get; set; }
+        public int LoadFactorRegisterdCount { get; set; }
+    }
+
     public class GlobalLoadFactorVM
     {
         [Display(Name = "مبدا")]
@@ -277,6 +304,7 @@ namespace EtehadBar.Domain
         public string BankAccountNumber { get; set; }
         public ApplicationRoleType Role { get; set; }
         public string NationalId { get; set; }
+        public string Avatar { get; set; }
     }
 
     public class LogDetailFormFileVM

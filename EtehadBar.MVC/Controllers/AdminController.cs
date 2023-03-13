@@ -47,6 +47,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IFreeLoadFactorRepository _freeLoadFactorRepository;
         private readonly IBankAccountRepository _bankAccountRepository;
         private readonly IBankAccountBookRepository _bankAccountBookRepository;
+        private readonly IAdminDashboardRepository _adminDashboardRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -71,7 +72,8 @@ namespace EtehadBar.MVC.Controllers
             SignInManager<ApplicationUser> signInManager,
             IFreeLoadFactorRepository freeLoadFactorRepository,
             IBankAccountRepository bankAccountRepository,
-            IBankAccountBookRepository bankAccountBookRepository)
+            IBankAccountBookRepository bankAccountBookRepository,
+            IAdminDashboardRepository adminDashboardRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -96,6 +98,7 @@ namespace EtehadBar.MVC.Controllers
             _freeLoadFactorRepository = freeLoadFactorRepository;
             _bankAccountRepository = bankAccountRepository;
             _bankAccountBookRepository = bankAccountBookRepository;
+            _adminDashboardRepository = adminDashboardRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -105,9 +108,12 @@ namespace EtehadBar.MVC.Controllers
             return sequence;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index(int? dayLimit)
         {
-            return View();
+            if (User.IsInRole("Admin"))
+                return View("AdminDashboard", await _adminDashboardRepository.GetAdminData(dayLimit));
+            else
+                return View("RegisterUserDashboard", await _adminDashboardRepository.GetRegisterUserData(dayLimit));
         }
 
         [Route("{controller:slugify}/{action:slugify}/{color}")]

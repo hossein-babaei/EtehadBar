@@ -71,7 +71,6 @@ namespace EtehadBar.MVC
                 options.LogoutPath = $"/Home/Logout";
                 options.AccessDeniedPath = $"/Home/AccessDenied";
             });
-
             services.AddSession();
             services.AddSingleton(HtmlEncoder.Create(allowedRanges: new[] { UnicodeRanges.BasicLatin, UnicodeRanges.Arabic }));
             services.AddRecaptcha(Configuration.GetSection("RecaptchaSettings"));
@@ -115,17 +114,21 @@ namespace EtehadBar.MVC
                     if (u.Identity.IsAuthenticated)
                     {
                         string userName = context.User.Identity.Name;
-                        if (context.Session.GetString("Name") == null)
+                        if (context.Session.GetString("Name") == null || context.Session.GetString("Avatar") == null)
                         {
                             using var db = new ApplicationDbContext();
                             var x = await db.ApplicationUser.AsNoTracking().SingleOrDefaultAsync(a => a.UserName.Equals(userName));
                             context.Session.SetString("Name", $"{x.Firstname} {x.Lastname}");
+                            context.Session.SetString("Avatar", x.Avatar ?? "");
                         }
                     }
                     else
                     {
                         if (context.Session.Get("Name") != null)
                             context.Session.Remove("Name");
+
+                        if (context.Session.Get("Avatar") != null)
+                            context.Session.Remove("Avatar");
                     }
                 }
                 await next.Invoke();

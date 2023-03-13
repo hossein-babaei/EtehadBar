@@ -35,7 +35,8 @@ namespace EtehadBar.MVC.Middlewares
                     Lastname = a.Lastname,
                     NationalId = a.NationalId,
                     Phonenumber = a.UserName,
-                    Role = a.Role
+                    Role = a.Role,
+                    Avatar = a.Avatar
                 }).ToListAsync();
                 memoryCache.Set(SystemCacheNames.UserProfileList.ToString(), data, new MemoryCacheEntryOptions
                 {
