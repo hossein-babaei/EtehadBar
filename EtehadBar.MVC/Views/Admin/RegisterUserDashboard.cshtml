@@ -1,0 +1,151 @@
+﻿@model AdminDashboardUserActivityBoxVM
+
+@{
+    ViewData["pageId"] = 1;
+    ViewData["Title"] = "داشبورد";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var dayLimitData = (int?)ViewData["DayLimit"];
+    var dayLimit = dayLimitData.HasValue ? dayLimitData.Value : 1;
+}
+
+@section Links {
+    <link href="~/calendar/main.css" rel="stylesheet" asp-append-version="true" />
+    <style>
+        .user-avatar {
+            width: 70px;
+            height: 70px;
+            text-align: center;
+            line-height: 70px;
+            color: #bbb;
+            border-radius: 100%;
+            overflow: hidden;
+            display: inline-block;
+            margin-top: 30px
+        }
+    </style>
+}
+
+@section Scripts {
+    <script src="~/calendar/calendarobject.js"></script>
+    <script src="~/calendar/app.js"></script>
+    <script>
+        function changeDayLimit(select) {
+            preloader();
+            window.location.href = `/admin/index?dayLimit=${$(select).val()}`;
+        }
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد کاربر ثبت</a></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <div class="uk-grid-small uk-child-width-auto" uk-grid>
+            <div>
+                <label class="uk-form-label">فیلتر</label>
+            </div>
+            <div>
+                <select class="uk-select uk-form-small uk-border-rounded" style="width: 50px" onchange="changeDayLimit(this)">
+                    <!option value="1" @if(dayLimit == 1){
+                    <text>selected="selected"</text>
+                    }>1</!option>
+                    <!option value="3" @if(dayLimit == 3){
+                    <text>selected="selected"</text>
+                    }>3</!option>
+                    <!option value="7" @if(dayLimit == 7){
+                    <text>selected="selected"</text>
+                    }>7</!option>
+                    <!option value="14" @if(dayLimit == 14){
+                    <text>selected="selected"</text>
+                    }>14</!option>
+                    <!option value="30" @if(dayLimit == 30){
+                    <text>selected="selected"</text>
+                    }>30</!option>
+                </select>
+            </div>
+            <div>
+                <label class="uk-form-label">روز اخیر</label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="uk-grid-medium uk-child-width-1-1" uk-grid>
+    <div>
+        <div id="box-3" class="box uk-text-center">
+            <span class="user-avatar uk-box-shadow-medium">
+                @if (string.IsNullOrEmpty(Model.Avatar))
+                {
+                    <i class="fas fa-2x fa-user"></i>
+                }
+                else
+                {
+                    <img src="~/img/user/@Model.Avatar" width="80" />
+                }
+            </span>
+            <h3>@Model.Fullname</h3>
+            <h5 class="uk-margin-remove uk-text-light">تعداد بارنامه های ثبت شده: <b>@Model.LoadFactorRegisterdCount</b> فقره</h5>
+
+            <div class="uk-flex uk-flex-center uk-margin-large-top">
+                <div class="calendar-container">
+
+                    <div class="calendar-wrapper">
+                        <div class="calendar-base uk-box-shadow-medium">
+
+                            <div class="year-wrapper">
+                            </div>
+
+                            <div class="months">
+                                <span class="month-hover month-letter month-letter-1" data-num="1">فروردین</span>
+                                <span class="month-hover month-letter month-letter-2" data-num="2">اردیبهشت</span>
+                                <span class="month-hover month-letter month-letter-3" data-num="3">خرداد</span>
+                                <span class="month-hover month-letter month-letter-4" data-num="4">تیر</span>
+                                <span class="month-hover month-letter month-letter-5" data-num="5">مرداد</span>
+                                <span class="month-hover month-letter month-letter-6" data-num="6">شهریور</span>
+                                <span class="month-hover month-letter month-letter-7" data-num="7">مهر</span>
+                                <span class="month-hover month-letter month-letter-8" data-num="8">آبان</span>
+                                <span class="month-hover month-letter month-letter-9" data-num="9">آذر</span>
+                                <span class="month-hover month-letter month-letter-10" data-num="10">دی</span>
+                                <span class="month-hover month-letter month-letter-11" data-num="11">بهمن</span>
+                                <span class="month-hover month-letter month-letter-12" data-num="12">اسفند</span>
+                            </div>
+                            <hr class="month-line" />
+
+                            <div class="days">
+                                <ul class="weeks">
+                                    <li>شنبه</li>
+                                    <li>یکشنبه</li>
+                                    <li>دوشنبه</li>
+                                    <li>سه شنبه</li>
+                                    <li>چهارشنبه</li>
+                                    <li>پنجشنبه</li>
+                                    <li>جمعه</li>
+                                    <div class="clearfix"></div>
+                                </ul>
+                            </div>
+
+                            <div class="num-dates"></div>
+
+                        </div>
+
+                        <div class="calendar-left active-season">
+
+                            <div class="num-date">X</div>
+                            <div class="day">X</div>
+
+
+
+                        </div>
+                    </div>
+                    <div class="clearfix"></div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

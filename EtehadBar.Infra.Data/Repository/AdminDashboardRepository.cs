@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace EtehadBar.Infra.Data.Repository
@@ -85,9 +84,45 @@ namespace EtehadBar.Infra.Data.Repository
             return data;
         }
 
-        public Task<AdminDashboardUserActivityBoxVM> GetRegisterUserData(int? dayLimit)
+        public async Task<AdminDashboardUserActivityBoxVM> GetRegisterUserData(string userId, int? dayLimit)
         {
-            throw new NotImplementedException();
+            var limit = dayLimit.HasValue ? DateTime.Now.AddDays(-dayLimit.Value) : DateTime.Now.AddDays(-1);
+            var user = await db.Users.FindAsync(userId);
+            return new AdminDashboardUserActivityBoxVM
+            {
+                Avatar = user.Avatar,
+                Fullname = user.Firstname + " " + user.Lastname,
+                UserId = user.Id,
+                LoadFactorRegisterdCount = await db.LoadFactor.Where(a => a.CreateDateTime >= limit && a.AdminId.Equals(userId)).AsNoTracking().CountAsync()
+            };
+        }
+
+        public async Task<List<AdminDashboardUserActivityBoxVM>> GetUserData(int? dayLimit)
+        {
+            var data = new List<AdminDashboardUserActivityBoxVM>();
+            var limit = dayLimit.HasValue ? DateTime.Now.AddDays(-dayLimit.Value) : DateTime.Now.AddDays(-1);
+            var registerUsers = await db.Users.Where(a => a.Role == ApplicationRoleType.RegisterUser && a.Status).AsNoTracking()
+                .Select(a => new
+                {
+                    a.Id,
+                    a.Firstname,
+                    a.Lastname,
+                    a.Avatar
+                }).ToListAsync();
+
+            var loadFactors = await db.LoadFactor.Where(a => a.CreateDateTime >= limit).AsNoTracking().Select(a => a.AdminId).ToListAsync();
+
+            foreach (var user in registerUsers.OrderBy(a => a.Lastname))
+            {
+                data.Add(new AdminDashboardUserActivityBoxVM
+                {
+                    Avatar = user.Avatar,
+                    Fullname = user.Firstname + " " + user.Lastname,
+                    UserId = user.Id,
+                    LoadFactorRegisterdCount = loadFactors.Count(a => a.Equals(user.Id))
+                });
+            }
+            return data;
         }
     }
 }

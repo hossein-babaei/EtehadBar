@@ -4,6 +4,8 @@
     ViewData["pageId"] = 1;
     ViewData["Title"] = "داشبورد";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var dayLimitData = (int?)ViewData["DayLimit"];
+    var dayLimit = dayLimitData.HasValue ? dayLimitData.Value : 1;
 }
 
 @section Links {
@@ -30,6 +32,12 @@
 @section Scripts {
     <script src="~/calendar/calendarobject.js"></script>
     <script src="~/calendar/app.js"></script>
+    <script>
+        function changeDayLimit(select) {
+            preloader();
+            window.location.href = `/admin/index?dayLimit=${$(select).val()}`;
+        }
+    </script>
 }
 
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -38,16 +46,31 @@
             <li><a asp-action="Index" asp-controller="Admin">داشبورد مدیریت</a></li>
         </ul>
     </div>
-    @*<div class="uk-width-expand@m uk-flex uk-flex-left">
-    <a uk-toggle="#customer-modal" class="uk-button uk-button-primary">افزودن</a>
-    <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
-    </div>*@
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <div class="uk-grid-small uk-child-width-auto" uk-grid>
+            <div>
+                <label class="uk-form-label">فیلتر</label>
+            </div>
+            <div>
+                <select class="uk-select uk-form-small uk-border-rounded" style="width: 50px" onchange="changeDayLimit(this)">
+                    <!option value="1" @if(dayLimit == 1){<text>selected="selected"</text>}>1</!option>
+                    <!option value="3" @if(dayLimit == 3){<text>selected="selected"</text>}>3</!option>
+                    <!option value="7" @if(dayLimit == 7){<text>selected="selected"</text>}>7</!option>
+                    <!option value="14" @if(dayLimit == 14){<text>selected="selected"</text>}>14</!option>
+                    <!option value="30" @if(dayLimit == 30){<text>selected="selected"</text>}>30</!option>
+                </select>
+            </div>
+            <div>
+                <label class="uk-form-label">روز اخیر</label>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
     <div>
         <div id="box-1" class="box">
-            <div class="uk-grid-medium uk-child-width-1-2 uk-child-width-1-5@m" uk-grid>
+            <div class="uk-grid-medium uk-child-width-1-1 uk-child-width-1-5@m" uk-grid>
                 <div>
                     <div class="uk-tile uk-tile-secondary uk-border-circle uk-flex uk-flex-middle uk-flex-center uk-text-center">
                         <div>

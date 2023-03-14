@@ -1,0 +1,5 @@
+﻿@media print {
+    #content .uk-grid-collapse{
+        display: none
+    }
+}

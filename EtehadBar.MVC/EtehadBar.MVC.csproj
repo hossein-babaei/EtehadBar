@@ -7,9 +7,13 @@
 
   <ItemGroup>
     <Compile Remove="Views\Report\Customer\**" />
+    <Compile Remove="wwwroot\img\NewFolder\**" />
     <Content Remove="Views\Report\Customer\**" />
+    <Content Remove="wwwroot\img\NewFolder\**" />
     <EmbeddedResource Remove="Views\Report\Customer\**" />
+    <EmbeddedResource Remove="wwwroot\img\NewFolder\**" />
     <None Remove="Views\Report\Customer\**" />
+    <None Remove="wwwroot\img\NewFolder\**" />
   </ItemGroup>
 
   <ItemGroup>

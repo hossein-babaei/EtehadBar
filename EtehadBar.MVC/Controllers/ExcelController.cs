@@ -746,7 +746,7 @@ namespace EtehadBar.MVC.Controllers
                 double totalDriverFee = 0;
                 for (int i = 1; i <= Convert.ToInt32(Math.Ceiling(c)); i++)
                 {
-                    var loadFactors = allLoadFactors.Skip((i - 1) * 20).Take(i * 20).ToList();
+                    var loadFactors = allLoadFactors.OrderBy(a => a.SaipaPlascoLoadFactor.Sequence).Skip((i - 1) * 20).Take(i * 20).ToList();
 
                     var ws = workbook.Worksheets.Add($"Sheet{i}");
                     ws.RightToLeft = true;
@@ -1069,6 +1069,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
                     .Font.SetBold(true);
 
+                allLoadFactors = allLoadFactors.OrderBy(a => a.SazehGostarLoadFactor.Sequence).ToList();
                 for (int index = 1; index <= allLoadFactors.Count; index++)
                 {
                     var pd = new PersianDateTime(allLoadFactors[index - 1].Date);
@@ -1273,26 +1274,26 @@ namespace EtehadBar.MVC.Controllers
             {
                 using var workbook = new XLWorkbook();
 
-                var oneFloor = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.OneFloor && !a.Tonnage.HasValue).ToList();
+                var oneFloor = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.OneFloor && !a.Tonnage.HasValue).OrderBy(a => a.SaipaPressLoadFactor.Sequence).ToList();
 
                 var ws = workbook.Worksheets.Add("یک طبقه");
                 MakePressSheet(oneFloor, ws, exportType);
 
-                var twoFloor = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.TwoFloor && !a.Tonnage.HasValue).ToList();
+                var twoFloor = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.TwoFloor && !a.Tonnage.HasValue).OrderBy(a => a.SaipaPressLoadFactor.Sequence).ToList();
                 if (twoFloor.Any())
                 {
                     var ws2 = workbook.Worksheets.Add("دو طبقه");
                     MakePressSheet(twoFloor, ws2, exportType);
                 }
 
-                var oneFloorWithTonnage = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.OneFloor && a.Tonnage.HasValue).ToList();
+                var oneFloorWithTonnage = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.OneFloor && a.Tonnage.HasValue).OrderBy(a => a.SaipaPressLoadFactor.Sequence).ToList();
                 if (oneFloorWithTonnage.Any())
                 {
                     var ws2 = workbook.Worksheets.Add("یک طبقه با تناژ اضافه");
                     MakePressSheet(oneFloorWithTonnage, ws2, exportType);
                 }
 
-                var twoFloorWithTonnage = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.TwoFloor && a.Tonnage.HasValue).ToList();
+                var twoFloorWithTonnage = allLoadFactors.Where(a => a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.TwoFloor && a.Tonnage.HasValue).OrderBy(a => a.SaipaPressLoadFactor.Sequence).ToList();
                 if (twoFloorWithTonnage.Any())
                 {
                     var ws2 = workbook.Worksheets.Add("دو طبقه با تناژ اضافه");

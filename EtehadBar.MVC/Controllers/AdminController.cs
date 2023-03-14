@@ -110,10 +110,14 @@ namespace EtehadBar.MVC.Controllers
 
         public async Task<IActionResult> Index(int? dayLimit)
         {
+            ViewData["DayLimit"] = dayLimit;
+
             if (User.IsInRole("Admin"))
                 return View("AdminDashboard", await _adminDashboardRepository.GetAdminData(dayLimit));
+            else if (User.IsInRole("User"))
+                return View("UserDashboard", await _adminDashboardRepository.GetUserData(dayLimit));
             else
-                return View("RegisterUserDashboard", await _adminDashboardRepository.GetRegisterUserData(dayLimit));
+                return View("RegisterUserDashboard", await _adminDashboardRepository.GetRegisterUserData(_userManager.GetUserId(User), dayLimit));
         }
 
         [Route("{controller:slugify}/{action:slugify}/{color}")]
