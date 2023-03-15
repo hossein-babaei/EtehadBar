@@ -29,17 +29,20 @@ namespace EtehadBar.Infra.Data.Repository
                 item.DriverFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
             }
 
-            foreach (var item in loadFactors.Where(a => a.MehrcomParsLoadFactor is not null && (a.MehrcomParsLoadFactor.LoadSleepPrice.HasValue || a.MehrcomParsLoadFactor.WeighbridgePrice.HasValue)))
+            foreach (var item in loadFactors.Where(a => a.LoadSleepPrice.HasValue || a.WeighbridgePrice.HasValue))
             {
-                if (item.MehrcomParsLoadFactor.LoadSleepPrice.HasValue)
+                if (item.LoadSleepPrice.HasValue)
                 {
-                    item.Amount += item.MehrcomParsLoadFactor.LoadSleepPrice.Value;
-                    item.DriverFee += item.MehrcomParsLoadFactor.DriverLoadSleepPrice.Value;
+                    item.Amount += item.LoadSleepPrice.Value;
                 }
-                if (item.MehrcomParsLoadFactor.WeighbridgePrice.HasValue)
+                if (item.DriverLoadSleepPrice.HasValue)
                 {
-                    item.Amount += item.MehrcomParsLoadFactor.WeighbridgePrice.Value;
-                    item.DriverFee += item.MehrcomParsLoadFactor.WeighbridgePrice.Value;
+                    item.DriverFee += item.DriverLoadSleepPrice.Value;
+                }
+                if (item.WeighbridgePrice.HasValue)
+                {
+                    item.Amount += item.WeighbridgePrice.Value;
+                    item.DriverFee += item.WeighbridgePrice.Value;
                 }
             }
 

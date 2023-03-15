@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
@@ -1369,14 +1370,14 @@ namespace EtehadBar.MVC.Controllers
                         var date = new PersianDateTime(allLoadFactors[i].Date);
 
                         #region handling sleep time and weighbridge
-                        if (allLoadFactors[i].MehrcomParsLoadFactor.WeighbridgePrice.HasValue)
-                            allLoadFactors[i].DriverFee += allLoadFactors[i].MehrcomParsLoadFactor.WeighbridgePrice.Value;
+                        if (allLoadFactors[i].WeighbridgePrice.HasValue)
+                            allLoadFactors[i].DriverFee += allLoadFactors[i].WeighbridgePrice.Value;
 
-                        if (allLoadFactors[i].MehrcomParsLoadFactor.LoadSleepTime.HasValue)
+                        if (allLoadFactors[i].LoadSleepTime.HasValue)
                         {
-                            allLoadFactors[i].DriverFee += allLoadFactors[i].MehrcomParsLoadFactor.DriverLoadSleepPrice.Value;
+                            allLoadFactors[i].DriverFee += allLoadFactors[i].DriverLoadSleepPrice.Value;
 
-                            allLoadFactors[i].Amount += allLoadFactors[i].MehrcomParsLoadFactor.LoadSleepPrice.Value;
+                            allLoadFactors[i].Amount += allLoadFactors[i].LoadSleepPrice.Value;
                         }
 
                         if (allLoadFactors[i].Tonnage.HasValue)
@@ -1427,15 +1428,15 @@ namespace EtehadBar.MVC.Controllers
 
                         #region handling comment
                         string commentText = "";
-                        if (allLoadFactors[i].MehrcomParsLoadFactor.WeighbridgePrice.HasValue)
-                            commentText += $"مبلغ باسکول: {allLoadFactors[i].MehrcomParsLoadFactor.WeighbridgePrice.Value.ToString("N0")}";
+                        if (allLoadFactors[i].WeighbridgePrice.HasValue)
+                            commentText += $"مبلغ باسکول: {allLoadFactors[i].WeighbridgePrice.Value.ToString("N0")}";
 
-                        if (allLoadFactors[i].MehrcomParsLoadFactor.LoadSleepTime.HasValue)
+                        if (allLoadFactors[i].LoadSleepTime.HasValue)
                         {
                             if (!string.IsNullOrWhiteSpace(commentText))
                                 commentText += " | ";
 
-                            commentText += $"زمان خواب: {allLoadFactors[i].MehrcomParsLoadFactor.LoadSleepTime.Value} | مبلغ خواب: {allLoadFactors[i].MehrcomParsLoadFactor.DriverLoadSleepPrice.Value.ToString("N0")}";
+                            commentText += $"زمان خواب: {allLoadFactors[i].LoadSleepTime.Value} | مبلغ خواب: {allLoadFactors[i].DriverLoadSleepPrice.Value.ToString("N0")}";
                         }
 
                         if (allLoadFactors[i].Tonnage.HasValue)
@@ -1662,14 +1663,14 @@ namespace EtehadBar.MVC.Controllers
                             for (int i = 0; i < loadFactors.Count; i++)
                             {
                                 #region handling sleep time and weighbridge
-                                if (loadFactors[i].MehrcomParsLoadFactor.WeighbridgePrice.HasValue)
-                                    loadFactors[i].DriverFee += loadFactors[i].MehrcomParsLoadFactor.WeighbridgePrice.Value;
+                                if (loadFactors[i].WeighbridgePrice.HasValue)
+                                    loadFactors[i].DriverFee += loadFactors[i].WeighbridgePrice.Value;
 
-                                if (loadFactors[i].MehrcomParsLoadFactor.LoadSleepTime.HasValue)
+                                if (loadFactors[i].LoadSleepTime.HasValue)
                                 {
-                                    loadFactors[i].DriverFee += loadFactors[i].MehrcomParsLoadFactor.DriverLoadSleepPrice.Value;
+                                    loadFactors[i].DriverFee += loadFactors[i].DriverLoadSleepPrice.Value;
 
-                                    loadFactors[i].Amount += loadFactors[i].MehrcomParsLoadFactor.LoadSleepPrice.Value;
+                                    loadFactors[i].Amount += loadFactors[i].LoadSleepPrice.Value;
                                 }
 
                                 if (loadFactors[i].Tonnage.HasValue)
@@ -1724,15 +1725,15 @@ namespace EtehadBar.MVC.Controllers
 
                                 #region handling comment
                                 string commentText = "";
-                                if (loadFactors[i].MehrcomParsLoadFactor.WeighbridgePrice.HasValue)
-                                    commentText += $"مبلغ باسکول: {loadFactors[i].MehrcomParsLoadFactor.WeighbridgePrice.Value.ToString("N0")}";
+                                if (loadFactors[i].WeighbridgePrice.HasValue)
+                                    commentText += $"مبلغ باسکول: {loadFactors[i].WeighbridgePrice.Value.ToString("N0")}";
 
-                                if (loadFactors[i].MehrcomParsLoadFactor.LoadSleepTime.HasValue)
+                                if (loadFactors[i].LoadSleepTime.HasValue)
                                 {
                                     if (!string.IsNullOrWhiteSpace(commentText))
                                         commentText += " | ";
 
-                                    commentText += $"زمان خواب: {loadFactors[i].MehrcomParsLoadFactor.LoadSleepTime.Value} | مبلغ خواب: {loadFactors[i].MehrcomParsLoadFactor.DriverLoadSleepPrice.Value.ToString("N0")}";
+                                    commentText += $"زمان خواب: {loadFactors[i].LoadSleepTime.Value} | مبلغ خواب: {loadFactors[i].DriverLoadSleepPrice.Value.ToString("N0")}";
                                 }
 
                                 if (loadFactors[i].Tonnage.HasValue)
@@ -2006,6 +2007,56 @@ namespace EtehadBar.MVC.Controllers
                 .Border.SetOutsideBorderColor(XLColor.Black)
                 .Border.SetInsideBorder(XLBorderStyleValues.Thin)
                 .Border.SetInsideBorderColor(XLColor.Black);
+        }
+
+        public async Task<IActionResult> ActivityList(long customerId, long calendarId)
+        {
+            var data = await _vehicleRepo.ActivityList(customerId, calendarId);
+            var calendar = await _calendarRepo.Get(calendarId);
+            var customer = await _customerRepo.Get(customerId);
+
+            using var workbook = new XLWorkbook();
+            var docTitle = $"عملکرد {customer.Name} در {calendar.Title}";
+            var ws = workbook.Worksheets.Add(calendar.Title);
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Titr";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+            ws.Cell(2, 1).Value = "#";
+            ws.Cell(2, 2).Value = "نام و نام خانوادگی";
+            ws.Cell(2, 3).Value = "شماره خودرو";
+            ws.Cell(2, 4).Value = "مبلغ";
+            ws.Cell(2, 5).Value = "شماره حساب";
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 5));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetBold()
+                .Font.SetFontSize(14)
+                    .Fill.SetBackgroundColor(XLColor.LightGray)
+                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 5)); // The address is relative to rngTable (NOT the worksheet)
+            rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            rngHeaders.Style.Font.Bold = true;
+            rngHeaders.Style.Font.FontColor = XLColor.Black;
+
+            for (int i = 0; i < data.Count; i++)
+            {
+                ws.Cell(i + 3, 1).Value = i + 1;
+                ws.Cell(i + 3, 2).Value = data[i].VehicleOwnerName;
+                ws.Cell(i + 3, 3).Value = data[i].VehicleNumber;
+                ws.Cell(i + 3, 4).Value = data[i].Amount.ToString("N0");
+                ws.Cell(i + 3, 5).Value = data[i].BankAccountNumber;
+            }
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
     }
 }

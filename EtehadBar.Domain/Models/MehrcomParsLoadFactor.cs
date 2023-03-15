@@ -36,18 +36,6 @@ namespace EtehadBar.Domain.Models
         //[StringLength(128)]
         //public string LoadType { get; set; }
 
-        [Display(Name = "نرخ باسکول")]
-        public double? WeighbridgePrice { get; set; }
-
-        [Display(Name = "میزان خواب (دقیقه)")]
-        public double? LoadSleepTime { get; set; }
-
-        [Display(Name = "مبلغ دریافتی خواب")]
-        public double? LoadSleepPrice { get; set; }
-
-        [Display(Name = "مبلغ پرداختی خواب")]
-        public double? DriverLoadSleepPrice { get; set; }
-
         [Display(Name = "افزایش 30%")]
         public bool HasAddonMessage { get; set; } = false;
 

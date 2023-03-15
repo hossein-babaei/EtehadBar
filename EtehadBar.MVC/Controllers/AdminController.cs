@@ -2999,7 +2999,11 @@ namespace EtehadBar.MVC.Controllers
                     VAT = config.VAT,
                     LoadFactorDeductions = customerLoadFactorDeduction,
                     AccountBookId = input.AccountBookId,
-                    Tonnage = input.Tonnage
+                    Tonnage = input.Tonnage,
+                    WeighbridgePrice = input.WeighbridgePrice,
+                    LoadSleepTime = input.LoadSleepTime,
+                    LoadSleepPrice = input.LoadSleepPrice,
+                    DriverLoadSleepPrice = input.DriverLoadSleepPrice
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -3021,13 +3025,9 @@ namespace EtehadBar.MVC.Controllers
                     Load = input.Load,
                     LoadNumberGovReturn = input.LoadNumberGovReturn,
                     Palette = input.Palette,
-                    WeighbridgePrice = input.WeighbridgePrice,
                     Return = input.Return,
                     LoadFactor = loadFactor,
                     LoadFactorId = loadFactor.Id,
-                    LoadSleepTime = input.LoadSleepTime,
-                    LoadSleepPrice = input.LoadSleepPrice,
-                    DriverLoadSleepPrice = input.DriverLoadSleepPrice,
                     CategoryId = input.CategoryId,
                     HasAddonMessage = input.HasAddonMessage,
                     Sequence = await _loadFactorRepo.GetBiggestSequenceInMehrcomPars() + 1
@@ -3389,11 +3389,11 @@ namespace EtehadBar.MVC.Controllers
                 item.MehrcomParsLoadFactor.Return = input.Return;
                 item.MehrcomParsLoadFactor.Palette = input.Palette;
                 item.MehrcomParsLoadFactor.Load = input.Load;
-                item.MehrcomParsLoadFactor.WeighbridgePrice = input.WeighbridgePrice;
+                item.WeighbridgePrice = input.WeighbridgePrice;
                 item.MehrcomParsLoadFactor.CategoryId = input.CategoryId;
-                item.MehrcomParsLoadFactor.DriverLoadSleepPrice = input.DriverLoadSleepPrice;
-                item.MehrcomParsLoadFactor.LoadSleepPrice = input.LoadSleepPrice;
-                item.MehrcomParsLoadFactor.LoadSleepTime = input.LoadSleepTime;
+                item.DriverLoadSleepPrice = input.DriverLoadSleepPrice;
+                item.LoadSleepPrice = input.LoadSleepPrice;
+                item.LoadSleepTime = input.LoadSleepTime;
                 item.MehrcomParsLoadFactor.HasAddonMessage = input.HasAddonMessage;
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)

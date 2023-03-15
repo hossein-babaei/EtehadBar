@@ -71,7 +71,7 @@
     }
     @if (User.IsInRole("Admin") || User.IsInRole("User"))
     {
-        <li class="uk-parent @if (param == 9 || param == 10 || param == 11 || param == 12 || param == 14 || param == 15 || param == 23) { <text>uk-open</text> }">
+        <li class="uk-parent @if (param == 9 || param == 10 || param == 11 || param == 12 || param == 14 || param == 15 || param == 23 || param == 26) { <text>uk-open</text> }">
             <a><i class="uk-margin-left fas fa-clipboard-list"></i>گزارشات</a>
             <ul class="uk-nav-sub">
                 @if (User.IsInRole("Admin"))
@@ -79,6 +79,7 @@
                     <li @if (param == 9) { <text> class="active" </text> }><a asp-action="Detailed" asp-controller="Report">تفصیلی</a></li>
                 }
                 <li @if (param == 14) { <text> class="active" </text> }><a asp-action="Customer" asp-controller="Report">بر اساس مشتری</a></li>
+                <li @if (param == 26) { <text> class="active" </text> }><a asp-action="ActivityList" asp-controller="Report">لیست عملکرد</a></li>
                 <li @if (param == 12) { <text> class="active" </text> }><a asp-action="VehicleLoadFactor" asp-controller="Report">عملکرد خودرو</a></li>
                 <li @if (param == 23) { <text> class="active" </text> }><a asp-action="VehicleActivity" asp-controller="Report">جزئیات عملکرد خودرو</a></li>
                 <li @if (param == 10) { <text> class="active" </text> }><a asp-action="Cost" asp-controller="Report">هزینه های جاری</a></li>

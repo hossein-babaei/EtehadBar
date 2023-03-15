@@ -5,6 +5,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain
 {
+    public class ActivityListVM
+    {
+        public long VehicleId { get; set; }
+        public string VehicleOwnerName { get; set; }
+        public string VehicleNumber { get; set; }
+        public double Amount { get; set; }
+        public string BankAccountNumber { get; set; }
+    }
+
     public class AdminDashboardVM
     {
         public int RegisteredLoadFactorCount { get; set; }

@@ -1,0 +1,104 @@
+﻿@model IEnumerable<Customer>
+
+@{
+    int i = 1;
+    ViewData["pageId"] = 26;
+    ViewData["Title"] = "گزارش لیست عملکرد";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    var calendars = (List<Calendar>)ViewData["calendars"];
+    var latestCal = calendars.First();
+}
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+}
+@section Scripts{
+    <script src="~/lib/select2/select2.min.js"></script>
+    <script>
+        let vehicleList = [];
+        function submitForm(submitButton) {
+            let form = $(submitButton).parent().parent().find('form');
+            form.submit();
+        }
+        function showFormByCalendar(id, type) {
+            $('#modal-append').html('');
+
+            $('#modal input[name=customerId]').val(id);
+
+            $('#modal select[name=calendarId]').select2({ width: '100%' });
+            //$('#modal select[name=vehicleId]').select2({ width: '100%' });
+            UIkit.modal('#modal').show();
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Name)</th>
+                    <th>@Html.DisplayNameFor(model => model.Status)</th>
+                    <th>گزارش</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@item.Name</td>
+                        @if (item.Status)
+                        {
+                            <td class="uk-text-bold uk-text-success">فعال</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-bold uk-text-danger">غیر فعال</td>
+                        }
+                        <td>
+                            <a class="uk-button uk-button-primary uk-button-small" onclick="showFormByCalendar(@item.Id, @((byte)item.CustomerType))">عملکرد</a>
+                        </td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">خروجی بر اساس تقویم کاری</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form method="post" action="@Url.Action("ActivityList", "Excel")" autocomplete="off">
+                <input type="hidden" name="customerId" value="" />
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <label class="uk-form-label">تاریخ</label>
+                        <select name="calendarId">
+                            @foreach (var item in calendars)
+                            {
+                                <!option value="@item.Id" @if (latestCal.Id.Equals(item)) { <text> selected="selected" </text> }>@item.Title</!option>
+                            }
+                        </select>
+                    </div>
+                    <div id="modal-append"></div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm(this)">مشاهده</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

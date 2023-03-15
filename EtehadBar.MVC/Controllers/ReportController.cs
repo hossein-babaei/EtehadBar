@@ -292,5 +292,14 @@ namespace EtehadBar.MVC.Controllers
             ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
             return PartialView("_VehicleActivity", await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId) && a.VehicleId.Equals(vehicleId)).OrderBy(a => a.Id).ToListAsync());
         }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> ActivityList()
+        {
+            ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+
+            return View(await _customerRepo.GetAll());
+        }
     }
 }

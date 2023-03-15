@@ -72,6 +72,18 @@ namespace EtehadBar.Domain.Models
         public string EditorId { get; set; }
         public DateTime? EditDateTime { get; set; }
 
+        [Display(Name = "نرخ باسکول")]
+        public double? WeighbridgePrice { get; set; }
+
+        [Display(Name = "میزان خواب (دقیقه)")]
+        public double? LoadSleepTime { get; set; }
+
+        [Display(Name = "مبلغ دریافتی خواب")]
+        public double? LoadSleepPrice { get; set; }
+
+        [Display(Name = "مبلغ پرداختی خواب")]
+        public double? DriverLoadSleepPrice { get; set; }
+
         [Required]
         public long ShippingFeeId { get; set; }
 
