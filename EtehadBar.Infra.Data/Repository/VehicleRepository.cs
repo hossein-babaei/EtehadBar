@@ -63,6 +63,10 @@ namespace EtehadBar.Infra.Data.Repository
                                    c.VehicleOwnerFullname
                                }).AsNoTracking().ToListAsync();
 
+            var vehicleIdList = query.Select(a => a.VehicleId).Distinct().ToList();
+            var payments = await db.Payment.Where(a => a.CalendarId.Equals(calendarId) && a.VehicleId.HasValue && vehicleIdList.Contains(a.VehicleId.Value))
+                .Select(a => new { a.VehicleId.Value, a.Amount }).AsNoTracking().ToListAsync();
+
             var data = new List<ActivityListVM>();
             foreach (var vehicle in query.DistinctBy(a => a.VehicleId))
             {
@@ -71,7 +75,7 @@ namespace EtehadBar.Infra.Data.Repository
                 var driverFee = 0d;
                 foreach (var item in thisVehicleActivity)
                 {
-                    driverFee = item.DriverFee;
+                    driverFee += item.DriverFee;
                     if (item.Tonnage.HasValue)
                         driverFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
 
@@ -81,6 +85,9 @@ namespace EtehadBar.Infra.Data.Repository
                     if (item.DriverLoadSleepPrice.HasValue)
                         driverFee += item.DriverLoadSleepPrice.Value;
                 }
+
+                var thisVehiclePaymnets = payments.Where(a => a.Value.Equals(vehicle.VehicleId)).Sum(a => a.Amount);
+                driverFee -= thisVehiclePaymnets;
 
                 data.Add(new ActivityListVM
                 {

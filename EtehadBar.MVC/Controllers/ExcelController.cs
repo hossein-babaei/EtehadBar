@@ -2050,8 +2050,26 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 2).Value = data[i].VehicleOwnerName;
                 ws.Cell(i + 3, 3).Value = data[i].VehicleNumber;
                 ws.Cell(i + 3, 4).Value = data[i].Amount.ToString("N0");
-                ws.Cell(i + 3, 5).Value = data[i].BankAccountNumber;
+                ws.Cell(i + 3, 5).Value = string.IsNullOrWhiteSpace(data[i].BankAccountNumber) ? "---" : data[i].BankAccountNumber.Replace('-', '.');
             }
+
+            ws.Cell(data.Count + 3, 1).Value = "جمع";
+            ws.Range(data.Count + 3, 1, data.Count + 3, 2).Merge();
+            ws.Cell(data.Count + 3, 3).Value = data.Sum(a => a.Amount).ToString("N0");
+            ws.Range(data.Count + 3, 3, data.Count + 3, 5).Merge();
+
+            ws.Column("A").Width = 5;
+            ws.Column("B").Width = 18;
+            ws.Column("C").Width = 20;
+            ws.Column("D").Width = 11;
+            ws.Column("E").Width = 24;
+
+            ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var table = ws.Range(2, 1, data.Count + 2, 5).CreateTable();
+            table.Theme = XLTableTheme.None;
+            table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+            table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
 
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);
