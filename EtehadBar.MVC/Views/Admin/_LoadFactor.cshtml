@@ -29,6 +29,10 @@
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
                     }
+                    else if (User.IsInRole("User"))
+                    {
+                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                    }
                     else
                     {
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
@@ -52,6 +56,10 @@
                         {
                             <td>@item.Contract.Customer.Name</td>
                             <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                            <td class="uk-text-bold md pointer" onclick="editDriverFee(this)" data-val="@item.DriverFee">@item.DriverFee.ToString("N0")</td>
+                        }
+                        else if (User.IsInRole("User"))
+                        {
                             <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
                         }
                         else
@@ -72,11 +80,10 @@
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
             @if (ViewBag.isSearch == true)
             {
-                @Html.PagedListPager(data, page => Url.Action("SearchLoadFactor", new { p = page, param = ViewBag.param }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+                @Html.PagedListPager(data, page => Url.Action("SearchLoadFactor", new { p = page, exitNumber = ViewBag.exitNumber, loadNumber = ViewBag.loadNumber, vehicleNumber = ViewBag.vehicleNumber, calendar = ViewBag.calendar }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
             }
             else
             {
-
                 @Html.PagedListPager(data, page => Url.Action("LoadFactorPartial", new { p = page }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
             }
         </div>

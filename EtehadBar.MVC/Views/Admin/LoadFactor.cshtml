@@ -20,36 +20,70 @@
 @section Scripts{
     <script src="~/lib/select2/select2.min.js"></script>
     <script>
+        let calendars = [];
         $('#search-modal form').submit(function (e) {
             e.preventDefault();
             filter();
         });
-        function filter() {
-            var data = $('#search-modal form').serialize();
-            if ($('#search-modal #param').val() != '' && $('#search-modal #param').val() != ' ') {
-                $.ajax({
-                    type: 'GET',
-                    url: '@Url.Action("SearchLoadFactor")',
-                    data: data,
-                    dataType: 'html',
+        async function getSearchModal() {
+            if (calendars.length == 0) {
+                await $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("GetCalendarsJson")',
+                    data: {},
+                    dataType: 'json',
                     beforeSend: function () {
                         preloader();
                     },
                     success: function (r) {
-                        $('#append').html(r);
-                        $('#total-count').html('(' + $('input[name="count"]').val() + ')');
+                        calendars = r;
+                        let options = '<option value="0" selected="selected">همه</option>';
+                        $.each(calendars, (i, v) => {
+                            options += `<option value="${v.id}">${v.title}</option>`;
+                        });
+                        $('#search-modal #calendar').html(options);
                     },
                     error: function (e) {
-                        uiAlert(e.responseText, 'danger')
+                        uiAlert(e.responseText, 'danger');
                     },
                     complete: function () {
                         preloader();
-                        UIkit.modal('#search-modal').hide();
                     }
                 });
-            } else {
-                uiAlert('لطفا مقدار مورد نظر را وارد نمایید.', 'danger');
             }
+            UIkit.modal('#search-modal').show();
+        }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("SearchLoadFactor")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                    $('#total-count').html('(' + $('input[name="count"]').val() + ')');
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+        function editDriverFee(td) {
+            let modalId = '#edit-driver-fee-modal',
+                value = $(td).data('val'),
+                itemId = $(td).parent().data('id');
+
+            $(modalId).find('input[name=Id]').val(itemId);
+            $(modalId).find('input[name=Fee]').val(value);
+            UIkit.modal(modalId).show();
         }
         function viewDetail(id) {
             preloader();
@@ -195,26 +229,26 @@
                 }
             } else if (type == '@ShippingFeeType.Custom' && lastType != '@ShippingFeeType.Custom') {
                 $(`<div class="uk-grid-margin uk-first-column">
-                                        <label class="uk-form-label" for="Amount">مبلغ (دریافتی)</label>
-                                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="Amount" name="Amount" value="">
-                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="Amount" data-valmsg-replace="true"></span>
-                                    </div>
-                                    <div class="uk-grid-margin uk-first-column">
-                                        <label class="uk-form-label" for="DriverFee">کرایه راننده (ریال)</label>
-                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="DriverFee" name="DriverFee" value="">
-                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverFee" data-valmsg-replace="true"></span>
-                                    </div>
-                                    ${(customerType == '@CustomerType.SaipaPress' || customerType == '@CustomerType.MehrcomPars') ?
+                                                <label class="uk-form-label" for="Amount">مبلغ (دریافتی)</label>
+                                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="Amount" name="Amount" value="">
+                                                <span class="uk-text-danger field-validation-valid" data-valmsg-for="Amount" data-valmsg-replace="true"></span>
+                                            </div>
+                                            <div class="uk-grid-margin uk-first-column">
+                                                <label class="uk-form-label" for="DriverFee">کرایه راننده (ریال)</label>
+                                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="DriverFee" name="DriverFee" value="">
+                                                <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverFee" data-valmsg-replace="true"></span>
+                                            </div>
+                                            ${(customerType == '@CustomerType.SaipaPress' || customerType == '@CustomerType.MehrcomPars') ?
                         `<div class="uk-grid-margin uk-first-column">
-                                        <label class="uk-form-label" for="TonnagePrice">نرخ تناژ اضافه (ریال)</label>
-                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="TonnagePrice" name="TonnagePrice" value="">
-                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="TonnagePrice" data-valmsg-replace="true"></span>
-                                    </div>
-                                    <div class="uk-grid-margin uk-first-column">
-                                        <label class="uk-form-label" for="DriverTonnagePrice">نرخ تناژ اضافه راننده (ریال)</label>
-                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="DriverTonnagePrice" name="DriverTonnagePrice" value="">
-                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverTonnagePrice" data-valmsg-replace="true"></span>
-                                    </div>` : ''}`).insertAfter($(select).parent());
+                                                <label class="uk-form-label" for="TonnagePrice">نرخ تناژ اضافه (ریال)</label>
+                                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="TonnagePrice" name="TonnagePrice" value="">
+                                                <span class="uk-text-danger field-validation-valid" data-valmsg-for="TonnagePrice" data-valmsg-replace="true"></span>
+                                            </div>
+                                            <div class="uk-grid-margin uk-first-column">
+                                                <label class="uk-form-label" for="DriverTonnagePrice">نرخ تناژ اضافه راننده (ریال)</label>
+                                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="DriverTonnagePrice" name="DriverTonnagePrice" value="">
+                                                <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverTonnagePrice" data-valmsg-replace="true"></span>
+                                            </div>` : ''}`).insertAfter($(select).parent());
             }
 
             $(select).parents('form').data('validator', null);
@@ -233,7 +267,7 @@
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
         <a uk-toggle="#customer-modal" class="uk-button uk-button-primary">افزودن</a>
-        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
+        <button onclick="getSearchModal()" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
     </div>
 </div>
 <div id="append" class="box">
@@ -253,6 +287,10 @@
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
                     }
+                    else if (User.IsInRole("User"))
+                    {
+                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                    }
                     else
                     {
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
@@ -265,7 +303,7 @@
             <tbody>
                 @foreach (var item in data)
                 {
-                    <tr class="uk-text-center sm">
+                    <tr class="uk-text-center sm" data-id="@item.Id">
                         <td>@i</td>
                         <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
                         <td>@item.Origin.Title<br />@item.Destination.Title</td>
@@ -276,6 +314,10 @@
                         {
                             <td>@item.Contract.Customer.Name</td>
                             <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                            <td class="uk-text-bold md pointer" onclick="editDriverFee(this)" data-val="@item.DriverFee">@item.DriverFee.ToString("N0")</td>
+                        }
+                        else if (User.IsInRole("User"))
+                        {
                             <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
                         }
                         else
@@ -308,8 +350,20 @@
         <div class="uk-modal-body">
             <form>
                 <div>
+                    <label class="uk-form-label">شماره خروج</label>
+                    <input dir="ltr" class="uk-input uk-border-rounded uk-text-left" id="exitNumber" name="exitNumber" autocomplete="off" placeholder="شماره خروج را در این قسمت تایپ نمائید..." />
+                </div>
+                <div class="uk-margin-small-top">
                     <label class="uk-form-label">شماره بارنامه</label>
-                    <input class="uk-input uk-border-rounded" id="param" name="param" autocomplete="off" placeholder="در این قسمت تایپ نمائید..." />
+                    <input dir="ltr" class="uk-input uk-border-rounded uk-text-left" id="loadNumber" name="loadNumber" autocomplete="off" placeholder="شماره بارنامه را در این قسمت تایپ نمائید..." />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">شماره خودرو</label>
+                    <input class="uk-input uk-border-rounded uk-text-left" id="vehicleNumber" name="vehicleNumber" autocomplete="off" placeholder="شماره خودرو را به صورت کامل همراه با فاصله ها وارد کنید..." />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">تقویم کاری</label>
+                    <select class="uk-select uk-border-rounded" id="calendar" name="calendar"></select>
                 </div>
             </form>
             <div class="uk-margin-top uk-text-center">
@@ -320,6 +374,24 @@
             <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
+    </div>
+</div>
+<div id="edit-driver-fee-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="edit-driver-fee-form" method="post" asp-action="EditLoadFactorDriverFee" asp-controller="Admin" autocomplete="off">
+            <h3>ویرایش کرایه راننده</h3>
+            <input type="hidden" name="Id" />
+            <input dir="ltr" class="uk-input uk-border-rounded format-number" name="Fee" id="Fee" />
+            <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
+                <label>بارنامه آزاد</label>
+                <label><input class="uk-radio" type="radio" name="IsFree" value="true" checked> بلی</label>
+                <label><input class="uk-radio" type="radio" name="IsFree" value="false"> خیر</label>
+            </div>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#edit-driver-fee-form').submit()" type="button">ثبت</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+            </div>
+        </form>
     </div>
 </div>
 <div id="delete-modal" class="uk-flex-top" uk-modal>

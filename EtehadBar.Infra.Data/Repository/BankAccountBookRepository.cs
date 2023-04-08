@@ -1,6 +1,8 @@
-﻿using EtehadBar.Domain.Interfaces;
+﻿using EtehadBar.Domain;
+using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
+using MD.PersianDateTime.Standard;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,6 +36,25 @@ namespace EtehadBar.Infra.Data.Repository
         public async Task<BankAccountBook> Get(string rowId)
         {
             return await db.BankAccountBook.FirstOrDefaultAsync(a => a.RowId.Equals(rowId));
+        }
+
+        public async Task<EditBankAccountBookVM> GetEdit(long id)
+        {
+            var query = await db.BankAccountBook.Where(a => a.Id.Equals(id)).AsNoTracking().FirstOrDefaultAsync();
+            var pd = new PersianDateTime(query.Date);
+            var data = new EditBankAccountBookVM
+            {
+                Id = query.Id,
+                Amount = query.Debtor > 0 ? query.Debtor : query.Creditor,
+                AmountType = query.Debtor > 0 ? BankAccountBookAmountType.Debtor : BankAccountBookAmountType.Creditor,
+                Description = query.Description,
+                ReferenceNo = query.ReferenceNo,
+                TransferFee = query.TransferFee,
+                Day = pd.Day,
+                Month = pd.Month,
+                Year = pd.Year
+            };
+            return data;
         }
 
         public IQueryable<BankAccountBook> Query()

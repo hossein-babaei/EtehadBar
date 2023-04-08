@@ -1071,6 +1071,12 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
+
+        [HttpPost]
+        public async Task<IActionResult> GetCalendarsJson()
+        {
+            return Json(await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).Select(a => new { a.Id, a.Title }).ToListAsync());
+        }
         #endregion
 
         #region Cost
@@ -2058,7 +2064,7 @@ namespace EtehadBar.MVC.Controllers
                     if (latestContractAddon == null)
                         latestContractAddon = await _contractRepo.Get(item.ContractId);
 
-                    var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(item.ContractId) && a.ShippingFeeId.Equals(item.Id) && a.Date >= latestContractAddon.StartDate).ToListAsync();
+                    var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(item.ContractId) && a.ShippingFeeId.Equals(item.Id) && a.Date >= latestContractAddon.StartDate && !a.IsDriverFeeEditedByAdmin).ToListAsync();
                     if (loadFactors.Any())
                     {
                         foreach (var factor in loadFactors)
@@ -2111,14 +2117,14 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateShippingFreeFeeTypeFromNormal(long id) 
+        public async Task<IActionResult> CreateShippingFreeFeeTypeFromNormal(long id)
         {
             string msg;
             string status = "danger";
 
             var item = await _shippingFeeRepo.Get(id);
 
-            if (await _shippingFeeRepo.ShippingFees().AnyAsync(a => a.ContractId.Equals(item.ContractId) 
+            if (await _shippingFeeRepo.ShippingFees().AnyAsync(a => a.ContractId.Equals(item.ContractId)
             && a.DestinationId.Equals(item.DestinationId) && a.OriginId.Equals(item.OriginId) && a.ShippingFeeLoadTypeId.Equals(item.ShippingFeeLoadTypeId)
             && a.Vehicle.Equals(item.Vehicle) && a.ShippingFeeType == ShippingFeeType.Custom))
             {
@@ -2244,7 +2250,7 @@ namespace EtehadBar.MVC.Controllers
                         else fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + tonnageDriverAmount;
                     }
 
-                    var thisLoadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id)).ToList();
+                    var thisLoadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id) && !a.IsDriverFeeEditedByAdmin).ToList();
                     if (thisLoadFactor.Any())
                     {
                         foreach (var loadFactor in thisLoadFactor)
@@ -2311,13 +2317,13 @@ namespace EtehadBar.MVC.Controllers
                     CreateDate = DateTime.Now,
                     CreatorId = _userManager.GetUserId(User),
                     DestinationId = item.DestinationId,
-                    DriverPrice= item.DriverPrice,
-                    DriverTonnagePrice= item.DriverTonnagePrice,
+                    DriverPrice = item.DriverPrice,
+                    DriverTonnagePrice = item.DriverTonnagePrice,
                     OriginId = item.OriginId,
                     Price = item.Price,
                     ShippingFeeLoadTypeId = item.ShippingFeeLoadTypeId,
-                    ShippingFeeType=item.ShippingFeeType,
-                    Title=item.Title,
+                    ShippingFeeType = item.ShippingFeeType,
+                    Title = item.Title,
                     TonnagePrice = item.TonnagePrice,
                     Vehicle = item.Vehicle
                 });
@@ -2476,19 +2482,32 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SearchLoadFactor(int? p, string param)
+        public async Task<IActionResult> SearchLoadFactor(int? p, string exitNumber, string loadNumber, string vehicleNumber, long? calendar)
         {
-            if (!string.IsNullOrWhiteSpace(param))
+            if (!string.IsNullOrWhiteSpace(exitNumber) || !string.IsNullOrWhiteSpace(loadNumber) || !string.IsNullOrWhiteSpace(vehicleNumber) || calendar.HasValue)
             {
                 var pageNum = p ?? 1;
 
-                var query = _loadFactorRepo.LoadFactors().Where(a => a.LoadNumber.Contains(param) || a.LoadNumberGov.Contains(param));
+                var query = _loadFactorRepo.LoadFactors();
+
+                if (!string.IsNullOrWhiteSpace(exitNumber))
+                    query = query.Where(a => a.ExitNumber.Equals(exitNumber));
+                else if (!string.IsNullOrWhiteSpace(loadNumber))
+                    query = query.Where(a => a.LoadNumber.Equals(loadNumber));
+                else if (!string.IsNullOrWhiteSpace(vehicleNumber))
+                    query = query.Where(a => vehicleNumber == (a.Vehicle.LeftNumber + " " + a.Vehicle.NumberWord + " " + a.Vehicle.RightNumber));
+                else if (calendar.HasValue && calendar.Value > 0)
+                    query = query.Where(a => a.CalendarId.Equals(calendar.Value));
+
                 if (User.IsInRole("RegisterUser"))
                     query = query.Where(a => a.AdminId.Equals(_userManager.GetUserId(User)));
 
                 ViewBag.data = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
                 ViewBag.page = pageNum;
-                ViewBag.param = param;
+                ViewBag.exitNumber = exitNumber;
+                ViewBag.loadNumber = loadNumber;
+                ViewBag.vehicleNumber = vehicleNumber;
+                ViewBag.calendar = calendar;
                 ViewBag.isSearch = true;
                 return PartialView("_LoadFactor");
             }
@@ -2509,7 +2528,7 @@ namespace EtehadBar.MVC.Controllers
                 ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(activeContract)).OrderBy(a => a.Origin).ToListAsync();
             else
                 ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(activeContract) && a.ShippingFeeType == ShippingFeeType.Normal).OrderBy(a => a.Origin).ToListAsync();
-            
+
             ViewData["Contracts"] = contracts;
 
             var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
@@ -2588,7 +2607,8 @@ namespace EtehadBar.MVC.Controllers
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
                     LoadFactorDeductions = customerLoadFactorDeduction,
-                    AccountBookId = input.AccountBookId
+                    AccountBookId = input.AccountBookId,
+                    IsDriverFeeEditedByAdmin = false
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -2726,7 +2746,8 @@ namespace EtehadBar.MVC.Controllers
                     VAT = config.VAT,
                     LoadFactorDeductions = customerLoadFactorDeduction,
                     Tonnage = input.Tonnage,
-                    AccountBookId = input.AccountBookId
+                    AccountBookId = input.AccountBookId,
+                    IsDriverFeeEditedByAdmin = false
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -2854,7 +2875,8 @@ namespace EtehadBar.MVC.Controllers
                     WithholdingTax = config.WithholdingTax,
                     VAT = config.VAT,
                     LoadFactorDeductions = customerLoadFactorDeduction,
-                    AccountBookId = input.AccountBookId
+                    AccountBookId = input.AccountBookId,
+                    IsDriverFeeEditedByAdmin = false
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -3003,7 +3025,8 @@ namespace EtehadBar.MVC.Controllers
                     WeighbridgePrice = input.WeighbridgePrice,
                     LoadSleepTime = input.LoadSleepTime,
                     LoadSleepPrice = input.LoadSleepPrice,
-                    DriverLoadSleepPrice = input.DriverLoadSleepPrice
+                    DriverLoadSleepPrice = input.DriverLoadSleepPrice,
+                    IsDriverFeeEditedByAdmin = false
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -3072,7 +3095,7 @@ namespace EtehadBar.MVC.Controllers
                 ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
             else
                 ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId) && a.ShippingFeeType == ShippingFeeType.Normal).OrderBy(a => a.Origin).ToListAsync();
-            
+
             if (customer.CustomerType == CustomerType.SaipaPress)
                 ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
             else if (customer.CustomerType == CustomerType.MehrcomPars)
@@ -3480,7 +3503,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var dateArr = dateString.PersianToEnglish().Split("/");
             var date = new PersianDateTime(Convert.ToInt32(dateArr[0]), Convert.ToInt32(dateArr[1]), Convert.ToInt32(dateArr[2])).ToDateTime();
-                
+
             var newContract = await _contractRepo.Get(newContractRowId);
             var newShippingFees = newContract.ShippingFees;
             var contract = await _contractRepo.Get(contractRowId);
@@ -3506,7 +3529,9 @@ namespace EtehadBar.MVC.Controllers
                 if (newShippingFee.ShippingFeeType != ShippingFeeType.Custom)
                 {
                     item.Amount = newShippingFee.Price;
-                    item.DriverFee = newShippingFee.DriverPrice;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                        item.DriverFee = newShippingFee.DriverPrice;
+
                     item.TonnagePrice = newShippingFee.TonnagePrice;
                     item.DriverTonnagePrice = newShippingFee.DriverTonnagePrice;
                 }
@@ -3514,6 +3539,26 @@ namespace EtehadBar.MVC.Controllers
             }
 
 
+            try
+            {
+                await _loadFactorRepo.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditLoadFactorDriverFee(long Id, double Fee, bool IsFree)
+        {
+            var item = await _loadFactorRepo.Get(Id);
+            item.DriverFee = Fee;
+            item.IsDriverFeeEditedByAdmin = IsFree;
+            _loadFactorRepo.Update(item);
             try
             {
                 await _loadFactorRepo.Save();
@@ -4306,14 +4351,40 @@ namespace EtehadBar.MVC.Controllers
             ViewData["BankAccountId"] = bankAccountId;
             ViewData["BankAccountRowId"] = id;
             var pageNumber = p ?? 1;
-            var onePageOfData = await _bankAccountBookRepository.Query().Where(a => a.BankAccountId.Equals(bankAccountId)).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await _bankAccountBookRepository.Query().Where(a => a.BankAccountId.Equals(bankAccountId)).OrderByDescending(a => a.Sequence).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             return View();
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> BankAccountBook_Search(long bankAccountId, string number, string description, string fromDate, string toDate)
+        {
+            var query = _bankAccountBookRepository.Query().Where(a => a.BankAccountId.Equals(bankAccountId));
+
+            if (!string.IsNullOrWhiteSpace(number))
+                query = query.Where(a => a.ReferenceNo.Equals(number));
+            else if (!string.IsNullOrWhiteSpace(description))
+                query = query.Where(a => a.Description.Contains(description));
+            else if (!string.IsNullOrWhiteSpace(fromDate))
+            {
+                var dateArr = fromDate.PersianToEnglish().Split('/');
+                var fDate = new PersianDateTime(Convert.ToInt32(dateArr[0]), Convert.ToInt32(dateArr[1]), Convert.ToInt32(dateArr[2]));
+                query = query.Where(a => a.Date >= fDate);
+            }
+            else if (!string.IsNullOrWhiteSpace(toDate))
+            {
+                var dateArr = toDate.PersianToEnglish().Split('/');
+                var tDate = new PersianDateTime(Convert.ToInt32(dateArr[0]), Convert.ToInt32(dateArr[1]), Convert.ToInt32(dateArr[2]));
+                query = query.Where(a => a.Date <= tDate);
+            }
+
+            return PartialView(await query.AsNoTracking().OrderBy(a => a.Sequence).ToListAsync());
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin, User")]
-        public PartialViewResult CreateBankAccountBook()
+        public IActionResult CreateBankAccountBook()
         {
             return PartialView("~/Views/Admin/Create/BankAccountBook.cshtml");
         }
@@ -4331,14 +4402,17 @@ namespace EtehadBar.MVC.Controllers
 
                 _bankAccountBookRepository.Create(new Domain.Models.BankAccountBook
                 {
+                    Sequence = lastItem.Sequence + 1,
                     Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime(),
                     BankAccountId = v.BankAccountId,
                     CreatorId = _userManager.GetUserId(User),
                     ReferenceNo = v.ReferenceNo,
                     Description = v.Description,
+                    TransferFee = v.TransferFee,
+                    AccountBookType = v.AccountBookType,
                     Creditor = v.AmountType == BankAccountBookAmountType.Creditor ? v.Amount : 0,
                     Debtor = v.AmountType == BankAccountBookAmountType.Debtor ? v.Amount : 0,
-                    Balance = v.AmountType == BankAccountBookAmountType.Debtor ? v.Amount + balance : balance - v.Amount
+                    Balance = (v.AmountType == BankAccountBookAmountType.Debtor ? v.Amount + balance : balance - v.Amount) - v.TransferFee
                 });
                 try
                 {
@@ -4361,7 +4435,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin, User")]
         public async Task<PartialViewResult> EditBankAccountBook(int id)
         {
-            return PartialView("~/Views/Admin/Edit/BankAccountBook.cshtml", await _bankAccountBookRepository.Get(id));
+            return PartialView("~/Views/Admin/Edit/BankAccountBook.cshtml", await _bankAccountBookRepository.GetEdit(id));
         }
 
         [HttpPost]
@@ -4376,12 +4450,37 @@ namespace EtehadBar.MVC.Controllers
                 item.Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
+                item.AccountBookType = v.AccountBookType;
 
-                if ((item.Debtor!= v.Amount || item.Creditor !=v.Amount) ||
-                    (v.AmountType == BankAccountBookAmountType.Debtor && item.Debtor == 0) || 
-                    (v.AmountType == BankAccountBookAmountType.Creditor && item.Creditor == 0))
+                var diffrence = item.Debtor > 0 ? (item.Debtor - v.Amount) : (item.Creditor - v.Amount);
+                var transferFeeDeffrence = item.TransferFee - v.TransferFee;
+
+                if (transferFeeDeffrence != 0 || diffrence != 0)
                 {
+                    var nextItems = await _bankAccountBookRepository.Query().Where(a => a.Id > item.Id && a.BankAccountId.Equals(item.BankAccountId)).OrderBy(a => a.Id).ToListAsync();
+                    foreach (var next in nextItems)
+                    {
+                        next.Balance += diffrence;
+                        if (transferFeeDeffrence != 0)
+                            next.Balance += transferFeeDeffrence;
+                    }
 
+                    if (transferFeeDeffrence != 0)
+                    {
+                        item.TransferFee = v.TransferFee;
+                        item.Balance += transferFeeDeffrence;
+                    }
+
+                    if (item.Debtor > 0)
+                    {
+                        item.Balance += diffrence;
+                        item.Debtor = v.Amount;
+                    }
+                    else
+                    {
+                        item.Balance += diffrence;
+                        item.Creditor = v.Amount;
+                    }
                 }
 
                 _bankAccountBookRepository.Update(item);
@@ -4398,6 +4497,35 @@ namespace EtehadBar.MVC.Controllers
             else
             {
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User")]
+        public async Task<IActionResult> DeleteBankAccountBook(int id)
+        {
+            var item = await _bankAccountBookRepository.Get(id);
+            var nextItems = await _bankAccountBookRepository.Query().Where(a => a.Id > item.Id && a.BankAccountId.Equals(item.BankAccountId)).OrderBy(a => a.Id).ToListAsync();
+            for (int i = 0; i < nextItems.Count; i++)
+            {
+                var next = nextItems[i];
+                
+                next.Sequence = item.Sequence + i;
+                if (item.Creditor > 0)
+                    next.Balance -= item.Creditor;
+                else if (item.Debtor > 0)
+                    next.Balance += item.Debtor;
+            }
+
+            _bankAccountBookRepository.Delete(item);
+            try
+            {
+                await _bankAccountBookRepository.Save();
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }

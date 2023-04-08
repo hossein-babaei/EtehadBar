@@ -118,6 +118,9 @@ namespace EtehadBar.Domain
         [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string ReferenceNo { get; set; }
 
+        [Display(Name = "کارمزد")]
+        public double TransferFee { get; set; }
+
         [Display(Name = "مبلغ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double Amount { get; set; }
@@ -125,6 +128,10 @@ namespace EtehadBar.Domain
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public BankAccountBookAmountType AmountType { get; set; }
+
+        [Display(Name = "نوع پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public BankAccountBookType AccountBookType { get; set; }
 
         [Display(Name = "حساب")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -156,6 +163,9 @@ namespace EtehadBar.Domain
         [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string ReferenceNo { get; set; }
 
+        [Display(Name = "کارمزد")]
+        public double TransferFee { get; set; }
+
         [Display(Name = "مبلغ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double Amount { get; set; }
@@ -163,6 +173,10 @@ namespace EtehadBar.Domain
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public BankAccountBookAmountType AmountType { get; set; }
+
+        [Display(Name = "نوع پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public BankAccountBookType AccountBookType { get; set; }
     }
 
     public class CreateFreeLoadFactorVM

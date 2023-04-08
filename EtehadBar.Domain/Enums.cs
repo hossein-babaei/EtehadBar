@@ -96,4 +96,13 @@
         //error
         DatabaseException = 5000
     }
+
+    public enum BankAccountBookType
+    {
+        Salary,
+        AdvanceMoney,
+        Cost,
+        PaymentToDriver,
+        Other
+    }
 }

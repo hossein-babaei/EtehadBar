@@ -1,0 +1,42 @@
+﻿@model IEnumerable<BankAccountBook>
+
+@{
+    int i = 1;
+}
+
+<div class="uk-overflow-auto">
+    <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+        <thead>
+            <tr>
+                <th>ردیف</th>
+                <th>@Html.DisplayNameFor(model => model.ReferenceNo)</th>
+                <th>@Html.DisplayNameFor(model => model.Description)</th>
+                <th>@Html.DisplayNameFor(model => model.Date)</th>
+                <th>@Html.DisplayNameFor(model => model.Creditor)</th>
+                <th>@Html.DisplayNameFor(model => model.Debtor)</th>
+                <th>@Html.DisplayNameFor(model => model.TransferFee)</th>
+                <th>@Html.DisplayNameFor(model => model.Balance)</th>
+                <th width="50">ویرایش</th>
+                <th width="50">حذف</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="uk-text-center">
+                    <td>@i</td>
+                    <td class="uk-text-small">@Html.DisplayFor(modelItem => item.ReferenceNo)</td>
+                    <td class="uk-text-small">@Html.DisplayFor(modelItem => item.Description)</td>
+                    <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                    <td>@item.Creditor.ToString("N0")</td>
+                    <td>@item.Debtor.ToString("N0")</td>
+                    <td>@item.TransferFee.ToString("N0")</td>
+                    <td>@item.Balance.ToString("N0")</td>
+                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                </tr>
+                i++;
+            }
+        </tbody>
+    </table>
+</div>

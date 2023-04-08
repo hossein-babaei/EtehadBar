@@ -8,6 +8,7 @@ namespace EtehadBar.Domain.Interfaces
     {
         Task<BankAccountBook> Get(long id);
         Task<BankAccountBook> Get(string rowId);
+        Task<EditBankAccountBookVM> GetEdit(long id);
         IQueryable<BankAccountBook> Query();
         void Update(BankAccountBook obj);
         void Create(BankAccountBook obj);

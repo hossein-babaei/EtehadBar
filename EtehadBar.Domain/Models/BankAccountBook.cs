@@ -11,6 +11,10 @@ namespace EtehadBar.Domain.Models
         [Key]
         public long Id { get; set; }
 
+        [Display(Name = "ترتیب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Sequence { get; set; }
+
         [Display(Name = "تاریخ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public DateTime Date { get; set; }
@@ -30,9 +34,16 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "بستانکار")]
         public double Creditor { get; set; }
 
+        [Display(Name = "کارمزد انتقال")]
+        public double TransferFee { get; set; } = 0;
+
         [Display(Name = "مانده")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double Balance { get; set; }
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public BankAccountBookType AccountBookType { get; set; }
 
         [Display(Name = "حساب")]
         [ForeignKey(nameof(BankAccount))]

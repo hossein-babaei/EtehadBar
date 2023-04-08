@@ -87,6 +87,9 @@ namespace EtehadBar.Domain.Models
         [Required]
         public long ShippingFeeId { get; set; }
 
+        //used for custom load factors
+        public bool IsDriverFeeEditedByAdmin { get; set; } = false;
+
         [Required]
         [Display(Name = "مشتری")]
         public long ContractId { get; set; }

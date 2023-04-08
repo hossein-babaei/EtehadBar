@@ -11,8 +11,17 @@
     if (data.PageNumber > 1)
         i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
 }
-
+@section Links{
+    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+    <style>
+        .sequence {
+            cursor: grab
+        }
+    </style>
+}
 @section Scripts{
+    <script src="~/lib/persian-date/persian-date.min.js"></script>
+    <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
     <script>
         const bankAccountId = @((long)ViewData["BankAccountId"]),
             bankAccountRowId = '@ViewData["BankAccountRowId"].ToString()';
@@ -41,6 +50,79 @@
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();
         }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'Post',
+                url: '@Url.Action("BankAccountBook_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+        let datePickerConfig = {
+            initialValue: false,
+            autoClose: true,
+            timePicker: {
+                enabled: false
+            },
+            format: 'YYYY/MM/DD',
+            navigator: {
+                enabled: true,
+                scroll: {
+                    "enabled": true
+                },
+                text: {
+                    btnNextText: '>',
+                    btnPrevText: '<'
+                }
+            },
+            toolbox: {
+                calendarSwitch: {
+                    enabled: false
+                }
+            }
+        };
+
+        function allowDrop(e) {
+            e.preventDefault();
+        }
+
+        function drag(e) {
+            e.dataTransfer.setData('itemId', $(e.currentTarget).parent().attr('id'));
+        }
+
+        function drop(e) {
+            console.log(e);
+            e.preventDefault();
+            let fromRowId = e.dataTransfer.getData('itemId'),
+                fromRow = $(`#${fromRowId}`).data('row'),
+                toRowId = $(e.target).parent().attr('id'),
+                toRow = $(e.target).parent().data('row'),
+                dropModal = '#drop-modal';
+
+            $(`${dropModal} input[name=from-row-id]`).val(fromRowId);
+            $(`${dropModal} input[name=to-row-id]`).val(toRowId);
+            $(`${dropModal} h3`).text(`آیا از انتقال مورد ${fromRow} به زیر مورد ${toRow} اطمینان دارید؟`);
+            UIkit.modal(dropModal).show();
+        }
+
+        $(document).ready(function () {
+            $('.datepicker-1').persianDatepicker(datePickerConfig);
+            $('.datepicker-2').persianDatepicker(datePickerConfig);
+        });
     </script>
 }
 
@@ -53,6 +135,7 @@
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
     </div>
 </div>
 <div id="append" class="box">
@@ -66,22 +149,26 @@
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Creditor)</th>
                     <th>@Html.DisplayNameFor(model => model.Debtor)</th>
+                    <th>@Html.DisplayNameFor(model => model.TransferFee)</th>
                     <th>@Html.DisplayNameFor(model => model.Balance)</th>
                     <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in data)
                 {
-                    <tr class="uk-text-center">
-                        <td>@i</td>
-                        <td>@Html.DisplayFor(modelItem => item.ReferenceNo)</td>
-                        <td>@Html.DisplayFor(modelItem => item.Description)</td>
+                    <tr id="@item.RowId" data-row="@i" class="uk-text-center">
+                        <td class="sequence" draggable="true" ondragstart="drag(event)">@i</td>
+                        <td ondrop="drop(event)" ondragover="allowDrop(event)" class="uk-text-small">@Html.DisplayFor(modelItem => item.ReferenceNo)</td>
+                        <td ondrop="drop(event)" ondragover="allowDrop(event)" class="uk-text-small">@Html.DisplayFor(modelItem => item.Description)</td>
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                         <td>@item.Creditor.ToString("N0")</td>
                         <td>@item.Debtor.ToString("N0")</td>
+                        <td>@item.TransferFee.ToString("N0")</td>
                         <td>@item.Balance.ToString("N0")</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
                     i++;
                 }
@@ -96,3 +183,64 @@
     }
 </div>
 <div id="append-modal" uk-modal="bg-close: false"></div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteBankAccountBook" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="drop-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="move-form" method="post" asp-action="MoveBankAccountBook" asp-controller="Admin">
+            <input type="hidden" name="from-row-id" />
+            <input type="hidden" name="to-row-id" />
+            <h3></h3>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#move-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">فیلتر تراکنش ها</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <input type="hidden" name="bankAccountId" value="@((long)ViewData["BankAccountId"])" />
+                <div>
+                    <label class="uk-form-label">شماره تراکنش</label>
+                    <input class="uk-input uk-border-rounded" id="number" name="number" autocomplete="off" placeholder="شماره تراکنش را در این قسمت تایپ نمائید..." />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">شرح</label>
+                    <input class="uk-input uk-border-rounded" id="description" name="description" autocomplete="off" placeholder="قسمتی از شرح را در این قسمت تایپ نمائید..." />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">از تاریخ</label>
+                    <input class="uk-input uk-border-rounded datepicker-1 uk-text-left" id="fromDate" name="fromDate" autocomplete="off" readonly />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">تا تاریخ</label>
+                    <input class="uk-input uk-border-rounded datepicker-2 uk-text-left" id="toDate" name="toDate" autocomplete="off" readonly />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="BankAccountBook" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

@@ -1,24 +1,21 @@
-﻿@model CreateBankAccountBookVM
+﻿@model EditBankAccountBookVM
 
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
-        <h2 class="uk-modal-title">افزودن جدید</h2>
+        <h2 class="uk-modal-title">ویرایش</h2>
     </div>
     <div class="uk-modal-body">
-        <form id="create-form" asp-action="CreateBankAccountBook" method="post" autocomplete="off">
+        <form id="edit-form" asp-action="EditBankAccountBook" method="post" autocomplete="off">
             <input autocomplete="false" name="hidden" type="text" style="display:none;">
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
-            <input asp-for="BankAccountId" type="hidden" />
+            <input asp-for="Id" type="hidden" />
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                @{
-                    var now = PersianDateTime.Now;
-                }
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">روز</label>
                     <select asp-for="Day" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
                         @for (int i = 1; i < 32; i++)
                         {
-                            <!option value="@i" @if (now.Day == i) { <text> selected="selected" </text> }>@i</!option>
+                            <!option value="@i" @if (Model.Day == i) { <text> selected="selected" </text> }>@i</!option>
                         }
                     </select>
                 </div>
@@ -27,13 +24,13 @@
                     <select asp-for="Month" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
                         @for (int i = 1; i < 13; i++)
                         {
-                            <!option value="@i" @if (now.Month == i) { <text> selected="selected" </text> }>@i</!option>
+                            <!option value="@i" @if (Model.Month == i) { <text> selected="selected" </text> }>@i</!option>
                         }
                     </select>
                 </div>
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">سال</label>
-                    <input class="uk-input uk-border-rounded uk-form-small" asp-for="Year" value="@now.Year" dir="ltr" />
+                    <input class="uk-input uk-border-rounded uk-form-small" asp-for="Year" dir="ltr" />
                 </div>
                 <div>
                     <label asp-for="ReferenceNo" class="uk-form-label"></label>
@@ -42,31 +39,31 @@
                 </div>
                 <div class="uk-width-4-5@m">
                     <label asp-for="Amount" class="uk-form-label"></label>
-                    <input asp-for="Amount" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <input asp-for="Amount" class="uk-input uk-border-rounded uk-form-small format-number" autocomplete="off" />
                     <span asp-validation-for="Amount" class="uk-text-danger"></span>
                 </div>
                 <div class="uk-width-1-5@m">
                     <label asp-for="TransferFee" class="uk-form-label"></label>
-                    <input asp-for="TransferFee" class="uk-input uk-border-rounded uk-form-small format-number" autocomplete="off" value="0" />
+                    <input asp-for="TransferFee" class="uk-input uk-border-rounded uk-form-small format-number" autocomplete="off" />
                     <span asp-validation-for="TransferFee" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-expand@m">
+                 <div class="uk-width-expand@m">
                     <label asp-for="AccountBookType" class="uk-form-label"></label>
                     <select asp-for="AccountBookType" class="uk-select uk-border-rounded uk-form-small">
-                        <option value="@((int)BankAccountBookType.Other)">سایر</option>
-                        <option value="@((int)BankAccountBookType.AdvanceMoney)">مساعده</option>
-                        <option value="@((int)BankAccountBookType.Salary)">حقوق</option>
-                        <option value="@((int)BankAccountBookType.Cost)">جاری</option>
-                        <option value="@((int)BankAccountBookType.PaymentToDriver)">پرداخت به راننده موردی</option>
+                        <!option value="@((int)BankAccountBookType.Other)" @if (Model.AccountBookType == BankAccountBookType.Other) {<text>selected="selected"</text>}>سایر</!option>
+                        <!option value="@((int)BankAccountBookType.AdvanceMoney)" @if (Model.AccountBookType == BankAccountBookType.AdvanceMoney) {<text>selected="selected"</text>}>مساعده</!option>
+                        <!option value="@((int)BankAccountBookType.Salary)" @if (Model.AccountBookType == BankAccountBookType.Salary) {<text>selected="selected"</text>}>حقوق</!option>
+                        <!option value="@((int)BankAccountBookType.Cost)" @if (Model.AccountBookType == BankAccountBookType.Cost) {<text>selected="selected"</text>}>جاری</!option>
+                        <!option value="@((int)BankAccountBookType.PaymentToDriver)" @if (Model.AccountBookType == BankAccountBookType.PaymentToDriver) {<text>selected="selected"</text>}>پرداخت به راننده موردی</!option>
                     </select>
                     <span asp-validation-for="AccountBookType" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-auto@m">
+                @*<div class="uk-width-auto@m">
                     <div class="uk-margin-top">
-                        <label><input class="uk-radio" type="radio" name="AmountType" value="@((int)BankAccountBookAmountType.Creditor)" checked> بستانکار</label>
-                        <label><input class="uk-radio" type="radio" name="AmountType" value="@((int)BankAccountBookAmountType.Debtor)"> بدهکار</label>
+                        <label><input class="uk-radio" type="radio" name="AmountType" value="@((int)BankAccountBookAmountType.Debtor)" @if(Model.AmountType== BankAccountBookAmountType.Debtor){<text>checked</text>}> بدهکار</label>
+                        <label><input class="uk-radio" type="radio" name="AmountType" value="@((int)BankAccountBookAmountType.Creditor)" @if(Model.AmountType== BankAccountBookAmountType.Creditor){<text>checked</text>}> بستانکار</label>
                     </div>
-                </div>
+                </div>*@
                 <div>
                     <label asp-for="Description" class="uk-form-label"></label>
                     <textarea asp-for="Description" class="uk-textarea uk-border-rounded uk-form-small" rows="3"></textarea>
@@ -76,7 +73,7 @@
         </form>
     </div>
     <div class="uk-modal-footer uk-text-center">
-        <button class="uk-button uk-button-primary" type="button" onclick="submitForm('#create-form')">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-primary" type="button" onclick="submitForm('#edit-form')">ثبت اطلاعات</button>
         <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
     </div>
 </div>
