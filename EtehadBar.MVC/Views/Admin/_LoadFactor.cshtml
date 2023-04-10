@@ -80,7 +80,7 @@
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
             @if (ViewBag.isSearch == true)
             {
-                @Html.PagedListPager(data, page => Url.Action("SearchLoadFactor", new { p = page, exitNumber = ViewBag.exitNumber, loadNumber = ViewBag.loadNumber, vehicleNumber = ViewBag.vehicleNumber, calendar = ViewBag.calendar }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+                @Html.PagedListPager(data, page => Url.Action("SearchLoadFactor", new { p = page, exitNumber = ViewBag.exitNumber, loadNumber = ViewBag.loadNumber, vehicleNumber = ViewBag.vehicleNumber, calendar = ViewBag.calendar, isFreeDriverPrice = ViewBag.isFreeDriverPrice }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "GET", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
             }
             else
             {

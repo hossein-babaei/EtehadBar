@@ -741,13 +741,14 @@ namespace EtehadBar.MVC.Controllers
 
             if (customer.CustomerType.Equals(CustomerType.SaipaPlasco))
             {
+                allLoadFactors = allLoadFactors.OrderBy(a => a.Vehicle.Type).ThenBy(a => a.Origin.Title).ThenBy(a => a.Destination.Title).ThenBy(a => a.Date).ToList();
                 using var workbook = new XLWorkbook();
                 decimal c = Convert.ToDecimal(allLoadFactors.Count / 20f);
                 double totalAmount = 0;
                 double totalDriverFee = 0;
                 for (int i = 1; i <= Convert.ToInt32(Math.Ceiling(c)); i++)
                 {
-                    var loadFactors = allLoadFactors.OrderBy(a => a.SaipaPlascoLoadFactor.Sequence).Skip((i - 1) * 20).Take(i * 20).ToList();
+                    var loadFactors = allLoadFactors.Skip((i - 1) * 20).Take(20).ToList();
 
                     var ws = workbook.Worksheets.Add($"Sheet{i}");
                     ws.RightToLeft = true;
@@ -890,7 +891,7 @@ namespace EtehadBar.MVC.Controllers
                             ws.Cell(index + rowIndex, 6).SetValue(loadFactors[index - 1].LoadNumber);
                         }
 
-                        ws.Cell(index + rowIndex, 7).Value = loadFactors[index - 1].ExitNumber;
+                        ws.Cell(index + rowIndex, 7).SetValue(loadFactors[index - 1].ExitNumber);
                         ws.Cell(index + rowIndex, 8).Value = loadFactors[index - 1].Origin.Title;
                         ws.Cell(index + rowIndex, 9).Value = loadFactors[index - 1].Destination.Title;
                         if (exportType.HasValue)
@@ -1081,7 +1082,7 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(index + 1, 3).Value = allLoadFactors[index - 1].SazehGostarLoadFactor.Certain;
                     ws.Cell(index + 1, 4).Value = allLoadFactors[index - 1].SazehGostarLoadFactor.Nature;
                     ws.Cell(index + 1, 5).Value = "*";
-                    ws.Cell(index + 1, 6).Value = allLoadFactors[index - 1].LoadNumber;
+                    ws.Cell(index + 1, 6).SetValue(allLoadFactors[index - 1].LoadNumber);
                     ws.Cell(index + 1, 7).Value = allLoadFactors[index - 1].Vehicle.Type;
                     ws.Cell(index + 1, 8).Value = pd.Day;
                     ws.Cell(index + 1, 9).Value = pd.Month;
@@ -1110,7 +1111,7 @@ namespace EtehadBar.MVC.Controllers
                     else
                         ws.Cell(index + 1, 14).Value = allLoadFactors[index - 1].Amount.ToString("N0");
 
-                    ws.Cell(index + 1, switchCounter - 2).Value = allLoadFactors[index - 1].ExitNumber;
+                    ws.Cell(index + 1, switchCounter - 2).SetValue(allLoadFactors[index - 1].ExitNumber);
                     ws.Cell(index + 1, switchCounter - 1).Value = allLoadFactors[index - 1].Driver.Fullname;
                     ws.Cell(index + 1, switchCounter).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
                 }
@@ -1392,13 +1393,13 @@ namespace EtehadBar.MVC.Controllers
                         ws.Cell($"A{i + 5}").Value = i + 1;
                         ws.Cell($"B{i + 5}").Value = accountBook.Number;
                         ws.Cell($"C{i + 5}").Value = date.ToString("yyyy/MM/dd");
-                        ws.Cell($"D{i + 5}").Value = allLoadFactors[i].LoadNumber;
+                        ws.Cell($"D{i + 5}").SetValue(allLoadFactors[i].LoadNumber);
                         ws.Cell($"E{i + 5}").Value = vehicle.Type;
                         ws.Cell($"F{i + 5}").Value = allLoadFactors[i].Driver.Fullname;
                         ws.Cell($"G{i + 5}").Value = carNumber;
                         ws.Cell($"H{i + 5}").Value = allLoadFactors[i].Origin.Title;
                         ws.Cell($"I{i + 5}").Value = allLoadFactors[i].Destination.Title;
-                        ws.Cell($"J{i + 5}").Value = allLoadFactors[i].LoadNumberGov;
+                        ws.Cell($"J{i + 5}").SetValue(allLoadFactors[i].LoadNumberGov);
                         ws.Cell($"K{i + 5}").Value = allLoadFactors[i].MehrcomParsLoadFactor.LoadNumberGovReturn;
                         ws.Cell($"L{i + 5}").Value = allLoadFactors[i].MehrcomParsLoadFactor.Load ? "1" : "0";
                         ws.Cell($"M{i + 5}").Value = allLoadFactors[i].MehrcomParsLoadFactor.Palette ? "1" : "0";
@@ -1688,13 +1689,13 @@ namespace EtehadBar.MVC.Controllers
                                 ws.Cell($"A{totalCounter}").Value = i + 1;
                                 ws.Cell($"B{totalCounter}").Value = loadFactors[i].AccountBook.Number;
                                 ws.Cell($"C{totalCounter}").Value = date.ToString("yyyy/MM/dd");
-                                ws.Cell($"D{totalCounter}").Value = loadFactors[i].LoadNumber;
+                                ws.Cell($"D{totalCounter}").SetValue(loadFactors[i].LoadNumber);
                                 ws.Cell($"E{totalCounter}").Value = vehicle.Type;
                                 ws.Cell($"F{totalCounter}").Value = loadFactors[i].Driver.Fullname;
                                 ws.Cell($"G{totalCounter}").Value = carNumber;
                                 ws.Cell($"H{totalCounter}").Value = loadFactors[i].Origin.Title;
                                 ws.Cell($"I{totalCounter}").Value = loadFactors[i].Destination.Title;
-                                ws.Cell($"J{totalCounter}").Value = loadFactors[i].LoadNumberGov;
+                                ws.Cell($"J{totalCounter}").SetValue(loadFactors[i].LoadNumberGov);
                                 ws.Cell($"K{totalCounter}").Value = loadFactors[i].MehrcomParsLoadFactor.LoadNumberGovReturn;
                                 ws.Cell($"L{totalCounter}").Value = loadFactors[i].MehrcomParsLoadFactor.Load ? "1" : "0";
                                 ws.Cell($"M{totalCounter}").Value = loadFactors[i].MehrcomParsLoadFactor.Palette ? "1" : "0";
@@ -1902,14 +1903,14 @@ namespace EtehadBar.MVC.Controllers
             for (int index = 1; index <= data.Count; index++)
             {
                 ws.Cell(index + 1, 1).Value = index;
-                ws.Cell(index + 1, 2).Value = data[index - 1].LoadNumber;
+                ws.Cell(index + 1, 2).SetValue(data[index - 1].LoadNumber);
                 ws.Cell(index + 1, 3).Value = $"{data[index - 1].Vehicle.RightNumber} {data[index - 1].Vehicle.NumberWord} {data[index - 1].Vehicle.LeftNumber}";
                 ws.Cell(index + 1, 4).Value = data[index - 1].Driver.Fullname;
                 ws.Cell(index + 1, 5).Value = data[index - 1].Origin.Title;
                 ws.Cell(index + 1, 6).Value = data[index - 1].Destination.Title;
                 ws.Cell(index + 1, 7).Value = new PersianDateTime(data[index - 1].Date).ToString("yyyy/MM/dd");
-                ws.Cell(index + 1, 8).Value = data[index - 1].SaipaPressLoadFactor.EntryNumber;
-                ws.Cell(index + 1, 9).Value = data[index - 1].ExitNumber;
+                ws.Cell(index + 1, 8).SetValue(data[index - 1].SaipaPressLoadFactor.EntryNumber);
+                ws.Cell(index + 1, 9).SetValue(data[index - 1].ExitNumber);
                 ws.Cell(index + 1, 10).Value = data[index - 1].Vehicle.Type;
                 ws.Cell(index + 1, 11).Value = data[index - 1].SaipaPressLoadFactor.LoadType;
                 ws.Cell(index + 1, 12).Value = data[index - 1].Tonnage.HasValue ? data[index - 1].Tonnage.Value : "0";

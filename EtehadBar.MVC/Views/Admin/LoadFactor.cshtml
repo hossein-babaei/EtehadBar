@@ -365,6 +365,18 @@
                     <label class="uk-form-label">تقویم کاری</label>
                     <select class="uk-select uk-border-rounded" id="calendar" name="calendar"></select>
                 </div>
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="uk-margin-small-top">
+                        <label class="uk-form-label">بارنامه های موردی</label>
+                        <label><input class="uk-radio" type="radio" id="isFreeDriverPrice" name="isFreeDriverPrice" value="true"> بلی</label>
+                        <label><input class="uk-radio" type="radio" id="isFreeDriverPrice" name="isFreeDriverPrice" value="false" checked> خیر</label>
+                    </div>
+                }
+                else
+                {
+                    <input id="isFreeDriverPrice" name="isFreeDriverPrice" type="hidden" />
+                }
             </form>
             <div class="uk-margin-top uk-text-center">
                 <a asp-action="LoadFactor" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>

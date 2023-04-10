@@ -2482,7 +2482,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SearchLoadFactor(int? p, string exitNumber, string loadNumber, string vehicleNumber, long? calendar)
+        public async Task<IActionResult> SearchLoadFactor(int? p, string exitNumber, string loadNumber, string vehicleNumber, bool isFreeDriverPrice, long? calendar)
         {
             if (!string.IsNullOrWhiteSpace(exitNumber) || !string.IsNullOrWhiteSpace(loadNumber) || !string.IsNullOrWhiteSpace(vehicleNumber) || calendar.HasValue)
             {
@@ -2499,6 +2499,9 @@ namespace EtehadBar.MVC.Controllers
                 else if (calendar.HasValue && calendar.Value > 0)
                     query = query.Where(a => a.CalendarId.Equals(calendar.Value));
 
+                if (isFreeDriverPrice)
+                    query = query.Where(a => a.IsFreeDriverPrice);
+
                 if (User.IsInRole("RegisterUser"))
                     query = query.Where(a => a.AdminId.Equals(_userManager.GetUserId(User)));
 
@@ -2508,6 +2511,7 @@ namespace EtehadBar.MVC.Controllers
                 ViewBag.loadNumber = loadNumber;
                 ViewBag.vehicleNumber = vehicleNumber;
                 ViewBag.calendar = calendar;
+                ViewBag.isFreeDriverPrice = isFreeDriverPrice;
                 ViewBag.isSearch = true;
                 return PartialView("_LoadFactor");
             }
