@@ -105,7 +105,7 @@
                 </div>
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">سال</label>
-                    <input class="uk-input uk-border-rounded uk-form-small" asp-for="Year" value="@ViewData["Year"].ToString()" dir="ltr" readonly />
+                    <input class="uk-input uk-border-rounded uk-form-small" asp-for="Year" value="@ViewData["Year"].ToString()" dir="ltr" />
                 </div>
                 <div class="uk-width-2-3@m">
                     <label asp-for="CalendarId" class="uk-form-label"></label>
@@ -179,6 +179,13 @@
                 <div class="uk-width-auto">
                     <div class="uk-margin-top">
                         <label><input class="uk-checkbox uk-border-rounded" type="checkbox" asp-for="HasAddonMessage"> افزایش 30% دارد</label>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-grid-small uk-child-width-auto uk-grid">
+                        <label>بارنامه موردی</label>
+                        <label><input class="uk-radio" type="radio" asp-for="IsFreeDriverPrice" value="true"> بلی</label>
+                        <label><input class="uk-radio" type="radio" asp-for="IsFreeDriverPrice" value="false" checked> خیر</label>
                     </div>
                 </div>
             </div>

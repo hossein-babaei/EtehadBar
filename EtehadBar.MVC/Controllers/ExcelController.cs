@@ -844,7 +844,7 @@ namespace EtehadBar.MVC.Controllers
                         rngHeader.Style.Fill.SetBackgroundColor(XLColor.LightGray);
                         rngHeader.Style.Font.SetFontSize(11);
                         rngHeader.Style.Border.InsideBorder = XLBorderStyleValues.Medium;
-                        rngHeader.Style.Border.InsideBorderColor = XLColor.Black;
+                        rngHeader.Style.Border.InsideBorderColor = XLColor.Black; 
 
                         rngHeader.LastRow().Style.Border.BottomBorder = XLBorderStyleValues.Medium;
                         rngHeader.LastRow().Style.Border.BottomBorderColor = XLColor.Black;
@@ -881,14 +881,15 @@ namespace EtehadBar.MVC.Controllers
                         ws.Cell(index + rowIndex, 4).Value = $"{loadFactors[index - 1].Vehicle.RightNumber} {loadFactors[index - 1].Vehicle.NumberWord} {loadFactors[index - 1].Vehicle.LeftNumber}";
                         if (string.IsNullOrWhiteSpace(loadFactors[index - 1].LoadNumberGov))
                         {
-                            ws.Cell(index + rowIndex, 5).Value = loadFactors[index - 1].LoadNumber;
-                            ws.Cell(index + rowIndex, 6).Value = "---";
+                            ws.Cell(index + rowIndex, 5).SetValue(loadFactors[index - 1].LoadNumber);
+                            ws.Cell(index + rowIndex, 6).SetValue("---");
                         }
                         else
                         {
-                            ws.Cell(index + rowIndex, 5).Value = loadFactors[index - 1].LoadNumberGov;
-                            ws.Cell(index + rowIndex, 6).Value = loadFactors[index - 1].LoadNumber;
+                            ws.Cell(index + rowIndex, 5).SetValue(loadFactors[index - 1].LoadNumberGov);
+                            ws.Cell(index + rowIndex, 6).SetValue(loadFactors[index - 1].LoadNumber);
                         }
+
                         ws.Cell(index + rowIndex, 7).Value = loadFactors[index - 1].ExitNumber;
                         ws.Cell(index + rowIndex, 8).Value = loadFactors[index - 1].Origin.Title;
                         ws.Cell(index + rowIndex, 9).Value = loadFactors[index - 1].Destination.Title;

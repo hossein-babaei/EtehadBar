@@ -2491,9 +2491,9 @@ namespace EtehadBar.MVC.Controllers
                 var query = _loadFactorRepo.LoadFactors();
 
                 if (!string.IsNullOrWhiteSpace(exitNumber))
-                    query = query.Where(a => a.ExitNumber.Equals(exitNumber));
+                    query = query.Where(a => a.ExitNumber.Contains(exitNumber));
                 else if (!string.IsNullOrWhiteSpace(loadNumber))
-                    query = query.Where(a => a.LoadNumber.Equals(loadNumber));
+                    query = query.Where(a => a.LoadNumber.Contains(loadNumber));
                 else if (!string.IsNullOrWhiteSpace(vehicleNumber))
                     query = query.Where(a => vehicleNumber == (a.Vehicle.LeftNumber + " " + a.Vehicle.NumberWord + " " + a.Vehicle.RightNumber));
                 else if (calendar.HasValue && calendar.Value > 0)
@@ -2608,7 +2608,8 @@ namespace EtehadBar.MVC.Controllers
                     VAT = config.VAT,
                     LoadFactorDeductions = customerLoadFactorDeduction,
                     AccountBookId = input.AccountBookId,
-                    IsDriverFeeEditedByAdmin = false
+                    IsDriverFeeEditedByAdmin = false,
+                    IsFreeDriverPrice = input.IsFreeDriverPrice
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -2688,7 +2689,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSaipaPressLoadFactor(CSaipaPressLoadFactorVM input)
+        public async Task<IActionResult> CreateSaipaPressLoadFactor(CSaipaPressLoadFactorVM input, bool HasNumber)
         {
             string msg;
             string status = "danger";
@@ -2697,7 +2698,7 @@ namespace EtehadBar.MVC.Controllers
                 var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
                 var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
 
-                if (string.IsNullOrWhiteSpace(input.EntryNumber) && string.IsNullOrWhiteSpace(input.ExitNumber))
+                if (HasNumber && string.IsNullOrWhiteSpace(input.EntryNumber) && string.IsNullOrWhiteSpace(input.ExitNumber))
                     return NotFound("لطفا شماره ورود یا خروج را وارد نمائید.");
 
                 if (input.PressFloorType == SaipaPressLoadType.OneFloor)
@@ -2747,7 +2748,8 @@ namespace EtehadBar.MVC.Controllers
                     LoadFactorDeductions = customerLoadFactorDeduction,
                     Tonnage = input.Tonnage,
                     AccountBookId = input.AccountBookId,
-                    IsDriverFeeEditedByAdmin = false
+                    IsDriverFeeEditedByAdmin = false,
+                    IsFreeDriverPrice = input.IsFreeDriverPrice
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -2876,7 +2878,8 @@ namespace EtehadBar.MVC.Controllers
                     VAT = config.VAT,
                     LoadFactorDeductions = customerLoadFactorDeduction,
                     AccountBookId = input.AccountBookId,
-                    IsDriverFeeEditedByAdmin = false
+                    IsDriverFeeEditedByAdmin = false,
+                    IsFreeDriverPrice = input.IsFreeDriverPrice
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -3026,7 +3029,8 @@ namespace EtehadBar.MVC.Controllers
                     LoadSleepTime = input.LoadSleepTime,
                     LoadSleepPrice = input.LoadSleepPrice,
                     DriverLoadSleepPrice = input.DriverLoadSleepPrice,
-                    IsDriverFeeEditedByAdmin = false
+                    IsDriverFeeEditedByAdmin = false,
+                    IsFreeDriverPrice = input.IsFreeDriverPrice
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -3155,6 +3159,7 @@ namespace EtehadBar.MVC.Controllers
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.AccountBookId = input.AccountBookId;
+                item.IsFreeDriverPrice = input.IsFreeDriverPrice;
 
                 item.SaipaPlascoLoadFactor.Sequence = input.Sequence;
 
@@ -3188,11 +3193,11 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EditSaipaPressLoadFactor(ESaipaPressLoadFactorVM input)
+        public async Task<IActionResult> EditSaipaPressLoadFactor(ESaipaPressLoadFactorVM input, bool HasNumber)
         {
             if (ModelState.IsValid)
             {
-                if (string.IsNullOrWhiteSpace(input.EntryNumber) && string.IsNullOrWhiteSpace(input.ExitNumber))
+                if (HasNumber && string.IsNullOrWhiteSpace(input.EntryNumber) && string.IsNullOrWhiteSpace(input.ExitNumber))
                     return NotFound("لطفا شماره ورود یا خروج را وارد نمائید.");
 
                 if (input.PressFloorType == SaipaPressLoadType.OneFloor)
@@ -3243,6 +3248,7 @@ namespace EtehadBar.MVC.Controllers
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.Tonnage = input.Tonnage;
                 item.AccountBookId = input.AccountBookId;
+                item.IsFreeDriverPrice = input.IsFreeDriverPrice;
 
                 item.SaipaPressLoadFactor.Sequence = input.Sequence;
                 item.SaipaPressLoadFactor.EntryNumber = input.EntryNumber;
@@ -3320,6 +3326,7 @@ namespace EtehadBar.MVC.Controllers
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.AccountBookId = input.AccountBookId;
+                item.IsFreeDriverPrice = input.IsFreeDriverPrice;
 
                 item.SazehGostarLoadFactor.Sequence = input.Sequence;
                 item.SazehGostarLoadFactor.Certain = input.Certain;
@@ -3407,6 +3414,7 @@ namespace EtehadBar.MVC.Controllers
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.AccountBookId = input.AccountBookId;
                 item.Tonnage = input.Tonnage;
+                item.IsFreeDriverPrice = input.IsFreeDriverPrice;
 
                 item.MehrcomParsLoadFactor.LoadNumberGovReturn = input.LoadNumberGovReturn;
                 item.MehrcomParsLoadFactor.Return = input.Return;
@@ -4529,6 +4537,8 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
+
+        //public async Task<IActionResult> MoveBankAccountBook()
         #endregion
     }
 }

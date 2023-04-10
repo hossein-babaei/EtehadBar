@@ -90,6 +90,8 @@ namespace EtehadBar.Domain.Models
         //used for custom load factors
         public bool IsDriverFeeEditedByAdmin { get; set; } = false;
 
+        public bool IsFreeDriverPrice { get; set; } = false;
+
         [Required]
         [Display(Name = "مشتری")]
         public long ContractId { get; set; }

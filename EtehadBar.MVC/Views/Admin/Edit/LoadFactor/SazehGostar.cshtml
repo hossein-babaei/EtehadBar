@@ -161,6 +161,13 @@
                     <input asp-for="Count" dir="ltr" class="uk-input uk-border-rounded uk-form-small" readonly />
                     <span asp-validation-for="Count" class="uk-text-danger"></span>
                 </div>
+                <div>
+                    <div class="uk-grid-small uk-child-width-auto uk-grid">
+                        <label>بارنامه موردی</label>
+                        <label><input class="uk-radio" type="radio" id="IsFreeDriverPrice" name="IsFreeDriverPrice" value="true" @if(Model.IsFreeDriverPrice){<text>checked</text>}> بلی</label>
+                        <label><input class="uk-radio" type="radio" id="IsFreeDriverPrice" name="IsFreeDriverPrice" value="false" @if(!Model.IsFreeDriverPrice){<text>checked</text>}> خیر</label>
+                    </div>
+                </div>
             </div>
         </form>
     </div>

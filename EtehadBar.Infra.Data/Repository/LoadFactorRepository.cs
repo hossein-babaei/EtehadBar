@@ -106,7 +106,8 @@ namespace EtehadBar.Infra.Data.Repository
                 VehicleId = loadFactor.VehicleId,
                 Amount = loadFactor.Amount,
                 DriverFee = loadFactor.DriverFee,
-                AccountBookId = loadFactor.AccountBookId
+                AccountBookId = loadFactor.AccountBookId,
+                IsFreeDriverPrice = loadFactor.IsFreeDriverPrice,
             };
         }
 
@@ -139,7 +140,8 @@ namespace EtehadBar.Infra.Data.Repository
                 Tonnage = loadFactor.Tonnage,
                 TonnagePrice = loadFactor.TonnagePrice,
                 PressFloorType = loadFactor.SaipaPressLoadFactor.PressFloorType,
-                AccountBookId = loadFactor.AccountBookId
+                AccountBookId = loadFactor.AccountBookId,
+                IsFreeDriverPrice = loadFactor.IsFreeDriverPrice
             };
         }
 
@@ -173,7 +175,8 @@ namespace EtehadBar.Infra.Data.Repository
                 Amount = loadFactor.Amount,
                 DriverFee = loadFactor.DriverFee,
                 AccountBookId = loadFactor.AccountBookId,
-                SazehLoadType = loadFactor.SazehGostarLoadFactor.SazehLoadType
+                SazehLoadType = loadFactor.SazehGostarLoadFactor.SazehLoadType,
+                IsFreeDriverPrice = loadFactor.IsFreeDriverPrice
             };
         }
 
@@ -205,7 +208,7 @@ namespace EtehadBar.Infra.Data.Repository
         {
             if (await db.SaipaPlascoLoadFactor.AsNoTracking().AnyAsync())
                 return await db.SaipaPlascoLoadFactor.AsNoTracking().MaxAsync(a => a.Sequence);
-            else 
+            else
                 return 0;
         }
 
@@ -270,7 +273,7 @@ namespace EtehadBar.Infra.Data.Repository
                 DriverFee = loadFactor.DriverFee,
                 AccountBookId = loadFactor.AccountBookId,
                 Load = loadFactor.MehrcomParsLoadFactor.Load,
-                LoadNumberGov= loadFactor.LoadNumberGov,
+                LoadNumberGov = loadFactor.LoadNumberGov,
                 LoadNumberGovReturn = loadFactor.MehrcomParsLoadFactor.LoadNumberGovReturn,
                 Palette = loadFactor.MehrcomParsLoadFactor.Palette,
                 Return = loadFactor.MehrcomParsLoadFactor.Return,
@@ -282,7 +285,8 @@ namespace EtehadBar.Infra.Data.Repository
                 TonnagePrice = loadFactor.TonnagePrice,
                 LoadSleepPrice = loadFactor.LoadSleepPrice,
                 LoadSleepTime = loadFactor.LoadSleepTime,
-                HasAddonMessage = loadFactor.MehrcomParsLoadFactor.HasAddonMessage
+                HasAddonMessage = loadFactor.MehrcomParsLoadFactor.HasAddonMessage,
+                IsFreeDriverPrice = loadFactor.IsFreeDriverPrice
             };
         }
 

@@ -200,6 +200,13 @@
                         <label><input class="uk-checkbox uk-border-rounded" type="checkbox" name="HasAddonMessage" id="HasAddonMessage" onchange="checkboxBoolean(this)" value="@(Model.HasAddonMessage ? "True" : "False")" @if(Model.HasAddonMessage){<text>checked</text>}> افزایش 30% دارد</label>
                     </div>
                 </div>
+                <div>
+                    <div class="uk-grid-small uk-child-width-auto uk-grid">
+                        <label>بارنامه موردی</label>
+                        <label><input class="uk-radio" type="radio" id="IsFreeDriverPrice" name="IsFreeDriverPrice" value="true" @if(Model.IsFreeDriverPrice){<text>checked</text>}> بلی</label>
+                        <label><input class="uk-radio" type="radio" id="IsFreeDriverPrice" name="IsFreeDriverPrice" value="false" @if(!Model.IsFreeDriverPrice){<text>checked</text>}> خیر</label>
+                    </div>
+                </div>
             </div>
         </form>
     </div>

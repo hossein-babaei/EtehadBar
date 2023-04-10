@@ -63,6 +63,9 @@ namespace EtehadBar.Domain
         [Display(Name = "صورت وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long AccountBookId { get; set; }
+
+        [Display(Name = "بارنامه آزاد")]
+        public bool IsFreeDriverPrice { get; set; }
     }
 
     public class ESaipaPlascoLoadFactorVM
@@ -128,6 +131,9 @@ namespace EtehadBar.Domain
         [Display(Name = "صورت وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long AccountBookId { get; set; }
+
+        [Display(Name = "بارنامه آزاد")]
+        public bool IsFreeDriverPrice { get; set; }
     }
 
     public class CSaipaPressLoadFactorVM
@@ -208,6 +214,9 @@ namespace EtehadBar.Domain
         [Display(Name = "صورت وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long AccountBookId { get; set; }
+
+        [Display(Name = "بارنامه آزاد")]
+        public bool IsFreeDriverPrice { get; set; }
     }
 
     public class ESaipaPressLoadFactorVM
@@ -294,6 +303,9 @@ namespace EtehadBar.Domain
         [Display(Name = "صورت وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long AccountBookId { get; set; }
+
+        [Display(Name = "بارنامه آزاد")]
+        public bool IsFreeDriverPrice { get; set; }
     }
 
     public class CSazehGostarLoadFactorVM
@@ -380,6 +392,9 @@ namespace EtehadBar.Domain
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public SazehGostarLoadType SazehLoadType { get; set; }
+
+        [Display(Name = "بارنامه آزاد")]
+        public bool IsFreeDriverPrice { get; set; }
     }
 
     public class ESazehGostarLoadFactorVM
@@ -475,6 +490,9 @@ namespace EtehadBar.Domain
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public SazehGostarLoadType SazehLoadType { get; set; }
+
+        [Display(Name = "بارنامه آزاد")]
+        public bool IsFreeDriverPrice { get; set; }
     }
 
     public class CMehrcomParsLoadFactorVM
@@ -575,6 +593,9 @@ namespace EtehadBar.Domain
 
         [Display(Name = "افزایش 30%")]
         public bool HasAddonMessage { get; set; } = false;
+
+        [Display(Name = "بارنامه آزاد")]
+        public bool IsFreeDriverPrice { get; set; }
     }
 
     public class EMehrcomParsLoadFactorVM
@@ -676,5 +697,8 @@ namespace EtehadBar.Domain
 
         [Display(Name = "افزایش 30%")]
         public bool HasAddonMessage { get; set; } = false;
+
+        [Display(Name = "بارنامه آزاد")]
+        public bool IsFreeDriverPrice { get; set; }
     }
 }
