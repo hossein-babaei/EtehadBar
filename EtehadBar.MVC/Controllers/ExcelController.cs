@@ -218,10 +218,15 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [Authorize(Roles = "Admin, User")]
-        public async Task<IActionResult> Cost(long calendarId)
+        public async Task<IActionResult> Cost(long calendarId, string userId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
-            var costs = await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync();
+
+            var query = _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId));
+            if (userId != "all")
+                query = query.Where(a => a.UserId.Equals(userId));
+
+            var costs = await query.OrderBy(a => a.Date).ToListAsync();
 
             string docTitle = $"گزارش هزینه های جاری در {calendar.Title}";
 
@@ -1072,7 +1077,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
                     .Font.SetBold(true);
 
-                allLoadFactors = allLoadFactors.OrderBy(a => a.SazehGostarLoadFactor.Sequence).ToList();
+                allLoadFactors = allLoadFactors.OrderBy(a => a.Origin.Title).ThenBy(a => a.Destination.Title).ThenBy(a => a.Date).ToList();
                 for (int index = 1; index <= allLoadFactors.Count; index++)
                 {
                     var pd = new PersianDateTime(allLoadFactors[index - 1].Date);
@@ -1365,6 +1370,7 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(4, switchCounter + 1).Value = "ماه";
                     ws.Cell(4, switchCounter + 2).Value = "سال";
 
+                    var calendarPd = new PersianDateTime(allLoadFactors.First().Calendar.StartDate);
                     for (int i = 0; i < allLoadFactors.Count; i++)
                     {
                         var vehicle = allLoadFactors[i].Vehicle;
@@ -1425,8 +1431,8 @@ namespace EtehadBar.MVC.Controllers
                         else
                             ws.Cell(i + 5, 15).Value = allLoadFactors[i].DriverFee.ToString("N0");
 
-                        ws.Cell(i + 5, switchCounter + 1).Value = date.ToString("MMMM");
-                        ws.Cell(i + 5, switchCounter + 2).Value = date.ToString("yyyy");
+                        ws.Cell(i + 5, switchCounter + 1).Value = calendarPd.ToString("MMMM");
+                        ws.Cell(i + 5, switchCounter + 2).Value = calendarPd.ToString("yyyy");
 
                         #region handling comment
                         string commentText = "";
@@ -1661,6 +1667,7 @@ namespace EtehadBar.MVC.Controllers
                         for (int index = 1; index <= Convert.ToInt32(Math.Ceiling(c)); index++)
                         {
                             var loadFactors = data.Skip((index - 1) * 30).Take(30).ToList();
+                            var calendarPd = new PersianDateTime(loadFactors.First().Calendar.StartDate);
 
                             for (int i = 0; i < loadFactors.Count; i++)
                             {
@@ -1721,8 +1728,8 @@ namespace EtehadBar.MVC.Controllers
                                 else
                                     ws.Cell(totalCounter, 15).Value = loadFactors[i].DriverFee.ToString("N0");
 
-                                ws.Cell(totalCounter, switchCounter + 1).Value = date.ToString("MMMM");
-                                ws.Cell(totalCounter, switchCounter + 2).Value = date.ToString("yyyy");
+                                ws.Cell(totalCounter, switchCounter + 1).Value = calendarPd.ToString("MMMM");
+                                ws.Cell(totalCounter, switchCounter + 2).Value = calendarPd.ToString("yyyy");
 
 
                                 #region handling comment

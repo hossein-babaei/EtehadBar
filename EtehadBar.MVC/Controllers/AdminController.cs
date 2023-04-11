@@ -1087,8 +1087,13 @@ namespace EtehadBar.MVC.Controllers
             ViewData["UserId"] = _userManager.GetUserId(User);
             ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+
+            var query = _costRepo.Costs();
+            if (!User.IsInRole("Admin"))
+                query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
+
             var pageNumber = p ?? 1;
-            var onePageOfData = await _costRepo.Costs().OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
+            var onePageOfData = await query.OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -2492,11 +2497,11 @@ namespace EtehadBar.MVC.Controllers
 
                 if (!string.IsNullOrWhiteSpace(exitNumber))
                     query = query.Where(a => a.ExitNumber.Contains(exitNumber));
-                else if (!string.IsNullOrWhiteSpace(loadNumber))
+                if (!string.IsNullOrWhiteSpace(loadNumber))
                     query = query.Where(a => a.LoadNumber.Contains(loadNumber));
-                else if (!string.IsNullOrWhiteSpace(vehicleNumber))
+                if (!string.IsNullOrWhiteSpace(vehicleNumber))
                     query = query.Where(a => vehicleNumber == (a.Vehicle.LeftNumber + " " + a.Vehicle.NumberWord + " " + a.Vehicle.RightNumber));
-                else if (calendar.HasValue && calendar.Value > 0)
+                if (calendar.HasValue && calendar.Value > 0)
                     query = query.Where(a => a.CalendarId.Equals(calendar.Value));
 
                 if (isFreeDriverPrice)
@@ -2629,7 +2634,7 @@ namespace EtehadBar.MVC.Controllers
                 loadFactor.SaipaPlascoLoadFactor = new SaipaPlascoLoadFactor
                 {
                     LoadFactor = loadFactor,
-                    Sequence = input.Sequence
+                    Sequence = await _loadFactorRepo.GetBiggestSequenceInSaipaPlasco() + 1
                 };
 
 
@@ -2641,45 +2646,45 @@ namespace EtehadBar.MVC.Controllers
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
-                catch (SqlException sqlException)
-                {
-                    if (sqlException.Number == 2601 || sqlException.Number == 2627)
-                    {
-                        bool done = false;
-                        while (!done)
-                        {
-                            input.Sequence = input.Sequence++;
-                            loadFactor.SaipaPlascoLoadFactor.Sequence = input.Sequence;
+                //catch (SqlException sqlException)
+                //{
+                //    if (sqlException.Number == 2601 || sqlException.Number == 2627)
+                //    {
+                //        bool done = false;
+                //        while (!done)
+                //        {
+                //            input.Sequence = input.Sequence++;
+                //            loadFactor.SaipaPlascoLoadFactor.Sequence = input.Sequence;
 
-                            _loadFactorRepo.Create(loadFactor);
-                            try
-                            {
-                                await _loadFactorRepo.Save();
-                                done = true;
-                            }
-                            catch (SqlException sqlException2)
-                            {
-                                if (sqlException2.Number != 2601 || sqlException2.Number != 2627)
-                                {
-                                    msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException2.Message} #{sqlException2.Number}";
-                                    break;
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
-                                break;
-                            }
-                        }
+                //            _loadFactorRepo.Create(loadFactor);
+                //            try
+                //            {
+                //                await _loadFactorRepo.Save();
+                //                done = true;
+                //            }
+                //            catch (SqlException sqlException2)
+                //            {
+                //                if (sqlException2.Number != 2601 || sqlException2.Number != 2627)
+                //                {
+                //                    msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException2.Message} #{sqlException2.Number}";
+                //                    break;
+                //                }
+                //            }
+                //            catch (Exception e)
+                //            {
+                //                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                //                break;
+                //            }
+                //        }
 
-                        msg = "عملیات موفقیت آمیز بود.";
-                        status = "success";
-                    }
-                    else
-                    {
-                        msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException.Message} #{sqlException.Number}";
-                    }
-                }
+                //        msg = "عملیات موفقیت آمیز بود.";
+                //        status = "success";
+                //    }
+                //    else
+                //    {
+                //        msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException.Message} #{sqlException.Number}";
+                //    }
+                //}
                 catch (Exception e)
                 {
                     msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
@@ -2689,7 +2694,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Json(new { msg, status, sequence = CalcNextSequenceForLoadFactor(input.Sequence) });
+            return Json(new { msg, status, sequence = 1 });
         }
 
         [HttpPost]
@@ -2907,7 +2912,7 @@ namespace EtehadBar.MVC.Controllers
                     Nature = input.Nature,
                     RegisterCode = input.RegisterCode,
                     LoadFactor = loadFactor,
-                    Sequence = input.Sequence,
+                    Sequence = await _loadFactorRepo.GetBiggestSequenceInSazehGostar() + 1,
                     SazehLoadType = input.SazehLoadType
                 };
 
@@ -2919,45 +2924,45 @@ namespace EtehadBar.MVC.Controllers
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
-                catch (SqlException sqlException)
-                {
-                    if (sqlException.Number == 2601 || sqlException.Number == 2627)
-                    {
-                        bool done = false;
-                        while (!done)
-                        {
-                            input.Sequence = input.Sequence++;
-                            loadFactor.SazehGostarLoadFactor.Sequence = input.Sequence;
+                //catch (SqlException sqlException)
+                //{
+                //    if (sqlException.Number == 2601 || sqlException.Number == 2627)
+                //    {
+                //        bool done = false;
+                //        while (!done)
+                //        {
+                //            input.Sequence = input.Sequence++;
+                //            loadFactor.SazehGostarLoadFactor.Sequence = input.Sequence;
 
-                            _loadFactorRepo.Create(loadFactor);
-                            try
-                            {
-                                await _loadFactorRepo.Save();
-                                done = true;
-                            }
-                            catch (SqlException sqlException2)
-                            {
-                                if (sqlException2.Number != 2601 || sqlException2.Number != 2627)
-                                {
-                                    msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException2.Message} #{sqlException2.Number}";
-                                    break;
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
-                                break;
-                            }
-                        }
+                //            _loadFactorRepo.Create(loadFactor);
+                //            try
+                //            {
+                //                await _loadFactorRepo.Save();
+                //                done = true;
+                //            }
+                //            catch (SqlException sqlException2)
+                //            {
+                //                if (sqlException2.Number != 2601 || sqlException2.Number != 2627)
+                //                {
+                //                    msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException2.Message} #{sqlException2.Number}";
+                //                    break;
+                //                }
+                //            }
+                //            catch (Exception e)
+                //            {
+                //                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                //                break;
+                //            }
+                //        }
 
-                        msg = "عملیات موفقیت آمیز بود.";
-                        status = "success";
-                    }
-                    else
-                    {
-                        msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException.Message} #{sqlException.Number}";
-                    }
-                }
+                //        msg = "عملیات موفقیت آمیز بود.";
+                //        status = "success";
+                //    }
+                //    else
+                //    {
+                //        msg = $"عملیات با خطا مواجه شد. جزئیات: {sqlException.Message} #{sqlException.Number}";
+                //    }
+                //}
                 catch (Exception e)
                 {
                     msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
@@ -2967,7 +2972,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Json(new { msg, status, sequence = CalcNextSequenceForLoadFactor(input.Sequence) });
+            return Json(new { msg, status, sequence = 1 /*CalcNextSequenceForLoadFactor(input.Sequence)*/ });
         }
 
         [HttpPost]
@@ -3146,8 +3151,8 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                if (await _loadFactorRepo.SequenceExistInSaipaPlasco(item.Id, input.Sequence))
-                    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
+                //if (await _loadFactorRepo.SequenceExistInSaipaPlasco(item.Id, input.Sequence))
+                //    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDateTime = DateTime.Now;
@@ -3165,7 +3170,7 @@ namespace EtehadBar.MVC.Controllers
                 item.AccountBookId = input.AccountBookId;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
 
-                item.SaipaPlascoLoadFactor.Sequence = input.Sequence;
+                //item.SaipaPlascoLoadFactor.Sequence = input.Sequence;
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
@@ -3314,8 +3319,8 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
-                if (await _loadFactorRepo.SequenceExistInSazehGostar(item.Id, input.Sequence))
-                    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
+                //if (await _loadFactorRepo.SequenceExistInSazehGostar(item.Id, input.Sequence))
+                //    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDateTime = DateTime.Now;
@@ -3332,7 +3337,7 @@ namespace EtehadBar.MVC.Controllers
                 item.AccountBookId = input.AccountBookId;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
 
-                item.SazehGostarLoadFactor.Sequence = input.Sequence;
+                //item.SazehGostarLoadFactor.Sequence = input.Sequence;
                 item.SazehGostarLoadFactor.Certain = input.Certain;
                 item.SazehGostarLoadFactor.Count = input.Count;
                 item.SazehGostarLoadFactor.Description = $"حمل کالا از {fee.Origin.Title} به {fee.Destination.Title}{(input.SazehLoadType == SazehGostarLoadType.TwoWay ? " رفت و برگشت" : "")} ({fee.Vehicle})";

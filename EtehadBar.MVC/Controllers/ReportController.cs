@@ -220,19 +220,35 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin, User")]
         public async Task<IActionResult> Cost()
         {
+            var users = await _userManager.Users.AsNoTracking().Where(a => a.Role != ApplicationRoleType.RegisterUser).OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync();
+            ViewData["users"] = users;
+
             var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["calendars"] = calendars;
 
+            var query = _costRepo.Costs();
+            if (!User.IsInRole("Admin"))
+                query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
+
             var latestCal = calendars.First();
-            return View(await _costRepo.Costs().Where(a => a.CalendarId.Equals(latestCal.Id)).ToListAsync());
+            return View(await query.Where(a => a.CalendarId.Equals(latestCal.Id)).ToListAsync());
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin, User")]
-        public async Task<IActionResult> Cost(long calendarId)
+        public async Task<IActionResult> Cost(long calendarId, string userId)
         {
+            ViewData["userId"] = userId;
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
-            return PartialView("_Cost", await _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId)).ToListAsync());
+
+            var query = _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId));
+            if (!User.IsInRole("Admin"))
+                query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
+
+            if (userId != "all")
+                query = query.Where(a => a.UserId.Equals(userId));
+
+            return PartialView("_Cost", await query.ToListAsync());
         }
 
         [HttpGet]

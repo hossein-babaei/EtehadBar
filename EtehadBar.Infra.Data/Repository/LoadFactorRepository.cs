@@ -91,7 +91,7 @@ namespace EtehadBar.Infra.Data.Repository
             var pd = new PersianDateTime(loadFactor.Date);
             return new ESaipaPlascoLoadFactorVM
             {
-                Sequence = loadFactor.SaipaPlascoLoadFactor.Sequence,
+                //Sequence = loadFactor.SaipaPlascoLoadFactor.Sequence,
                 Id = loadFactor.Id,
                 CalendarId = loadFactor.CalendarId,
                 ContractId = loadFactor.ContractId,
@@ -153,7 +153,7 @@ namespace EtehadBar.Infra.Data.Repository
             var pd = new PersianDateTime(loadFactor.Date);
             return new ESazehGostarLoadFactorVM
             {
-                Sequence = loadFactor.SazehGostarLoadFactor.Sequence,
+                //Sequence = loadFactor.SazehGostarLoadFactor.Sequence,
                 Id = loadFactor.Id,
                 CalendarId = loadFactor.CalendarId,
                 ContractId = loadFactor.ContractId,

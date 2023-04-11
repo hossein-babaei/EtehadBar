@@ -4,9 +4,9 @@ namespace EtehadBar.Domain
 {
     public class CSaipaPlascoLoadFactorVM
     {
-        [Display(Name = "ترتیب")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public long Sequence { get; set; }
+        //[Display(Name = "ترتیب")]
+        //[Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        //public long Sequence { get; set; }
 
         [Display(Name = "روز")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -70,9 +70,9 @@ namespace EtehadBar.Domain
 
     public class ESaipaPlascoLoadFactorVM
     {
-        [Display(Name = "ترتیب")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public long Sequence { get; set; }
+        //[Display(Name = "ترتیب")]
+        //[Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        //public long Sequence { get; set; }
 
         [Required]
         public long Id { get; set; }
@@ -310,9 +310,9 @@ namespace EtehadBar.Domain
 
     public class CSazehGostarLoadFactorVM
     {
-        [Display(Name = "ترتیب")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public long Sequence { get; set; }
+        //[Display(Name = "ترتیب")]
+        //[Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        //public long Sequence { get; set; }
 
         [Display(Name = "روز")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -399,9 +399,9 @@ namespace EtehadBar.Domain
 
     public class ESazehGostarLoadFactorVM
     {
-        [Display(Name = "ترتیب")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public long Sequence { get; set; }
+        //[Display(Name = "ترتیب")]
+        //[Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        //public long Sequence { get; set; }
 
         [Required]
         public long Id { get; set; }

@@ -6,6 +6,8 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     int i = 1;
 
+    var users = (List<ApplicationUser>)ViewData["users"];
+
     var calendars = (List<Calendar>)ViewData["calendars"];
     var latestCal = calendars.First();
 
@@ -19,6 +21,7 @@
     <script src="~/lib/select2/select2.min.js"></script>
     <script>
         $(document).ready(function () {
+            $('#search-modal select[name=userId]').select2({ width: '100%' });
             $('#search-modal select[name=calendarId]').select2({ width: '100%' });
         });
         $('#search-modal form').submit(function (e) {
@@ -141,13 +144,33 @@
         </div>
         <div class="uk-modal-body">
             <form>
-                <label class="uk-form-label">تاریخ</label>
-                <select name="calendarId">
-                    @foreach (var item in calendars)
-                    {
-                        <option value="@item.Id">@item.Title</option>
-                    }
-                </select>
+                <div>
+                    <label class="uk-form-label">تاریخ</label>
+                    <select name="calendarId">
+                        @foreach (var item in calendars)
+                        {
+                            <option value="@item.Id">@item.Title</option>
+                        }
+                    </select>
+                </div>
+
+                @if (!User.IsInRole("Admin"))
+                {
+                    <div class="uk-margin-top">
+                        <label class="uk-form-label">کاربر</label>
+                        <select name="userId">
+                            <option value="all">همه</option>
+                            @foreach (var user in users)
+                            {
+                                <option value="@user.Id">@user.Firstname @user.Lastname</option>
+                            }
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" name="userId" value="all" />
+                }
             </form>
             <div class="uk-margin-top uk-text-center">
                 <a asp-action="Cost" asp-controller="Report" class="uk-button uk-button-text">ریست کردن نتایج</a>
