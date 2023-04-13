@@ -180,14 +180,67 @@ namespace EtehadBar.Infra.Data.Repository
             };
         }
 
-        public async Task<List<LoadFactor>> LoadFactors(long customerId, long? calendarId, long? accountBookId, long? driverId)
+        public async Task<List<ExcelLoadFactorVM>> LoadFactors(long customerId, long? calendarId, long? accountBookId, long? driverId)
         {
             if (!calendarId.HasValue)
             {
                 var data = from a in db.LoadFactor
                            join b in db.Contract on a.ContractId equals b.Id
+                           join c in db.AccountBook on a.AccountBookId equals c.Id
+                           join d in db.ShippingFee on a.ShippingFeeId equals d.Id
+                           join e in db.Vehicles on a.VehicleId equals e.Id
+                           join f in db.Driver on a.DriverId equals f.Id
+                           join calendar in db.Calendar on a.CalendarId equals calendar.Id
+                           join g in db.LoadRoute on a.OriginId equals g.Id
+                           where g.RouteType == LoadRouteType.Origin
+                           join h in db.LoadRoute on a.DestinationId equals h.Id
+                           where h.RouteType == LoadRouteType.Destionation
                            where b.CustomerId.Equals(customerId)
-                           select a;
+                           select new ExcelLoadFactorVM
+                           {
+                               Id = a.Id,
+                               AccountBookId = a.AccountBookId,
+                               DriverId = a.DriverId,
+                               AccountBookNumber = c.Number,
+                               AdminId = a.AdminId,
+                               Amount = a.Amount,
+                               CalendarEndDate = calendar.EndDate,
+                               CalendarId = calendar.Id,
+                               CalendarStartDate = calendar.StartDate,
+                               CalendarTitle = calendar.Title,
+                               ContractId = a.ContractId,
+                               CreateDateTime = a.CreateDateTime,
+                               Date = a.Date,
+                               DestinationName = h.Title,
+                               OriginName = g.Title,
+                               DriverFee = a.DriverFee,
+                               DriverLoadSleepPrice = a.DriverLoadSleepPrice,
+                               DriverName = f.Fullname,
+                               DriverTonnagePrice = a.DriverTonnagePrice,
+                               ExitNumber = a.ExitNumber,
+                               IsDriverFeeEditedByAdmin = a.IsDriverFeeEditedByAdmin,
+                               IsFreeDriverPrice = a.IsFreeDriverPrice,
+                               LoadFactorDeductions = a.LoadFactorDeductions,
+                               LoadNumber = a.LoadNumber,
+                               LoadNumberGov = a.LoadNumberGov,
+                               LoadSleepPrice = a.LoadSleepPrice,
+                               LoadSleepTime = a.LoadSleepTime,
+                               MehrcomParsLoadFactor = a.MehrcomParsLoadFactor,
+                               SaipaPlascoLoadFactor = a.SaipaPlascoLoadFactor,
+                               SaipaPressLoadFactor = a.SaipaPressLoadFactor,
+                               SazehGostarLoadFactor = a.SazehGostarLoadFactor,
+                               Tonnage = a.Tonnage,
+                               TonnagePrice = a.TonnagePrice,
+                               VAT = a.VAT,
+                               VehicleId = a.VehicleId,
+                               VehicleIranStateNumber = e.IranStateNumber,
+                               VehicleLeftNumber = e.LeftNumber,
+                               VehicleName = d.Vehicle,
+                               VehicleNumberWord = e.NumberWord,
+                               VehicleRightNumber = e.RightNumber,
+                               WeighbridgePrice = a.WeighbridgePrice,
+                               WithholdingTax = a.WithholdingTax
+                           };
 
                 return await data.Where(a => accountBookId.HasValue ? a.AccountBookId.Equals(accountBookId.Value) : true &&
                 driverId.HasValue ? a.DriverId.Equals(driverId.Value) : true).OrderBy(a => a.Date).ToListAsync();
@@ -196,8 +249,61 @@ namespace EtehadBar.Infra.Data.Repository
             {
                 var data = from a in db.LoadFactor
                            join b in db.Contract on a.ContractId equals b.Id
+                           join c in db.AccountBook on a.AccountBookId equals c.Id
+                           join d in db.ShippingFee on a.ShippingFeeId equals d.Id
+                           join e in db.Vehicles on a.VehicleId equals e.Id
+                           join f in db.Driver on a.DriverId equals f.Id
+                           join calendar in db.Calendar on a.CalendarId equals calendar.Id
+                           join g in db.LoadRoute on a.OriginId equals g.Id
+                           where g.RouteType == LoadRouteType.Origin
+                           join h in db.LoadRoute on a.DestinationId equals h.Id
+                           where h.RouteType == LoadRouteType.Destionation
                            where a.CalendarId.Equals(calendarId.Value) && b.CustomerId.Equals(customerId)
-                           select a;
+                           select new ExcelLoadFactorVM
+                           {
+                               Id = a.Id,
+                               AccountBookId = a.AccountBookId,
+                               DriverId = a.DriverId,
+                               AccountBookNumber = c.Number,
+                               AdminId = a.AdminId,
+                               Amount = a.Amount,
+                               CalendarEndDate = calendar.EndDate,
+                               CalendarId = calendar.Id,
+                               CalendarStartDate = calendar.StartDate,
+                               CalendarTitle = calendar.Title,
+                               ContractId = a.ContractId,
+                               CreateDateTime = a.CreateDateTime,
+                               Date = a.Date,
+                               DestinationName = h.Title,
+                               OriginName = g.Title,
+                               DriverFee = a.DriverFee,
+                               DriverLoadSleepPrice = a.DriverLoadSleepPrice,
+                               DriverName = f.Fullname,
+                               DriverTonnagePrice = a.DriverTonnagePrice,
+                               ExitNumber = a.ExitNumber,
+                               IsDriverFeeEditedByAdmin = a.IsDriverFeeEditedByAdmin,
+                               IsFreeDriverPrice = a.IsFreeDriverPrice,
+                               LoadFactorDeductions = a.LoadFactorDeductions,
+                               LoadNumber = a.LoadNumber,
+                               LoadNumberGov = a.LoadNumberGov,
+                               LoadSleepPrice = a.LoadSleepPrice,
+                               LoadSleepTime = a.LoadSleepTime,
+                               MehrcomParsLoadFactor = a.MehrcomParsLoadFactor,
+                               SaipaPlascoLoadFactor = a.SaipaPlascoLoadFactor,
+                               SaipaPressLoadFactor = a.SaipaPressLoadFactor,
+                               SazehGostarLoadFactor = a.SazehGostarLoadFactor,
+                               Tonnage = a.Tonnage,
+                               TonnagePrice = a.TonnagePrice,
+                               VAT = a.VAT,
+                               VehicleId = a.VehicleId,
+                               VehicleIranStateNumber = e.IranStateNumber,
+                               VehicleLeftNumber = e.LeftNumber,
+                               VehicleName = d.Vehicle,
+                               VehicleNumberWord = e.NumberWord,
+                               VehicleRightNumber = e.RightNumber,
+                               WeighbridgePrice = a.WeighbridgePrice,
+                               WithholdingTax = a.WithholdingTax
+                           };
 
                 return await data.Where(a => accountBookId.HasValue ? a.AccountBookId.Equals(accountBookId.Value) : true &&
                 driverId.HasValue ? a.DriverId.Equals(driverId.Value) : true).OrderBy(a => a.Date).ToListAsync();

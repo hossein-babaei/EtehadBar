@@ -1,10 +1,58 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using EtehadBar.Domain.Models;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain
 {
+    public class ExcelLoadFactorVM
+    {
+        public long Id { get; set; }
+        public string VehicleName { get; set;}
+        public string OriginName { get; set; }
+        public string DestinationName { get; set; }
+        public DateTime Date { get; set; }
+        public double Amount { get; set; }
+        public double DriverFee { get; set; }
+        public double? Tonnage { get; set; }
+        public double? TonnagePrice { get; set; }
+        public double? DriverTonnagePrice { get; set; }
+        public string LoadNumber { get; set; }
+        public string LoadNumberGov { get; set; }
+        public string ExitNumber { get; set; }
+        public double VAT { get; set; }
+        public double LoadFactorDeductions { get; set; }
+        public double WithholdingTax { get; set; }
+        public string AdminId { get; set; }
+        public DateTime CreateDateTime { get; set; }
+        public double? WeighbridgePrice { get; set; }
+        public double? LoadSleepTime { get; set; }
+        public double? LoadSleepPrice { get; set; }
+        public double? DriverLoadSleepPrice { get; set; }
+        public bool IsDriverFeeEditedByAdmin { get; set; }
+        public bool IsFreeDriverPrice { get; set; }
+        public long ContractId { get; set; }
+        public long CalendarId { get; set; }
+        public DateTime CalendarStartDate { get; set; }
+        public DateTime CalendarEndDate { get; set; }
+        public string CalendarTitle { get; set; }
+        public long DriverId { get; set; }
+        public string DriverName { get; set; }
+        public long VehicleId { get; set; }
+        public string VehicleLeftNumber { get; set; }
+        public string VehicleNumberWord { get; set; }
+        public string VehicleRightNumber { get; set; }
+        public string VehicleIranStateNumber { get; set; }
+        public long AccountBookId { get; set; }
+        public string AccountBookNumber { get; set; }
+        public MehrcomParsLoadFactor MehrcomParsLoadFactor { get; set; }
+        public SaipaPlascoLoadFactor SaipaPlascoLoadFactor { get; set; }
+        public SaipaPressLoadFactor SaipaPressLoadFactor { get; set; }
+        public SazehGostarLoadFactor SazehGostarLoadFactor { get; set; }
+    }
+
     public class ActivityListVM
     {
         public long VehicleId { get; set; }

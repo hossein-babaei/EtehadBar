@@ -25,6 +25,7 @@
                     <th width="50">ویرایش</th>
                     <th width="50">عملیات</th>
                     <th width="50">بارنامه ها</th>
+                    <th width="50">فایل</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,7 +60,8 @@
                         {
                             <td><a class="uk-button uk-button-primary uk-button-small" asp-action="OpenAccountBook" asp-route-rowId="@item.RowId" onclick="preloader()"><i class="fas fa-lock-open"></i></a></td>
                         }
-                        <td><a class="uk-button uk-button-primary uk-button-small" asp-controller="Excel" asp-action="Customer" asp-route-customerId="@item.CustomerId" asp-route-statusNumber="@item.Number" asp-route-accountBookId="@item.Id"><i class="fas fa-clipboard-check"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-controller="Admin" asp-action="AccountBookLoadFactor" asp-route-id="@item.RowId"><i class="fas fa-clipboard-check"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-controller="Excel" asp-action="Customer" asp-route-customerId="@item.CustomerId" asp-route-statusNumber="@item.Number" asp-route-accountBookId="@item.Id"><i class="fas fa-file-excel"></i></a></td>
                     </tr>
                     i++;
                 }

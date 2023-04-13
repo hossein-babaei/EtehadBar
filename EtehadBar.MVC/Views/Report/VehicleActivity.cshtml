@@ -3,6 +3,7 @@
     ViewData["Title"] = "گزارش جزئیات عملکرد خودرو";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
+    var customers = (List<Customer>)ViewData["customers"];
     var calendars = (List<Calendar>)ViewData["calendars"];
     var latestCal = calendars.First();
 }
@@ -14,6 +15,7 @@
     <script>
         $(document).ready(function () {
             $('#search-modal select[name=calendarId]').select2({ width: '100%' });
+            $('#search-modal select[name=customerId]').select2({ width: '100%' });
         });
         $('#search-modal form').submit(function (e) {
             e.preventDefault();
@@ -143,6 +145,16 @@
                             @foreach (var item in calendars)
                             {
                                 <option value="@item.Id">@item.Title</option>
+                            }
+                        </select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">شرکت مربوطه</label>
+                        <select name="customerId">
+                            <option value="0" selected="selected">همه</option>
+                            @foreach (var item in customers)
+                            {
+                                <option value="@item.Id">@item.Name</option>
                             }
                         </select>
                     </div>

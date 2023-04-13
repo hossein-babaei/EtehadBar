@@ -22,7 +22,7 @@ namespace EtehadBar.Domain.Interfaces
         Task<bool> SequenceExistInMehrcomPars(long id, long sequence);
         Task<bool> CheckMehrcomParsLoadFactorGovNumber(string number);
         IQueryable<LoadFactor> LoadFactors();
-        Task<List<LoadFactor>> LoadFactors(long customerId, long? calendarId, long? accountBookId, long? driverId);
+        Task<List<ExcelLoadFactorVM>> LoadFactors(long customerId, long? calendarId, long? accountBookId, long? driverId);
         void Update(LoadFactor obj);
         void UpdateSaipaPress(SaipaPressLoadFactor obj);
         void UpdateSazehGostar(SazehGostarLoadFactor obj);

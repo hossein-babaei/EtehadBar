@@ -89,7 +89,8 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<AdminDashboardUserActivityBoxVM> GetRegisterUserData(string userId, int? dayLimit)
         {
-            var limit = dayLimit.HasValue ? DateTime.Now.AddDays(-dayLimit.Value) : DateTime.Now.AddDays(-1);
+            var now = DateTime.Now;
+            var limit = dayLimit.HasValue ? DateTime.Now.AddDays(-dayLimit.Value) : new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
             var user = await db.Users.FindAsync(userId);
             return new AdminDashboardUserActivityBoxVM
             {

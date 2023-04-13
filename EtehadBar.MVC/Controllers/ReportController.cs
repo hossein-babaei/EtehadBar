@@ -1,4 +1,5 @@
-﻿using EtehadBar.Domain;
+﻿using Castle.Core.Resource;
+using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.MVC.Filters;
@@ -278,17 +279,24 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> VehicleLoadFactor()
         {
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["customers"] = await _customerRepo.Customers().AsNoTracking().Where(a => a.Status).OrderBy(a => a.Name).ToListAsync();
             return View();
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin, User")]
-        public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId)
+        public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId, long customerId)
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
             ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
-            return PartialView("_VehicleLoadFactor", await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Id).ToListAsync());
+            ViewData["customerId"] = customerId;
+
+            var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
+            if (customerId > 0)
+                query = query.Where(a => a.Contract.CustomerId.Equals(customerId));
+
+            return PartialView("_VehicleLoadFactor", await query.OrderBy(a => a.Id).ToListAsync());
         }
 
         [HttpGet]
@@ -296,17 +304,25 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> VehicleActivity()
         {
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["customers"] = await _customerRepo.Customers().AsNoTracking().Where(a => a.Status).OrderBy(a => a.Name).ToListAsync();
+
             return View();
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin, User")]
-        public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId)
+        public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId, long customerId)
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
             ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
-            return PartialView("_VehicleActivity", await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId) && a.VehicleId.Equals(vehicleId)).OrderBy(a => a.Id).ToListAsync());
+            ViewData["customerId"] = customerId;
+
+            var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
+            if (customerId > 0)
+                query = query.Where(a => a.Contract.CustomerId.Equals(customerId));
+
+            return PartialView("_VehicleActivity", await query.OrderBy(a => a.Id).ToListAsync());
         }
 
         [HttpGet]

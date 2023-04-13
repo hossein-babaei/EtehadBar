@@ -3589,6 +3589,16 @@ namespace EtehadBar.MVC.Controllers
         }
         #endregion
 
+        #region AccountBookLoadFactor
+        public async Task<IActionResult> AccountBookLoadFactor(string id)
+        {
+            var accountBook = await _accountBookRepository.AccountBooks().AsNoTracking().SingleOrDefaultAsync(a => a.RowId.Equals(id));
+            ViewData["AccountBook"] = accountBook;
+
+            return View(await _loadFactorRepo.LoadFactors().Where(a => a.AccountBookId.Equals(accountBook.Id)).ToListAsync());
+        }
+        #endregion
+
         #region LoadRoute
         [HttpGet]
         [Authorize(Roles = "Admin, User")]
@@ -3685,7 +3695,11 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> AccountBook(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _accountBookRepository.AccountBooks().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            var query = _accountBookRepository.AccountBooks();
+            if (!User.IsInRole("Admin"))
+                query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
+
+            var onePageOfData = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -3694,7 +3708,11 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> SearchAccountBook(int? p, string param)
         {
             var pageNum = p ?? 1;
-            var onePageOfData = await _accountBookRepository.AccountBooks().Where(a => a.Number.Contains(param) || a.FactorNumber.Contains(param)).OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
+            var query = _accountBookRepository.AccountBooks().Where(a => a.Number.Contains(param) || a.FactorNumber.Contains(param));
+            if (!User.IsInRole("Admin"))
+                query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
+
+            var onePageOfData = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
             ViewBag.data = onePageOfData;
             ViewBag.param = param;
 

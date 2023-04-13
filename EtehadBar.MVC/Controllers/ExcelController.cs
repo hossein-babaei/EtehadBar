@@ -384,12 +384,17 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId)
+        public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId, long customerId)
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
             var calendar = await _calendarRepo.Get(calendarId);
             var payment = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
-            var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Id).ToListAsync();
+
+            var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
+            if (customerId > 0)
+                query = query.Where(a => a.Contract.CustomerId.Equals(customerId));
+
+            var loadFactors = await query.OrderBy(a => a.Id).ToListAsync();
 
             string docTitle = $"گزارش بارنامه های {vehicle.Type} به شماره (ایران {vehicle.IranStateNumber} - {vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber}) در {calendar.Title}";
 
@@ -480,12 +485,16 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId)
+        public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId, long customerId)
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
             var calendar = await _calendarRepo.Get(calendarId);
             var payment = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
-            var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).OrderBy(a => a.Id).ToListAsync();
+            var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
+            if (customerId > 0)
+                query = query.Where(a => a.Contract.CustomerId.Equals(customerId));
+
+            var loadFactors = await query.OrderBy(a => a.Id).ToListAsync();
 
             var routes = new List<VehicleActivityVM>();
 
@@ -718,6 +727,9 @@ namespace EtehadBar.MVC.Controllers
             var accountBook = new AccountBook();
             if (accountBookId.HasValue)
             {
+                if (allLoadFactors.Count == 0)
+                    return NotFound("بارنامه ای در این صورت وضعیت درج نشده است.");
+
                 accountBook = await _accountBookRepo.Get(accountBookId.Value);
                 docTitle += $" با شماره صورت وضعیت {accountBook.Number}";
             }
@@ -746,7 +758,7 @@ namespace EtehadBar.MVC.Controllers
 
             if (customer.CustomerType.Equals(CustomerType.SaipaPlasco))
             {
-                allLoadFactors = allLoadFactors.OrderBy(a => a.Vehicle.Type).ThenBy(a => a.Origin.Title).ThenBy(a => a.Destination.Title).ThenBy(a => a.Date).ToList();
+                allLoadFactors = allLoadFactors.OrderBy(a => a.VehicleName).ThenBy(a => a.OriginName).ThenBy(a => a.DestinationName).ThenBy(a => a.Date).ToList();
                 using var workbook = new XLWorkbook();
                 decimal c = Convert.ToDecimal(allLoadFactors.Count / 20f);
                 double totalAmount = 0;
@@ -883,8 +895,8 @@ namespace EtehadBar.MVC.Controllers
                     {
                         ws.Cell(index + rowIndex, 1).Value = ((20 * i) + (index - 1)) - (20 - 1);
                         ws.Cell(index + rowIndex, 2).Value = new PersianDateTime(loadFactors[index - 1].Date).ToString("yyyy/MM/dd");
-                        ws.Cell(index + rowIndex, 3).Value = loadFactors[index - 1].Driver.Fullname;
-                        ws.Cell(index + rowIndex, 4).Value = $"{loadFactors[index - 1].Vehicle.RightNumber} {loadFactors[index - 1].Vehicle.NumberWord} {loadFactors[index - 1].Vehicle.LeftNumber}";
+                        ws.Cell(index + rowIndex, 3).Value = loadFactors[index - 1].DriverName;
+                        ws.Cell(index + rowIndex, 4).Value = $"{loadFactors[index - 1].VehicleRightNumber} {loadFactors[index - 1].VehicleNumberWord} {loadFactors[index - 1].VehicleLeftNumber}";
                         if (string.IsNullOrWhiteSpace(loadFactors[index - 1].LoadNumberGov))
                         {
                             ws.Cell(index + rowIndex, 5).SetValue(loadFactors[index - 1].LoadNumber);
@@ -897,8 +909,8 @@ namespace EtehadBar.MVC.Controllers
                         }
 
                         ws.Cell(index + rowIndex, 7).SetValue(loadFactors[index - 1].ExitNumber);
-                        ws.Cell(index + rowIndex, 8).Value = loadFactors[index - 1].Origin.Title;
-                        ws.Cell(index + rowIndex, 9).Value = loadFactors[index - 1].Destination.Title;
+                        ws.Cell(index + rowIndex, 8).Value = loadFactors[index - 1].OriginName;
+                        ws.Cell(index + rowIndex, 9).Value = loadFactors[index - 1].DestinationName;
                         if (exportType.HasValue)
                         {
                             switch (exportType.Value)
@@ -920,7 +932,7 @@ namespace EtehadBar.MVC.Controllers
                         else
                             ws.Cell(index + rowIndex, 10).Value = loadFactors[index - 1].Amount.ToString("N0");
 
-                        ws.Cell(index + rowIndex, switchCounter).Value = loadFactors[index - 1].Vehicle.Type;
+                        ws.Cell(index + rowIndex, switchCounter).Value = loadFactors[index - 1].VehicleName;
                     }
 
                     totalAmount += loadFactors.Sum(a => a.Amount);
@@ -1077,7 +1089,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
                     .Font.SetBold(true);
 
-                allLoadFactors = allLoadFactors.OrderBy(a => a.Origin.Title).ThenBy(a => a.Destination.Title).ThenBy(a => a.Date).ToList();
+                allLoadFactors = allLoadFactors.OrderBy(a => a.OriginName).ThenBy(a => a.DestinationName).ThenBy(a => a.SazehGostarLoadFactor.SazehLoadType).ThenBy(a => a.Date).ToList();
                 for (int index = 1; index <= allLoadFactors.Count; index++)
                 {
                     var pd = new PersianDateTime(allLoadFactors[index - 1].Date);
@@ -1088,7 +1100,7 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(index + 1, 4).Value = allLoadFactors[index - 1].SazehGostarLoadFactor.Nature;
                     ws.Cell(index + 1, 5).Value = "*";
                     ws.Cell(index + 1, 6).SetValue(allLoadFactors[index - 1].LoadNumber);
-                    ws.Cell(index + 1, 7).Value = allLoadFactors[index - 1].Vehicle.Type;
+                    ws.Cell(index + 1, 7).Value = allLoadFactors[index - 1].VehicleName;
                     ws.Cell(index + 1, 8).Value = pd.Day;
                     ws.Cell(index + 1, 9).Value = pd.Month;
                     ws.Cell(index + 1, 10).Value = pd.Year;
@@ -1117,8 +1129,8 @@ namespace EtehadBar.MVC.Controllers
                         ws.Cell(index + 1, 14).Value = allLoadFactors[index - 1].Amount.ToString("N0");
 
                     ws.Cell(index + 1, switchCounter - 2).SetValue(allLoadFactors[index - 1].ExitNumber);
-                    ws.Cell(index + 1, switchCounter - 1).Value = allLoadFactors[index - 1].Driver.Fullname;
-                    ws.Cell(index + 1, switchCounter).Value = $"{allLoadFactors[index - 1].Vehicle.RightNumber} {allLoadFactors[index - 1].Vehicle.NumberWord} {allLoadFactors[index - 1].Vehicle.LeftNumber}";
+                    ws.Cell(index + 1, switchCounter - 1).Value = allLoadFactors[index - 1].DriverName;
+                    ws.Cell(index + 1, switchCounter).Value = $"{allLoadFactors[index - 1].VehicleRightNumber} {allLoadFactors[index - 1].VehicleNumberWord} {allLoadFactors[index - 1].VehicleLeftNumber}";
                 }
 
                 ws.Cell($"A{allLoadFactors.Count + 2}").Value = "جمع کل بارنامه ها";
@@ -1370,11 +1382,10 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(4, switchCounter + 1).Value = "ماه";
                     ws.Cell(4, switchCounter + 2).Value = "سال";
 
-                    var calendarPd = new PersianDateTime(allLoadFactors.First().Calendar.StartDate);
+                    var calendarPd = new PersianDateTime(allLoadFactors.First().CalendarStartDate);
                     for (int i = 0; i < allLoadFactors.Count; i++)
                     {
-                        var vehicle = allLoadFactors[i].Vehicle;
-                        var carNumber = $"{vehicle.RightNumber}{vehicle.NumberWord}{vehicle.LeftNumber}ایران{vehicle.IranStateNumber}";
+                        var carNumber = $"{allLoadFactors[i].VehicleRightNumber}{allLoadFactors[i].VehicleNumberWord}{allLoadFactors[i].VehicleLeftNumber}ایران{allLoadFactors[i].VehicleIranStateNumber}";
                         var date = new PersianDateTime(allLoadFactors[i].Date);
 
                         #region handling sleep time and weighbridge
@@ -1400,11 +1411,11 @@ namespace EtehadBar.MVC.Controllers
                         ws.Cell($"B{i + 5}").Value = accountBook.Number;
                         ws.Cell($"C{i + 5}").Value = date.ToString("yyyy/MM/dd");
                         ws.Cell($"D{i + 5}").SetValue(allLoadFactors[i].LoadNumber);
-                        ws.Cell($"E{i + 5}").Value = vehicle.Type;
-                        ws.Cell($"F{i + 5}").Value = allLoadFactors[i].Driver.Fullname;
+                        ws.Cell($"E{i + 5}").Value = allLoadFactors[i].VehicleName;
+                        ws.Cell($"F{i + 5}").Value = allLoadFactors[i].DriverName;
                         ws.Cell($"G{i + 5}").Value = carNumber;
-                        ws.Cell($"H{i + 5}").Value = allLoadFactors[i].Origin.Title;
-                        ws.Cell($"I{i + 5}").Value = allLoadFactors[i].Destination.Title;
+                        ws.Cell($"H{i + 5}").Value = allLoadFactors[i].OriginName;
+                        ws.Cell($"I{i + 5}").Value = allLoadFactors[i].DestinationName;
                         ws.Cell($"J{i + 5}").SetValue(allLoadFactors[i].LoadNumberGov);
                         ws.Cell($"K{i + 5}").Value = allLoadFactors[i].MehrcomParsLoadFactor.LoadNumberGovReturn;
                         ws.Cell($"L{i + 5}").Value = allLoadFactors[i].MehrcomParsLoadFactor.Load ? "1" : "0";
@@ -1580,8 +1591,8 @@ namespace EtehadBar.MVC.Controllers
 
                         //    amount += loadFactor.Amount;
                         //}
-                        var pd = new PersianDateTime(loadFactors.First().Calendar.StartDate);
-                        endDate = loadFactors.First().Calendar.EndDate;
+                        var pd = new PersianDateTime(loadFactors.First().CalendarStartDate);
+                        endDate = loadFactors.First().CalendarEndDate;
                         monthName = pd.MonthName;
 
                         totalAmount += loadFactors.Sum(a => a.Amount);
@@ -1667,7 +1678,7 @@ namespace EtehadBar.MVC.Controllers
                         for (int index = 1; index <= Convert.ToInt32(Math.Ceiling(c)); index++)
                         {
                             var loadFactors = data.Skip((index - 1) * 30).Take(30).ToList();
-                            var calendarPd = new PersianDateTime(loadFactors.First().Calendar.StartDate);
+                            var calendarPd = new PersianDateTime(loadFactors.First().CalendarStartDate);
 
                             for (int i = 0; i < loadFactors.Count; i++)
                             {
@@ -1690,18 +1701,17 @@ namespace EtehadBar.MVC.Controllers
                                 }
                                 #endregion
 
-                                var vehicle = loadFactors[i].Vehicle;
-                                var carNumber = $"{vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber} ایران {vehicle.IranStateNumber}";
+                                var carNumber = $"{loadFactors[i].VehicleRightNumber} {loadFactors[i].VehicleNumberWord} {loadFactors[i].VehicleLeftNumber} ایران {loadFactors[i].VehicleIranStateNumber}";
                                 var date = new PersianDateTime(loadFactors[i].Date);
                                 ws.Cell($"A{totalCounter}").Value = i + 1;
-                                ws.Cell($"B{totalCounter}").Value = loadFactors[i].AccountBook.Number;
+                                ws.Cell($"B{totalCounter}").Value = loadFactors[i].AccountBookNumber;
                                 ws.Cell($"C{totalCounter}").Value = date.ToString("yyyy/MM/dd");
                                 ws.Cell($"D{totalCounter}").SetValue(loadFactors[i].LoadNumber);
-                                ws.Cell($"E{totalCounter}").Value = vehicle.Type;
-                                ws.Cell($"F{totalCounter}").Value = loadFactors[i].Driver.Fullname;
+                                ws.Cell($"E{totalCounter}").Value = loadFactors[i].VehicleName;
+                                ws.Cell($"F{totalCounter}").Value = loadFactors[i].DriverName;
                                 ws.Cell($"G{totalCounter}").Value = carNumber;
-                                ws.Cell($"H{totalCounter}").Value = loadFactors[i].Origin.Title;
-                                ws.Cell($"I{totalCounter}").Value = loadFactors[i].Destination.Title;
+                                ws.Cell($"H{totalCounter}").Value = loadFactors[i].OriginName;
+                                ws.Cell($"I{totalCounter}").Value = loadFactors[i].DestinationName;
                                 ws.Cell($"J{totalCounter}").SetValue(loadFactors[i].LoadNumberGov);
                                 ws.Cell($"K{totalCounter}").Value = loadFactors[i].MehrcomParsLoadFactor.LoadNumberGovReturn;
                                 ws.Cell($"L{totalCounter}").Value = loadFactors[i].MehrcomParsLoadFactor.Load ? "1" : "0";
@@ -1831,7 +1841,7 @@ namespace EtehadBar.MVC.Controllers
             }
         }
 
-        private static void MakePressSheet(List<LoadFactor> data, IXLWorksheet ws, ExcelExportType? exportType)
+        private static void MakePressSheet(List<ExcelLoadFactorVM> data, IXLWorksheet ws, ExcelExportType? exportType)
         {
             var EnglishNumbers = new List<(string Letter, int Num)>
             {
@@ -1911,14 +1921,14 @@ namespace EtehadBar.MVC.Controllers
             {
                 ws.Cell(index + 1, 1).Value = index;
                 ws.Cell(index + 1, 2).SetValue(data[index - 1].LoadNumber);
-                ws.Cell(index + 1, 3).Value = $"{data[index - 1].Vehicle.RightNumber} {data[index - 1].Vehicle.NumberWord} {data[index - 1].Vehicle.LeftNumber}";
-                ws.Cell(index + 1, 4).Value = data[index - 1].Driver.Fullname;
-                ws.Cell(index + 1, 5).Value = data[index - 1].Origin.Title;
-                ws.Cell(index + 1, 6).Value = data[index - 1].Destination.Title;
+                ws.Cell(index + 1, 3).Value = $"{data[index - 1].VehicleRightNumber} {data[index - 1].VehicleNumberWord} {data[index - 1].VehicleLeftNumber}";
+                ws.Cell(index + 1, 4).Value = data[index - 1].DriverName;
+                ws.Cell(index + 1, 5).Value = data[index - 1].OriginName;
+                ws.Cell(index + 1, 6).Value = data[index - 1].DestinationName;
                 ws.Cell(index + 1, 7).Value = new PersianDateTime(data[index - 1].Date).ToString("yyyy/MM/dd");
                 ws.Cell(index + 1, 8).SetValue(data[index - 1].SaipaPressLoadFactor.EntryNumber);
                 ws.Cell(index + 1, 9).SetValue(data[index - 1].ExitNumber);
-                ws.Cell(index + 1, 10).Value = data[index - 1].Vehicle.Type;
+                ws.Cell(index + 1, 10).Value = data[index - 1].VehicleName;
                 ws.Cell(index + 1, 11).Value = data[index - 1].SaipaPressLoadFactor.LoadType;
                 ws.Cell(index + 1, 12).Value = data[index - 1].Tonnage.HasValue ? data[index - 1].Tonnage.Value : "0";
                 if (exportType.HasValue)
