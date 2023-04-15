@@ -286,6 +286,8 @@
                         <th>مشتری</th>
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                        <th>موردی</th>
+                        <th>تغییر نرخ</th>
                     }
                     else if (User.IsInRole("User"))
                     {
@@ -315,6 +317,22 @@
                             <td>@item.Contract.Customer.Name</td>
                             <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
                             <td class="uk-text-bold md pointer" onclick="editDriverFee(this)" data-val="@item.DriverFee">@item.DriverFee.ToString("N0")</td>
+                            @if (item.IsFreeDriverPrice)
+                            {
+                                <td class="uk-text-primary">بلی</td>
+                            }
+                            else
+                            {
+                                <td>خیر</td>
+                            }
+                            @if (item.IsDriverFeeEditedByAdmin)
+                            {
+                                <td class="uk-text-primary">بلی</td>
+                            }
+                            else
+                            {
+                                <td>خیر</td>
+                            }
                         }
                         else if (User.IsInRole("User"))
                         {

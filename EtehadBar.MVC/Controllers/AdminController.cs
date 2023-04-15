@@ -1106,7 +1106,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 if (pic != null)
                 {
-                    if (pic.Length <= 1024000)
+                    if (pic.Length <= 10240000)
                     {
                         if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
                         {
@@ -1177,7 +1177,7 @@ namespace EtehadBar.MVC.Controllers
 
                 if (pic != null)
                 {
-                    if (pic.Length <= 1024000)
+                    if (pic.Length <= 10240000)
                     {
                         if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
                         {
@@ -1891,7 +1891,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteContract(int id)
         {
             var item = await _contractRepo.Get(id);
@@ -3574,7 +3574,8 @@ namespace EtehadBar.MVC.Controllers
         {
             var item = await _loadFactorRepo.Get(Id);
             item.DriverFee = Fee;
-            item.IsDriverFeeEditedByAdmin = IsFree;
+            item.IsFreeDriverPrice = IsFree;
+            item.IsDriverFeeEditedByAdmin = true;
             _loadFactorRepo.Update(item);
             try
             {
@@ -4437,7 +4438,7 @@ namespace EtehadBar.MVC.Controllers
 
                 _bankAccountBookRepository.Create(new Domain.Models.BankAccountBook
                 {
-                    Sequence = lastItem.Sequence + 1,
+                    Sequence = lastItem is null ? 1 : lastItem.Sequence + 1,
                     Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime(),
                     BankAccountId = v.BankAccountId,
                     CreatorId = _userManager.GetUserId(User),

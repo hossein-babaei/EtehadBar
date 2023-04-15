@@ -28,10 +28,10 @@ namespace EtehadBar.Domain.Models
         [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string ReferenceNo { get; set; }
 
-        [Display(Name = "بدهکار")]
+        [Display(Name = "واریز")]
         public double Debtor { get; set; }
 
-        [Display(Name = "بستانکار")]
+        [Display(Name = "برداشت")]
         public double Creditor { get; set; }
 
         [Display(Name = "کارمزد انتقال")]

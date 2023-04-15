@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using DocumentFormat.OpenXml.Spreadsheet;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
@@ -760,6 +761,136 @@ namespace EtehadBar.MVC.Controllers
             {
                 allLoadFactors = allLoadFactors.OrderBy(a => a.VehicleName).ThenBy(a => a.OriginName).ThenBy(a => a.DestinationName).ThenBy(a => a.Date).ToList();
                 using var workbook = new XLWorkbook();
+
+                #region first sheet list
+                var list = workbook.Worksheets.Add("List");
+                list.RightToLeft = true;
+                list.Style.Font.FontName = "B Nazanin";
+                list.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+                list.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+                if (accountBookId.HasValue)
+                    list.Cell("A1").Value = accountBook.Number;
+
+                list.Range("A1:B1").Row(1).Merge();
+                list.Cell("C1").Value = "بارنامه های حمل کالا";
+                list.Range("C1:E1").Row(1).Merge();
+                list.Cell("H1").Value = "شرکت پلاسکو کار سایپا";
+                list.Range("H1:I1").Row(1).Merge();
+                list.Range("J1:K1").Row(1).Merge();
+                list.Cell("J1").Value = "در تاریخ: ";
+                if (calendarId.HasValue)
+                    list.Cell("J1").Value = $"در تاریخ: {new PersianDateTime(calendar.EndDate).ToShortDateString()}";
+
+                list.Cell(2, 1).Value = "ردیف";
+                list.Cell(2, 2).Value = "تاریخ";
+                list.Cell(2, 3).Value = "نام راننده";
+                list.Cell(2, 4).Value = "شماره خودرو";
+                list.Cell(2, 5).Value = "شماره بارنامه";
+                list.Cell(2, 6).Value = "بارنامه اتحاد بار";
+                list.Cell(2, 7).Value = "شماره خروجی";
+                list.Cell(2, 8).Value = "مبدا";
+                list.Cell(2, 9).Value = "مقصد";
+                int sCounter = 9;
+                if (exportType.HasValue)
+                {
+                    switch (exportType.Value)
+                    {
+                        case ExcelExportType.WithAllPrices:
+                            list.Cell(2, 10).Value = "نرخ دریافتی";
+                            list.Cell(2, 11).Value = "نرخ پرداختی";
+                            sCounter += 2;
+                            break;
+                        case ExcelExportType.OnlyReceivingPrice:
+                            list.Cell(2, 10).Value = "مبلغ بارنامه (ریال)";
+                            sCounter++;
+                            break;
+                        case ExcelExportType.OnlyDriverPrice:
+                            list.Cell(2, 10).Value = "مبلغ بارنامه (ریال)";
+                            sCounter++;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                else
+                {
+                    list.Cell(2, 10).Value = "مبلغ بارنامه (ریال)";
+                    sCounter++;
+                }
+
+                sCounter++;
+                list.Cell(2, sCounter).Value = "خودرو";
+
+                var rangeHeader = list.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(sCounter)).Letter}2");
+                rangeHeader.Style.Fill.SetBackgroundColor(XLColor.LightGray);
+                rangeHeader.Style.Font.SetFontSize(11);
+
+                rangeHeader.Style.Border.SetInsideBorder(XLBorderStyleValues.Medium)
+                    .Border.SetInsideBorderColor(XLColor.Black)
+                    .Border.SetOutsideBorder(XLBorderStyleValues.Medium)
+                    .Border.SetOutsideBorderColor(XLColor.Black);
+
+                var rangeContent = list.Range(list.Cell("A3"), list.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(sCounter)).Letter}{allLoadFactors.Count + 2}"));
+                rangeContent.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin)
+                    .Border.SetInsideBorderColor(XLColor.Black)
+                    .Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+                    .Border.SetOutsideBorderColor(XLColor.Black);
+
+                for (int index = 1; index <= allLoadFactors.Count; index++)
+                {
+                    list.Cell(index + 2, 1).Value = index;
+                    list.Cell(index + 2, 2).Value = new PersianDateTime(allLoadFactors[index - 1].Date).ToString("yyyy/MM/dd");
+                    list.Cell(index + 2, 3).Value = allLoadFactors[index - 1].DriverName;
+                    list.Cell(index + 2, 4).Value = $"{allLoadFactors[index - 1].VehicleRightNumber} {allLoadFactors[index - 1].VehicleNumberWord} {allLoadFactors[index - 1].VehicleLeftNumber}";
+                    if (string.IsNullOrWhiteSpace(allLoadFactors[index - 1].LoadNumberGov))
+                    {
+                        list.Cell(index + 2, 5).SetValue(allLoadFactors[index - 1].LoadNumber);
+                        list.Cell(index + 2, 6).SetValue("---");
+                    }
+                    else
+                    {
+                        list.Cell(index + 2, 5).SetValue(allLoadFactors[index - 1].LoadNumberGov);
+                        list.Cell(index + 2, 6).SetValue(allLoadFactors[index - 1].LoadNumber);
+                    }
+
+                    list.Cell(index + 2, 7).SetValue(allLoadFactors[index - 1].ExitNumber);
+                    list.Cell(index + 2, 8).Value = allLoadFactors[index - 1].OriginName;
+                    list.Cell(index + 2, 9).Value = allLoadFactors[index - 1].DestinationName;
+                    if (exportType.HasValue)
+                    {
+                        switch (exportType.Value)
+                        {
+                            case ExcelExportType.WithAllPrices:
+                                list.Cell(index + 2, 10).Value = allLoadFactors[index - 1].Amount.ToString("N0");
+                                list.Cell(index + 2, 11).Value = allLoadFactors[index - 1].DriverFee.ToString("N0");
+                                break;
+                            case ExcelExportType.OnlyReceivingPrice:
+                                list.Cell(index + 2, 10).Value = allLoadFactors[index - 1].Amount.ToString("N0");
+                                break;
+                            case ExcelExportType.OnlyDriverPrice:
+                                list.Cell(index + 2, 10).Value = allLoadFactors[index - 1].DriverFee.ToString("N0");
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                        list.Cell(index + 2, 10).Value = allLoadFactors[index - 1].Amount.ToString("N0");
+
+                    list.Cell(index + 2, sCounter).Value = allLoadFactors[index - 1].VehicleName;
+                }
+
+                list.Columns().AdjustToContents();
+                list.Column(8).Width = 17;
+                list.Column(9).Width = 17;
+                list.CellsUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                list.CellsUsed().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                list.CellsUsed().Style.Font.Bold = true;
+                list.CellsUsed().Style.Font.FontColor = XLColor.Black;
+                list.RowsUsed().Height = 24;
+                #endregion
+
                 decimal c = Convert.ToDecimal(allLoadFactors.Count / 20f);
                 double totalAmount = 0;
                 double totalDriverFee = 0;
@@ -781,6 +912,8 @@ namespace EtehadBar.MVC.Controllers
                     ws.Range("C1:E1").Row(1).Merge();
                     ws.Cell("H1").Value = "شرکت پلاسکو کار سایپا";
                     ws.Range("H1:I1").Row(1).Merge();
+                    ws.Range("J1:K1").Row(1).Merge();
+                    ws.Cell("J1").Value = "در تاریخ: ";
                     if (calendarId.HasValue)
                         ws.Cell("J1").Value = $"در تاریخ: {new PersianDateTime(calendar.EndDate).ToShortDateString()}";
 
@@ -861,14 +994,10 @@ namespace EtehadBar.MVC.Controllers
                         var rngHeader = ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}3");
                         rngHeader.Style.Fill.SetBackgroundColor(XLColor.LightGray);
                         rngHeader.Style.Font.SetFontSize(11);
-                        rngHeader.Style.Border.InsideBorder = XLBorderStyleValues.Medium;
-                        rngHeader.Style.Border.InsideBorderColor = XLColor.Black; 
-
-                        rngHeader.LastRow().Style.Border.BottomBorder = XLBorderStyleValues.Medium;
-                        rngHeader.LastRow().Style.Border.BottomBorderColor = XLColor.Black;
-
-                        rngHeader.LastColumn().Style.Border.RightBorder = XLBorderStyleValues.Medium;
-                        rngHeader.LastColumn().Style.Border.RightBorderColor = XLColor.Black;
+                        rngHeader.Style.Border.SetInsideBorder(XLBorderStyleValues.Medium)
+                    .Border.SetInsideBorderColor(XLColor.Black)
+                    .Border.SetOutsideBorder(XLBorderStyleValues.Medium)
+                    .Border.SetOutsideBorderColor(XLColor.Black);
 
                         ws.Range($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}3").Style.Fill.SetBackgroundColor(XLColor.White);
                     }
@@ -878,14 +1007,10 @@ namespace EtehadBar.MVC.Controllers
                         rngHeader.Style.Fill.SetBackgroundColor(XLColor.LightGray);
                         rngHeader.Style.Font.SetFontSize(11);
 
-                        rngHeader.Style.Border.InsideBorder = XLBorderStyleValues.Medium;
-                        rngHeader.Style.Border.InsideBorderColor = XLColor.Black;
-
-                        rngHeader.LastRow().Style.Border.BottomBorder = XLBorderStyleValues.Medium;
-                        rngHeader.LastRow().Style.Border.BottomBorderColor = XLColor.Black;
-
-                        rngHeader.LastColumn().Style.Border.RightBorder = XLBorderStyleValues.Medium;
-                        rngHeader.LastColumn().Style.Border.RightBorderColor = XLColor.Black;
+                        rngHeader.Style.Border.SetInsideBorder(XLBorderStyleValues.Medium)
+                    .Border.SetInsideBorderColor(XLColor.Black)
+                    .Border.SetOutsideBorder(XLBorderStyleValues.Medium)
+                    .Border.SetOutsideBorderColor(XLColor.Black);
                     }
 
                     int rowIndex = 2;
@@ -945,35 +1070,45 @@ namespace EtehadBar.MVC.Controllers
                             case ExcelExportType.WithAllPrices:
                                 ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "جمع";
                                 ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 3)).Letter}{loadFactors.Count + rowIndex}").Row(1).Merge();
-                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalAmount.ToString("N0");
-                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalDriverFee.ToString("N0");
-                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex + 1}").SetValue(totalAmount.ToString("N0"))
+                                    .Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black)
+                                    .Border.SetLeftBorder(XLBorderStyleValues.Thin).Border.SetLeftBorderColor(XLColor.Black);
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").SetValue(totalDriverFee.ToString("N0"))
+                                    .Style.Border.SetLeftBorder(XLBorderStyleValues.Thin).Border.SetLeftBorderColor(XLColor.Black);
+                                //ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
 
                                 ws.Cell($"A{loadFactors.Count + rowIndex + 2}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
                                 ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                                ws.Range($"A{loadFactors.Count + rowIndex + 1}:L{loadFactors.Count + rowIndex + 2}").RowsUsed().Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin).Border.SetOutsideBorderColor(XLColor.Black);
                                 break;
                             case ExcelExportType.OnlyReceivingPrice:
                                 ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "جمع";
                                 ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex}").Row(1).Merge();
-                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalAmount.ToString("N0");
-                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").SetValue(totalAmount.ToString("N0"))
+                                    .Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black)
+                                    .Border.SetLeftBorder(XLBorderStyleValues.Thin).Border.SetLeftBorderColor(XLColor.Black);
+                                //ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
 
                                 ws.Cell($"A{loadFactors.Count + rowIndex + 2}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
                                 ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                                ws.Range($"A{loadFactors.Count + rowIndex + 1}:K{loadFactors.Count + rowIndex + 2}").RowsUsed().Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin).Border.SetOutsideBorderColor(XLColor.Black);
                                 break;
                             case ExcelExportType.OnlyDriverPrice:
                                 ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "جمع";
                                 ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex}").Row(1).Merge();
-                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalDriverFee.ToString("N0");
-                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
+                                ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").SetValue(totalDriverFee.ToString("N0"))
+                                    .Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black)
+                                    .Border.SetLeftBorder(XLBorderStyleValues.Thin).Border.SetLeftBorderColor(XLColor.Black);
+                                //ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
 
                                 ws.Cell($"A{loadFactors.Count + rowIndex + 2}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
                                 ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                                ws.Range($"A{loadFactors.Count + rowIndex + 1}:K{loadFactors.Count + rowIndex + 2}").RowsUsed().Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin).Border.SetOutsideBorderColor(XLColor.Black);
                                 break;
                             case ExcelExportType.WithoutPrice:
 
                                 ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
-                                ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                                ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge().Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin).Border.SetOutsideBorderColor(XLColor.Black);
                                 break;
                             default:
                                 break;
@@ -983,13 +1118,15 @@ namespace EtehadBar.MVC.Controllers
                     {
                         ws.Cell($"A{loadFactors.Count + rowIndex + 1}").Value = "جمع";
                         ws.Range($"A{loadFactors.Count + rowIndex + 1}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 2)).Letter}{loadFactors.Count + rowIndex}").Row(1).Merge();
-                        ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").Value = totalAmount.ToString("N0");
-                        ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
+                        ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{loadFactors.Count + rowIndex + 1}").SetValue(totalAmount.ToString("N0"))
+                            .Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black)
+                                    .Border.SetLeftBorder(XLBorderStyleValues.Thin).Border.SetLeftBorderColor(XLColor.Black);
+                        //ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Style.Border.SetRightBorder(XLBorderStyleValues.Thin).Border.SetRightBorderColor(XLColor.Black).Border.SetLeftBorder(XLBorderStyleValues.None);
 
                         ws.Cell($"A{loadFactors.Count + rowIndex + 2}").Value = "تهیه کننده:                                          تایید:                                         تصویب:                                         رسیدگی امور مالی:";
                         ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 1}").Row(1).Merge();
+                        ws.Range($"A{loadFactors.Count + rowIndex + 1}:K{loadFactors.Count + rowIndex + 2}").RowsUsed().Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin).Border.SetOutsideBorderColor(XLColor.Black);
                     }
-
 
                     if (i == 1)
                     {
@@ -1008,8 +1145,8 @@ namespace EtehadBar.MVC.Controllers
                             .Border.SetOutsideBorderColor(XLColor.Black);
                     }
 
-                    ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 2}").Style.Border.InsideBorder = XLBorderStyleValues.None;
-                    ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 2}").Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                    //ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 2}").Style.Border.SetInsideBorder(XLBorderStyleValues.None);
+                    //ws.Range($"A{loadFactors.Count + rowIndex + 2}:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{loadFactors.Count + rowIndex + 2}").Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin).Border.SetOutsideBorderColor(XLColor.Black);
 
                     ws.Columns().AdjustToContents();
                     ws.Column(8).Width = 17;
@@ -1018,7 +1155,7 @@ namespace EtehadBar.MVC.Controllers
                     ws.CellsUsed().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
                     ws.CellsUsed().Style.Font.Bold = true;
                     ws.CellsUsed().Style.Font.FontColor = XLColor.Black;
-                    ws.RowsUsed().Height = 25;
+                    ws.RowsUsed().Height = 24;
                 }
 
                 await using var stream = new MemoryStream();
@@ -1383,6 +1520,8 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(4, switchCounter + 2).Value = "سال";
 
                     var calendarPd = new PersianDateTime(allLoadFactors.First().CalendarStartDate);
+
+                    allLoadFactors = allLoadFactors.OrderBy(a => a.VehicleName).ThenBy(a => a.Date).ToList();
                     for (int i = 0; i < allLoadFactors.Count; i++)
                     {
                         var carNumber = $"{allLoadFactors[i].VehicleRightNumber}{allLoadFactors[i].VehicleNumberWord}{allLoadFactors[i].VehicleLeftNumber}ایران{allLoadFactors[i].VehicleIranStateNumber}";
