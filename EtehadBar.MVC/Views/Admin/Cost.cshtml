@@ -14,6 +14,17 @@
     }
 }
 
+@section Links{
+    <style>
+        pre {
+            font: inherit;
+            padding: 0;
+            border: none;
+            max-width: 400px
+        }
+    </style>
+}
+
 @section Scripts{
     <script>
         function edit(id) {
@@ -67,7 +78,7 @@
                         <td>@i</td>
                         <td>@item.Calendar.Title</td>
                         <td>@pd.ToString("yyyy/MM/dd")</td>
-                        <td>@item.Description</td>
+                        <td><pre>@item.Description</pre></td>
                         <td>@item.Amount.ToString("N0")</td>
                         <td>@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname</td>
                         @if (string.IsNullOrEmpty(item.Picture))

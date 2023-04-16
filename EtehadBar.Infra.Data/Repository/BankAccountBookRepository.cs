@@ -47,6 +47,7 @@ namespace EtehadBar.Infra.Data.Repository
                 Id = query.Id,
                 Amount = query.Debtor > 0 ? query.Debtor : query.Creditor,
                 AmountType = query.Debtor > 0 ? BankAccountBookAmountType.Debtor : BankAccountBookAmountType.Creditor,
+                AccountBookType = query.AccountBookType,
                 Description = query.Description,
                 ReferenceNo = query.ReferenceNo,
                 TransferFee = query.TransferFee,

@@ -98,6 +98,7 @@
                     <th width="50">عملیات</th>
                     <th width="50">بارنامه ها</th>
                     <th width="50">فایل</th>
+                    <th width="50">حذف</th>
                 </tr>
             </thead>
             <tbody>
@@ -134,6 +135,7 @@
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-controller="Admin" asp-action="AccountBookLoadFactor" asp-route-id="@item.RowId"><i class="fas fa-clipboard-check"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-controller="Excel" asp-action="Customer" asp-route-customerId="@item.CustomerId" asp-route-statusNumber="@item.Number" asp-route-accountBookId="@item.Id"><i class="fas fa-file-excel"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.RowId')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
                     i++;
                 }
@@ -168,5 +170,18 @@
             <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
+    </div>
+</div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteAccountBook" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
     </div>
 </div>

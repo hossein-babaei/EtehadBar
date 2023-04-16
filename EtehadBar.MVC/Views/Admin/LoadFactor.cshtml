@@ -79,10 +79,12 @@
         function editDriverFee(td) {
             let modalId = '#edit-driver-fee-modal',
                 value = $(td).data('val'),
+                tonnageValue = $(td).data('tonnage-val'),
                 itemId = $(td).parent().data('id');
 
             $(modalId).find('input[name=Id]').val(itemId);
             $(modalId).find('input[name=Fee]').val(value);
+            $(modalId).find('input[name=TonnageFee]').val(tonnageValue);
             UIkit.modal(modalId).show();
         }
         function viewDetail(id) {
@@ -316,7 +318,8 @@
                         {
                             <td>@item.Contract.Customer.Name</td>
                             <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
-                            <td class="uk-text-bold md pointer" onclick="editDriverFee(this)" data-val="@item.DriverFee">@item.DriverFee.ToString("N0")</td>
+                            <td class="uk-text-bold md pointer" onclick="editDriverFee(this)" 
+                                data-val="@item.DriverFee" data-tonnage-val="@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value : 0)">@item.DriverFee.ToString("N0")</td>
                             @if (item.IsFreeDriverPrice)
                             {
                                 <td class="uk-text-primary">بلی</td>
@@ -411,7 +414,16 @@
         <form id="edit-driver-fee-form" method="post" asp-action="EditLoadFactorDriverFee" asp-controller="Admin" autocomplete="off">
             <h3>ویرایش کرایه راننده</h3>
             <input type="hidden" name="Id" />
-            <input dir="ltr" class="uk-input uk-border-rounded format-number" name="Fee" id="Fee" />
+            <div class="uk-grid uk-grid-medium uk-child-width-1-1" uk-grid>
+                <div>
+                    <label class="uk-form-label">کرایه</label>
+                    <input dir="ltr" class="uk-input uk-border-rounded format-number" name="Fee" id="Fee" />
+                </div>
+                <div>
+                    <label class="uk-form-label">اضافه تناز پرداختی</label>
+                    <input dir="ltr" class="uk-input uk-border-rounded format-number" name="TonnageFee" id="TonnageFee" />
+                </div>
+            </div>
             <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
                 <label>بارنامه آزاد</label>
                 <label><input class="uk-radio" type="radio" name="IsFree" value="true" checked> بلی</label>

@@ -3175,12 +3175,14 @@ namespace EtehadBar.MVC.Controllers
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
                     item.Amount = input.Amount;
-                    item.DriverFee = input.DriverFee;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                        item.DriverFee = input.DriverFee;
                 }
                 else
                 {
                     item.Amount = fee.Price;
-                    item.DriverFee = fee.DriverPrice;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                        item.DriverFee = fee.DriverPrice;
                 }
 
                 _loadFactorRepo.Update(item);
@@ -3267,16 +3269,22 @@ namespace EtehadBar.MVC.Controllers
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
                     item.Amount = input.Amount;
-                    item.DriverFee = input.DriverFee;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                    {
+                        item.DriverFee = input.DriverFee;
+                        item.DriverTonnagePrice = input.DriverTonnagePrice;
+                    }
                     item.TonnagePrice = input.TonnagePrice;
-                    item.DriverTonnagePrice = input.DriverTonnagePrice;
                 }
                 else
                 {
                     item.Amount = fee.Price;
-                    item.DriverFee = fee.DriverPrice;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                    {
+                        item.DriverFee = fee.DriverPrice;
+                        item.DriverTonnagePrice = fee.DriverTonnagePrice;
+                    }
                     item.TonnagePrice = fee.TonnagePrice;
-                    item.DriverTonnagePrice = fee.DriverTonnagePrice;
                 }
 
                 _loadFactorRepo.Update(item);
@@ -3349,12 +3357,14 @@ namespace EtehadBar.MVC.Controllers
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
                     item.Amount = input.Amount;
-                    item.DriverFee = input.DriverFee;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                        item.DriverFee = input.DriverFee;
                 }
                 else
                 {
                     item.Amount = fee.Price;
-                    item.DriverFee = fee.DriverPrice;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                        item.DriverFee = fee.DriverPrice;
                 }
 
                 _loadFactorRepo.Update(item);
@@ -3439,16 +3449,22 @@ namespace EtehadBar.MVC.Controllers
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
                     item.Amount = input.HasAddonMessage ? input.Amount + (input.Amount * 0.3) : input.Amount;
-                    item.DriverFee = input.HasAddonMessage ? input.DriverFee + (input.DriverFee * 0.3) : input.DriverFee;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                    {
+                        item.DriverFee = input.HasAddonMessage ? input.DriverFee + (input.DriverFee * 0.3) : input.DriverFee;
+                        item.DriverTonnagePrice = input.DriverTonnagePrice;
+                    }
                     item.TonnagePrice = input.TonnagePrice;
-                    item.DriverTonnagePrice = input.DriverTonnagePrice;
                 }
                 else
                 {
                     item.Amount = input.HasAddonMessage ? fee.Price + (fee.Price * 0.3) : fee.Price;
-                    item.DriverFee = input.HasAddonMessage ? fee.DriverPrice + (fee.DriverPrice * 0.3) : fee.DriverPrice;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                    {
+                        item.DriverFee = input.HasAddonMessage ? fee.DriverPrice + (fee.DriverPrice * 0.3) : fee.DriverPrice;
+                        item.DriverTonnagePrice = fee.DriverTonnagePrice;
+                    }
                     item.TonnagePrice = fee.TonnagePrice;
-                    item.DriverTonnagePrice = fee.DriverTonnagePrice;
                 }
 
                 _loadFactorRepo.Update(item);
@@ -3570,10 +3586,11 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> EditLoadFactorDriverFee(long Id, double Fee, bool IsFree)
+        public async Task<IActionResult> EditLoadFactorDriverFee(long Id, double Fee, double TonnageFee, bool IsFree)
         {
             var item = await _loadFactorRepo.Get(Id);
             item.DriverFee = Fee;
+            item.DriverTonnagePrice = TonnageFee > 0 ? TonnageFee : item.DriverTonnagePrice;
             item.IsFreeDriverPrice = IsFree;
             item.IsDriverFeeEditedByAdmin = true;
             _loadFactorRepo.Update(item);
@@ -3862,6 +3879,31 @@ namespace EtehadBar.MVC.Controllers
                     a.IsOpen,
                     Status = a.IsOpen ? "باز" : "بسته"
                 }).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteAccountBook(string id)
+        {
+            var item = await _accountBookRepository.Get(id);
+            if (!item.LoadFactors.Any())
+            {
+                _accountBookRepository.Delete(item);
+                try
+                {
+                    await _accountBookRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "این صورت وضعیت دارای بارنامه می باشد. |danger";
+            }
+
+            return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion
 
