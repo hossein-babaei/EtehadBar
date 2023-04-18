@@ -50,6 +50,7 @@
                             <th>@Html.DisplayNameFor(model => model.Tonnage)</th>
                             <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
                         }
+                        <th>موردی</th>
                         <th>@Html.DisplayNameFor(model => model.DriverId)</th>
                         <th>@Html.DisplayNameFor(model => model.ContractId)</th>
                     </tr>
@@ -83,6 +84,7 @@
                                     <td>0</td>
                                 }
                             }
+                            <td>@if (item.IsFreeDriverPrice) { <span class="uk-text-primary">بلی</span> } else { <span>خیر</span> }</td>
                             <td>@item.Driver.Fullname</td>
                             <td>@item.Contract.Customer.Name - @item.Contract.Number</td>
                         </tr>

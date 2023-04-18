@@ -1271,7 +1271,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Payment(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _paymentRepo.Payments().OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
+            var onePageOfData = await _paymentRepo.Payments().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -2581,6 +2581,10 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
+                if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
+                    return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
+
                 var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
                 var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
 
@@ -2704,6 +2708,10 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
+                if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
+                    return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
+
                 var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
                 var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
 
@@ -2852,6 +2860,10 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
+                if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
+                    return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
+
                 var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
                 var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
 
@@ -2982,6 +2994,10 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
+                if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
+                    return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
+
                 var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
                 var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
 
@@ -3151,6 +3167,11 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
+                var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
+                if (item.AccountBookId != input.AccountBookId && await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
+                    return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
+
+
                 //if (await _loadFactorRepo.SequenceExistInSaipaPlasco(item.Id, input.Sequence))
                 //    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
@@ -3242,6 +3263,10 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
 
+                var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
+                if (item.AccountBookId != input.AccountBookId && await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
+                    return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
+
                 if (await _loadFactorRepo.SequenceExistInSaipaPress(item.Id, input.Sequence))
                     return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
@@ -3326,6 +3351,10 @@ namespace EtehadBar.MVC.Controllers
 
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
+
+                var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
+                if (item.AccountBookId != input.AccountBookId && await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
+                    return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
 
                 //if (await _loadFactorRepo.SequenceExistInSazehGostar(item.Id, input.Sequence))
                 //    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
@@ -3418,6 +3447,10 @@ namespace EtehadBar.MVC.Controllers
 
                 var item = await _loadFactorRepo.Get(input.Id);
                 if (item == null) return NotFound();
+
+                var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
+                if (item.AccountBookId != input.AccountBookId && await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
+                    return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
 
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDateTime = DateTime.Now;
@@ -3615,6 +3648,32 @@ namespace EtehadBar.MVC.Controllers
 
             return View(await _loadFactorRepo.LoadFactors().Where(a => a.AccountBookId.Equals(accountBook.Id)).ToListAsync());
         }
+
+        [HttpPost]
+        public async Task<IActionResult> MoveAccountBookLoadFactor(string accountBookRowId, long[] idList)
+        {
+            if (idList.Length > 0)
+            {
+                var accountBookId = await _accountBookRepository.AccountBooks().Where(a => a.RowId.Equals(accountBookRowId)).Select(a => a.Id).SingleOrDefaultAsync();
+                var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => idList.Contains(a.Id)).ToListAsync();
+
+                foreach (var item in loadFactors)
+                {
+                    item.AccountBookId = accountBookId;
+                }
+
+                try
+                {
+                    await _loadFactorRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
         #endregion
 
         #region LoadRoute
@@ -3762,6 +3821,7 @@ namespace EtehadBar.MVC.Controllers
                     CustomerId = c.CustomerId,
                     IsOpen = true,
                     FactorNumber = c.FactorNumber,
+                    LoadFactorLimit = c.LoadFactorLimit,
                     CreatorId = _userManager.GetUserId(User)
                 });
                 try
@@ -3793,7 +3853,8 @@ namespace EtehadBar.MVC.Controllers
                 Id = item.Id,
                 CustomerId = item.CustomerId,
                 FactorNumber = item.FactorNumber,
-                Number = item.Number
+                Number = item.Number,
+                LoadFactorLimit = item.LoadFactorLimit
             });
         }
 
@@ -3814,6 +3875,7 @@ namespace EtehadBar.MVC.Controllers
                 item.CustomerId = c.CustomerId;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
+                item.LoadFactorLimit = c.LoadFactorLimit;
                 _accountBookRepository.Update(item);
                 try
                 {
@@ -3904,6 +3966,18 @@ namespace EtehadBar.MVC.Controllers
             }
 
             return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetAccountBookJson()
+        {
+            var query = _accountBookRepository.AccountBooks().Where(a => a.IsOpen);
+            if (User.IsInRole("RegisterUser"))
+            {
+                var userId = _userManager.GetUserId(User);
+                query = query.Where(a => a.CreatorId.Equals(userId));
+            }
+            return Json(await query.Select(a => new { a.RowId, a.Number, Customer = a.Customer.Name }).ToListAsync());
         }
         #endregion
 

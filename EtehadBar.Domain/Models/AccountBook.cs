@@ -19,6 +19,10 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "شماره فاکتور")]
         public string FactorNumber { get; set; }
 
+        [Display(Name = "محدودیت تعداد بارنامه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int LoadFactorLimit { get; set; } = 150;
+
         [Display(Name = "وضعیت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool IsOpen { get; set; } = true;

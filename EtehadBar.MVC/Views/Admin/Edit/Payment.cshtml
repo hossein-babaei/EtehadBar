@@ -121,12 +121,12 @@
                     <label asp-for="PaymentType" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
                         <label>
-                            <input class="uk-radio" type="radio" name="Type" value="@(PaymentType.Salary)" @if (Model.PaymentType.Equals(PaymentType.Salary)) {
+                            <input class="uk-radio" type="radio" name="PaymentType" value="@((int)PaymentType.Salary)" @if (Model.PaymentType.Equals(PaymentType.Salary)) {
                             <text> checked</text>
                             } /> حقوق
                         </label>
                         <label>
-                            <input class="uk-radio" type="radio" name="Type" value="@(PaymentType.AdvanceMoney)" @if (Model.PaymentType.Equals(PaymentType.AdvanceMoney)) {
+                            <input class="uk-radio" type="radio" name="PaymentType" value="@((int)PaymentType.AdvanceMoney)" @if (Model.PaymentType.Equals(PaymentType.AdvanceMoney)) {
                             <text> checked</text>
                             } /> مساعده
                         </label>

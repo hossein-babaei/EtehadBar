@@ -211,6 +211,9 @@ namespace EtehadBar.MVC.Controllers
             ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
             ws.Columns().AdjustToContents();
 
+            ws.PageSetup.SetPageOrientation(XLPageOrientation.Landscape)
+                .SetPaperSize(XLPaperSize.A4Paper);
+
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             var content = stream.ToArray();
@@ -416,10 +419,11 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 6).Value = "مبدا";
             ws.Cell(2, 7).Value = "مقصد";
             ws.Cell(2, 8).Value = "کرایه راننده";
-            ws.Cell(2, 9).Value = "راننده";
-            ws.Cell(2, 10).Value = "مشتری - شماره قرارداد";
+            ws.Cell(2, 9).Value = "موردی";
+            ws.Cell(2, 10).Value = "راننده";
+            ws.Cell(2, 11).Value = "مشتری - شماره قرارداد";
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(loadFactors.Count + 2, 10));
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(loadFactors.Count + 2, 11));
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
@@ -428,7 +432,7 @@ namespace EtehadBar.MVC.Controllers
                     .Fill.SetBackgroundColor(XLColor.LightGray)
                         .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 10)); // The address is relative to rngTable (NOT the worksheet)
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 11)); // The address is relative to rngTable (NOT the worksheet)
             rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             rngHeaders.Style.Font.Bold = true;
             rngHeaders.Style.Font.FontColor = XLColor.Black;
@@ -451,33 +455,40 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 2, 6).Value = loadFactors[index - 1].Origin.Title;
                 ws.Cell(index + 2, 7).Value = loadFactors[index - 1].Destination.Title;
                 ws.Cell(index + 2, 8).Value = loadFactors[index - 1].DriverFee.ToString("N0");
-                ws.Cell(index + 2, 9).Value = $"{loadFactors[index - 1].Driver.Fullname}";
-                ws.Cell(index + 2, 10).Value = $"{loadFactors[index - 1].Contract.Customer.Name} {loadFactors[index - 1].Contract.Number}";
+                ws.Cell(index + 2, 9).Value = loadFactors[index - 1].IsFreeDriverPrice ? "بلی" : "خیر";
+                ws.Cell(index + 2, 10).Value = $"{loadFactors[index - 1].Driver.Fullname}";
+                ws.Cell(index + 2, 11).Value = $"{loadFactors[index - 1].Contract.Customer.Name} {loadFactors[index - 1].Contract.Number}";
             }
 
             ws.Cell($"B{loadFactors.Count + 3}").Value = "تعداد کل بارنامه ها";
-            ws.Range($"B{loadFactors.Count + 3}:I{loadFactors.Count + 3}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 3, 10).Value = loadFactors.Count;
+            ws.Range($"B{loadFactors.Count + 3}:J{loadFactors.Count + 3}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 3, 11).Value = loadFactors.Count;
 
             ws.Cell($"B{loadFactors.Count + 4}").Value = "جمع کرایه عملکرد";
-            ws.Range($"B{loadFactors.Count + 4}:I{loadFactors.Count + 4}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 4, 10).Value = loadFactors.Sum(a => a.DriverFee).ToString("N0");
+            ws.Range($"B{loadFactors.Count + 4}:J{loadFactors.Count + 4}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 4, 11).Value = loadFactors.Sum(a => a.DriverFee).ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 5}").Value = "جمع پرداختی (حقوق و مساعده)";
-            ws.Range($"B{loadFactors.Count + 5}:I{loadFactors.Count + 5}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 5, 10).Value = payment.ToString("N0");
+            ws.Range($"B{loadFactors.Count + 5}:J{loadFactors.Count + 5}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 5, 11).Value = payment.ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 6}").Value = "مجموع قابل پرداخت";
-            ws.Range($"B{loadFactors.Count + 6}:I{loadFactors.Count + 6}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 6, 10).Value = (loadFactors.Sum(a => a.DriverFee) - payment).ToString("N0");
+            ws.Range($"B{loadFactors.Count + 6}:J{loadFactors.Count + 6}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 6, 11).Value = (loadFactors.Sum(a => a.DriverFee) - payment).ToString("N0");
 
-            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:J{loadFactors.Count + 6}");
+            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:K{loadFactors.Count + 6}");
             rngTable2.RangeUsed().Style
                 .Font.SetBold()
                 .Font.SetFontSize(12);
 
             ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
+            ws.RangeUsed().Style.Border.SetInsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetInsideBorderColor(XLColor.Black);
+
             ws.Columns().AdjustToContents();
+
+            ws.PageSetup.SetPageOrientation(XLPageOrientation.Landscape)
+                .SetPaperSize(XLPaperSize.A4Paper);
 
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);
@@ -889,6 +900,9 @@ namespace EtehadBar.MVC.Controllers
                 list.CellsUsed().Style.Font.Bold = true;
                 list.CellsUsed().Style.Font.FontColor = XLColor.Black;
                 list.RowsUsed().Height = 24;
+
+                list.PageSetup.SetPageOrientation(XLPageOrientation.Landscape)
+                    .SetPaperSize(XLPaperSize.A4Paper);
                 #endregion
 
                 decimal c = Convert.ToDecimal(allLoadFactors.Count / 20f);
@@ -1156,6 +1170,9 @@ namespace EtehadBar.MVC.Controllers
                     ws.CellsUsed().Style.Font.Bold = true;
                     ws.CellsUsed().Style.Font.FontColor = XLColor.Black;
                     ws.RowsUsed().Height = 24;
+
+                    ws.PageSetup.SetPageOrientation(XLPageOrientation.Landscape)
+                        .SetPaperSize(XLPaperSize.A4Paper);
                 }
 
                 await using var stream = new MemoryStream();

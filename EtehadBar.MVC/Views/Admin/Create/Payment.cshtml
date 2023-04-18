@@ -118,8 +118,8 @@
                 <div>
                     <label asp-for="PaymentType" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
-                        <label><input class="uk-radio" type="radio" name="Type" value="@(PaymentType.Salary)" checked /> حقوق</label>
-                        <label><input class="uk-radio" type="radio" name="Type" value="@(PaymentType.AdvanceMoney)" /> مساعده</label>
+                        <label><input class="uk-radio" type="radio" name="PaymentType" value="@((int)PaymentType.Salary)" checked /> حقوق</label>
+                        <label><input class="uk-radio" type="radio" name="PaymentType" value="@((int)PaymentType.AdvanceMoney)" /> مساعده</label>
                     </div>
                     <span asp-validation-for="PaymentType" class="uk-text-danger"></span>
                 </div>

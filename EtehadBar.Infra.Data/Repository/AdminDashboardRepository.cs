@@ -20,7 +20,8 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<AdminDashboardVM> GetAdminData(int? dayLimit)
         {
-            var limit = dayLimit.HasValue ? DateTime.Now.AddDays(-dayLimit.Value) : DateTime.Now.AddDays(-1);
+            var now = DateTime.Now;
+            var limit = dayLimit.HasValue ? DateTime.Now.AddDays(-dayLimit.Value) : new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
             var loadFactors = await db.LoadFactor.Where(a => a.CreateDateTime >= limit).ToListAsync();
 
             foreach (var item in loadFactors.Where(a => a.Tonnage.HasValue))
@@ -103,8 +104,9 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<List<AdminDashboardUserActivityBoxVM>> GetUserData(int? dayLimit)
         {
+            var now = DateTime.Now;
             var data = new List<AdminDashboardUserActivityBoxVM>();
-            var limit = dayLimit.HasValue ? DateTime.Now.AddDays(-dayLimit.Value) : DateTime.Now.AddDays(-1);
+            var limit = dayLimit.HasValue ? DateTime.Now.AddDays(-dayLimit.Value) : new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
             var registerUsers = await db.Users.Where(a => a.Role == ApplicationRoleType.RegisterUser && a.Status).AsNoTracking()
                 .Select(a => new
                 {

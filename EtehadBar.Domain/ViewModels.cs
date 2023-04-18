@@ -873,6 +873,10 @@ namespace EtehadBar.Domain
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerId { get; set; }
+
+        [Display(Name = "محدودیت تعداد بارنامه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int LoadFactorLimit { get; set; }
     }
 
     public class EditAccountBookVM
@@ -890,6 +894,10 @@ namespace EtehadBar.Domain
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerId { get; set; }
+
+        [Display(Name = "محدودیت تعداد بارنامه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int LoadFactorLimit { get; set; }
     }
 
     public class VehicleActivityVM

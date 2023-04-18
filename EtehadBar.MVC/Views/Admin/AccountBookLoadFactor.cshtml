@@ -9,6 +9,8 @@
 }
 @section Scripts{
     <script>
+        let accountBooks = [],
+            selectedAccountBookRowId = '';
         function editDriverFee(td) {
             let modalId = '#edit-driver-fee-modal',
                 value = $(td).data('val'),
@@ -17,6 +19,64 @@
             $(modalId).find('input[name=Id]').val(itemId);
             $(modalId).find('input[name=Fee]').val(value);
             UIkit.modal(modalId).show();
+        }
+        function viewDetail(id) {
+            preloader();
+            $.get('@Url.Action("LoadFactorDetail")', { 'id': id }, function (r) {
+                $('#create-modal').html(r);
+            }, 'html').then(function () {
+                preloader();
+                UIkit.modal('#create-modal').show();
+            });
+        }
+        async function moveLoadFactors() {
+            if (accountBooks.length == 0) {
+                await $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("GetAccountBookJson")',
+                    data: {},
+                    dataType: 'json',
+                    beforeSend: function () {
+                        preloader();
+                    },
+                    success: function (r) {
+                        accountBooks = r;
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger');
+                    },
+                    complete: function () {
+                        preloader();
+                    }
+                });
+            }
+            let options = '';
+            $.each(accountBooks, function (i, v) {
+                options += `<option value="${v.rowId}">${v.number} - ${v.customer}</option>`;
+            })
+            $('#account-book-modal select').html(options);
+            UIkit.modal('#account-book-modal').show();
+        }
+        function doMove() {
+            UIkit.modal('#account-book-modal').hide();
+            $('#main-form #accountBookRowId').val($('#account-book-modal select').val());
+            $('#append table thead tr').append('<th class="appended" width="50">انتخاب</th>');
+            $.each($('#append table tbody tr'), function (i, v) {
+                $(v).append(`<td class="appended"><div class="uk-flex uk-flex-middle uk-flex-center"><input value="${$(v).data('id')}" name="idList[]" class="uk-checkbox uk-border-rounded" type="checkbox" /></div></td>`);
+            });
+            $('.uk-grid-collapse .uk-flex-left').html('<button onclick="cancelMove()" class="uk-button uk-button-danger">انصراف</button><button onclick="selectAllLoadFactor()" class="uk-button uk-button-secondary select-btn uk-margin-small-right">انتخاب همه</button><button uk-toggle="#submit-modal" class="uk-button uk-button-primary uk-margin-small-right">ثبت</button>')
+        }
+        function cancelMove() {
+            $('.uk-grid-collapse .uk-flex-left').html('<button onclick="moveLoadFactors()" class="uk-button uk-button-secondary uk-margin-small-right">انتقال</button>');
+            $('.appended').remove();
+        }
+        function selectAllLoadFactor() {
+            $('.select-btn').attr('onclick', 'deselectAllLoadFactors()');
+            $('td.appended input').attr('checked', true);
+        }
+        function deselectAllLoadFactors() {
+            $('.select-btn').attr('onclick', 'selectAllLoadFactor()');
+            $('td.appended input').attr('checked', false);
         }
     </script>
 }
@@ -27,68 +87,85 @@
             <li><span>@ViewData["Title"]</span></li>
         </ul>
     </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <button onclick="moveLoadFactors()" class="uk-button uk-button-secondary uk-margin-small-right">انتقال</button>
+    </div>
 </div>
 <div id="append" class="box">
-    <div class="uk-overflow-auto">
-        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
-            <thead>
-                <tr>
-                    <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
-                    <th>مسیر</th>
-                    <th>خودرو</th>
-                    <th>راننده</th>
-                    <th>@Html.DisplayNameFor(model => model.Date)</th>
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <th>مشتری</th>
-                        <th>@Html.DisplayNameFor(model => model.Amount)</th>
-                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
-                    }
-                    else if (User.IsInRole("User"))
-                    {
-                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
-                    }
-                    else
-                    {
-                        <th>@Html.DisplayNameFor(model => model.Amount)</th>
-                    }
-                    <th width="50">جزئیات</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    <tr class="uk-text-center sm" data-id="@item.Id">
-                        <td>@i</td>
-                        <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
-                        <td>@item.Origin.Title<br />@item.Destination.Title</td>
-                        <td>@item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
-                        <td>@item.Driver.Fullname</td>
-                        <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+    <form id="main-form" action="@Url.Action("MoveAccountBookLoadFactor")" method="post">
+        <input name="accountBookRowId" id="accountBookRowId" type="hidden" />
+        <div class="uk-overflow-auto">
+            <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                <thead>
+                    <tr>
+                        <th>ردیف</th>
+                        <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
+                        <th>مسیر</th>
+                        <th>خودرو</th>
+                        <th>راننده</th>
+                        <th>@Html.DisplayNameFor(model => model.Date)</th>
                         @if (User.IsInRole("Admin"))
                         {
-                            <td>@item.Contract.Customer.Name</td>
-                            <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
-                            <td class="uk-text-bold md pointer" onclick="editDriverFee(this)" data-val="@item.DriverFee">@item.DriverFee.ToString("N0")</td>
+                            <th>مشتری</th>
+                            <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                            <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
                         }
                         else if (User.IsInRole("User"))
                         {
-                            <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                            <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
                         }
                         else
                         {
-                            <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                            <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         }
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
+                        <th width="50">جزئیات</th>
                     </tr>
-                    i++;
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="uk-text-center sm" data-id="@item.Id">
+                            <td>@i</td>
+                            <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
+                            <td>@item.Origin.Title<br />@item.Destination.Title</td>
+                            <td>@item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
+                            <td>@item.Driver.Fullname</td>
+                            <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <td>@item.Contract.Customer.Name</td>
+                                <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                                <td class="uk-text-bold md pointer" onclick="editDriverFee(this)" data-val="@item.DriverFee">@item.DriverFee.ToString("N0")</td>
+                            }
+                            else if (User.IsInRole("User"))
+                            {
+                                <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                            }
+                            else
+                            {
+                                <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                            }
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </form>
 </div>
 
+<div id="account-book-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>صورت وضعیت / زونکن مقصد را انتخاب کنید</h3>
+        <select class="uk-select uk-border-rounded"></select>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="doMove()" type="button">انتخاب بارنامه ها</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+        </div>
+    </div>
+</div>
+<div id="create-modal" class="uk-modal-container" uk-modal="bg-close: false"></div>
 <div id="edit-driver-fee-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
         <form id="edit-driver-fee-form" method="post" asp-action="EditLoadFactorDriverFee" asp-controller="Admin" autocomplete="off">
@@ -105,5 +182,15 @@
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
             </div>
         </form>
+    </div>
+</div>
+<div id="submit-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>آیا از انتقال بارنامه های انتخابی اطمینان دارید؟</h3>
+        <p class="uk-text-danger uk-text-bold">هشدار! این عملیات به سادگی قابل بازگشت نیست</p>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="$('#main-form').submit()" type="button">بلی</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+        </div>
     </div>
 </div>
