@@ -155,12 +155,12 @@
                     <label class="uk-form-label">خودرو</label>
                     <select name="vehicleId"></select>
                     </div>*@
-                    @if (User.IsInRole("Admin") || User.IsInRole("User"))
+                    @if (User.IsInRole("Admin") || User.IsInRole("User") || User.IsInRole("Milad"))
                     {
                         <div>
                             <label class="uk-form-label">نوع خروجی</label>
                             <select name="exportType">
-                                @if (User.IsInRole("Admin"))
+                                @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
                                 {
                                     <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
                                     <option value="@((int)ExcelExportType.WithAllPrices)">با تمامی نرخ ها</option>
@@ -202,12 +202,12 @@
                         <label class="uk-form-label">صورت وضعیت</label>
                         <select name="accountBookId"></select>
                     </div>
-                    @if (User.IsInRole("Admin") || User.IsInRole("User"))
+                    @if (User.IsInRole("Admin") || User.IsInRole("User") || User.IsInRole("Milad"))
                     {
                         <div>
                             <label class="uk-form-label">نوع خروجی</label>
                             <select name="exportType">
-                                @if (User.IsInRole("Admin"))
+                                @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
                                 {
                                     <option value="@((int)ExcelExportType.WithoutPrice)">بدون نرخ</option>
                                     <option value="@((int)ExcelExportType.WithAllPrices)">با تمامی نرخ ها</option>

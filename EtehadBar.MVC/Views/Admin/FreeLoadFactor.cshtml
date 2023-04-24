@@ -159,7 +159,7 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("LoadFactor", new { p = page }))
+            @Html.PagedListPager(data, page => Url.Action("FreeLoadFactor", new { p = page }))
         </div>
     }
 </div>

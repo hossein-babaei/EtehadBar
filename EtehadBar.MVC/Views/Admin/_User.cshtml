@@ -34,8 +34,10 @@
                     string role = item.Role switch
                     {
                         ApplicationRoleType.Admin => "مدیر سیستم",
-                        ApplicationRoleType.RegisterUser => "کاربر ثبت",
                         ApplicationRoleType.User => "کاربر سیستم",
+                        ApplicationRoleType.RegisterUser => "کاربر ثبت",
+                        ApplicationRoleType.Partner => "شرکا",
+                        ApplicationRoleType.Investor => "سرمایه گذار",
                         _ => ""
                     };
 

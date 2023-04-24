@@ -40,12 +40,16 @@
                 <span class="sm">@Model.DriverName</span>
             </div>
             <div>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.DriverNationalNumber)</p>
+                <span class="sm">@Model.DriverNationalNumber</span>
+            </div>
+            <div>
                 <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.VehicleType)</p>
                 <span class="sm">@Model.VehicleType</span>
             </div>
             <div>
-                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.VehicleNumber)</p>
-                <span class="sm">@Model.VehicleNumber</span>
+                <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">شماره خودرو</p>
+                <span class="sm">ایران @Model.IranStateNumber - @Model.RightNumber @Model.NumberWord @Model.LeftNumber</span>
             </div>
             <div>
                 <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">مسئول ثبت بارنامه</p>
@@ -69,15 +73,26 @@
                     <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.Tonnage)</p>
                     <span class="sm">@Model.Tonnage.Value.ToString("N0") تن</span>
                 </div>
+            }
+            @if (Model.TonnagePrice.HasValue)
+            {
                 <div>
                     <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.TonnagePrice)</p>
                     <span class="sm">@Model.TonnagePrice.Value.ToString("N0")</span>
                 </div>
+            }
+            @if (Model.DriverTonnagePrice.HasValue)
+            {
                 <div>
                     <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.DriverTonnagePrice)</p>
                     <span class="sm">@Model.DriverTonnagePrice.Value.ToString("N0")</span>
                 </div>
             }
+            <div class="uk-width-1-1">
+                <div class="uk-text-center">
+                    <a href="/img/freeloadfactor/@Model.LoadFactorScan" target="_blank"><img class="uk-width-1-1" src="~/img/freeloadfactor/@Model.LoadFactorScan" /></a>
+                </div>
+            </div>
         </div>
     </div>
     <div class="uk-modal-footer uk-text-center">

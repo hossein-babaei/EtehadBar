@@ -221,7 +221,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Cost(long calendarId, string userId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -292,7 +292,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> Payment(long calendarId, byte? type, long vehicleId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -388,6 +388,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId, long customerId)
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
@@ -497,6 +498,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId, long customerId)
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
@@ -1782,7 +1784,7 @@ namespace EtehadBar.MVC.Controllers
                         ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
                         ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
-                        var data = allLoadFactors.Where(a => a.MehrcomParsLoadFactor.CategoryId.Equals(category.Id)).OrderBy(a => a.Date).ToList();
+                        var data = allLoadFactors.Where(a => a.MehrcomParsLoadFactor.CategoryId.Equals(category.Id)).OrderBy(a => a.VehicleName).ThenBy(a => a.Date).ToList();
 
                         ws.Cell("A4").Value = "ردیف";
                         ws.Cell("B4").Value = "شماره زونکن";
@@ -2184,6 +2186,7 @@ namespace EtehadBar.MVC.Controllers
                 .Border.SetInsideBorderColor(XLColor.Black);
         }
 
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ActivityList(long customerId, long calendarId)
         {
             var data = await _vehicleRepo.ActivityList(customerId, calendarId);

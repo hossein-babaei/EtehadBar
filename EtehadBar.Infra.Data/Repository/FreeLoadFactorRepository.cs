@@ -55,8 +55,13 @@ namespace EtehadBar.Infra.Data.Repository
                 Origin = item.Origin,
                 Tonnage = item.Tonnage,
                 TonnagePrice = item.TonnagePrice,
-                VehicleNumber = item.VehicleNumber,
-                VehicleType = item.VehicleType
+                VehicleType = item.VehicleType,
+                DriverNationalNumber = item.DriverNationalNumber,
+                IranStateNumber = item.IranStateNumber,
+                LeftNumber = item.LeftNumber,
+                RightNumber = item.RightNumber,
+                NumberWord = item.NumberWord,
+                LoadFactorScan = item.LoadFactorScan
             };
         }
 

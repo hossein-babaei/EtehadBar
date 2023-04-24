@@ -27,13 +27,32 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string DriverName { get; set; }
 
+        [Display(Name = "کد ملی راننده")]
+        public string DriverNationalNumber { get; set; }
+
         [Display(Name = "نوع خودرو")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string VehicleType { get; set; }
 
-        [Display(Name = "شماره خودرو")]
+        [Display(Name = "اعداد سمت چپ پلاک")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string VehicleNumber { get; set; }
+        [StringLength(2, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string LeftNumber { get; set; }
+
+        [Display(Name = "حرف پلاک")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(1, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string NumberWord { get; set; }
+
+        [Display(Name = "اعداد سمت راست پلاک")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(3, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string RightNumber { get; set; }
+
+        [Display(Name = "کد استان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(2, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string IranStateNumber { get; set; }
 
         [Display(Name = "تاریخ")]
         public DateTime Date { get; set; } = DateTime.Now;
@@ -57,7 +76,7 @@ namespace EtehadBar.Domain.Models
 
         [Display(Name = "شماره بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        [StringLength(128,  ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string LoadNumber { get; set; }
 
         [Display(Name = "شماره بارنامه دولتی")]
@@ -88,6 +107,9 @@ namespace EtehadBar.Domain.Models
         [ForeignKey(nameof(Calendar))]
         public long CalendarId { get; set; }
         public virtual Calendar Calendar { get; set; }
+
+        [StringLength(128)]
+        public string LoadFactorScan { get; set; }
 
         [Required]
         [StringLength(36)]

@@ -69,6 +69,38 @@ namespace Helpers
 
                 IdentityResult roleResult = roleManager.CreateAsync(role).Result;
             }
+
+            if (!roleManager.RoleExistsAsync("Milad").Result)
+            {
+                IdentityRole role = new IdentityRole
+                {
+                    Name = "Milad"
+                };
+
+                IdentityResult roleResult = roleManager.CreateAsync(role).Result;
+            }
+
+            //سرمایه گذار
+            if (!roleManager.RoleExistsAsync("Investor").Result)
+            {
+                IdentityRole role = new IdentityRole
+                {
+                    Name = "Investor"
+                };
+
+                IdentityResult roleResult = roleManager.CreateAsync(role).Result;
+            }
+
+            //شرکا
+            if (!roleManager.RoleExistsAsync("Partner").Result)
+            {
+                IdentityRole role = new IdentityRole
+                {
+                    Name = "Partner"
+                };
+
+                IdentityResult roleResult = roleManager.CreateAsync(role).Result;
+            }
         }
     }
 }

@@ -9,7 +9,9 @@
     {
         Admin,
         User,
-        RegisterUser
+        RegisterUser,
+        Partner,
+        Investor
     }
 
     public enum PaymentType
@@ -104,5 +106,11 @@
         Cost,
         PaymentToDriver,
         Other
+    }
+
+    public enum TurnoverType
+    {
+        Partner,
+        Investor
     }
 }

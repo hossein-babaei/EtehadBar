@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -48,6 +49,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IBankAccountRepository _bankAccountRepository;
         private readonly IBankAccountBookRepository _bankAccountBookRepository;
         private readonly IAdminDashboardRepository _adminDashboardRepository;
+        private readonly ITurnoverRepository _turnoverRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -73,7 +75,8 @@ namespace EtehadBar.MVC.Controllers
             IFreeLoadFactorRepository freeLoadFactorRepository,
             IBankAccountRepository bankAccountRepository,
             IBankAccountBookRepository bankAccountBookRepository,
-            IAdminDashboardRepository adminDashboardRepository)
+            IAdminDashboardRepository adminDashboardRepository,
+            ITurnoverRepository turnoverRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -99,6 +102,7 @@ namespace EtehadBar.MVC.Controllers
             _bankAccountRepository = bankAccountRepository;
             _bankAccountBookRepository = bankAccountBookRepository;
             _adminDashboardRepository = adminDashboardRepository;
+            _turnoverRepository = turnoverRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -114,7 +118,7 @@ namespace EtehadBar.MVC.Controllers
 
             if (User.IsInRole("Admin"))
                 return View("AdminDashboard", await _adminDashboardRepository.GetAdminData(dayLimit));
-            else if (User.IsInRole("User"))
+            else if (User.IsInRole("User") || User.IsInRole("Milad"))
                 return View("UserDashboard", await _adminDashboardRepository.GetUserData(dayLimit));
             else
                 return View("RegisterUserDashboard", await _adminDashboardRepository.GetRegisterUserData(_userManager.GetUserId(User), dayLimit));
@@ -160,14 +164,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> Config()
         {
             return View(await _configRepo.First());
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<JsonResult> Config(Config c)
         {
             string status = "danger";
@@ -700,7 +704,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Definition
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Definition(int? p)
         {
             var pageNumber = p ?? 1;
@@ -710,14 +714,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public PartialViewResult CreateDefinition()
         {
             return PartialView("~/Views/Admin/Create/Definition.cshtml");
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> CreateDefinition(Definition d)
         {
             if (ModelState.IsValid)
@@ -741,14 +745,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<PartialViewResult> EditDefinition(int id)
         {
             return PartialView("~/Views/Admin/Edit/Definition.cshtml", await _definitionRepo.Get(id));
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> EditDefinition(Definition d)
         {
             if (ModelState.IsValid)
@@ -775,7 +779,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> DeleteDefinition(int id)
         {
             var item = await _definitionRepo.Get(id);
@@ -1081,7 +1085,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Cost
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Cost(int? p)
         {
             ViewData["UserId"] = _userManager.GetUserId(User);
@@ -1099,7 +1103,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Cost(Cost c, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1155,7 +1159,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<PartialViewResult> EditCost(int id)
         {
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -1163,7 +1167,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> EditCost(Cost c, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1236,7 +1240,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> DeleteCost(int id)
         {
             var item = await _costRepo.Get(id);
@@ -1267,7 +1271,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Payment
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Payment(int? p)
         {
             var pageNumber = p ?? 1;
@@ -1277,7 +1281,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<PartialViewResult> CreatePayment(string itemId, string type)
         {
             ViewData["AdminId"] = _userManager.GetUserId(User);
@@ -1293,7 +1297,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> CreatePayment(Payment p, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1349,7 +1353,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<PartialViewResult> EditPayment(int id)
         {
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -1357,7 +1361,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> EditPayment(Payment p, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
@@ -1431,7 +1435,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> DeletePayment(int id)
         {
             var item = await _paymentRepo.Get(id);
@@ -1716,7 +1720,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Contract
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> Contract(int? p)
         {
             var pageNumber = p ?? 1;
@@ -1726,7 +1730,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CreateContract()
         {
             ViewData["Year"] = await _configRepo.CurrentYear();
@@ -1740,7 +1744,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CreateContract(CreateContractVM c)
         {
             if (ModelState.IsValid)
@@ -1805,7 +1809,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditContract(int id)
         {
             var item = await _contractRepo.Get(id);
@@ -1829,7 +1833,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditContract(EditContractVM c)
         {
             if (ModelState.IsValid)
@@ -2348,7 +2352,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region ShippingFeeLoadType
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ShippingFeeLoadType(int? p)
         {
             var pageNumber = p ?? 1;
@@ -2358,14 +2362,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public PartialViewResult CreateShippingFeeLoadType()
         {
             return PartialView("~/Views/Admin/Create/ShippingFeeLoadType.cshtml");
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CreateShippingFeeLoadType(ShippingFeeLoadType v)
         {
             if (ModelState.IsValid)
@@ -2395,14 +2399,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<PartialViewResult> EditShippingFeeLoadType(int id)
         {
             return PartialView("~/Views/Admin/Edit/ShippingFeeLoadType.cshtml", await _shippingFeeLoadTypeRepo.Get(id));
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditShippingFeeLoadType(ShippingFeeLoadType v)
         {
             if (ModelState.IsValid)
@@ -2595,7 +2599,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPlascoLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
@@ -2743,7 +2747,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPressLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 var config = await _configRepo.LoadFactorTax();
@@ -2878,7 +2882,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.SazehGostarLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 var config = await _configRepo.LoadFactorTax();
@@ -3020,7 +3024,7 @@ namespace EtehadBar.MVC.Controllers
                     )
                     return NotFound("مقادیر بار/پالت/برگشت با نرخ انتخابی تناسب ندارد.");
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber)))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
@@ -3550,6 +3554,8 @@ namespace EtehadBar.MVC.Controllers
             if (item.SaipaPressLoadFactor != null)
                 _loadFactorRepo.DeleteSaipaPress(item.SaipaPressLoadFactor);
 
+            Log.Information($"بارنامه با شماره {item.LoadNumber} و مبدا {item.Origin.Title} و مقصد {item.Destination.Title} حذف شد.");
+
             _loadFactorRepo.Delete(item);
             try
             {
@@ -3678,7 +3684,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region LoadRoute
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> LoadRoute(int? p)
         {
             var pageNumber = p ?? 1;
@@ -3688,14 +3694,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public PartialViewResult CreateLoadRoute()
         {
             return PartialView("~/Views/Admin/Create/LoadRoute.cshtml");
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CreateLoadRoute(LoadRoutes v)
         {
             if (ModelState.IsValid)
@@ -3725,14 +3731,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<PartialViewResult> EditLoadRoute(int id)
         {
             return PartialView("~/Views/Admin/Edit/LoadRoute.cshtml", await _loadRouteRepo.Get(id));
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditLoadRoute(LoadRoutes v)
         {
             if (ModelState.IsValid)
@@ -4119,7 +4125,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region MehrcomParsCategory
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> MehrcomParsCategory(int? p)
         {
             var pageNumber = p ?? 1;
@@ -4129,7 +4135,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<PartialViewResult> CreateMehrcomParsCategory()
         {
             if (await _mehrcomParsCategoryRepository.Categories().AsNoTracking().AnyAsync())
@@ -4141,7 +4147,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CreateMehrcomParsCategory(MehrcomParsCategory v)
         {
             if (ModelState.IsValid)
@@ -4177,14 +4183,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<PartialViewResult> EditMehrcomParsCategory(int id)
         {
             return PartialView("~/Views/Admin/Edit/MehrcomParsCategory.cshtml", await _mehrcomParsCategoryRepository.Get(id));
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditMehrcomParsCategory(MehrcomParsCategory v)
         {
             if (ModelState.IsValid)
@@ -4269,7 +4275,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateFreeLoadFactor(CreateFreeLoadFactorVM v)
+        public async Task<IActionResult> CreateFreeLoadFactor(CreateFreeLoadFactorVM v, IFormFile pic)
         {
             if (ModelState.IsValid)
             {
@@ -4300,13 +4306,47 @@ namespace EtehadBar.MVC.Controllers
                     LoadNumberGov = v.LoadNumberGov,
                     Tonnage = v.Tonnage,
                     TonnagePrice = v.TonnagePrice,
-                    VehicleNumber = v.VehicleNumber,
+                    IranStateNumber = v.IranStateNumber,
+                    NumberWord = v.NumberWord,
+                    RightNumber = v.RightNumber,
+                    LeftNumber = v.LeftNumber,
+                    DriverNationalNumber = v.DriverNationalNumber,
                     VehicleType = v.VehicleType,
                     WithholdingTax = config.WithholdingTax,
                     LoadFactorDeductions = 0,
                     VAT = config.VAT,
                     Date = new PersianDateTime(v.Year, v.Month, v.Day, 0, 0, 0).ToDateTime()
                 };
+
+                if (pic != null)
+                {
+                    if (pic.Length <= 10240000)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\freeloadfactor")))
+                            {
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\freeloadfactor"));
+                            }
+                            var fileName = $"{v.ApplicantName.Replace(" ", "_")}_{v.LoadNumber}_{Path.GetRandomFileName()}{Path.GetExtension(pic.FileName).ToLower()}";
+                            var path = Path.Combine(_environment.WebRootPath, "img\\freeloadfactor", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            item.LoadFactorScan = fileName;
+                        }
+                        else
+                        {
+                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                        }
+                    }
+                    else
+                    {
+                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
+                    }
+                }
 
                 _freeLoadFactorRepository.Create(item);
                 try
@@ -4337,7 +4377,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> EditFreeLoadFactor(EditFreeLoadFactorVM v)
+        public async Task<IActionResult> EditFreeLoadFactor(EditFreeLoadFactorVM v, IFormFile pic)
         {
             if (ModelState.IsValid)
             {
@@ -4352,6 +4392,60 @@ namespace EtehadBar.MVC.Controllers
                         return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
 
                 var item = await _freeLoadFactorRepository.Get(v.Id);
+
+                if (pic != null)
+                {
+                    if (pic.Length <= 10240000)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\freeloadfactor")))
+                            {
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\freeloadfactor"));
+                            }
+
+                            var fileName = $"{v.ApplicantName.Replace(" ", "_")}_{v.LoadNumber}_{Path.GetRandomFileName()}{Path.GetExtension(pic.FileName).ToLower()}";
+                            var path = Path.Combine(_environment.WebRootPath, "img\\freeloadfactor", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            if (!string.IsNullOrEmpty(item.LoadFactorScan))
+                            {
+                                try
+                                {
+                                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\freeloadfactor", item.LoadFactorScan));
+                                }
+                                catch (Exception)
+                                {
+                                    throw;
+                                }
+                            }
+
+                            item.LoadFactorScan = fileName;
+                        }
+                        else
+                        {
+                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                        }
+                    }
+                    else
+                    {
+                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
+                    }
+                }
+                else if (pic == null && (v.LoadNumber != item.LoadNumber || v.ApplicantName != item.ApplicantName))
+                {
+                    var fileInfo = new FileInfo(Path.Combine(_environment.WebRootPath, "img\\freeloadfactor", item.LoadFactorScan));
+                    string ext = item.LoadFactorScan.Split('.', StringSplitOptions.RemoveEmptyEntries)[item.LoadFactorScan.Split('.', StringSplitOptions.RemoveEmptyEntries).Length - 1];
+                    var fileName = $"{v.ApplicantName.Replace(" ", "_")}_{v.LoadNumber}_{Path.GetRandomFileName()}.{ext}";
+                    if (fileInfo.Exists)
+                        fileInfo.MoveTo(fileInfo.Directory.FullName + "\\" + fileName);
+
+                    item.LoadFactorScan = fileName;
+                }
+
                 item.LoadNumber = v.LoadNumber;
                 item.LoadNumberGov = v.LoadNumberGov;
                 item.ApplicantName = v.ApplicantName;
@@ -4363,7 +4457,12 @@ namespace EtehadBar.MVC.Controllers
                 item.Origin = v.Origin;
                 item.EditDatetime = DateTime.Now;
                 item.EditorId = _userManager.GetUserId(User);
-                item.VehicleNumber = v.VehicleNumber;
+                item.DriverNationalNumber = v.DriverNationalNumber;
+                item.IranStateNumber = v.IranStateNumber;
+                item.NumberWord = v.NumberWord;
+                item.RightNumber = v.RightNumber;
+                item.LeftNumber = v.LeftNumber;
+                item.DriverNationalNumber = v.DriverNationalNumber;
                 item.VehicleType = v.VehicleType;
                 item.DriverFee = v.DriverFee;
                 item.DriverName = v.DriverName;
@@ -4410,7 +4509,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region BankAccount
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> BankAccount(int? p)
         {
             var pageNumber = p ?? 1;
@@ -4420,7 +4519,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public PartialViewResult CreateBankAccount()
         {
             ViewData["UserId"] = _userManager.GetUserId(User);
@@ -4428,7 +4527,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> CreateBankAccount(BankAccount v)
         {
             if (ModelState.IsValid)
@@ -4452,14 +4551,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<PartialViewResult> EditBankAccount(int id)
         {
             return PartialView("~/Views/Admin/Edit/BankAccount.cshtml", await _bankAccountRepository.Get(id));
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> EditBankAccount(BankAccount v)
         {
             if (ModelState.IsValid)
@@ -4491,7 +4590,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region BankAccountBook
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> BankAccountBook(string id, int? p)
         {
             if (string.IsNullOrWhiteSpace(id))
@@ -4509,7 +4608,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> BankAccountBook_Search(long bankAccountId, string number, string description, string fromDate, string toDate)
         {
             var query = _bankAccountBookRepository.Query().Where(a => a.BankAccountId.Equals(bankAccountId));
@@ -4535,14 +4634,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public IActionResult CreateBankAccountBook()
         {
             return PartialView("~/Views/Admin/Create/BankAccountBook.cshtml");
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> CreateBankAccountBook(CreateBankAccountBookVM v)
         {
             if (ModelState.IsValid)
@@ -4584,14 +4683,14 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<PartialViewResult> EditBankAccountBook(int id)
         {
             return PartialView("~/Views/Admin/Edit/BankAccountBook.cshtml", await _bankAccountBookRepository.GetEdit(id));
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> EditBankAccountBook(EditBankAccountBookVM v)
         {
             if (ModelState.IsValid)
@@ -4654,7 +4753,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> DeleteBankAccountBook(int id)
         {
             var item = await _bankAccountBookRepository.Get(id);
@@ -4662,7 +4761,7 @@ namespace EtehadBar.MVC.Controllers
             for (int i = 0; i < nextItems.Count; i++)
             {
                 var next = nextItems[i];
-                
+
                 next.Sequence = item.Sequence + i;
                 if (item.Creditor > 0)
                     next.Balance -= item.Creditor;
@@ -4683,6 +4782,96 @@ namespace EtehadBar.MVC.Controllers
         }
 
         //public async Task<IActionResult> MoveBankAccountBook()
+        #endregion
+
+        #region Turnover
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Turnover(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _bankAccountRepository.Query().Where(a => a.OwnerUserId.Equals(_userManager.GetUserId(User))).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public PartialViewResult CreateTurnover()
+        {
+            ViewData["UserId"] = _userManager.GetUserId(User);
+            return PartialView("~/Views/Admin/Create/Turnover.cshtml");
+        }
+
+        //[HttpPost]
+        //[Authorize(Roles = "Admin")]
+        //public async Task<IActionResult> CreateTurnover(Turnover v)
+        //{
+        //    if (ModelState.IsValid)
+        //    {
+        //        var item = new Turnover
+        //        {
+
+        //        };
+        //        new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime(),
+        //        _turnoverRepository.Create(v);
+        //        try
+        //        {
+        //            await _turnoverRepository.Save();
+        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+        //        }
+        //    }
+        //    else
+        //    {
+        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+        //    }
+        //    return Redirect(Request.Headers["Referer"].ToString());
+        //}
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> EditTurnover(int id)
+        {
+            return PartialView("~/Views/Admin/Edit/Turnover.cshtml", await _turnoverRepository.Get(id));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditTurnover(Turnover v)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _turnoverRepository.Get(v.Id);
+                item.TurnoverType = v.TurnoverType;
+                item.CalnedarId = v.CalnedarId;
+                item.Creditor = v.Creditor;
+                item.Date = v.Date;
+                item.Debtor = v.Debtor;
+                item.Description = v.Description;
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDatetime = DateTime.Now;
+
+                _turnoverRepository.Update(item);
+                try
+                {
+                    await _turnoverRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
         #endregion
     }
 }

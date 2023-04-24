@@ -218,7 +218,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Cost()
         {
             var users = await _userManager.Users.AsNoTracking().Where(a => a.Role != ApplicationRoleType.RegisterUser).OrderBy(a => a.Firstname).ThenBy(a => a.Lastname).ToListAsync();
@@ -236,7 +236,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Cost(long calendarId, string userId)
         {
             ViewData["userId"] = userId;
@@ -253,7 +253,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> Payment()
         {
             var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -264,7 +264,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> Payment(long calendarId, byte type, long vehicleId)
         {
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
@@ -275,7 +275,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> VehicleLoadFactor()
         {
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -284,7 +284,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId, long customerId)
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
@@ -300,7 +300,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> VehicleActivity()
         {
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -310,7 +310,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId, long customerId)
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
@@ -326,7 +326,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ActivityList()
         {
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();

@@ -8,7 +8,7 @@
         <h2 class="uk-modal-title">ویرایش بارنامه</h2>
     </div>
     <div class="uk-modal-body">
-        <form id="edit-form" method="post" action="@Url.Action("EditFreeLoadFactor", "Admin")">
+        <form id="edit-form" method="post" action="@Url.Action("EditFreeLoadFactor", "Admin")" enctype="multipart/form-data">
             <input asp-for="Id" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
@@ -54,15 +54,20 @@
                     <input asp-for="LoadNumberGov" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="LoadNumberGov" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-3@m">
                     <label asp-for="ApplicantName" class="uk-form-label"></label>
                     <input asp-for="ApplicantName"  class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="ApplicantName" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-3@m">
                     <label asp-for="DriverName" class="uk-form-label"></label>
                     <input asp-for="DriverName" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="DriverName" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label asp-for="DriverNationalNumber" class="uk-form-label"></label>
+                    <input asp-for="DriverNationalNumber" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="DriverNationalNumber" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Amount" class="uk-form-label"></label>
@@ -84,7 +89,7 @@
                     <input asp-for="Destination" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="Destination" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-5">
                     <label asp-for="VehicleType" class="uk-form-label"></label>
                     <select asp-for="VehicleType" class="uk-select uk-form-small uk-border-rounded">
                         @foreach (var item in vehicleTypes)
@@ -94,10 +99,25 @@
                     </select>
                     <span asp-validation-for="VehicleType" class="uk-text-danger"></span>
                 </div>
-                <div>
-                    <label asp-for="VehicleNumber" class="uk-form-label"></label>
-                    <input asp-for="VehicleNumber" class="uk-input uk-border-rounded uk-form-small" />
-                    <span asp-validation-for="VehicleNumber" class="uk-text-danger"></span>
+                <div class="uk-width-1-5">
+                    <label asp-for="IranStateNumber" class="uk-form-label"></label>
+                    <input asp-for="IranStateNumber" dir="ltr" class="uk-input uk-form-small uk-border-rounded" />
+                    <span asp-validation-for="IranStateNumber" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-5">
+                    <label asp-for="RightNumber" class="uk-form-label"></label>
+                    <input asp-for="RightNumber" dir="ltr" class="uk-input uk-form-small uk-border-rounded" />
+                    <span asp-validation-for="RightNumber" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-5">
+                    <label asp-for="NumberWord" class="uk-form-label"></label>
+                    <input asp-for="NumberWord" class="uk-input uk-form-small uk-border-rounded" value="ع" />
+                    <span asp-validation-for="NumberWord" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-5">
+                    <label asp-for="LeftNumber" class="uk-form-label"></label>
+                    <input asp-for="LeftNumber" dir="ltr" class="uk-input uk-form-small uk-border-rounded" />
+                    <span asp-validation-for="LeftNumber" class="uk-text-danger"></span>
                 </div>
                 <div class="uk-width-1-3@m">
                     <label asp-for="Tonnage" class="uk-form-label"></label>
@@ -113,6 +133,31 @@
                     <label asp-for="DriverTonnagePrice" class="uk-form-label"></label>
                     <input asp-for="DriverTonnagePrice" class="uk-input uk-border-rounded uk-form-small format-number" />
                     <span asp-validation-for="DriverTonnagePrice" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-1">
+                    @if (!string.IsNullOrEmpty(Model.LoadFactorScan))
+                    {
+                        <div>
+                            <div class="uk-width-1-1 uk-padding">
+                                تصویر فعلی بارنامه را در زیر مشاهده میکنید.
+                                <br />
+                                اگر میخواهید آن را تغییر دهید یک تصویر انتخاب کنید. در غیر اینصورت آن را خالی بگذارید.
+                            </div>
+                            <div class="uk-width-1-1 uk-text-center">
+                                <a href="/img/freeloadfactor/@Model.LoadFactorScan" target="_blank"><img class="uk-width-1-1@s uk-width-3-5@m" src="~/img/freeloadfactor/@Model.LoadFactorScan" /></a>
+                            </div>
+                        </div>
+                    }
+                    <div class="uk-text-center">
+                        <div class="uk-margin-top">
+                            <div><label class="uk-form-label">تصویر بارنامه</label></div>
+                            <div uk-form-custom="target: true">
+                                <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: image"></a>
+                                <input name="pic" accept=".jpg,.png" type="file" id="pic" />
+                                <input class="uk-input uk-form-width-large uk-form-small" type="text" placeholder="انتخاب کنید ..." disabled>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>
