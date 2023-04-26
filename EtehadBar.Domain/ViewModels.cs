@@ -145,6 +145,9 @@ namespace EtehadBar.Domain
 
     public class CreateTurnoverVM
     {
+        [Display(Name = "تقویم کاری")]
+        public long CalendarId { get; set; }
+
         [Display(Name = "سال")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Year { get; set; }
@@ -161,25 +164,55 @@ namespace EtehadBar.Domain
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string Description { get; set; }
 
-        [Display(Name = "شماره پیگیری/مرجع")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
-        public string ReferenceNo { get; set; }
+        [Display(Name = "دریافت")]
+        public double Debtor { get; set; }
 
-        [Display(Name = "کارمزد")]
-        public double TransferFee { get; set; }
-
-        [Display(Name = "مبلغ")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public double Amount { get; set; }
+        [Display(Name = "پرداخت")]
+        public double Creditor { get; set; }
 
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public TurnoverType TurnoverType { get; set; }
 
-        [Display(Name = "حساب")]
+        [Display(Name = "طرف حساب")]
+        public string UserId { get; set; }
+    }
+
+    public class EditTurnoverVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "تقویم کاری")]
+        public long CalendarId { get; set; }
+
+        [Display(Name = "سال")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public long BankAccountId { get; set; }
+        public int Year { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "شرح")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Description { get; set; }
+
+        [Display(Name = "دریافت")]
+        public double Debtor { get; set; }
+
+        [Display(Name = "پرداخت")]
+        public double Creditor { get; set; }
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public TurnoverType TurnoverType { get; set; }
+
+        [Display(Name = "طرف حساب")]
+        public string UserId { get; set; }
     }
 
     public class CreateBankAccountBookVM

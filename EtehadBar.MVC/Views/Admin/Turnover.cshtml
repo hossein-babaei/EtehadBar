@@ -1,0 +1,213 @@
+﻿@*@model Turnover
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var data = ViewBag.data as IPagedList<Turnover>;
+    var type = (TurnoverType)ViewData["Type"];
+    if (type == TurnoverType.Partner)
+    {
+        ViewData["Title"] = "شرکا";
+        ViewData["pageId"] = 33;
+    }
+    else
+    {
+        ViewData["Title"] = "سرمایه گذار";
+        ViewData["pageId"] = 34;
+    }
+
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+    if (data.PageNumber > 1)
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+}
+@section Links{
+    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+    <style>
+        .sequence {
+            cursor: grab
+        }
+
+        pre {
+            font: inherit;
+            padding: 0;
+            border: none;
+            max-width: 270px
+        }
+    </style>
+}
+@section Scripts{
+    <script src="~/lib/persian-date/persian-date.min.js"></script>
+    <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
+    <script>
+        const bankAccountId = @((long)ViewData["BankAccountId"]),
+            bankAccountRowId = '@ViewData["BankAccountRowId"].ToString()';
+        function create() {
+            preloader();
+            $.get('@Url.Action("CreateBankAccountBook")', {}, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                $('#create-form').prepend(`<input type="hidden" name="BankAccountId" value="${bankAccountId}" />`);
+                parseValidator('#create-form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditBankAccountBook")', { 'id': id }, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#edit-form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'Post',
+                url: '@Url.Action("BankAccountBook_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.ReferenceNo)</th>
+                    <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>@Html.DisplayNameFor(model => model.Creditor)</th>
+                    <th>@Html.DisplayNameFor(model => model.Debtor)</th>
+                    <th>@Html.DisplayNameFor(model => model.TransferFee)</th>
+                    <th>@Html.DisplayNameFor(model => model.Balance)</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr id="@item.RowId" data-row="@i" class="uk-text-center">
+                        <td class="sequence" draggable="true" ondragstart="drag(event)">@i</td>
+                        <td ondrop="drop(event)" ondragover="allowDrop(event)" class="uk-text-small">@Html.DisplayFor(modelItem => item.ReferenceNo)</td>
+                        <td ondrop="drop(event)" ondragover="allowDrop(event)" class="uk-text-small"><pre>@Html.DisplayFor(modelItem => item.Description)</pre></td>
+                        <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                        <td>@item.Creditor.ToString("N0")</td>
+                        <td>@item.Debtor.ToString("N0")</td>
+                        <td>@item.TransferFee.ToString("N0")</td>
+                        <td>@item.Balance.ToString("N0")</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("BankAccountBook", new { id = ViewData["BankAccountRowId"].ToString(), p = page }))
+        </div>
+    }
+</div>
+<div id="append-modal" uk-modal="bg-close: false"></div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteBankAccountBook" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="drop-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="move-form" method="post" asp-action="MoveBankAccountBook" asp-controller="Admin">
+            <input type="hidden" name="from-row-id" />
+            <input type="hidden" name="to-row-id" />
+            <h3></h3>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#move-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">فیلتر تراکنش ها</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <input type="hidden" name="bankAccountId" value="@((long)ViewData["BankAccountId"])" />
+                <div>
+                    <label class="uk-form-label">شماره تراکنش</label>
+                    <input class="uk-input uk-border-rounded" id="number" name="number" autocomplete="off" placeholder="شماره تراکنش را در این قسمت تایپ نمائید..." />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">شرح</label>
+                    <input class="uk-input uk-border-rounded" id="description" name="description" autocomplete="off" placeholder="قسمتی از شرح را در این قسمت تایپ نمائید..." />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">از تاریخ</label>
+                    <input class="uk-input uk-border-rounded datepicker-1 uk-text-left" id="fromDate" name="fromDate" autocomplete="off" readonly />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">تا تاریخ</label>
+                    <input class="uk-input uk-border-rounded datepicker-2 uk-text-left" id="toDate" name="toDate" autocomplete="off" readonly />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="BankAccountBook" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+*@

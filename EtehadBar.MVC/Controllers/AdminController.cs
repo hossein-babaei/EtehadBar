@@ -2502,7 +2502,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(exitNumber))
                     query = query.Where(a => a.ExitNumber.Contains(exitNumber));
                 if (!string.IsNullOrWhiteSpace(loadNumber))
-                    query = query.Where(a => a.LoadNumber.Contains(loadNumber));
+                    query = query.Where(a => a.LoadNumber.Contains(loadNumber) || a.LoadNumberGov.Contains(loadNumber));
                 if (!string.IsNullOrWhiteSpace(vehicleNumber))
                     query = query.Where(a => vehicleNumber == (a.Vehicle.LeftNumber + " " + a.Vehicle.NumberWord + " " + a.Vehicle.RightNumber));
                 if (calendar.HasValue && calendar.Value > 0)
@@ -2885,6 +2885,9 @@ namespace EtehadBar.MVC.Controllers
                 if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.SazehGostarLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.ExitNumber.Equals(input.ExitNumber) && a.SazehGostarLoadFactor != null))
+                    return NotFound("شماره درخواست درج شده تکراری است.");
+
                 var config = await _configRepo.LoadFactorTax();
                 var loadFactor = new LoadFactor
                 {
@@ -3154,7 +3157,7 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && (a.LoadNumber.Equals(input.LoadNumber))))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPlascoLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
@@ -3254,7 +3257,7 @@ namespace EtehadBar.MVC.Controllers
                         return NotFound("شماره خروج تکراری است.");
                 }
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber)))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPressLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
@@ -3339,8 +3342,11 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber)))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SazehGostarLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
+
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.ExitNumber.Equals(input.ExitNumber) && a.SazehGostarLoadFactor != null))
+                    return NotFound("شماره درخواست درج شده تکراری است.");
 
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
@@ -3423,7 +3429,7 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && (a.LoadNumber.Equals(input.LoadNumber))))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
@@ -4449,6 +4455,7 @@ namespace EtehadBar.MVC.Controllers
                 item.LoadNumber = v.LoadNumber;
                 item.LoadNumberGov = v.LoadNumberGov;
                 item.ApplicantName = v.ApplicantName;
+                item.Tonnage = v.Tonnage;
                 item.TonnagePrice = v.TonnagePrice;
                 item.DriverTonnagePrice = v.DriverTonnagePrice;
                 item.Amount = v.Amount;
@@ -4787,10 +4794,12 @@ namespace EtehadBar.MVC.Controllers
         #region Turnover
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Turnover(int? p)
+        public async Task<IActionResult> Turnover(int? p, TurnoverType type)
         {
+            ViewData["Type"] = type;
+
             var pageNumber = p ?? 1;
-            var onePageOfData = await _bankAccountRepository.Query().Where(a => a.OwnerUserId.Equals(_userManager.GetUserId(User))).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await _turnoverRepository.Query().Where(a => a.TurnoverType.Equals(type)).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -4803,34 +4812,46 @@ namespace EtehadBar.MVC.Controllers
             return PartialView("~/Views/Admin/Create/Turnover.cshtml");
         }
 
-        //[HttpPost]
-        //[Authorize(Roles = "Admin")]
-        //public async Task<IActionResult> CreateTurnover(Turnover v)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        var item = new Turnover
-        //        {
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateTurnover(CreateTurnoverVM v)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                var item = new Turnover
+                {
+                    Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime(),
+                    CalendarId = v.CalendarId,
+                    CreateDatetime = DateTime.Now,
+                    CreatorId = _userManager.GetUserId(User),
+                    Creditor = v.Creditor,
+                    Debtor = v.Debtor,
+                    Description = v.Description,
+                    TurnoverType = v.TurnoverType,
+                    UserId = v.UserId
+                };
 
-        //        };
-        //        new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime(),
-        //        _turnoverRepository.Create(v);
-        //        try
-        //        {
-        //            await _turnoverRepository.Save();
-        //            TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-        //    }
-        //    return Redirect(Request.Headers["Referer"].ToString());
-        //}
+                _turnoverRepository.Create(item);
+                try
+                {
+                    await _turnoverRepository.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+
+            return Json(new { msg, status });
+        }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -4841,19 +4862,20 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> EditTurnover(Turnover v)
+        public async Task<IActionResult> EditTurnover(EditTurnoverVM v)
         {
             if (ModelState.IsValid)
             {
                 var item = await _turnoverRepository.Get(v.Id);
                 item.TurnoverType = v.TurnoverType;
-                item.CalnedarId = v.CalnedarId;
+                item.CalendarId = v.CalendarId;
                 item.Creditor = v.Creditor;
-                item.Date = v.Date;
+                item.Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
                 item.Debtor = v.Debtor;
                 item.Description = v.Description;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
+                item.UserId = v.UserId;
 
                 _turnoverRepository.Update(item);
                 try
@@ -4869,6 +4891,27 @@ namespace EtehadBar.MVC.Controllers
             else
             {
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteTurnover(string rowId)
+        {
+            var item = await _turnoverRepository.Get(rowId);
+            if (item is not null)
+            {
+                _turnoverRepository.Delete(item);
+                try
+                {
+                    await _turnoverRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }

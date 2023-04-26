@@ -11,6 +11,14 @@ namespace EtehadBar.Domain.Models
         [Key]
         public long Id { get; set; }
 
+        [Display(Name = "وضعیت پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsPaied { get; set; } = false;
+
+        [Display(Name = "وضعیت دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsReceived { get; set; } = false;
+
         [Display(Name = "مبدا")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string Origin { get; set; }

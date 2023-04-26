@@ -7,6 +7,7 @@ namespace EtehadBar.Domain.Interfaces
     public interface ITurnoverRepository
     {
         Task<Turnover> Get(long id);
+        Task<Turnover> Get(string id);
         IQueryable<Turnover> Query();
         void Update(Turnover obj);
         void Create(Turnover obj);

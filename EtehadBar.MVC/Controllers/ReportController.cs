@@ -4,10 +4,12 @@ using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.MVC.Filters;
 using Helpers;
+using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -332,6 +334,49 @@ namespace EtehadBar.MVC.Controllers
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
 
             return View(await _customerRepo.GetAll());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> FreeLoadFactor()
+        {
+            var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["calendars"] = calendars;
+            var latestCal = calendars.First();
+            return View(await _freeLoadFactorRepository.Query().Where(a => a.CalendarId.Equals(latestCal.Id)).OrderBy(a => a.Date).ToListAsync());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> FreeLoadFactor(long calendarId, string startDate, string endDate)
+        {
+            startDate = startDate.PersianToEnglish();
+            endDate = endDate.PersianToEnglish();
+            ViewData["Calendar"] = new Calendar();
+            ViewData["StartDate"] = startDate;
+            ViewData["EndDate"] = endDate;
+            if (calendarId > 0)
+            {
+                ViewData["Calendar"] = await _calendarRepo.Get(calendarId);
+                return PartialView("_FreeLoadFactor", await _freeLoadFactorRepository.Query().Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync());
+            }
+            else
+            {
+                var startArr = startDate.Split('/');
+                var startD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 0, 0, 0).ToDateTime();
+                var endArr = endDate.Split('/');
+                var endD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 23, 59, 59).ToDateTime();
+                if (startD > endD)
+                {
+                    var calendar = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).FirstAsync();
+                    ViewData["Calendar"] = calendar;
+                    return PartialView("_FreeLoadFactor", await _freeLoadFactorRepository.Query().Where(a => a.CalendarId.Equals(calendar.Id)).OrderBy(a => a.Date).ToListAsync());
+                }
+                else
+                {
+                    return PartialView("_FreeLoadFactor", await _freeLoadFactorRepository.Query().Where(a => a.Date >= startD && a.Date <= endD).OrderBy(a => a.Date).ToListAsync());
+                }
+            }
         }
     }
 }

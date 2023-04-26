@@ -12,7 +12,7 @@ namespace EtehadBar.Domain.Models
 
         [Display(Name = "تقویم کاری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public long CalnedarId { get; set; }
+        public long CalendarId { get; set; }
         public virtual Calendar Calendar { get; set; }
 
         [Display(Name = "تاریخ")]
@@ -35,7 +35,6 @@ namespace EtehadBar.Domain.Models
 
         [Required]
         public DateTime CreateDatetime { get; set; } = DateTime.Now;
-
 
         [Display(Name = "طرف حساب")]
         public string UserId { get; set; }
