@@ -2181,121 +2181,114 @@ namespace EtehadBar.MVC.Controllers
         {
             string msg;
             string status = "danger";
-            if (ModelState.IsValid)
+            if (amount == 0 && driverAmount == 0 && tonnageAmount == 0 && tonnageDriverAmount == 0)
+                return Json(new { msg = "میزان تغییر باید بزرگتر یا کوچکتر از صفر باشد.", status });
+
+            if (type.Equals("percent") && (amount > 100 || amount < -100))
+                return Json(new { msg = "درصد تغییر نرخ مناسب نیست.", status });
+
+            if (driverType.Equals("percent") && (driverAmount > 100 || driverAmount < -100))
+                return Json(new { msg = "درصد تغییر نرخ راننده مناسب نیست.", status });
+
+            if (tonnageType.Equals("percent") && (tonnageAmount > 100 || tonnageAmount < -100))
+                return Json(new { msg = "درصد تغییر نرخ تناژ مناسب نیست.", status });
+
+            if (driverTonnageType.Equals("percent") && (tonnageDriverAmount > 100 || tonnageDriverAmount < -100))
+                return Json(new { msg = "درصد تغییر نرخ تناژ راننده مناسب نیست.", status });
+
+            var amountDateArray = amountDate.PersianToEnglish().Split('/');
+            var amountDatetime = new PersianDateTime(Convert.ToInt32(amountDateArray[0]), Convert.ToInt32(amountDateArray[1]), Convert.ToInt32(amountDateArray[2])).ToDateTime();
+
+            var driverAmountDateArray = driverAmountDate.PersianToEnglish().Split('/');
+            var driverAmountDatetime = new PersianDateTime(Convert.ToInt32(driverAmountDateArray[0]), Convert.ToInt32(driverAmountDateArray[1]), Convert.ToInt32(driverAmountDateArray[2])).ToDateTime();
+
+            var tonnageAmountDateArray = tonnageAmountDate.PersianToEnglish().Split('/');
+            var tonnageAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageAmountDateArray[0]), Convert.ToInt32(tonnageAmountDateArray[1]), Convert.ToInt32(tonnageAmountDateArray[2])).ToDateTime();
+
+            var tonnageDriverAmountDateArray = tonnageDriverAmountDate.PersianToEnglish().Split('/');
+            var tonnageDriverAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageDriverAmountDateArray[0]), Convert.ToInt32(tonnageDriverAmountDateArray[1]), Convert.ToInt32(tonnageDriverAmountDateArray[2])).ToDateTime();
+
+            var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
+            if (latestContractAddon == null)
+                latestContractAddon = await _contractRepo.Get(contractId);
+
+            var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
+            var loadFactors = await _shippingFeeRepo.GetLoadFactorsByContractId(contractId, latestContractAddon.StartDate);
+
+            foreach (var fee in feeList)
             {
-                if (amount == 0 && driverAmount == 0 && tonnageAmount == 0 && tonnageDriverAmount == 0)
-                    return Json(new { msg = "میزان تغییر باید بزرگتر یا کوچکتر از صفر باشد.", status });
-
-                if (type.Equals("percent") && (amount > 100 || amount < -100))
-                    return Json(new { msg = "درصد تغییر نرخ مناسب نیست.", status });
-
-                if (driverType.Equals("percent") && (driverAmount > 100 || driverAmount < -100))
-                    return Json(new { msg = "درصد تغییر نرخ راننده مناسب نیست.", status });
-
-                if (tonnageType.Equals("percent") && (tonnageAmount > 100 || tonnageAmount < -100))
-                    return Json(new { msg = "درصد تغییر نرخ تناژ مناسب نیست.", status });
-
-                if (driverTonnageType.Equals("percent") && (tonnageDriverAmount > 100 || tonnageDriverAmount < -100))
-                    return Json(new { msg = "درصد تغییر نرخ تناژ راننده مناسب نیست.", status });
-
-                var amountDateArray = amountDate.PersianToEnglish().Split('/');
-                var amountDatetime = new PersianDateTime(Convert.ToInt32(amountDateArray[0]), Convert.ToInt32(amountDateArray[1]), Convert.ToInt32(amountDateArray[2])).ToDateTime();
-
-                var driverAmountDateArray = driverAmountDate.PersianToEnglish().Split('/');
-                var driverAmountDatetime = new PersianDateTime(Convert.ToInt32(driverAmountDateArray[0]), Convert.ToInt32(driverAmountDateArray[1]), Convert.ToInt32(driverAmountDateArray[2])).ToDateTime();
-
-                var tonnageAmountDateArray = tonnageAmountDate.PersianToEnglish().Split('/');
-                var tonnageAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageAmountDateArray[0]), Convert.ToInt32(tonnageAmountDateArray[1]), Convert.ToInt32(tonnageAmountDateArray[2])).ToDateTime();
-
-                var tonnageDriverAmountDateArray = tonnageDriverAmountDate.PersianToEnglish().Split('/');
-                var tonnageDriverAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageDriverAmountDateArray[0]), Convert.ToInt32(tonnageDriverAmountDateArray[1]), Convert.ToInt32(tonnageDriverAmountDateArray[2])).ToDateTime();
-
-                var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
-                if (latestContractAddon == null)
-                    latestContractAddon = await _contractRepo.Get(contractId);
-
-                var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
-                var loadFactors = await _shippingFeeRepo.GetLoadFactorsByContractId(contractId, latestContractAddon.StartDate);
-
-                foreach (var fee in feeList)
+                if (amount != 0)
                 {
-                    if (amount != 0)
+                    if (type.Equals("percent"))
                     {
-                        if (type.Equals("percent"))
-                        {
-                            var a = fee.Price * amount / 100;
-                            fee.Price += a;
-                        }
-                        else fee.Price += amount;
+                        var a = fee.Price * amount / 100;
+                        fee.Price += a;
                     }
-
-                    if (driverAmount != 0)
-                    {
-                        if (driverType.Equals("percent"))
-                        {
-                            var a = fee.DriverPrice * driverAmount / 100;
-                            fee.DriverPrice += a;
-                        }
-                        else fee.DriverPrice += driverAmount;
-                    }
-
-                    if (fee.TonnagePrice.HasValue && tonnageAmount != 0)
-                    {
-                        if (tonnageType.Equals("percent"))
-                        {
-                            var a = fee.TonnagePrice.Value * tonnageAmount / 100;
-                            fee.TonnagePrice = fee.TonnagePrice.Value + a;
-                        }
-                        else fee.TonnagePrice = fee.TonnagePrice.Value + tonnageAmount;
-                    }
-
-                    if (fee.DriverTonnagePrice.HasValue && tonnageDriverAmount != 0)
-                    {
-                        if (driverTonnageType.Equals("percent"))
-                        {
-                            var a = fee.DriverTonnagePrice.Value * tonnageDriverAmount / 100;
-                            fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + a;
-                        }
-                        else fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + tonnageDriverAmount;
-                    }
-
-                    var thisLoadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id) && !a.IsDriverFeeEditedByAdmin).ToList();
-                    if (thisLoadFactor.Any())
-                    {
-                        foreach (var loadFactor in thisLoadFactor)
-                        {
-                            if (loadFactor.Date >= amountDatetime)
-                                loadFactor.Amount = fee.Price;
-
-                            if (loadFactor.Date >= driverAmountDatetime)
-                                loadFactor.DriverFee = fee.DriverPrice;
-
-                            if (loadFactor.Date >= tonnageAmountDatetime && loadFactor.TonnagePrice.HasValue)
-                                loadFactor.TonnagePrice = fee.TonnagePrice;
-
-                            if (loadFactor.Date >= tonnageDriverAmountDatetime && loadFactor.DriverTonnagePrice.HasValue)
-                                loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
-                        }
-                        _shippingFeeRepo.UpdateLoadFactors(thisLoadFactor);
-                    }
+                    else fee.Price += amount;
                 }
 
-                _shippingFeeRepo.UpdateRange(feeList);
-
-                try
+                if (driverAmount != 0)
                 {
-                    await _shippingFeeRepo.Save();
-                    msg = "عملیات موفقیت آمیز بود.";
-                    status = "success";
+                    if (driverType.Equals("percent"))
+                    {
+                        var a = fee.DriverPrice * driverAmount / 100;
+                        fee.DriverPrice += a;
+                    }
+                    else fee.DriverPrice += driverAmount;
                 }
-                catch (Exception e)
+
+                if (fee.TonnagePrice.HasValue && tonnageAmount != 0)
                 {
-                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                    if (tonnageType.Equals("percent"))
+                    {
+                        var a = fee.TonnagePrice.Value * tonnageAmount / 100;
+                        fee.TonnagePrice = fee.TonnagePrice.Value + a;
+                    }
+                    else fee.TonnagePrice = fee.TonnagePrice.Value + tonnageAmount;
+                }
+
+                if (fee.DriverTonnagePrice.HasValue && tonnageDriverAmount != 0)
+                {
+                    if (driverTonnageType.Equals("percent"))
+                    {
+                        var a = fee.DriverTonnagePrice.Value * tonnageDriverAmount / 100;
+                        fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + a;
+                    }
+                    else fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + tonnageDriverAmount;
+                }
+
+                var thisLoadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id) && !a.IsDriverFeeEditedByAdmin).ToList();
+                if (thisLoadFactor.Any())
+                {
+                    foreach (var loadFactor in thisLoadFactor)
+                    {
+                        if (loadFactor.Date >= amountDatetime)
+                            loadFactor.Amount = fee.Price;
+
+                        if (loadFactor.Date >= driverAmountDatetime)
+                            loadFactor.DriverFee = fee.DriverPrice;
+
+                        if (loadFactor.Date >= tonnageAmountDatetime && loadFactor.TonnagePrice.HasValue)
+                            loadFactor.TonnagePrice = fee.TonnagePrice;
+
+                        if (loadFactor.Date >= tonnageDriverAmountDatetime && loadFactor.DriverTonnagePrice.HasValue)
+                            loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
+                    }
+                    _shippingFeeRepo.UpdateLoadFactors(thisLoadFactor);
                 }
             }
-            else
+
+            _shippingFeeRepo.UpdateRange(feeList);
+
+            try
             {
-                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+                await _shippingFeeRepo.Save();
+                msg = "عملیات موفقیت آمیز بود.";
+                status = "success";
+            }
+            catch (Exception e)
+            {
+                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
             }
             return Json(new { msg, status });
         }

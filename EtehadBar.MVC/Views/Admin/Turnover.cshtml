@@ -1,4 +1,4 @@
-﻿@*@model Turnover
+﻿@model Turnover
 @using X.PagedList
 @using X.PagedList.Mvc.Core
 
@@ -110,13 +110,11 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.ReferenceNo)</th>
+                    <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Creditor)</th>
                     <th>@Html.DisplayNameFor(model => model.Debtor)</th>
-                    <th>@Html.DisplayNameFor(model => model.TransferFee)</th>
-                    <th>@Html.DisplayNameFor(model => model.Balance)</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -125,14 +123,12 @@
                 @foreach (var item in data)
                 {
                     <tr id="@item.RowId" data-row="@i" class="uk-text-center">
-                        <td class="sequence" draggable="true" ondragstart="drag(event)">@i</td>
-                        <td ondrop="drop(event)" ondragover="allowDrop(event)" class="uk-text-small">@Html.DisplayFor(modelItem => item.ReferenceNo)</td>
-                        <td ondrop="drop(event)" ondragover="allowDrop(event)" class="uk-text-small"><pre>@Html.DisplayFor(modelItem => item.Description)</pre></td>
+                        <td class="sequence" draggable="true">@i</td>
+                        <td class="uk-text-small">@Html.DisplayFor(modelItem => item.Calendar.Title)</td>
+                        <td class="uk-text-small"><pre>@Html.DisplayFor(modelItem => item.Description)</pre></td>
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                         <td>@item.Creditor.ToString("N0")</td>
                         <td>@item.Debtor.ToString("N0")</td>
-                        <td>@item.TransferFee.ToString("N0")</td>
-                        <td>@item.Balance.ToString("N0")</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
@@ -144,7 +140,7 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("BankAccountBook", new { id = ViewData["BankAccountRowId"].ToString(), p = page }))
+            @Html.PagedListPager(data, page => Url.Action("Turnover", new { type = type, p = page }))
         </div>
     }
 </div>
@@ -162,52 +158,3 @@
         </form>
     </div>
 </div>
-<div id="drop-modal" class="uk-flex-top" uk-modal>
-    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
-        <form id="move-form" method="post" asp-action="MoveBankAccountBook" asp-controller="Admin">
-            <input type="hidden" name="from-row-id" />
-            <input type="hidden" name="to-row-id" />
-            <h3></h3>
-            <div class="uk-modal-footer uk-text-center">
-                <button class="uk-button uk-button-primary" onclick="$('#move-form').submit()" type="button">بلی</button>
-                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
-            </div>
-        </form>
-    </div>
-</div>
-<div id="search-modal" uk-modal>
-    <div class="uk-modal-dialog">
-        <div class="uk-modal-header uk-light">
-            <h2 class="uk-modal-title">فیلتر تراکنش ها</h2>
-        </div>
-        <div class="uk-modal-body">
-            <form>
-                <input type="hidden" name="bankAccountId" value="@((long)ViewData["BankAccountId"])" />
-                <div>
-                    <label class="uk-form-label">شماره تراکنش</label>
-                    <input class="uk-input uk-border-rounded" id="number" name="number" autocomplete="off" placeholder="شماره تراکنش را در این قسمت تایپ نمائید..." />
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">شرح</label>
-                    <input class="uk-input uk-border-rounded" id="description" name="description" autocomplete="off" placeholder="قسمتی از شرح را در این قسمت تایپ نمائید..." />
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">از تاریخ</label>
-                    <input class="uk-input uk-border-rounded datepicker-1 uk-text-left" id="fromDate" name="fromDate" autocomplete="off" readonly />
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">تا تاریخ</label>
-                    <input class="uk-input uk-border-rounded datepicker-2 uk-text-left" id="toDate" name="toDate" autocomplete="off" readonly />
-                </div>
-            </form>
-            <div class="uk-margin-top uk-text-center">
-                <a asp-action="BankAccountBook" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
-            </div>
-        </div>
-        <div class="uk-modal-footer uk-text-center">
-            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
-            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
-        </div>
-    </div>
-</div>
-*@

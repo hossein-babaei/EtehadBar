@@ -291,7 +291,7 @@ namespace EtehadBar.MVC.Controllers
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
-            ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
+            ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
             ViewData["customerId"] = customerId;
 
             var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
@@ -317,7 +317,7 @@ namespace EtehadBar.MVC.Controllers
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
-            ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
+            ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
             ViewData["customerId"] = customerId;
 
             var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));

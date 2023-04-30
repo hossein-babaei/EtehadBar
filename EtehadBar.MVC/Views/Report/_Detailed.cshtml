@@ -13,6 +13,9 @@
     double vatAmountSum = Model.Sum(a => a.Amount * a.VAT / 100);
     double withholdingTax = Model.Sum(a => a.Amount * a.WithholdingTax / 100);
     double deductionAmountSum = Model.Sum(a => a.Amount * a.LoadFactorDeductions / 100);
+
+    double amountSum = 0,
+        driverSum = 0;
 }
 
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -64,6 +67,17 @@
                 <tbody>
                     @foreach (var item in Model)
                     {
+                        amountSum += item.Amount;
+                        driverSum += item.DriverFee;
+                        if (item.Tonnage.HasValue && item.Tonnage.Value > 0)
+                        {
+                            if (item.TonnagePrice.HasValue && item.TonnagePrice.Value > 0)
+                                amountSum += item.Tonnage.Value * item.TonnagePrice.Value;
+
+                            if (item.DriverTonnagePrice.HasValue && item.DriverTonnagePrice.Value > 0)
+                                driverSum += item.Tonnage.Value * item.DriverTonnagePrice.Value;
+                        }
+
                         //netAmount = netAmount + (item.Amount - item.Amount * (item.Tax / 100));
                         var pd = new PersianDateTime(item.Date);
 
@@ -77,10 +91,14 @@
                             @*<td>@item.ExitNumber</td>*@
                             <td>@item.Origin</td>
                             <td>@item.Destination</td>
-                            @if (item.Tonnage.HasValue)
+                            @if (item.Tonnage.HasValue && item.Tonnage.Value > 0)
                             {
-                                item.Amount = item.Amount + (item.Tonnage.Value * item.TonnagePrice.Value);
-                                item.DriverFee = item.DriverFee + (item.Tonnage.Value * item.DriverTonnagePrice.Value);
+                                if (item.TonnagePrice.HasValue && item.TonnagePrice.Value > 0)
+                                    item.Amount = item.Amount + (item.Tonnage.Value * item.TonnagePrice.Value);
+
+                                if (item.DriverTonnagePrice.HasValue && item.DriverTonnagePrice.Value > 0)
+                                    item.DriverFee = item.DriverFee + (item.Tonnage.Value * item.DriverTonnagePrice.Value);
+
                                 <td>@item.Amount.ToString("N0")</td>
                                 <td>@item.DriverFee.ToString("N0")</td>
                             }
@@ -114,10 +132,7 @@
         </div>
     }
 </div>
-@{
-    var amount = Model.Sum(a => a.Amount);
-    var driverFeeSum = Model.Sum(a => a.DriverFee);
-}
+
 <div class="box" style="padding:15px 30px">
     <h3 class="uk-heading-divider uk-text-center">گزارش تفصیلی بارنامه در <span class="underline">@calendar.Title</span></h3>
     <div class="uk-grid-small" uk-grid>
@@ -126,11 +141,11 @@
     </div>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ بارنامه ها</div>
-        <div>@amount.ToString("N0") ریال</div>
+        <div>@amountSum.ToString("N0") ریال</div>
     </div>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ عملکرد <span class="sm">(قابل پرداخت به رانندگان)</span></div>
-        <div>@driverFeeSum.ToString("N0") ریال</div>
+        <div>@driverSum.ToString("N0") ریال</div>
     </div>
     @*<div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع ارزش افزوده</div>
