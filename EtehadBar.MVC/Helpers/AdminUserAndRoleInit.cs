@@ -30,6 +30,7 @@ namespace Helpers
                 };
 
                 IdentityResult result = userManager.CreateAsync(user, "P@ssw0rdAdmin!").Result;
+                //1234@Admin
 
                 if (result.Succeeded)
                 {

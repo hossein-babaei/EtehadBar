@@ -1101,23 +1101,40 @@ namespace EtehadBar.MVC.Controllers
             ViewBag.data = onePageOfData;
             return View();
         }
+        
+        [HttpPost]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> Cost_Search(int? p)
+        {
+            var query = _costRepo.Costs();
+            if (!User.IsInRole("Admin"))
+                query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
+
+            var pageNumber = p ?? 1;
+            var onePageOfData = await query.OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = onePageOfData;
+            return PartialView();
+        }
 
         [HttpPost]
         [Authorize(Roles = "Admin, User, Milad")]
-        public async Task<IActionResult> Cost(Cost c, int day, int month, int year, IFormFile pic)
+        public async Task<IActionResult> Cost(Cost c, int day, int month, int year)
         {
+            string msg;
+            string status = "danger";
             if (ModelState.IsValid)
             {
-                if (pic != null)
+                string fileNames = "";
+                var files = Request.Form.Files;
+                if (files != null)
                 {
-                    if (pic.Length <= 10240000)
+                    foreach (var pic in files)
                     {
                         if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
                         {
                             if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\cost")))
-                            {
                                 Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\cost"));
-                            }
+
                             var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
                             var path = Path.Combine(_environment.WebRootPath, "img\\cost", fileName);
                             using (var stream = new FileStream(path, FileMode.Create))
@@ -1125,37 +1142,36 @@ namespace EtehadBar.MVC.Controllers
                                 await pic.CopyToAsync(stream);
                             }
 
-                            c.Picture = fileName;
+                            fileNames += (files.Count == 1 || pic == files.Last()) ? fileName : $"{fileName};;";
                         }
                         else
                         {
-                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                            msg = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                            return Json(new { msg, status });
                         }
-                    }
-                    else
-                    {
-                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
                     }
                 }
 
+                c.Picture = fileNames;
                 c.Date = new PersianDateTime(year, month, day).ToDateTime();
-
                 _costRepo.Create(c);
                 try
                 {
                     await _costRepo.Save();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
                 }
                 catch (Exception e)
                 {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
                 }
             }
             else
             {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Redirect(Request.Headers["Referer"].ToString());
+
+            return Json(new { msg, status });
         }
 
         [HttpGet]
@@ -1168,8 +1184,10 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, User, Milad")]
-        public async Task<IActionResult> EditCost(Cost c, int day, int month, int year, IFormFile pic)
+        public async Task<IActionResult> EditCost(Cost c, int day, int month, int year)
         {
+            string msg;
+            string status = "danger";
             if (ModelState.IsValid)
             {
                 var item = await _costRepo.Get(c.Id);
@@ -1179,16 +1197,14 @@ namespace EtehadBar.MVC.Controllers
 
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
 
-                if (pic != null)
+                string fileNames = "";
+                var files = Request.Form.Files;
+                if (files != null)
                 {
-                    if (pic.Length <= 10240000)
+                    foreach (var pic in files)
                     {
                         if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
                         {
-                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\cost")))
-                            {
-                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\cost"));
-                            }
                             var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
                             var path = Path.Combine(_environment.WebRootPath, "img\\cost", fileName);
                             using (var stream = new FileStream(path, FileMode.Create))
@@ -1196,47 +1212,50 @@ namespace EtehadBar.MVC.Controllers
                                 await pic.CopyToAsync(stream);
                             }
 
-                            if (!string.IsNullOrEmpty(item.Picture))
-                            {
-                                try
-                                {
-                                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\cost", item.Picture));
-                                }
-                                catch (Exception)
-                                {
-                                    throw;
-                                }
-                            }
-
-                            item.Picture = fileName;
+                            fileNames += (files.Count == 1 || pic == files.Last()) ? fileName : $"{fileName};;";
                         }
                         else
                         {
-                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                            msg = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                            return Json(new { msg, status });
                         }
                     }
-                    else
+
+                    if (!string.IsNullOrEmpty(item.Picture))
                     {
-                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
+                        foreach (var pic in item.Picture.Split(";;", StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\cost", pic));
+                            }
+                            catch (Exception)
+                            {
+                                throw;
+                            }
+                        }
                     }
                 }
+
+                item.Picture = fileNames;
 
                 _costRepo.Update(item);
                 try
                 {
                     await _costRepo.Save();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
                 }
                 catch (Exception e)
                 {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
                 }
             }
             else
             {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Redirect(Request.Headers["Referer"].ToString());
+            return Json(new { msg, status });
         }
 
         [HttpPost]
@@ -1244,15 +1263,18 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> DeleteCost(int id)
         {
             var item = await _costRepo.Get(id);
-            if (!string.IsNullOrEmpty(item.Picture))
-            {
-                try
+            if(!string.IsNullOrEmpty(item.Picture))
                 {
-                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\cost", item.Picture));
-                }
-                catch (Exception)
+                foreach (var pic in item.Picture.Split(";;", StringSplitOptions.RemoveEmptyEntries))
                 {
-                    throw;
+                    try
+                    {
+                        System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\cost", pic));
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
                 }
             }
             _costRepo.Delete(item);
@@ -1271,13 +1293,31 @@ namespace EtehadBar.MVC.Controllers
 
         #region Payment
         [HttpGet]
-        [Authorize(Roles = "Admin, User, Milad")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> Payment(int? p)
         {
             var pageNumber = p ?? 1;
             var onePageOfData = await _paymentRepo.Payments().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             ViewBag.data = onePageOfData;
             return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> Payment_Search(int? p, string description, long vehicleId, string userId)
+        {
+            var pageNumber = p ?? 1;
+            var query = _paymentRepo.Payments();
+            if (!string.IsNullOrWhiteSpace(description))
+                query = query.Where(a => a.Description.Contains(description));
+            if (vehicleId > 0)
+                query = query.Where(a => a.VehicleId.HasValue && a.VehicleId.Equals(vehicleId));
+            if (userId != "all")
+                query = query.Where(a => a.UserId.Equals(userId));
+
+            var onePageOfData = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = onePageOfData;
+            return PartialView();
         }
 
         [HttpGet]
@@ -2537,8 +2577,8 @@ namespace EtehadBar.MVC.Controllers
 
             ViewData["Contracts"] = contracts;
 
-            var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
-            if (!accountBooks.Any(a => a.IsOpen))
+            var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId) && a.IsOpen).OrderBy(a => a.Number).ThenByDescending(a => a.Id).ToListAsync();
+            if (!accountBooks.Any())
                 return NotFound($"صورت وضعیت باز در سیستم وجود ندارد.");
             ViewData["AccountBooks"] = accountBooks;
 
@@ -3130,7 +3170,7 @@ namespace EtehadBar.MVC.Controllers
             else if (customer.CustomerType == CustomerType.MehrcomPars)
                 ViewData["Categories"] = await _mehrcomParsCategoryRepository.Categories().AsNoTracking().OrderBy(a => a.Title).ToListAsync();
 
-            var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customer.Id)).OrderBy(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
+            var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customer.Id)).OrderByDescending(a => a.IsOpen).ThenByDescending(a => a.Id).ToListAsync();
             if (!accountBooks.Any())
                 return NotFound($"صورت وضعیت باز در سیستم برای {customer.Name} وجود ندارد.");
             ViewData["AccountBooks"] = accountBooks;
@@ -4797,11 +4837,38 @@ namespace EtehadBar.MVC.Controllers
             return View();
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Turnover_Search(int? p, TurnoverType type)
+        {
+            ViewData["Type"] = type;
+
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _turnoverRepository.Query().Where(a => a.TurnoverType.Equals(type)).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return PartialView();
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public PartialViewResult CreateTurnover()
+        public async Task<IActionResult> CreateTurnover(TurnoverType type)
         {
-            ViewData["UserId"] = _userManager.GetUserId(User);
+            if (type == TurnoverType.Partner)
+            {
+                ViewData["Users"] = await _userManager.Users.Where(a => a.Role == ApplicationRoleType.Partner).AsNoTracking().Select(a => new UserNameAndIdVM
+                {
+                    Fullname = a.Firstname + " " + a.Lastname,
+                    Id = a.Id
+                }).OrderBy(a => a.Fullname).ToListAsync();
+            }
+            else
+            {
+                ViewData["Users"] = await _userManager.Users.Where(a => a.Role == ApplicationRoleType.Investor).AsNoTracking().Select(a => new UserNameAndIdVM
+                {
+                    Fullname = a.Firstname + " " + a.Lastname,
+                    Id = a.Id
+                }).OrderBy(a => a.Fullname).ToListAsync();
+            }
             return PartialView("~/Views/Admin/Create/Turnover.cshtml");
         }
 
@@ -4813,17 +4880,45 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                string fileNames = "";
+                var files = Request.Form.Files;
+                if (files != null)
+                {
+                    foreach (var pic in files)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\turnover")))
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\turnover"));
+
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\turnover", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            fileNames += (files.Count == 1 || pic == files.Last()) ? fileName : $"{fileName};;";
+                        }
+                        else
+                        {
+                            msg = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                            return Json(new { msg, status });
+                        }
+                    }
+                }
+
                 var item = new Turnover
                 {
                     Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime(),
-                    CalendarId = v.CalendarId,
                     CreateDatetime = DateTime.Now,
                     CreatorId = _userManager.GetUserId(User),
                     Creditor = v.Creditor,
                     Debtor = v.Debtor,
                     Description = v.Description,
                     TurnoverType = v.TurnoverType,
-                    UserId = v.UserId
+                    UserId = v.UserId,
+                    Attachments = fileNames
                 };
 
                 _turnoverRepository.Create(item);
@@ -4848,20 +4943,38 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<PartialViewResult> EditTurnover(int id)
+        public async Task<PartialViewResult> EditTurnover(long id)
         {
-            return PartialView("~/Views/Admin/Edit/Turnover.cshtml", await _turnoverRepository.Get(id));
+            var data = await _turnoverRepository.GetEditData(id);
+            if (data.TurnoverType == TurnoverType.Partner)
+            {
+                ViewData["Users"] = await _userManager.Users.Where(a => a.Role == ApplicationRoleType.Partner).AsNoTracking().Select(a => new UserNameAndIdVM
+                {
+                    Fullname = a.Firstname + " " + a.Lastname,
+                    Id = a.Id
+                }).OrderBy(a => a.Fullname).ToListAsync();
+            }
+            else
+            {
+                ViewData["Users"] = await _userManager.Users.Where(a => a.Role == ApplicationRoleType.Investor).AsNoTracking().Select(a => new UserNameAndIdVM
+                {
+                    Fullname = a.Firstname + " " + a.Lastname,
+                    Id = a.Id
+                }).OrderBy(a => a.Fullname).ToListAsync();
+            }
+            return PartialView("~/Views/Admin/Edit/Turnover.cshtml", data);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditTurnover(EditTurnoverVM v)
         {
+            string msg;
+            string status = "danger";
             if (ModelState.IsValid)
             {
                 var item = await _turnoverRepository.Get(v.Id);
                 item.TurnoverType = v.TurnoverType;
-                item.CalendarId = v.CalendarId;
                 item.Creditor = v.Creditor;
                 item.Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
                 item.Debtor = v.Debtor;
@@ -4870,22 +4983,63 @@ namespace EtehadBar.MVC.Controllers
                 item.EditDatetime = DateTime.Now;
                 item.UserId = v.UserId;
 
+                string fileNames = "";
+                var files = Request.Form.Files;
+                if (files != null)
+                {
+                    foreach (var pic in files)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\turnover", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            fileNames += (files.Count == 1 || pic == files.Last()) ? fileName : $"{fileName};;";
+                        }
+                        else
+                        {
+                            msg = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                            return Json(new { msg, status });
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(item.Attachments))
+                    {
+                        foreach (var pic in item.Attachments.Split(";;", StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\turnover", pic));
+                            }
+                            catch (Exception)
+                            {
+                                throw;
+                            }
+                        }
+                    }
+                }
+
                 _turnoverRepository.Update(item);
                 try
                 {
                     await _turnoverRepository.Save();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
                 }
                 catch (Exception e)
                 {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
                 }
             }
             else
             {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Redirect(Request.Headers["Referer"].ToString());
+            return Json(new { msg, status });
         }
 
         [HttpPost]
@@ -4895,6 +5049,20 @@ namespace EtehadBar.MVC.Controllers
             var item = await _turnoverRepository.Get(rowId);
             if (item is not null)
             {
+                if (!string.IsNullOrEmpty(item.Attachments))
+                {
+                    foreach (var pic in item.Attachments.Split(";;", StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\turnover", pic));
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
+                }
                 _turnoverRepository.Delete(item);
                 try
                 {

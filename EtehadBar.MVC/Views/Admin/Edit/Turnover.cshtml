@@ -1,66 +1,65 @@
-﻿@model Cost
+﻿@model EditTurnoverVM
 @{
-    var calendar = (List<Calendar>)ViewData["Calendar"];
+    var users = (List<UserNameAndIdVM>)ViewData["Users"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
-        <h2 class="uk-modal-title">ویرایش هزینه</h2>
+        <h2 class="uk-modal-title">ویرایش</h2>
     </div>
     <div class="uk-modal-body">
-        <form id="edit-form" asp-action="EditCost" method="post" enctype="multipart/form-data">
-            <input asp-for="Id" type="hidden" />
-            <input asp-for="UserId" type="hidden" />
-            <input asp-for="Date" type="hidden" />
+        <form id="edit-form" asp-action="EditTurnover" method="post" autocomplete="off">
+            <input autocomplete="false" name="hidden" type="text" style="display:none;">
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="TurnoverType" type="hidden" />
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                <div>
-                    <label asp-for="CalendarId" class="uk-form-label"></label>
-                    <select asp-for="CalendarId" class="uk-select uk-border-rounded">
-                        @foreach (var item in calendar)
-                        {
-                            <!option value="@item.Id" @if (Model.CalendarId.Equals(item.Id)) { <text>selected="selected"</text> }>@item.Title</!option>
-                        }
-                    </select>
-                    <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
-                </div>
                 @{
-                    var pd = new PersianDateTime(Model.Date);
+                    var now = PersianDateTime.Now;
                 }
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">روز</label>
-                    <select class="uk-select uk-border-rounded" name="day" dir="ltr">
+                    <select asp-for="Day" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
                         @for (int i = 1; i < 32; i++)
                         {
-                            <!option value="@i" @if (pd.Day == i) { <text> selected="selected" </text> }>@i</!option>
+                            <!option value="@i" @if (now.Day == i) {
+                        <text> selected="selected" </text>
+ }>@i</!option>
                         }
                     </select>
                 </div>
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">ماه</label>
-                    <select class="uk-select uk-border-rounded" name="month" dir="ltr">
+                    <select asp-for="Month" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
                         @for (int i = 1; i < 13; i++)
                         {
-                            <!option value="@i" @if (pd.Month == i) { <text> selected="selected" </text> }>@i</!option>
+                            <!option value="@i" @if (now.Month == i) {
+                        <text> selected="selected" </text>
+ }>@i</!option>
                         }
                     </select>
                 </div>
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">سال</label>
-                    <input class="uk-input uk-border-rounded" name="year" value="@pd.Year" dir="ltr" readonly />
+                    <input class="uk-input uk-border-rounded uk-form-small" asp-for="Year" value="@now.Year" dir="ltr" />
                 </div>
                 <div>
-                    <label asp-for="Amount" class="uk-form-label"></label>
-                    <input asp-for="Amount" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded format-number" />
-                    <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                    <label asp-for="Creditor" class="uk-form-label"></label>
+                    <input asp-for="Creditor" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="Creditor" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Debtor" class="uk-form-label"></label>
+                    <input asp-for="Debtor" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="Debtor" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Description" class="uk-form-label"></label>
-                    <textarea asp-for="Description" class="uk-textarea uk-border-rounded" rows="2"></textarea>
+                    <textarea asp-for="Description" class="uk-textarea uk-border-rounded uk-form-small" rows="3"></textarea>
                     <span asp-validation-for="Description" class="uk-text-danger"></span>
                 </div>
-                @if (!string.IsNullOrEmpty(Model.Picture))
+                @if (!string.IsNullOrEmpty(Model.Attachments))
                 {
-                    var pictures = Model.Picture.Split(";;");
+                    var pictures = Model.Attachments.Split(";;");
                     <div>
                         <div class="uk-width-1-1 uk-padding">
                             تصویر فعلی رسید یا سند مالی را در زیر مشاهده میکنید.
@@ -73,7 +72,7 @@
                                 {
                                     <div>
                                         <div uk-lightbox>
-                                            <a class="uk-button uk-button-default uk-border-rounded uk-button-small" href="/img/cost/@pictures[i]">تصویر @(i + 1)</a>
+                                            <a class="uk-button uk-button-default uk-border-rounded uk-button-small" href="/img/turnover/@pictures[i]">تصویر @(i + 1)</a>
                                         </div>
                                     </div>
                                 }

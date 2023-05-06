@@ -67,7 +67,7 @@
     }
     @if (User.IsInRole("Admin") || User.IsInRole("Milad") || User.IsInRole("User"))
     {
-        <li class="uk-parent @if (param == 4 || param == 5) { <text>uk-open</text> }">
+        <li class="uk-parent @if (param == 4 || param == 5 || param == 33 || param == 34) { <text>uk-open</text> }">
             <a><i class="uk-margin-left fas fa-money-bill"></i>هزینه ها</a>
             <ul class="uk-nav-sub">
                 <li @if (param == 4) { <text> class="active" </text> }><a asp-action="Cost" asp-controller="Admin">جاری</a></li>

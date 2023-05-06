@@ -62,6 +62,12 @@ namespace EtehadBar.Domain
         public string BankAccountNumber { get; set; }
     }
 
+    public class ActivityListPaymentVM
+    {
+        public long VehicleId { get; set; }
+        public double Amount { get; set; }
+    }
+
     public class AdminDashboardVM
     {
         public int RegisteredLoadFactorCount { get; set; }
@@ -145,9 +151,6 @@ namespace EtehadBar.Domain
 
     public class CreateTurnoverVM
     {
-        [Display(Name = "تقویم کاری")]
-        public long CalendarId { get; set; }
-
         [Display(Name = "سال")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Year { get; set; }
@@ -182,9 +185,6 @@ namespace EtehadBar.Domain
     {
         public long Id { get; set; }
 
-        [Display(Name = "تقویم کاری")]
-        public long CalendarId { get; set; }
-
         [Display(Name = "سال")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Year { get; set; }
@@ -213,6 +213,7 @@ namespace EtehadBar.Domain
 
         [Display(Name = "طرف حساب")]
         public string UserId { get; set; }
+        public string Attachments { get; set; }
     }
 
     public class CreateBankAccountBookVM
@@ -1038,5 +1039,11 @@ namespace EtehadBar.Domain
 
         [Display(Name = "تعداد")]
         public int Count { get; set; }
+    }
+
+    public class UserNameAndIdVM
+    {
+        public string Id { get; set; }
+        public string Fullname { get; set; }
     }
 }

@@ -43,7 +43,7 @@ namespace EtehadBar.Infra.Data.Repository
             db.Update(obj);
         }
 
-        public async Task<List<ActivityListVM>> ActivityList(long customerId, long calendarId)
+        public async Task<List<ActivityListVM>> ActivityList(long customerId, long calendarId, bool hasPayment)
         {
             var query = await (from a in db.LoadFactor
                                join b in db.Contract on a.ContractId equals b.Id
@@ -63,9 +63,13 @@ namespace EtehadBar.Infra.Data.Repository
                                    c.VehicleOwnerFullname
                                }).AsNoTracking().ToListAsync();
 
-            var vehicleIdList = query.Select(a => a.VehicleId).Distinct().ToList();
-            var payments = await db.Payment.Where(a => a.CalendarId.Equals(calendarId) && a.VehicleId.HasValue && vehicleIdList.Contains(a.VehicleId.Value))
-                .Select(a => new { a.VehicleId.Value, a.Amount }).AsNoTracking().ToListAsync();
+            var payments = new List<ActivityListPaymentVM>();
+            if (hasPayment)
+            {
+                var vehicleIdList = query.Select(a => a.VehicleId).Distinct().ToList();
+                payments = await db.Payment.Where(a => a.CalendarId.Equals(calendarId) && a.VehicleId.HasValue && vehicleIdList.Contains(a.VehicleId.Value))
+                    .Select(a => new ActivityListPaymentVM { VehicleId = a.VehicleId.Value, Amount = a.Amount }).AsNoTracking().ToListAsync();
+            }
 
             var data = new List<ActivityListVM>();
             foreach (var vehicle in query.DistinctBy(a => a.VehicleId))
@@ -86,8 +90,11 @@ namespace EtehadBar.Infra.Data.Repository
                         driverFee += item.DriverLoadSleepPrice.Value;
                 }
 
-                var thisVehiclePaymnets = payments.Where(a => a.Value.Equals(vehicle.VehicleId)).Sum(a => a.Amount);
-                driverFee -= thisVehiclePaymnets;
+                if (hasPayment)
+                {
+                    var thisVehiclePaymnets = payments.Where(a => a.VehicleId.Equals(vehicle.VehicleId)).Sum(a => a.Amount);
+                    driverFee -= thisVehiclePaymnets;
+                }
 
                 data.Add(new ActivityListVM
                 {

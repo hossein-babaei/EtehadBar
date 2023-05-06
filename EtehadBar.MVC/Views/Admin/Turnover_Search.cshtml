@@ -1,0 +1,65 @@
+﻿@model Turnover
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var data = ViewBag.data as IPagedList<Turnover>;
+    var type = (TurnoverType)ViewData["Type"];
+
+    int i = 1;
+    if (data.PageNumber > 1)
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+}
+
+<div class="uk-overflow-auto">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>@Html.DisplayNameFor(model => model.Creditor)</th>
+                    <th>@Html.DisplayNameFor(model => model.Debtor)</th>
+                    <th width="50">تصاویر</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr id="@item.RowId" data-row="@i" class="uk-text-center">
+                        <td class="sequence" draggable="true">@i</td>
+                        <td class="uk-text-small"><pre>@Html.DisplayFor(modelItem => item.Description)</pre></td>
+                        <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                        <td>@item.Creditor.ToString("N0")</td>
+                        <td>@item.Debtor.ToString("N0")</td>
+                        @if (string.IsNullOrEmpty(item.Attachments))
+                        {
+                            <td>---</td>
+                        }
+                        else
+                        {
+                            <td>
+                                <a class="uk-button uk-button-primary uk-button-small"
+                           onclick="showAttachment('@item.Attachments')">
+                                    <i class="far fa-image"></i>
+                                </a>
+                            </td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+@if (data.PageCount > 1)
+{
+    <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+        @Html.PagedListPager(data, page => Url.Action("Turnover_Search", new { p = page }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+    </div>
+}

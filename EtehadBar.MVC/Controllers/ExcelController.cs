@@ -1564,7 +1564,11 @@ namespace EtehadBar.MVC.Controllers
 
                         #region handling sleep time and weighbridge
                         if (allLoadFactors[i].WeighbridgePrice.HasValue)
+                        {
                             allLoadFactors[i].DriverFee += allLoadFactors[i].WeighbridgePrice.Value;
+
+                            allLoadFactors[i].Amount += allLoadFactors[i].WeighbridgePrice.Value;
+                        }
 
                         if (allLoadFactors[i].LoadSleepTime.HasValue)
                         {
@@ -1867,7 +1871,11 @@ namespace EtehadBar.MVC.Controllers
                                 {
                                     #region handling sleep time and weighbridge
                                     if (loadFactors[i].WeighbridgePrice.HasValue)
+                                    {
                                         loadFactors[i].DriverFee += loadFactors[i].WeighbridgePrice.Value;
+
+                                        loadFactors[i].Amount += loadFactors[i].WeighbridgePrice.Value;
+                                    }
 
                                     if (loadFactors[i].LoadSleepTime.HasValue)
                                     {
@@ -2218,14 +2226,17 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> ActivityList(long customerId, long calendarId)
+        public async Task<IActionResult> ActivityList(long customerId, long calendarId, bool hasPayment)
         {
-            var data = await _vehicleRepo.ActivityList(customerId, calendarId);
+            var data = await _vehicleRepo.ActivityList(customerId, calendarId, hasPayment);
             var calendar = await _calendarRepo.Get(calendarId);
             var customer = await _customerRepo.Get(customerId);
 
             using var workbook = new XLWorkbook();
             var docTitle = $"عملکرد {customer.Name} در {calendar.Title}";
+            if (hasPayment)
+                docTitle = $"قابل پرداخت {customer.Name} در {calendar.Title}";
+
             var ws = workbook.Worksheets.Add(calendar.Title);
             ws.RightToLeft = true;
             ws.Style.Font.FontName = "B Titr";
@@ -2237,9 +2248,13 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 2).Value = "نام و نام خانوادگی";
             ws.Cell(2, 3).Value = "شماره خودرو";
             ws.Cell(2, 4).Value = "مبلغ";
-            ws.Cell(2, 5).Value = "شماره حساب";
+            if (hasPayment)
+            {
+                ws.Cell(2, 5).Value = "شماره حساب";
+                ws.Cell(2, 6).Value = "توضیحات";
+            }
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 5));
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, hasPayment ? 6 : 4));
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
@@ -2248,7 +2263,7 @@ namespace EtehadBar.MVC.Controllers
                     .Fill.SetBackgroundColor(XLColor.LightGray)
                         .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 5)); // The address is relative to rngTable (NOT the worksheet)
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, hasPayment ? 6 : 4)); // The address is relative to rngTable (NOT the worksheet)
             rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             rngHeaders.Style.Font.Bold = true;
             rngHeaders.Style.Font.FontColor = XLColor.Black;
@@ -2258,24 +2273,36 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 1).Value = i + 1;
                 ws.Cell(i + 3, 2).Value = data[i].VehicleOwnerName;
                 ws.Cell(i + 3, 3).Value = data[i].VehicleNumber;
-                ws.Cell(i + 3, 4).Value = data[i].Amount.ToString("N0");
-                ws.Cell(i + 3, 5).Value = string.IsNullOrWhiteSpace(data[i].BankAccountNumber) ? "---" : data[i].BankAccountNumber.Replace('-', '.');
+                ws.Cell(i + 3, 4).Value = data[i].Amount < 0 ? 0 : data[i].Amount.ToString("N0");
+                if (hasPayment)
+                {
+                    ws.Cell(i + 3, 5).Value = string.IsNullOrWhiteSpace(data[i].BankAccountNumber) ? "---" : data[i].BankAccountNumber.Replace('-', '.');
+                    ws.Cell(i + 3, 6).Value = data[i].Amount < 0 ? $"مبغ {(-(data[i].Amount)).ToString("N0")} ریال بدهکار" : "";
+                }
             }
 
             ws.Cell(data.Count + 3, 1).Value = "جمع";
             ws.Range(data.Count + 3, 1, data.Count + 3, 2).Merge();
-            ws.Cell(data.Count + 3, 3).Value = data.Sum(a => a.Amount).ToString("N0");
-            ws.Range(data.Count + 3, 3, data.Count + 3, 5).Merge();
+            ws.Cell(data.Count + 3, 3).Value = data.Sum(a => a.Amount < 0 ? 0 : a.Amount).ToString("N0");
+            ws.Range(data.Count + 3, 3, data.Count + 3, hasPayment ? 6 : 4).Merge();
 
             ws.Column("A").Width = 5;
             ws.Column("B").Width = 18;
             ws.Column("C").Width = 20;
-            ws.Column("D").Width = 11;
-            ws.Column("E").Width = 24;
+            if (hasPayment)
+            {
+                ws.Column("D").Width = 11;
+                ws.Column("E").Width = 24;
+                ws.Column("F").Width = 20;
+            }
+            else
+            {
+                ws.Column("D").Width = 20;
+            }
 
             ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var table = ws.Range(2, 1, data.Count + 2, 5).CreateTable();
+            var table = ws.Range(2, 1, data.Count + 2, hasPayment ? 6 : 4).CreateTable();
             table.Theme = XLTableTheme.None;
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);

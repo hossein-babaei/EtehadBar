@@ -16,8 +16,9 @@
     <script src="~/lib/select2/select2.min.js"></script>
     <script>
         let vehicleList = [];
-        function submitForm(submitButton) {
+        function submitForm(submitButton, hasPayment) {
             let form = $(submitButton).parent().parent().find('form');
+            form.find('input[name=hasPayment]').val(hasPayment);
             form.submit();
         }
         function showFormByCalendar(id, type) {
@@ -82,6 +83,7 @@
         <div class="uk-modal-body">
             <form method="post" action="@Url.Action("ActivityList", "Excel")" autocomplete="off">
                 <input type="hidden" name="customerId" value="" />
+                <input type="hidden" name="hasPayment" value="" />
                 <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
                     <div>
                         <label class="uk-form-label">تاریخ</label>
@@ -97,7 +99,8 @@
             </form>
         </div>
         <div class="uk-modal-footer uk-text-center">
-            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm(this)">مشاهده</a>
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm(this, true)">قابل پرداخت</a>
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm(this, false)">جمع عملکرد</a>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
     </div>

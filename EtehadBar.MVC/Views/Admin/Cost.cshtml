@@ -27,6 +27,48 @@
 
 @section Scripts{
     <script>
+        function submitCreateForm() {
+            let formData = new FormData();
+            $.each($('#create-modal .pic'), function (i, obj) {
+                $.each(obj.files, function (j, file) {
+                    formData.append(`Attachment[${j}]`, file); // is the var i against the var j, because the i is incremental the j is ever 0
+                });
+            });
+            let data = $('#create-modal form').serializeArray();
+            formData.append('UserId', data.find(a => a.name == 'UserId').value);
+            formData.append('day', data.find(a => a.name == 'day').value);
+            formData.append('month', data.find(a => a.name == 'month').value);
+            formData.append('year', data.find(a => a.name == 'year').value);
+            formData.append('CalendarId', data.find(a => a.name == 'CalendarId').value);
+            formData.append('Amount', data.find(a => a.name == 'Amount').value);
+            formData.append('Description', data.find(a => a.name == 'Description').value);
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Cost")',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.post('@Url.Action("Cost_Search")', { }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
         function edit(id) {
             preloader();
             $.get('@Url.Action("EditCost")', { 'id': id }, function (r) {
@@ -37,9 +79,69 @@
                 UIkit.modal('#edit-modal').show();
             });
         }
+        function submitEditForm() {
+            let formData = new FormData();
+            $.each($('#edit-modal .pic'), function (i, obj) {
+                $.each(obj.files, function (j, file) {
+                    formData.append(`Attachment[${j}]`, file); // is the var i against the var j, because the i is incremental the j is ever 0
+                });
+            });
+            let data = $('#edit-modal form').serializeArray();
+            formData.append('Id', data.find(a => a.name == 'Id').value);
+            formData.append('UserId', data.find(a => a.name == 'UserId').value);
+            formData.append('day', data.find(a => a.name == 'day').value);
+            formData.append('month', data.find(a => a.name == 'month').value);
+            formData.append('year', data.find(a => a.name == 'year').value);
+            formData.append('CalendarId', data.find(a => a.name == 'CalendarId').value);
+            formData.append('Amount', data.find(a => a.name == 'Amount').value);
+            formData.append('Description', data.find(a => a.name == 'Description').value);
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EditCost")',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.post('@Url.Action("Cost_Search")', { }, function (r) {
+                            $('#append').html(r);
+                            UIkit.modal('#edit-modal').hide();
+                        }, 'html');
+                    }
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
         function remove(id) {
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();
+        }
+        function showAttachment(files) {
+            const modalId = '#attachment-modal';
+            let template = '',
+                attachments = files.split(';;');
+            $.each(attachments, (i, v) => {
+                template += `
+                        <div>
+                            <div uk-lightbox>
+                                <a class="uk-button uk-button-default uk-border-rounded uk-button-small" href="/img/cost/${attachments[i]}">تصویر ${i + 1}</a>
+                            </div>
+                        </div>
+                        `;
+            })
+            $(`${modalId} .uk-grid-small`).html(template);
+            UIkit.modal(modalId).show();
         }
     </script>
 }
@@ -83,14 +185,15 @@
                         <td>@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname</td>
                         @if (string.IsNullOrEmpty(item.Picture))
                         {
-                            <td>بدون تصویر</td>
+                            <td>---</td>
                         }
                         else
                         {
                             <td>
-                                <div uk-lightbox>
-                                    <a class="uk-button uk-button-secondary uk-button-small" href="/img/cost/@item.Picture" data-caption="@item.Description">مشاهده تصویر</a>
-                                </div>
+                                <a class="uk-button uk-button-primary uk-button-small"
+                           onclick="showAttachment('@item.Picture')">
+                                    <i class="far fa-image"></i>
+                                </a>
                             </td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
@@ -121,5 +224,15 @@
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
             </div>
         </form>
+    </div>
+</div>
+<div id="attachment-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>مشاهده تصاویر ضمیمه شده</h3>
+        <hr />
+        <div class="uk-grid-small uk-child-width-auto uk-flex-center uk-margin-top uk-margin-bottom" uk-grid></div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
     </div>
 </div>

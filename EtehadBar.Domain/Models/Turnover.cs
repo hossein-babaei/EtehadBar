@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,11 +10,6 @@ namespace EtehadBar.Domain.Models
     {
         [Key]
         public long Id { get; set; }
-
-        [Display(Name = "تقویم کاری")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public long CalendarId { get; set; }
-        public virtual Calendar Calendar { get; set; }
 
         [Display(Name = "تاریخ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -32,6 +28,8 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public TurnoverType TurnoverType { get; set; }
+
+        public string Attachments { get; set; }
 
         [Required]
         public DateTime CreateDatetime { get; set; } = DateTime.Now;

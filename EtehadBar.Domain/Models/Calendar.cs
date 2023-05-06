@@ -31,7 +31,6 @@ namespace EtehadBar.Domain.Models
 
         public virtual ICollection<Cost> Costs { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
-        public virtual ICollection<Turnover> Turnovers { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
         public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }
         public virtual ICollection<FreeLoadFactor> FreeLoadFactors { get; set; }

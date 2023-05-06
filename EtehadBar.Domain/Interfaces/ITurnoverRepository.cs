@@ -8,6 +8,7 @@ namespace EtehadBar.Domain.Interfaces
     {
         Task<Turnover> Get(long id);
         Task<Turnover> Get(string id);
+        Task<EditTurnoverVM> GetEditData(long id);
         IQueryable<Turnover> Query();
         void Update(Turnover obj);
         void Create(Turnover obj);

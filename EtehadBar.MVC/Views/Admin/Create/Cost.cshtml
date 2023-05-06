@@ -30,7 +30,9 @@
                         <select class="uk-select uk-border-rounded" name="day" dir="ltr">
                             @for (int i = 1; i < 32; i++)
                             {
-                                <!option value="@i" @if (now.Day == i) { <text> selected="selected" </text> }>@i</!option>
+                                <!option value="@i" @if (now.Day == i) {
+                            <text> selected="selected" </text>
+ }>@i</!option>
                             }
                         </select>
                     </div>
@@ -39,7 +41,9 @@
                         <select class="uk-select uk-border-rounded" name="month" dir="ltr">
                             @for (int i = 1; i < 13; i++)
                             {
-                                <!option value="@i" @if (now.Month == i) { <text> selected="selected" </text> }>@i</!option>
+                                <!option value="@i" @if (now.Month == i) {
+                            <text> selected="selected" </text>
+ }>@i</!option>
                             }
                         </select>
                     </div>
@@ -60,18 +64,14 @@
                     <div class="uk-text-center">
                         <div class="uk-margin-top">
                             <div><label class="uk-form-label">تصویر رسید یا سند مالی</label></div>
-                            <div uk-form-custom="target: true">
-                                <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: image"></a>
-                                <input name="pic" accept=".jpg,.png" type="file" id="pic" />
-                                <input class="uk-input uk-form-width-large uk-form-small" type="text" placeholder="انتخاب کنید ..." disabled>
-                            </div>
+                            <input type="file" multiple class="pic" />
                         </div>
                     </div>
                 </div>
             </form>
         </div>
         <div class="uk-modal-footer uk-text-center">
-            <button class="uk-button uk-button-primary" type="button" onclick="submitForm('#create-form')">ثبت اطلاعات</button>
+            <button class="uk-button uk-button-primary" type="button" onclick="submitCreateForm()">ثبت اطلاعات</button>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
     </div>

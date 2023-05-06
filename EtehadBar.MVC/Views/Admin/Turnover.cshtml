@@ -22,6 +22,7 @@
         i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
 }
 @section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
     <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
     <style>
         .sequence {
@@ -37,35 +38,147 @@
     </style>
 }
 @section Scripts{
+    <script src="~/lib/select2/select2.min.js"></script>
     <script src="~/lib/persian-date/persian-date.min.js"></script>
     <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
     <script>
-        const bankAccountId = @((long)ViewData["BankAccountId"]),
-            bankAccountRowId = '@ViewData["BankAccountRowId"].ToString()';
+        const type = @((int)type);
         function create() {
             preloader();
-            $.get('@Url.Action("CreateBankAccountBook")', {}, function (r) {
-                $('#append-modal').html(r);
+            $.get('@Url.Action("CreateTurnover")', { 'type': type }, function (r) {
+                $('#create-modal').html(r);
+                $('#create-modal #UserId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
             }, 'html').then(function () {
-                $('#create-form').prepend(`<input type="hidden" name="BankAccountId" value="${bankAccountId}" />`);
+                $('#create-form').prepend(`<input type="hidden" name="TurnoverType" value="${type}" />`);
                 parseValidator('#create-form');
                 preloader();
-                UIkit.modal('#append-modal').show();
+                UIkit.modal('#create-modal').show();
+            });
+        }
+        function submitCreateForm() {
+            let formData = new FormData();
+            $.each($('#create-modal .pic'), function (i, obj) {
+                $.each(obj.files, function (j, file) {
+                    formData.append(`Attachment[${j}]`, file); // is the var i against the var j, because the i is incremental the j is ever 0
+                });
+            });
+            let data = $('#create-modal form').serializeArray();
+            formData.append('TurnoverType', data.find(a => a.name == 'TurnoverType').value);
+            formData.append('Day', data.find(a => a.name == 'Day').value);
+            formData.append('Month', data.find(a => a.name == 'Month').value);
+            formData.append('Year', data.find(a => a.name == 'Year').value);
+            formData.append('UserId', data.find(a => a.name == 'UserId').value);
+            formData.append('Creditor', data.find(a => a.name == 'Creditor').value);
+            formData.append('Debtor', data.find(a => a.name == 'Debtor').value);
+            formData.append('Description', data.find(a => a.name == 'Description').value);
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CreateTurnover")',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.post('@Url.Action("Turnover_Search")', { 'type': type }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
             });
         }
         function edit(id) {
             preloader();
-            $.get('@Url.Action("EditBankAccountBook")', { 'id': id }, function (r) {
-                $('#append-modal').html(r);
+            $.get('@Url.Action("EditTurnover")', { 'id': id }, function (r) {
+                $('#edit-modal').html(r);
+                $('#edit-modal #UserId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
             }, 'html').then(function () {
                 parseValidator('#edit-form');
                 preloader();
-                UIkit.modal('#append-modal').show();
+                UIkit.modal('#edit-modal').show();
+            });
+        }
+        function submitEditForm() {
+            let formData = new FormData();
+            $.each($('#edit-modal .pic'), function (i, obj) {
+                $.each(obj.files, function (j, file) {
+                    formData.append(`Attachment[${j}]`, file); // is the var i against the var j, because the i is incremental the j is ever 0
+                });
+            });
+            let data = $('#edit-modal form').serializeArray();
+            formData.append('TurnoverType', data.find(a => a.name == 'TurnoverType').value);
+            formData.append('Id', data.find(a => a.name == 'Id').value);
+            formData.append('Day', data.find(a => a.name == 'Day').value);
+            formData.append('Month', data.find(a => a.name == 'Month').value);
+            formData.append('Year', data.find(a => a.name == 'Year').value);
+            formData.append('Year', data.find(a => a.name == 'Year').value);
+            formData.append('UserId', data.find(a => a.name == 'UserId').value);
+            formData.append('Creditor', data.find(a => a.name == 'Creditor').value);
+            formData.append('Debtor', data.find(a => a.name == 'Debtor').value);
+            formData.append('Description', data.find(a => a.name == 'Description').value);
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EditTurnover")',
+                data: formData,
+                dataType: 'json',
+                cache: false,
+                contentType: false,
+                processData: false,
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.post('@Url.Action("Turnover_Search")', { 'type': type }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
             });
         }
         function remove(id) {
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();
+        }
+        function showAttachment(files) {
+            const modalId = '#attachment-modal';
+            let template = '',
+                attachments = files.split(';;');
+            $.each(attachments, (i, v) => {
+                template += `
+                <div>
+                    <div uk-lightbox>
+                        <a class="uk-button uk-button-default uk-border-rounded uk-button-small" href="/img/turnover/${attachments[i]}">تصویر ${i + 1}</a>
+                    </div>
+                </div>
+                `;
+            })
+            $(`${modalId} .uk-grid-small`).html(template);
+            UIkit.modal(modalId).show();
         }
         function filter() {
             var data = $('#search-modal form').serialize();
@@ -110,11 +223,11 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Creditor)</th>
                     <th>@Html.DisplayNameFor(model => model.Debtor)</th>
+                    <th width="50">تصاویر</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -124,11 +237,23 @@
                 {
                     <tr id="@item.RowId" data-row="@i" class="uk-text-center">
                         <td class="sequence" draggable="true">@i</td>
-                        <td class="uk-text-small">@Html.DisplayFor(modelItem => item.Calendar.Title)</td>
                         <td class="uk-text-small"><pre>@Html.DisplayFor(modelItem => item.Description)</pre></td>
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                         <td>@item.Creditor.ToString("N0")</td>
                         <td>@item.Debtor.ToString("N0")</td>
+                        @if (string.IsNullOrEmpty(item.Attachments))
+                        {
+                            <td>---</td>
+                        }
+                        else
+                        {
+                            <td>
+                                <a class="uk-button uk-button-primary uk-button-small"
+                           onclick="showAttachment('@item.Attachments')">
+                                    <i class="far fa-image"></i>
+                                </a>
+                            </td>
+                        }
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
@@ -144,7 +269,18 @@
         </div>
     }
 </div>
-<div id="append-modal" uk-modal="bg-close: false"></div>
+<div id="create-modal" uk-modal="bg-close: false"></div>
+<div id="edit-modal" uk-modal="bg-close: false"></div>
+<div id="attachment-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>مشاهده تصاویر ضمیمه شده</h3>
+        <hr />
+        <div class="uk-grid-small uk-child-width-auto uk-flex-center uk-margin-top uk-margin-bottom" uk-grid></div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
 <div id="delete-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
         <form id="delete-form" method="post" asp-action="DeleteBankAccountBook" asp-controller="Admin">
