@@ -12,6 +12,8 @@
                     <label asp-for="DefinitionType" class="uk-form-label"></label>
                     <select asp-for="DefinitionType" class="uk-select uk-border-rounded">
                         <option value="@((int)DefinitionType.Car)">خودرو</option>
+                        <option value="@((int)DefinitionType.BillType)">نوع هزینه</option>
+                        <option value="@((int)DefinitionType.BankBranch)">شعبه بانک</option>
                     </select>
                     <span asp-validation-for="DefinitionType" class="uk-text-danger"></span>
                 </div>

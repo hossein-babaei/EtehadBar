@@ -107,5 +107,82 @@ namespace EtehadBar.Infra.Data.Repository
             }
             return data;
         }
+
+        public async Task<List<ActivityListByCustomerVM>> ActivityListByCustomer(long customerId, long calendarId)
+        {
+            var query = await (from a in db.LoadFactor
+                               join b in db.Contract on a.ContractId equals b.Id
+                               join c in db.Vehicles on a.VehicleId equals c.Id
+                               where a.CalendarId.Equals(calendarId) && b.CustomerId.Equals(customerId) && !a.IsFreeDriverPrice
+                               select new
+                               {
+                                   a.Date,
+                                   DriverName = a.Driver.Fullname,
+                                   Origin = a.Origin.Title,
+                                   Destination = a.Destination.Title,
+                                   a.IsFreeDriverPrice,
+                                   a.Tonnage,
+                                   a.DriverTonnagePrice,
+                                   a.DriverFee,
+                                   VehicleNumber = $"ایران {c.IranStateNumber} - {c.RightNumber} {c.NumberWord} {c.LeftNumber}",
+                                   a.WeighbridgePrice,
+                                   a.DriverLoadSleepPrice,
+                                   a.LoadNumber,
+                                   SazehRequestNumber = a.ExitNumber,
+                                   PressFloorType = a.SaipaPressLoadFactor != null ? a.SaipaPressLoadFactor.PressFloorType : SaipaPressLoadType.OneFloor,
+                                   MehrcomLoad = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Load,
+                                   MehrcomPalette = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Palette,
+                                   MehrcomReturn = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Return,
+
+                               }).AsNoTracking().OrderBy(a => a.Date).ToListAsync();
+
+            var data = new List<ActivityListByCustomerVM>();
+            var vehicleData = query.GroupBy(a => a.VehicleNumber).OrderBy(a => a.Key).ToList();
+
+            foreach (var vehicle in vehicleData)
+            {
+                var thisVehicle = new ActivityListByCustomerVM
+                {
+                    VehicleNumber = vehicle.Key,
+                    Routes = new List<ActivityListByCustomerRouteVM>(),
+                    Details = new List<ActivityListByCustomerDetailVM>()
+                };
+                var priceGroups = vehicle.DistinctBy(a => a.DriverFee).Select(a => a.DriverFee).ToList();
+                foreach (var price in priceGroups)
+                {
+                    thisVehicle.Routes.Add(new ActivityListByCustomerRouteVM
+                    {
+                        Amount = price,
+                        Quantity = vehicle.Count(a => a.DriverFee.Equals(price))
+                    });
+                }
+                for (int i = 0; i < vehicle.Count(); i++)
+                {
+                    var item = vehicle.ElementAt(i);
+                    thisVehicle.Details.Add(new ActivityListByCustomerDetailVM
+                    {
+                        Amount = item.DriverFee,
+                        Date = item.Date,
+                        Destination = item.Destination,
+                        DriverLoadSleepPrice = item.DriverLoadSleepPrice,
+                        DriverName = item.DriverName,
+                        IsFreeDriverPrice = item.IsFreeDriverPrice,
+                        LoadFactorNumber = item.LoadNumber,
+                        MehrcomLoad = item.MehrcomLoad,
+                        MehrcomPalette = item.MehrcomPalette,
+                        MehrcomReturn = item.MehrcomReturn,
+                        Origin = item.Origin,
+                        PressFloorType = item.PressFloorType,
+                        SazehRequestNumber = item.SazehRequestNumber,
+                        WeighbridgePrice = item.WeighbridgePrice,
+                        Tonnage = item.Tonnage,
+                        TonnagePrice = item.DriverTonnagePrice
+                    });
+                }
+                data.Add(thisVehicle);
+            }
+
+            return data;
+        }
     }
 }

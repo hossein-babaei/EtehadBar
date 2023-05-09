@@ -1101,7 +1101,7 @@ namespace EtehadBar.MVC.Controllers
             ViewBag.data = onePageOfData;
             return View();
         }
-        
+
         [HttpPost]
         [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Cost_Search(int? p)
@@ -1263,8 +1263,8 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> DeleteCost(int id)
         {
             var item = await _costRepo.Get(id);
-            if(!string.IsNullOrEmpty(item.Picture))
-                {
+            if (!string.IsNullOrEmpty(item.Picture))
+            {
                 foreach (var pic in item.Picture.Split(";;", StringSplitOptions.RemoveEmptyEntries))
                 {
                     try
@@ -1302,6 +1302,24 @@ namespace EtehadBar.MVC.Controllers
             return View();
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> Payment_Search()
+        {
+            var vehicles = await _vehicleRepo.Vehicles().AsNoTracking().OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).Select(a => new
+            {
+                a.Id,
+                number = $"ایران {a.IranStateNumber} - {a.RightNumber} {a.NumberWord} {a.LeftNumber}",
+                owner = a.VehicleOwnerFullname
+            }).ToListAsync();
+            var users = await _userManager.Users.AsNoTracking().OrderBy(a => a.Firstname).ThenByDescending(a => a.Lastname).Select(a => new
+            {
+                a.Id,
+                name = $"{a.Firstname} {a.Lastname}"
+            }).ToListAsync();
+            return Json(new { vehicles, users });
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> Payment_Search(int? p, string description, long vehicleId, string userId)
@@ -1317,6 +1335,10 @@ namespace EtehadBar.MVC.Controllers
 
             var onePageOfData = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             ViewBag.data = onePageOfData;
+
+            ViewBag.Description = description;
+            ViewBag.VehicleId = vehicleId;
+            ViewBag.UserId = userId;
             return PartialView();
         }
 

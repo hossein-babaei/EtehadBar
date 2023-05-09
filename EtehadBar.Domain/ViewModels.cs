@@ -53,6 +53,39 @@ namespace EtehadBar.Domain
         public SazehGostarLoadFactor SazehGostarLoadFactor { get; set; }
     }
 
+    public class ActivityListByCustomerVM
+    {
+        public string VehicleNumber { get; set; }
+        public List<ActivityListByCustomerRouteVM> Routes { get; set; }
+        public List<ActivityListByCustomerDetailVM> Details { get; set; }
+    }
+
+    public class ActivityListByCustomerRouteVM
+    {
+        public double Amount { get; set; }
+        public int Quantity { get; set; }
+    }
+
+    public class ActivityListByCustomerDetailVM
+    {
+        public DateTime Date { get; set; }
+        public string DriverName { get; set; }
+        public string Origin { get; set; }
+        public string Destination { get; set; }
+        public bool IsFreeDriverPrice { get; set; }
+        public string LoadFactorNumber { get; set; }
+        public double Amount { get; set; }
+        public SaipaPressLoadType? PressFloorType { get; set; }
+        public double? Tonnage { get; set; }
+        public double? TonnagePrice { get; set; }
+        public string SazehRequestNumber { get; set; }
+        public bool MehrcomLoad { get; set; } = false;
+        public bool MehrcomPalette { get; set; } = false;
+        public bool MehrcomReturn { get; set; } = false;
+        public double? WeighbridgePrice { get; set; }
+        public double? DriverLoadSleepPrice { get; set; }
+    }
+
     public class ActivityListVM
     {
         public long VehicleId { get; set; }

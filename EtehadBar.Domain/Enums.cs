@@ -2,7 +2,9 @@
 {
     public enum DefinitionType
     {
-        Car
+        Car,
+        BillType,
+        BankBranch
     }
 
     public enum ApplicationRoleType

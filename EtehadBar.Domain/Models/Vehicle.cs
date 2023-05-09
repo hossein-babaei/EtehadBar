@@ -53,6 +53,7 @@ namespace EtehadBar.Domain.Models
         [StringLength(64)]
         public string BankAccountNumber { get; set; }
 
+        public virtual ICollection<Bill> Bills { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
 

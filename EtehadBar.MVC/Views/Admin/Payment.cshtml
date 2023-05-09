@@ -14,8 +14,68 @@
     }
 }
 
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+}
+
 @section Scripts{
+    <script src="~/lib/select2/select2.min.js"></script>
     <script>
+        let isSearchLoaded = false;
+        function getSearch() {
+            if (!isSearchLoaded) {
+                preloader();
+                $.get('@Url.Action("Payment_Search")', {}, function (r) {
+                    let vehicleOptions = '<option value="0">همه</option>',
+                        userOptions = '<option value="all">همه</option>';
+
+                    $.each(r.vehicles, (i,v) => {
+                        vehicleOptions += `<option value="${v.id}">${v.number} - ${v.owner}</option>`;
+                    });
+                    $.each(r.users, (i,v) => {
+                        userOptions += `<option value="${v.id}">${v.name}</option>`;
+                    });
+                    $('#search-modal #vehicleId').html(vehicleOptions);
+                    $('#search-modal #userId').html(userOptions);
+
+                    $('#search-modal #vehicleId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#search-modal #userId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                }, 'json').then(function () {
+                    preloader();
+                    UIkit.modal('#search-modal').show();
+                });
+            } else {
+                UIkit.modal('#search-modal').show();
+            }
+        }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Payment_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
         function getCreate(type) {
             preloader();
             if (type == 'vehicle') {
@@ -105,6 +165,7 @@
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
         <a uk-toggle="#payment-type-modal" class="uk-button uk-button-primary">افزودن</a>
+        <button onclick="getSearch()" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
     </div>
 </div>
 <div id="append" class="box">
@@ -249,5 +310,35 @@
                 <button class="uk-button uk-button-primary uk-border-rounded" onclick="getCreate('user')">کارمند</button>
             </li>
         </ul>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div>
+                    <label class="uk-form-label">بر اساس پرسنل</label>
+                    <select class="uk-select uk-border-rounded" id="userId" name="userId"></select>
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">بر اساس خودرو</label>
+                    <select class="uk-select uk-border-rounded" id="vehicleId" name="vehicleId"></select>
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">جستجو در شرح</label>
+                    <input class="uk-input uk-border-rounded uk-text-left" id="description" name="description" autocomplete="off" />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="Payment" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
     </div>
 </div>

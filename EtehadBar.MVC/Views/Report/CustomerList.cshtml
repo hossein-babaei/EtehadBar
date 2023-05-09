@@ -57,6 +57,13 @@
             //$('#modal select[name=vehicleId]').select2({ width: '100%' });
             UIkit.modal('#modal').show();
         }
+        function showFormByCustomer(id) {
+            const modalId = '#activity-modal';
+            $(`${modalId} input[name=customerId]`).val(id);
+
+            $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
+            UIkit.modal(modalId).show();
+        }
         function showFormByAccountBook(id, type) {
             const modal = $('#account-book-modal');
             let options = '';
@@ -99,6 +106,7 @@
                     {
                         <th>گزارش دریافتی</th>
                     }
+                    <th>گزارش عملکرد</th>
                     <th>گزارش بارنامه</th>
                 </tr>
             </thead>
@@ -120,6 +128,7 @@
                         {
                             <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a></td>
                         }
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="showFormByCustomer(@item.Id)">عملکرد</a></td>
                         <td>
                             <a class="uk-button uk-button-primary uk-button-small" onclick="showFormByCalendar(@item.Id, @((byte)item.CustomerType))">بر اساس تقویم کاری</a>
                             <a class="uk-button uk-button-primary uk-button-small uk-margin-small-right" onclick="showFormByAccountBook(@item.Id, @((byte)item.CustomerType))">بر اساس صورت وضعیت</a>
@@ -129,6 +138,35 @@
                 }
             </tbody>
         </table>
+    </div>
+</div>
+<div id="activity-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">خروجی عملکرد خودرو بر اساس مشتری</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form method="post" action="@Url.Action("VehicleActivityByCustomer", "Excel")" autocomplete="off">
+                <input type="hidden" name="customerId" value="" />
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <label class="uk-form-label">تاریخ</label>
+                        <select name="calendarId">
+                            @foreach (var item in calendars)
+                            {
+                                <!option value="@item.Id" @if (latestCal.Id.Equals(item)) {
+                            <text> selected="selected" </text>
+                            }>@item.Title</!option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm(this)">مشاهده</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
     </div>
 </div>
 <div id="modal" uk-modal>

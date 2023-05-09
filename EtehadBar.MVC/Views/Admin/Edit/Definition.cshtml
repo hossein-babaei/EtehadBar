@@ -12,7 +12,9 @@
                 <div>
                     <label asp-for="DefinitionType" class="uk-form-label"></label>
                     <select asp-for="DefinitionType" class="uk-select uk-border-rounded">
-                        <!option value="@(DefinitionType.Car)" @if (Model.DefinitionType.Equals(DefinitionType.Car)) { <text> selected="selected" </text> }>خودرو</!option>
+                        <!option value="@((int)DefinitionType.Car)" @if (Model.DefinitionType.Equals(DefinitionType.Car)) { <text> selected="selected" </text> }>خودرو</!option>
+                        <!option value="@((int)DefinitionType.BillType)" @if (Model.DefinitionType.Equals(DefinitionType.BillType)) { <text> selected="selected" </text> }>نوع هزینه</!option>
+                        <!option value="@((int)DefinitionType.BankBranch)" @if (Model.DefinitionType.Equals(DefinitionType.BankBranch)) { <text> selected="selected" </text> }>شعبه بانک</!option>
                     </select>
                     <span asp-validation-for="DefinitionType" class="uk-text-danger"></span>
                 </div>

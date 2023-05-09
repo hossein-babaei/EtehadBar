@@ -29,6 +29,7 @@ namespace EtehadBar.Domain.Models
         public string EditorId { get; set; }
         public DateTime? EditDate { get; set; }
 
+        public virtual ICollection<Bill> Bills { get; set; }
         public virtual ICollection<Cost> Costs { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
