@@ -55,7 +55,9 @@ namespace EtehadBar.Domain
 
     public class ActivityListByCustomerVM
     {
+        public long VehicleId { get; set; } = 0;
         public string VehicleNumber { get; set; }
+        public double VehicleBalance { get; set; }
         public List<ActivityListByCustomerRouteVM> Routes { get; set; }
         public List<ActivityListByCustomerDetailVM> Details { get; set; }
     }
@@ -1078,5 +1080,11 @@ namespace EtehadBar.Domain
     {
         public string Id { get; set; }
         public string Fullname { get; set; }
+    }
+
+    public class AutoCompleteResultVM
+    {
+        public string value { get; set; }
+        public string label { get; set; }
     }
 }

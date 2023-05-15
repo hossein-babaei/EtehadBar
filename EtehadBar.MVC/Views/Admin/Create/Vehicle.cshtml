@@ -63,6 +63,14 @@
                     </div>
                     <span asp-validation-for="Status" class="uk-text-danger"></span>
                 </div>
+                <div>
+                    <label asp-for="RealStatus" class="uk-form-label"></label>
+                    <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                        <label><input class="uk-radio" type="radio" name="RealStatus" value="true" checked /> بلی</label>
+                        <label><input class="uk-radio" type="radio" name="RealStatus" value="false" /> خیر</label>
+                    </div>
+                    <span asp-validation-for="RealStatus" class="uk-text-danger"></span>
+                </div>
             </div>
         </form>
     </div>

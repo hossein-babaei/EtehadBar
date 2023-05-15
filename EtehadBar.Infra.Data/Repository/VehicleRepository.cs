@@ -116,6 +116,8 @@ namespace EtehadBar.Infra.Data.Repository
                                where a.CalendarId.Equals(calendarId) && b.CustomerId.Equals(customerId) && !a.IsFreeDriverPrice
                                select new
                                {
+                                   VehicleId = c.Id,
+                                   c.LeftNumber,
                                    a.Date,
                                    DriverName = a.Driver.Fullname,
                                    Origin = a.Origin.Title,
@@ -134,10 +136,12 @@ namespace EtehadBar.Infra.Data.Repository
                                    MehrcomPalette = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Palette,
                                    MehrcomReturn = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Return,
 
-                               }).AsNoTracking().OrderBy(a => a.Date).ToListAsync();
+                               }).AsNoTracking().OrderBy(a => a.LeftNumber).ToListAsync();
 
             var data = new List<ActivityListByCustomerVM>();
-            var vehicleData = query.GroupBy(a => a.VehicleNumber).OrderBy(a => a.Key).ToList();
+            var vehicleData = query.GroupBy(a => a.VehicleNumber).ToList();
+
+            var calendars = await db.Calendar.AsNoTracking().Where(a => a.Sequence >= (db.Calendar.AsNoTracking().Max(a => a.Sequence) - 6)).Select(a => a.Id).ToListAsync();
 
             foreach (var vehicle in vehicleData)
             {
@@ -159,6 +163,7 @@ namespace EtehadBar.Infra.Data.Repository
                 for (int i = 0; i < vehicle.Count(); i++)
                 {
                     var item = vehicle.ElementAt(i);
+                    if (thisVehicle.VehicleId == 0) { thisVehicle.VehicleId = item.VehicleId; };
                     thisVehicle.Details.Add(new ActivityListByCustomerDetailVM
                     {
                         Amount = item.DriverFee,

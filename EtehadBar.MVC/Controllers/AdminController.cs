@@ -50,6 +50,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IBankAccountBookRepository _bankAccountBookRepository;
         private readonly IAdminDashboardRepository _adminDashboardRepository;
         private readonly ITurnoverRepository _turnoverRepository;
+        private readonly IBillRepository _billRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -76,7 +77,8 @@ namespace EtehadBar.MVC.Controllers
             IBankAccountRepository bankAccountRepository,
             IBankAccountBookRepository bankAccountBookRepository,
             IAdminDashboardRepository adminDashboardRepository,
-            ITurnoverRepository turnoverRepository)
+            ITurnoverRepository turnoverRepository,
+            IBillRepository billRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -103,6 +105,7 @@ namespace EtehadBar.MVC.Controllers
             _bankAccountBookRepository = bankAccountBookRepository;
             _adminDashboardRepository = adminDashboardRepository;
             _turnoverRepository = turnoverRepository;
+            _billRepository = billRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -114,6 +117,15 @@ namespace EtehadBar.MVC.Controllers
 
         public async Task<IActionResult> Index(int? dayLimit)
         {
+            //var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId == 3).ToListAsync();
+            //var fees = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId == 3).ToListAsync();
+            //foreach (var item in loadFactors)
+            //{
+            //    item.Amount = fees.Where(a => a.Id.Equals(item.ShippingFeeId)).Select(a => a.Price).First();
+            //}
+
+            //await _loadFactorRepo.Save();
+
             ViewData["DayLimit"] = dayLimit;
 
             if (User.IsInRole("Admin"))
@@ -901,6 +913,7 @@ namespace EtehadBar.MVC.Controllers
                 item.AccountBankName = v.AccountBankName;
                 item.BankAccountNumber = v.BankAccountNumber;
                 item.VehicleOwnerFullname = v.VehicleOwnerFullname;
+                item.RealStatus = v.RealStatus;
                 _vehicleRepo.Update(item);
                 try
                 {
@@ -962,6 +975,7 @@ namespace EtehadBar.MVC.Controllers
 
                 _calendarRepo.Create(new Domain.Models.Calendar
                 {
+                    Sequence = await _calendarRepo.Calendars().AsNoTracking().MaxAsync(a => a.Sequence),
                     StartDate = startDate,
                     EndDate = endDate,
                     Title = c.Title,
@@ -2088,20 +2102,16 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditShippingFee(ShippingFee s)
         {
+            string msg;
+            string status = "danger";
             if (ModelState.IsValid)
             {
                 if (s.DestinationId == s.OriginId)
-                {
-                    TempData["msg"] = "مبدا و مقصد نمی تواند یکی باشد. |danger";
-                    return Redirect(Request.Headers["Referer"].ToString());
-                }
+                    return Json(new { msg = "مبدا و مقصد نمی تواند یکی باشد.", status });
 
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
                     .AnyAsync(a => !a.Id.Equals(s.Id) && a.ShippingFeeLoadTypeId.Equals(s.ShippingFeeLoadTypeId) && a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice) && a.Title.Equals(s.Title)))
-                {
-                    TempData["msg"] = "نرخ حمل و نقل ثبت شده تکراری است. |danger";
-                    return Redirect(Request.Headers["Referer"].ToString());
-                }
+                    return Json(new { msg = "نرخ حمل و نقل ثبت شده تکراری است.", status });
 
                 if (s.ShippingFeeType == ShippingFeeType.Custom)
                 {
@@ -2151,18 +2161,19 @@ namespace EtehadBar.MVC.Controllers
                         await _loadFactorRepo.Save();
                     }
 
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
                 }
                 catch (Exception e)
                 {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
                 }
             }
             else
             {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Redirect(Request.Headers["Referer"].ToString());
+            return Json(new { msg, status });
         }
 
         [HttpPost]
@@ -5095,6 +5106,209 @@ namespace EtehadBar.MVC.Controllers
                 {
                     TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
                 }
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region Bill
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Bill(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _billRepository.Query().OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 50);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Bill_Search()
+        {
+            var definitions = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BillType || a.DefinitionType == DefinitionType.BankBranch).AsNoTracking()
+                .Select(a => new
+                {
+                    a.DefinitionType,
+                    a.Title
+                }).OrderBy(a => a.Title).ToListAsync();
+
+            var vehicles = await _vehicleRepo.Vehicles().Where(a => a.Status).AsNoTracking()
+                .Select(a => new
+                {
+                    id = a.Id,
+                    a.RightNumber,
+                    number = $"ایران {a.IranStateNumber} - {a.RightNumber} {a.NumberWord} {a.LeftNumber}",
+                    owner = a.VehicleOwnerFullname
+                }).OrderBy(a => a.RightNumber).ToListAsync();
+
+            return Json(new
+            {
+                vehicles,
+                calendars = await _calendarRepo.Calendars().AsNoTracking().Select(a => new { id = a.Id, title = a.Title }).OrderBy(a => a.title).ToListAsync(),
+                names = await _billRepository.Query().AsNoTracking().Select(a => a.ReceiverName).Distinct().OrderBy(a => a).ToListAsync(),
+                bankBranches = definitions.Where(a => a.DefinitionType == DefinitionType.BankBranch).Select(a => a.Title).ToList(),
+                billTypes = definitions.Where(a => a.DefinitionType == DefinitionType.BillType).Select(a => a.Title).ToList()
+            });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Bill_Search(int? p, long vehicleId, long calendarId, string name, string bankBranch, string billType, string description, string bankBillNo, string billNo)
+        {
+            var pageNumber = p ?? 1;
+            var query = _billRepository.Query();
+            if (name != "all" && name != null)
+                query = query.Where(a => a.ReceiverName.Contains(name));
+            if (bankBranch != "all" && bankBranch != null)
+                query = query.Where(a => a.BankBranch.Equals(bankBranch));
+            if (billType != "all" && billType != null)
+                query = query.Where(a => a.BillType.Equals(billType));
+            if (!string.IsNullOrWhiteSpace(description) && description != null)
+                query = query.Where(a => a.Description.Contains(description));
+            if (!string.IsNullOrWhiteSpace(bankBillNo) && bankBillNo != null)
+                query = query.Where(a => a.BankBillNo.Contains(bankBillNo));
+            if (!string.IsNullOrWhiteSpace(billNo) && billNo != null)
+                query = query.Where(a => a.BillNo.Contains(billNo));
+            if (calendarId > 0)
+                query = query.Where(a => a.CalendarId.Equals(calendarId));
+            if (vehicleId > 0)
+                query = query.Where(a => a.VehicleId.HasValue && a.VehicleId.Equals(vehicleId));
+
+
+            if (calendarId > 0)
+            {
+                var queryCount = await query.CountAsync();
+                ViewBag.data = await query.OrderBy(a => a.Date).ToPagedListAsync(pageNumber, queryCount == 0 ? 1 : queryCount);
+            }
+            else
+                ViewBag.data = await query.OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 50);
+
+            ViewBag.Name = name;
+            ViewBag.BillType = billType;
+            ViewBag.VehicleId = vehicleId;
+            ViewBag.BankBranch = bankBranch;
+            ViewBag.CalendarId = calendarId;
+            return PartialView();
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetBillReceiverNames()
+        {
+            return Json(await _billRepository.Query().AsNoTracking().Select(a => a.ReceiverName).Distinct().ToListAsync());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> CreateBill()
+        {
+            ViewData["Year"] = await _configRepo.CurrentYear();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().OrderByDescending(a => a.LeftNumber).ToListAsync();
+            ViewData["Definitions"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BillType || a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderBy(a => a.Title).ToListAsync();
+
+            return PartialView("~/Views/Admin/Create/Bill.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateBill(Bill b, int day, int month, int year)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                b.Date = new PersianDateTime(year, month, day).ToDateTime();
+                b.CreatorId = _userManager.GetUserId(User);
+
+                _billRepository.Create(b);
+                try
+                {
+                    await _billRepository.Save();
+
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+
+            return Json(new { msg, status });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> EditBill(long id)
+        {
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().OrderByDescending(a => a.LeftNumber).ToListAsync();
+            ViewData["Definitions"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BillType || a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderBy(a => a.Title).ToListAsync();
+            return PartialView("~/Views/Admin/Edit/Bill.cshtml", await _billRepository.Get(id));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditBill(Bill b, int day, int month, int year)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                var item = await _billRepository.Get(b.Id);
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDatetime = DateTime.Now;
+                item.CalendarId = b.CalendarId;
+                item.VehicleId = b.VehicleId;
+                item.BankBranch = b.BankBranch;
+                item.Amount = b.Amount;
+                item.BankBillNo = b.BankBillNo;
+                item.BillNo = b.BillNo;
+                item.BillType = b.BillType;
+                item.Description = b.Description;
+                item.ReceiverName = b.ReceiverName;
+
+                item.Date = new PersianDateTime(year, month, day).ToDateTime();
+
+                _billRepository.Update(item);
+                try
+                {
+                    await _billRepository.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+
+            return Json(new { msg, status });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteBill(int id)
+        {
+            var item = await _billRepository.Get(id);
+            _billRepository.Delete(item);
+            try
+            {
+                await _billRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }

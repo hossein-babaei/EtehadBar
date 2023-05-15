@@ -2425,6 +2425,7 @@ namespace EtehadBar.MVC.Controllers
                 rngHeaders.Style.Font.Bold = true;
                 rngHeaders.Style.Font.FontColor = XLColor.Black;
 
+                item.Details = item.Details.OrderBy(a => a.Date).ToList();
                 for (int i = 0; i < item.Details.Count; i++)
                 {
                     var detail = item.Details[i];
@@ -2575,15 +2576,16 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 8).Value = "مبدا";
             ws.Cell(2, 9).Value = "مقصد";
             ws.Cell(2, 10).Value = "نام راننده";
-            ws.Cell(2, 11).Value = "نوع خودرو";
-            ws.Cell(2, 12).Value = "پلاک";
-            ws.Cell(2, 13).Value = "تناژ اضافه";
-            ws.Cell(2, 14).Value = "نرخ تناژ اضافه (ریال)";
-            ws.Cell(2, 15).Value = "نرخ تناژ اضافه راننده (ریال)";
-            ws.Cell(2, 16).Value = "جمع کل قابل پرداخت";
-            ws.Cell(2, 17).Value = "جمع کل قابل دریافت";
-            ws.Cell(2, 18).Value = "وضعیت پرداخت";
-            ws.Cell(2, 19).Value = "وضعیت دریافت";
+            ws.Cell(2, 11).Value = "کد ملی";
+            ws.Cell(2, 12).Value = "نوع خودرو";
+            ws.Cell(2, 13).Value = "پلاک";
+            ws.Cell(2, 14).Value = "تناژ اضافه";
+            ws.Cell(2, 15).Value = "نرخ تناژ اضافه (ریال)";
+            ws.Cell(2, 16).Value = "نرخ تناژ اضافه راننده (ریال)";
+            ws.Cell(2, 17).Value = "جمع کل قابل پرداخت";
+            ws.Cell(2, 18).Value = "جمع کل قابل دریافت";
+            ws.Cell(2, 19).Value = "وضعیت پرداخت";
+            ws.Cell(2, 20).Value = "وضعیت دریافت";
 
             var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(loadFactors.Count + 2, 19));
             rngTable.FirstRow().Merge();
@@ -2634,40 +2636,41 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 2, 8).Value = item.Origin;
                 ws.Cell(index + 2, 9).Value = item.Destination;
                 ws.Cell(index + 2, 10).Value = item.DriverName;
-                ws.Cell(index + 2, 11).Value = item.VehicleType;
-                ws.Cell(index + 2, 12).Value = item.RightNumber + " " + item.NumberWord + " " + item.LeftNumber;
-                ws.Cell(index + 2, 13).Value = item.Tonnage.HasValue ? item.Tonnage.Value : 0;
-                ws.Cell(index + 2, 14).Value = item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : 0;
-                ws.Cell(index + 2, 15).Value = item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : 0;
-                ws.Cell(index + 2, 16).Value = payment.ToString("N0");
-                ws.Cell(index + 2, 17).Value = received.ToString("N0");
-                ws.Cell(index + 2, 18).Value = item.IsPaied ? "بلی" : "خیر";
-                ws.Cell(index + 2, 19).Value = item.IsReceived ? "بلی" : "خیر";
+                ws.Cell(index + 2, 11).Value = item.DriverNationalNumber;
+                ws.Cell(index + 2, 12).Value = item.VehicleType;
+                ws.Cell(index + 2, 13).Value = item.RightNumber + " " + item.NumberWord + " " + item.LeftNumber + " - " + item.IranStateNumber;
+                ws.Cell(index + 2, 14).Value = item.Tonnage.HasValue ? item.Tonnage.Value : 0;
+                ws.Cell(index + 2, 15).Value = item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : 0;
+                ws.Cell(index + 2, 16).Value = item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : 0;
+                ws.Cell(index + 2, 17).Value = payment.ToString("N0");
+                ws.Cell(index + 2, 18).Value = received.ToString("N0");
+                ws.Cell(index + 2, 19).Value = item.IsPaied ? "بلی" : "خیر";
+                ws.Cell(index + 2, 20).Value = item.IsReceived ? "بلی" : "خیر";
             }
 
             ws.Cell($"B{loadFactors.Count + 3}").Value = "تعداد کل بارنامه ها";
             ws.Range($"B{loadFactors.Count + 3}:R{loadFactors.Count + 3}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 3, 19).Value = loadFactors.Count;
+            ws.Cell(loadFactors.Count + 3, 20).Value = loadFactors.Count;
 
             ws.Cell($"B{loadFactors.Count + 4}").Value = "قابل دریافت";
             ws.Range($"B{loadFactors.Count + 4}:R{loadFactors.Count + 4}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 4, 19).Value = amountSum.ToString("N0");
+            ws.Cell(loadFactors.Count + 4, 20).Value = amountSum.ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 5}").Value = "دریافت شده";
             ws.Range($"B{loadFactors.Count + 5}:R{loadFactors.Count + 5}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 5, 19).Value = receivedSum.ToString("N0");
+            ws.Cell(loadFactors.Count + 5, 20).Value = receivedSum.ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 6}").Value = "قابل پرداخت";
             ws.Range($"B{loadFactors.Count + 6}:R{loadFactors.Count + 6}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 6, 19).Value = driverFeeSum.ToString("N0");
+            ws.Cell(loadFactors.Count + 6, 20).Value = driverFeeSum.ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 7}").Value = "قابل پرداخت";
             ws.Range($"B{loadFactors.Count + 7}:R{loadFactors.Count + 7}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 7, 19).Value = paiedSum.ToString("N0");
+            ws.Cell(loadFactors.Count + 7, 20).Value = paiedSum.ToString("N0");
 
             ws.RangeUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:S{loadFactors.Count + 19}");
+            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:S{loadFactors.Count + 20}");
             rngTable2.RangeUsed().Style
                 .Font.SetBold()
                 .Font.SetFontSize(12)

@@ -53,6 +53,10 @@ namespace EtehadBar.Domain.Models
         [StringLength(64)]
         public string BankAccountNumber { get; set; }
 
+        [Display(Name = "حقیقی")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool RealStatus { get; set; }
+
         public virtual ICollection<Bill> Bills { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }

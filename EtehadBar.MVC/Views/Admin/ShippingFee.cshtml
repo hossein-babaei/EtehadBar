@@ -137,6 +137,23 @@
                 UIkit.modal('#append-modal').show();
             });
         }
+        function submitEdit() {
+            var form = $('#edit-form');
+            if (form.valid() == true) {
+                preloader();
+                var data = form.serialize();
+                $.post('@Url.Action("EditShippingFee")', data, function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.get('@Url.Action("ShippingFeePartial")', { 'contractId': contractId }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                }, 'json').then(function () {
+                    preloader();
+                });
+            }
+        }
         function remove(id) {
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();

@@ -1,0 +1,127 @@
+﻿@model Bill
+@{
+    var calendar = (List<Calendar>)ViewData["Calendars"];
+    var vehicles = (List<Vehicle>)ViewData["Vehicles"];
+    var definitions = (List<Definition>)ViewData["Definitions"];
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">ویرایش هزینه</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="edit-form" asp-action="EditBill" method="post">
+            <input type="submit" style="display: none" />
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="CalendarId" class="uk-form-label"></label>
+                    <select asp-for="CalendarId" class="uk-select uk-border-rounded">
+                        @foreach (var item in calendar)
+                        {
+                            <!option value="@item.Id" @if (Model.CalendarId.Equals(item.Id)) { <text>selected="selected"</text> }>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
+                </div>
+                @{
+                    var pd = new PersianDateTime(Model.Date);
+                }
+               <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">روز</label>
+                    <select class="uk-select uk-border-rounded" name="day" dir="ltr">
+                        @for (int i = 1; i < 32; i++)
+                        {
+                            <!option value="@i" @if (pd.Day == i) { <text> selected="selected" </text> }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">ماه</label>
+                    <select class="uk-select uk-border-rounded" name="month" dir="ltr">
+                        @for (int i = 1; i < 13; i++)
+                        {
+                            <!option value="@i" @if (pd.Month == i) { <text> selected="selected" </text> }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">سال</label>
+                    <input class="uk-input uk-border-rounded" name="year" value="@pd.Year" dir="ltr" />
+                </div>
+                <div class="uk-width-1-2">
+                    <label asp-for="BillNo" class="uk-form-label"></label>
+                    <input asp-for="BillNo" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="BillNo" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-2">
+                    <label asp-for="BankBillNo" class="uk-form-label"></label>
+                    <input asp-for="BankBillNo" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="BankBillNo" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-2">
+                    <label asp-for="VehicleId" class="uk-form-label"></label>
+                    <select asp-for="VehicleId" class="uk-select uk-border-rounded" onchange="vehicleSelectChangeHandler(this)">
+                        <option value="">ثبت هزینه بدون پلاک</option>
+                        @if (Model.VehicleId.HasValue)
+                        {
+                            foreach (var item in vehicles)
+                            {
+                                <!option value="@item.Id" data-owner="@item.VehicleOwnerFullname" @if(item.Id.Equals(Model.VehicleId.Value)){<text>selected="selected"</text>}>ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</!option>
+                            }
+                        }
+                        else
+                        {
+                            foreach (var item in vehicles)
+                            {
+                                <option value="@item.Id" data-owner="@item.VehicleOwnerFullname">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="VehicleId" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-2">
+                    <label asp-for="ReceiverName" class="uk-form-label"></label>
+                    <div class="autocomplete">
+                        <input asp-for="ReceiverName" class="uk-input uk-border-rounded uk-form-small" />
+                    </div>
+                    <span asp-validation-for="ReceiverName" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-2">
+                    <label asp-for="BankBranch" class="uk-form-label"></label>
+                    <select asp-for="BankBranch" class="uk-select uk-border-rounded">
+                        @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BankBranch))
+                        {
+                            <!option value="@item.Title" @if(Model.BankBranch.Equals(item.Title)) { <text>selected="selected"</text> }>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="BankBranch" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-2">
+                    <label asp-for="BillType" class="uk-form-label"></label>
+                    <select asp-for="BillType" class="uk-select uk-border-rounded">
+                        @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BillType))
+                        {
+                            <!option value="@item.Title" @if(item.Title == Model.BillType) { <text>selected="selected"</text> }>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="BillType" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Amount" class="uk-form-label"></label>
+                    <input asp-for="Amount" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Description" class="uk-form-label"></label>
+                    <textarea asp-for="Description" class="uk-textarea uk-border-rounded" rows="2"></textarea>
+                    <span asp-validation-for="Description" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitEditForm()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

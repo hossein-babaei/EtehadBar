@@ -11,6 +11,9 @@ namespace EtehadBar.Domain.Models
         [Key]
         public long Id { get; set; }
 
+        [Display(Name = "ترتیب")]
+        public int Sequence { get; set; }
+
         [Display(Name = "از تاریخ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public DateTime StartDate { get; set; }

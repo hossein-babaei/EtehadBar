@@ -29,6 +29,7 @@ namespace EtehadBar.Infra.IoC
             services.AddScoped<IMehrcomParsCategoryRepository, MehrcomParsCategoryRepository>();
             services.AddScoped<IFreeLoadFactorRepository, FreeLoadFactorRepository>();
             services.AddScoped<ITurnoverRepository, TurnoverRepository>();
+            services.AddScoped<IBillRepository, BillRepository>();
 
             return services;
         }

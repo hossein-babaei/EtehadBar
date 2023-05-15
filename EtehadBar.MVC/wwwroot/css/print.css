@@ -79,6 +79,10 @@ p {
         margin-top: 6px;
     }
 
+    .box td {
+        padding: 3px
+    }
+
 pre {
     border: none;
     font-size: 0.5rem;

@@ -1,0 +1,360 @@
+﻿@model Bill
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 36;
+    var data = ViewBag.data as IPagedList<Bill>;
+    ViewData["Title"] = "پرداختی";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+    if (data.PageNumber > 1)
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+}
+
+
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+    <link href="~/css/autocomplete.css" rel="stylesheet" asp-asp-append-version="true" />
+}
+
+@section Scripts{
+    <script src="~/lib/select2/select2.min.js"></script>
+    <script src="~/js/autocomplete.js"></script>
+    <script>
+        let autoCompleteData = [];
+        let select2Config = {
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        };
+        let isSearchLoaded = false;
+
+        $('#search-modal form').submit(function (e) {
+            e.preventDefault();
+            filter();
+        });
+
+        function getSearch() {
+            if (!isSearchLoaded) {
+                preloader();
+                $.get('@Url.Action("Bill_Search")', {}, function (r) {
+                    let vehicleOptions = '<option value="0">همه</option>',
+                        nameOptions = '<option value="all">همه</option>',
+                        calendarOptions = '<option value="0">همه</option>',
+                        bankBranchOptions = '<option value="all">همه</option>',
+                        billTypeOptions = '<option value="all">همه</option>';
+
+                    $.each(r.vehicles, (i, v) => {
+                        vehicleOptions += `<option value="${v.id}">${v.number} - ${v.owner}</option>`;
+                    });
+                    $.each(r.names, (i, v) => {
+                        nameOptions += `<option value="${v}">${v}</option>`;
+                    });
+                    $.each(r.calendars, (i, v) => {
+                        calendarOptions += `<option value="${v.id}">${v.title}</option>`;
+                    });
+                    $.each(r.bankBranches, (i, v) => {
+                        bankBranchOptions += `<option value="${v}">${v}</option>`;
+                    });
+                    $.each(r.billTypes, (i, v) => {
+                        billTypeOptions += `<option value="${v}">${v}</option>`;
+                    });
+                    $('#search-modal #vehicleId').html(vehicleOptions);
+                    $('#search-modal #name').html(nameOptions);
+                    $('#search-modal #calendarId').html(calendarOptions);
+                    $('#search-modal #bankBranch').html(bankBranchOptions);
+                    $('#search-modal #billType').html(billTypeOptions);
+
+                    $('#search-modal #vehicleId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#search-modal #name').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#search-modal #calendarId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#search-modal #bankBranch').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#search-modal #billType').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                }, 'json').then(function () {
+                    preloader();
+                    UIkit.modal('#search-modal').show();
+                });
+            } else {
+                UIkit.modal('#search-modal').show();
+            }
+        }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Bill_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+        async function create() {
+            preloader();
+            if (autoCompleteData.length == 0) {
+                await $.get('@Url.Action("GetBillReceiverNames")', {}, function (r) {
+                    $.each(r, (i, v) => {
+                        autoCompleteData.push(v);
+                    });
+                }, 'json');
+            }
+            await $.get('@Url.Action("CreateBill")', {}, function (r) {
+                $('#create-modal').html(r);
+
+                $('#create-modal #CalendarId').select2(select2Config);
+                $('#create-modal #VehicleId').select2(select2Config);
+                $('#create-modal #BankBranch').select2(select2Config);
+                $('#create-modal #BillType').select2(select2Config);
+                $('#create-modal form').submit(function (e) {
+                    e.preventDefault();
+                    submitCreateForm();
+                });
+                autocomplete($('#create-form #ReceiverName').get(0), autoCompleteData);
+            }, 'html').then(function () {
+                parseValidator('#create-form');
+                preloader();
+                UIkit.modal('#create-modal').show();
+            });
+        }
+        function submitCreateForm() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CreateBill")',
+                data: $('#create-modal form').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.post('@Url.Action("Bill_Search")', {}, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditBill")', { 'id': id }, function (r) {
+                $('#edit-modal').html(r);
+
+                $('#edit-modal #CalendarId').select2(select2Config);
+                $('#edit-modal #VehicleId').select2(select2Config);
+                $('#edit-modal #BankBranch').select2(select2Config);
+                $('#edit-modal #BillType').select2(select2Config);
+                $('#edit-modal form').submit(function (e) {
+                    e.preventDefault();
+                    submitEditForm();
+                });
+                autocomplete($('#edit-form #ReceiverName').get(0), autoCompleteData);
+            }, 'html').then(function () {
+                parseValidator('#edit-modal form');
+                preloader();
+                UIkit.modal('#edit-modal').show();
+            });
+        }
+        function submitEditForm() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EditBill")',
+                data: $('#edit-modal form').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.post('@Url.Action("Bill_Search")', {}, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                    UIkit.modal('#edit-modal').hide();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function vehicleSelectChangeHandler(select) {
+            let ownerName = $(select).find('option:selected').data('owner');
+            $(select).parent().next().find('input').val(ownerName);
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <button onclick="getSearch()" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.BillNo)</th>
+                    <th>@Html.DisplayNameFor(model => model.BankBillNo)</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>@Html.DisplayNameFor(model => model.ReceiverName)</th>
+                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    <th>@Html.DisplayNameFor(model => model.VehicleId)</th>
+                    <th>@Html.DisplayNameFor(model => model.BankBranch)</th>
+                    <th>@Html.DisplayNameFor(model => model.BillType)</th>
+                    <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
+                    <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    var pd = new PersianDateTime(item.Date);
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@item.BillNo</td>
+                        <td>@item.BankBillNo</td>
+                        <td>@pd.ToString("yyyy/MM/dd")</td>
+                        <td>@item.ReceiverName</td>
+                        <td>@item.Amount.ToString("N0")</td>
+                        @if (item.VehicleId.HasValue)
+                        {
+                            <td>@item.Vehicle.IranStateNumber - @item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
+                        }
+                        else
+                        {
+                            <td>---</td>
+                        }
+                        <td>@item.BankBranch</td>
+                        <td>@item.BillType</td>
+                        <td>@item.Calendar.Title</td>
+                        <td class="uk-text-small">@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("Bill", new { p = page }))
+        </div>
+    }
+</div>
+<div id="create-modal" uk-modal="bg-close: false"></div>
+<div id="edit-modal" uk-modal="bg-close: false"></div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteBill" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div>
+                    <label class="uk-form-label">بر اساس خودرو</label>
+                    <select class="uk-select uk-border-rounded" id="vehicleId" name="vehicleId"></select>
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">بر اساس تقویم کاری</label>
+                    <select class="uk-select uk-border-rounded" id="calendarId" name="calendarId"></select>
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">بر اساس نام دریافت کننده</label>
+                    <select class="uk-select uk-border-rounded" id="name" name="name"></select>
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">بر اساس شعبه بانک</label>
+                    <select class="uk-select uk-border-rounded" id="bankBranch" name="bankBranch"></select>
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">بر اساس نوع هزینه</label>
+                    <select class="uk-select uk-border-rounded" id="billType" name="billType"></select>
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">شماره فیش</label>
+                    <input class="uk-input uk-border-rounded" id="billNo" name="billNo" autocomplete="off" />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">شماره رسید</label>
+                    <input class="uk-input uk-border-rounded" id="bankBillNo" name="bankBillNo" autocomplete="off" />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">جستجو در شرح</label>
+                    <input class="uk-input uk-border-rounded" id="description" name="description" autocomplete="off" />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="Payment" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
