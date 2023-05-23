@@ -56,54 +56,68 @@ namespace EtehadBar.Infra.Data.Repository
                                    a.DriverFee,
                                    c.AccountBankName,
                                    c.BankAccountNumber,
+                                   c.LeftNumber,
                                    VehicleNumber = $"ایران {c.IranStateNumber} - {c.RightNumber} {c.NumberWord} {c.LeftNumber}",
                                    a.WeighbridgePrice,
                                    a.DriverLoadSleepPrice,
                                    a.VehicleId,
                                    c.VehicleOwnerFullname
-                               }).AsNoTracking().ToListAsync();
+                               }).AsNoTracking().OrderBy(a => a.LeftNumber).ToListAsync();
 
-            var payments = new List<ActivityListPaymentVM>();
+            var vehicleBalances = new List<ActivityListPaymentVM>();
             if (hasPayment)
             {
                 var vehicleIdList = query.Select(a => a.VehicleId).Distinct().ToList();
-                payments = await db.Payment.Where(a => a.CalendarId.Equals(calendarId) && a.VehicleId.HasValue && vehicleIdList.Contains(a.VehicleId.Value))
-                    .Select(a => new ActivityListPaymentVM { VehicleId = a.VehicleId.Value, Amount = a.Amount }).AsNoTracking().ToListAsync();
+                var thisCalendarSequence = await db.Calendar.AsNoTracking().Where(a => a.Id.Equals(calendarId)).Select(a => a.Sequence).SingleAsync();
+                var calendars = await db.Calendar.AsNoTracking().Where(a => a.Sequence <= thisCalendarSequence).Select(a => a.Id).ToListAsync();
+                vehicleBalances = await db.VehicleBalance
+                    .Where(a => (a.CustomerId.HasValue ? a.CustomerId.Value.Equals(customerId) : true) &&
+                    a.CalendarId.HasValue && calendars.Contains(a.CalendarId.Value) && vehicleIdList.Contains(a.VehicleId))
+                    .Select(a => new ActivityListPaymentVM { VehicleId = a.VehicleId, Amount = a.Amount }).AsNoTracking().ToListAsync();
             }
 
             var data = new List<ActivityListVM>();
             foreach (var vehicle in query.DistinctBy(a => a.VehicleId))
             {
-
-                var thisVehicleActivity = query.Where(a => a.VehicleId.Equals(vehicle.VehicleId)).ToList();
-                var driverFee = 0d;
-                foreach (var item in thisVehicleActivity)
-                {
-                    driverFee += item.DriverFee;
-                    if (item.Tonnage.HasValue)
-                        driverFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
-
-                    if (item.WeighbridgePrice.HasValue)
-                        driverFee += item.WeighbridgePrice.Value;
-
-                    if (item.DriverLoadSleepPrice.HasValue)
-                        driverFee += item.DriverLoadSleepPrice.Value;
-                }
-
                 if (hasPayment)
                 {
-                    var thisVehiclePaymnets = payments.Where(a => a.VehicleId.Equals(vehicle.VehicleId)).Sum(a => a.Amount);
-                    driverFee -= thisVehiclePaymnets;
-                }
+                    var thisVehicleBalance = vehicleBalances.Where(a => a.VehicleId.Equals(vehicle.VehicleId)).Sum(a => a.Amount);
 
-                data.Add(new ActivityListVM
+                    data.Add(new ActivityListVM
+                    {
+                        VehicleId = vehicle.VehicleId,
+                        BankAccountNumber = vehicle.BankAccountNumber,
+                        VehicleNumber = vehicle.VehicleNumber,
+                        VehicleOwnerName = vehicle.VehicleOwnerFullname,
+                        Amount = thisVehicleBalance < 0 ? 0 : thisVehicleBalance,
+                    });
+                }
+                else
                 {
-                    VehicleId = vehicle.VehicleId,
-                    BankAccountNumber = vehicle.BankAccountNumber,
-                    VehicleNumber = vehicle.VehicleNumber,
-                    VehicleOwnerName = vehicle.VehicleOwnerFullname,
-                    Amount = driverFee
-                });
+                    var thisVehicleActivity = query.Where(a => a.VehicleId.Equals(vehicle.VehicleId)).ToList();
+                    var driverFee = 0d;
+                    foreach (var item in thisVehicleActivity)
+                    {
+                        driverFee += item.DriverFee;
+                        if (item.Tonnage.HasValue)
+                            driverFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
+
+                        if (item.WeighbridgePrice.HasValue)
+                            driverFee += item.WeighbridgePrice.Value;
+
+                        if (item.DriverLoadSleepPrice.HasValue)
+                            driverFee += item.DriverLoadSleepPrice.Value;
+                    }
+
+                    data.Add(new ActivityListVM
+                    {
+                        VehicleId = vehicle.VehicleId,
+                        BankAccountNumber = vehicle.BankAccountNumber,
+                        VehicleNumber = vehicle.VehicleNumber,
+                        VehicleOwnerName = vehicle.VehicleOwnerFullname,
+                        Amount = driverFee
+                    });
+                }
             }
             return data;
         }
@@ -141,13 +155,45 @@ namespace EtehadBar.Infra.Data.Repository
             var data = new List<ActivityListByCustomerVM>();
             var vehicleData = query.GroupBy(a => a.VehicleNumber).ToList();
 
-            var calendars = await db.Calendar.AsNoTracking().Where(a => a.Sequence >= (db.Calendar.AsNoTracking().Max(a => a.Sequence) - 6)).Select(a => a.Id).ToListAsync();
+            var vehicleIds = query.Select(a => a.VehicleId).Distinct().ToList();
+            var thisCalendarSequence = await db.Calendar.AsNoTracking().Where(a => a.Id.Equals(calendarId)).Select(a => a.Sequence).SingleAsync();
+            var calendars = await db.Calendar.AsNoTracking().Where(a => a.Sequence <= thisCalendarSequence).Select(a => a.Id).ToListAsync();
+            var vehicleBalance = await db.VehicleBalance.AsNoTracking().Where(a => a.CalendarId.HasValue && calendars.Contains(a.CalendarId.Value) && vehicleIds.Contains(a.VehicleId))
+                .Select(a => new
+                {
+                    a.VehicleId,
+                    a.Amount
+                }).ToListAsync();
+
+            //var calendars = await db.Calendar.AsNoTracking().Where(a => a.Sequence <= thisCalendarSequence && a.Sequence >= (thisCalendarSequence - 6)).Select(a => a.Id).ToListAsync();
+            //var payments = await db.Bill.Where(a => a.VehicleId.HasValue && vehicleIds.Contains(a.VehicleId.Value) && calendars.Contains(a.CalendarId)).AsNoTracking().Where(a => !a.BillType.Equals("موردی"))
+            //    .Select(a => new
+            //    {
+            //        a.VehicleId,
+            //        a.Amount,
+            //        a.BillType
+            //    }).ToListAsync();
+            //var sixMonthActivity = await (from a in db.LoadFactor
+            //                              join b in db.Contract on a.ContractId equals b.Id
+            //                              where b.CustomerId.Equals(customerId) && vehicleIds.Contains(a.VehicleId) && calendars.Contains(a.CalendarId) && !a.IsFreeDriverPrice
+            //                              select new
+            //                              {
+            //                                  a.VehicleId,
+            //                                  a.DriverFee,
+            //                                  a.Tonnage,
+            //                                  a.DriverTonnagePrice,
+            //                                  a.DriverLoadSleepPrice,
+            //                                  a.LoadSleepTime,
+            //                                  a.WeighbridgePrice
+            //                              }).AsNoTracking().ToListAsync();
 
             foreach (var vehicle in vehicleData)
             {
+                var vehicleId = vehicle.ElementAt(0).VehicleId;
                 var thisVehicle = new ActivityListByCustomerVM
                 {
                     VehicleNumber = vehicle.Key,
+                    VehicleBalance = vehicleBalance.Where(a => a.VehicleId.Equals(vehicleId)).Sum(a => a.Amount),
                     Routes = new List<ActivityListByCustomerRouteVM>(),
                     Details = new List<ActivityListByCustomerDetailVM>()
                 };
@@ -163,7 +209,7 @@ namespace EtehadBar.Infra.Data.Repository
                 for (int i = 0; i < vehicle.Count(); i++)
                 {
                     var item = vehicle.ElementAt(i);
-                    if (thisVehicle.VehicleId == 0) { thisVehicle.VehicleId = item.VehicleId; };
+                    
                     thisVehicle.Details.Add(new ActivityListByCustomerDetailVM
                     {
                         Amount = item.DriverFee,

@@ -55,7 +55,6 @@ namespace EtehadBar.Domain
 
     public class ActivityListByCustomerVM
     {
-        public long VehicleId { get; set; } = 0;
         public string VehicleNumber { get; set; }
         public double VehicleBalance { get; set; }
         public List<ActivityListByCustomerRouteVM> Routes { get; set; }

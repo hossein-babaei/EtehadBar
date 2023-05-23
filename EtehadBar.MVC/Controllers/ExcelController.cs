@@ -32,6 +32,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IAccountBookRepository _accountBookRepo;
         private readonly IMehrcomParsCategoryRepository _mehrcomParsCategoryRepository;
         private readonly IFreeLoadFactorRepository _freeLoadFactorRepository;
+        private readonly IVehicleBalanceRepository _vehicleBalanceRepository;
 
         public ExcelController(
             ICalendarRepository calendarRepository,
@@ -42,7 +43,8 @@ namespace EtehadBar.MVC.Controllers
             IVehicleRepository vehicleRepository,
             IAccountBookRepository accountBookRepo,
             IMehrcomParsCategoryRepository mehrcomParsCategoryRepository,
-            IFreeLoadFactorRepository freeLoadFactorRepository)
+            IFreeLoadFactorRepository freeLoadFactorRepository,
+            IVehicleBalanceRepository vehicleBalanceRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -53,6 +55,7 @@ namespace EtehadBar.MVC.Controllers
             _accountBookRepo = accountBookRepo;
             _mehrcomParsCategoryRepository = mehrcomParsCategoryRepository;
             _freeLoadFactorRepository = freeLoadFactorRepository;
+            _vehicleBalanceRepository = vehicleBalanceRepository;
         }
 
         [Authorize(Roles = "Admin")]
@@ -409,7 +412,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
             var calendar = await _calendarRepo.Get(calendarId);
-            var payment = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
+            var balance = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
 
             var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
             if (customerId > 0)
@@ -483,17 +486,15 @@ namespace EtehadBar.MVC.Controllers
 
             ws.Cell($"B{loadFactors.Count + 4}").Value = "جمع کرایه عملکرد";
             ws.Range($"B{loadFactors.Count + 4}:J{loadFactors.Count + 4}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 4, 11).Value = loadFactors.Sum(a => a.DriverFee).ToString("N0");
+            ws.Cell(loadFactors.Count + 4, 11).Value = loadFactors.Sum(a => a.DriverFee +
+            ((a.Tonnage.HasValue && a.DriverTonnagePrice.HasValue) ? (a.Tonnage.Value * a.DriverTonnagePrice.Value) : 0) +
+        (a.WeighbridgePrice.HasValue ? a.WeighbridgePrice.Value : 0) + (a.DriverLoadSleepPrice.HasValue ? a.DriverLoadSleepPrice.Value : 0)).ToString("N0");
 
-            ws.Cell($"B{loadFactors.Count + 5}").Value = "جمع پرداختی (حقوق و مساعده)";
-            ws.Range($"B{loadFactors.Count + 5}:J{loadFactors.Count + 5}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 5, 11).Value = payment.ToString("N0");
+            ws.Cell($"B{loadFactors.Count + 5}").Value = "مجموع قابل پرداخت";
+            ws.Range($"B{loadFactors.Count + 5}:J{loadFactors.Count + 6}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 5, 11).Value = (balance > 0 ? balance : 0).ToString("N0");
 
-            ws.Cell($"B{loadFactors.Count + 6}").Value = "مجموع قابل پرداخت";
-            ws.Range($"B{loadFactors.Count + 6}:J{loadFactors.Count + 6}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 6, 11).Value = (loadFactors.Sum(a => a.DriverFee) - payment).ToString("N0");
-
-            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:K{loadFactors.Count + 6}");
+            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:K{loadFactors.Count + 5}");
             rngTable2.RangeUsed().Style
                 .Font.SetBold()
                 .Font.SetFontSize(12);
@@ -519,7 +520,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
             var calendar = await _calendarRepo.Get(calendarId);
-            var payment = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId)).SumAsync(a => a.Amount);
+            var balance = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
             var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
             if (customerId > 0)
                 query = query.Where(a => a.Contract.CustomerId.Equals(customerId));
@@ -593,7 +594,9 @@ namespace EtehadBar.MVC.Controllers
             ws.Range($"B{routes.Count + 3}:D{routes.Count + 3}").Row(1).Merge();
             ws.Cell(routes.Count + 3, 5).Value = loadFactors.Count;
 
-            double driverFeeTotal = loadFactors.Sum(a => a.DriverFee);
+            double driverFeeTotal = loadFactors.Sum(a => a.DriverFee +
+            ((a.Tonnage.HasValue && a.DriverTonnagePrice.HasValue) ? (a.Tonnage.Value * a.DriverTonnagePrice.Value) : 0) +
+        (a.WeighbridgePrice.HasValue ? a.WeighbridgePrice.Value : 0) + (a.DriverLoadSleepPrice.HasValue ? a.DriverLoadSleepPrice.Value : 0));
 
             if (loadFactors.Any(a => a.Tonnage.HasValue))
             {
@@ -605,27 +608,15 @@ namespace EtehadBar.MVC.Controllers
                 ws.Range($"B{routes.Count + 5}:D{routes.Count + 5}").Row(1).Merge();
                 ws.Cell(routes.Count + 5, 5).Value = loadFactors.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.DriverTonnagePrice.Value).ToString("N0");
 
-                ws.Cell($"B{routes.Count + 6}").Value = "جمع کل مبلغ بارنامه ها";
+                ws.Cell($"B{routes.Count + 6}").Value = "جمع کرایه عملکرد";
                 ws.Range($"B{routes.Count + 6}:D{routes.Count + 6}").Row(1).Merge();
                 ws.Cell(routes.Count + 6, 5).Value = driverFeeTotal.ToString("N0");
 
-                ws.Cell($"B{routes.Count + 7}").Value = "جمع کرایه عملکرد";
+                ws.Cell($"B{routes.Count + 7}").Value = "مجموع قابل پرداخت";
                 ws.Range($"B{routes.Count + 7}:D{routes.Count + 7}").Row(1).Merge();
+                ws.Cell(routes.Count + 7, 5).Value = (balance > 0 ? balance : 0).ToString("N0");
 
-                foreach (var item in loadFactors.Where(a => a.Tonnage.HasValue))
-                    driverFeeTotal += item.Tonnage.Value * item.DriverTonnagePrice.Value;
-
-                ws.Cell(routes.Count + 7, 5).Value = driverFeeTotal.ToString("N0");
-
-                ws.Cell($"B{routes.Count + 8}").Value = "جمع پرداختی (حقوق و مساعده)";
-                ws.Range($"B{routes.Count + 8}:D{routes.Count + 8}").Row(1).Merge();
-                ws.Cell(routes.Count + 8, 5).Value = payment.ToString("N0");
-
-                ws.Cell($"B{routes.Count + 9}").Value = "مجموع قابل پرداخت";
-                ws.Range($"B{routes.Count + 9}:D{routes.Count + 9}").Row(1).Merge();
-                ws.Cell(routes.Count + 9, 5).Value = (driverFeeTotal - payment).ToString("N0");
-
-                var rngTable2 = ws.Range($"B{routes.Count + 3}:E{routes.Count + 9}");
+                var rngTable2 = ws.Range($"B{routes.Count + 3}:E{routes.Count + 7}");
                 rngTable2.RangeUsed().Style
                     .Font.SetBold()
                     .Font.SetFontSize(12);
@@ -636,15 +627,11 @@ namespace EtehadBar.MVC.Controllers
                 ws.Range($"B{routes.Count + 4}:D{routes.Count + 4}").Row(1).Merge();
                 ws.Cell(routes.Count + 4, 5).Value = driverFeeTotal.ToString("N0");
 
-                ws.Cell($"B{routes.Count + 5}").Value = "جمع پرداختی (حقوق و مساعده)";
-                ws.Range($"B{routes.Count + 5}:D{routes.Count + 5}").Row(1).Merge();
-                ws.Cell(routes.Count + 5, 5).Value = payment.ToString("N0");
+                ws.Cell($"B{routes.Count + 5}").Value = "مجموع قابل پرداخت";
+                ws.Range($"B{routes.Count + 5}:D{routes.Count + 6}").Row(1).Merge();
+                ws.Cell(routes.Count + 5, 5).Value = (balance > 0 ? balance : 0).ToString("N0");
 
-                ws.Cell($"B{routes.Count + 6}").Value = "مجموع قابل پرداخت";
-                ws.Range($"B{routes.Count + 6}:D{routes.Count + 6}").Row(1).Merge();
-                ws.Cell(routes.Count + 6, 5).Value = (driverFeeTotal - payment).ToString("N0");
-
-                var rngTable2 = ws.Range($"B{routes.Count + 3}:E{routes.Count + 6}");
+                var rngTable2 = ws.Range($"B{routes.Count + 3}:E{routes.Count + 5}");
                 rngTable2.RangeUsed().Style
                     .Font.SetBold()
                     .Font.SetFontSize(12);
@@ -2438,7 +2425,7 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(i + 3, 7).SetValue(detail.IsFreeDriverPrice ? "بلی" : "خیر");
                     ws.Cell(i + 3, 8).SetValue(detail.Amount.ToString("N0"));
 
-                    if (customer.CustomerType == CustomerType.SaipaPress)
+                    if (customer.CustomerType == CustomerType.SazehGostar)
                         ws.Cell(i + 3, 9).SetValue(detail.SazehRequestNumber);
 
                     if (customer.CustomerType == CustomerType.SaipaPress)
@@ -2484,6 +2471,11 @@ namespace EtehadBar.MVC.Controllers
                 if (item.Details.Any(a => a.DriverLoadSleepPrice.HasValue))
                     ws.Cell(item.Details.Count + 3, 13).SetValue(item.Details.Where(a => a.DriverLoadSleepPrice.HasValue).Sum(a => a.DriverLoadSleepPrice.Value).ToString("N0"));
 
+                ws.Cell(item.Details.Count + 4, 1).Value = "وضعیت";
+                ws.Range(item.Details.Count + 4, 1, item.Details.Count + 4, 5).Merge();
+                ws.Cell(item.Details.Count + 4, 6).Value = item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") + " طلبکار" : item.VehicleBalance == 0 ? "0" : (-item.VehicleBalance).ToString("N0") + " بدهکار";
+                ws.Range(item.Details.Count + 4, 6, item.Details.Count + 4, 8).Merge();
+
                 ws.Column("A").Width = 5;
                 ws.Column("B").Width = 8;
                 ws.Column("C").Width = 13;
@@ -2500,16 +2492,16 @@ namespace EtehadBar.MVC.Controllers
                     .Border.SetInsideBorder(XLBorderStyleValues.Thin)
                     .Font.SetFontSize(8);
 
-                ws.Range(item.Details.Count + 5, 1, item.Details.Count + 5, 6).Merge().SetValue("کرایه");
-                ws.Range(item.Details.Count + 5, 7, item.Details.Count + 5, 8).Merge().SetValue("تعداد");
+                ws.Range(item.Details.Count + 6, 1, item.Details.Count + 6, 6).Merge().SetValue("کرایه");
+                ws.Range(item.Details.Count + 6, 7, item.Details.Count + 6, 8).Merge().SetValue("تعداد");
                 for (int i = 0; i < item.Routes.Count; i++)
                 {
-                    ws.Cell(item.Details.Count + 6 + i, 1).Value = item.Routes[i].Amount.ToString("N0");
-                    ws.Range(item.Details.Count + 6 + i, 1, item.Details.Count + 6 + i, 6).Merge();
-                    ws.Cell(item.Details.Count + 6 + i, 7).SetValue(item.Routes[i].Quantity);
-                    ws.Range(item.Details.Count + 6 + i, 7, item.Details.Count + 6 + i, 8).Merge();
+                    ws.Cell(item.Details.Count + 7 + i, 1).Value = item.Routes[i].Amount.ToString("N0");
+                    ws.Range(item.Details.Count + 7 + i, 1, item.Details.Count + 7 + i, 6).Merge();
+                    ws.Cell(item.Details.Count + 7 + i, 7).SetValue(item.Routes[i].Quantity);
+                    ws.Range(item.Details.Count + 7 + i, 7, item.Details.Count + 7 + i, 8).Merge();
                 }
-                ws.Range(item.Details.Count + 5, 1, item.Details.Count + item.Routes.Count + 5, 8)
+                ws.Range(item.Details.Count + 6, 1, item.Details.Count + item.Routes.Count + 6, 8)
                     .Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin)
                     .Border.SetInsideBorder(XLBorderStyleValues.Thin);
             }

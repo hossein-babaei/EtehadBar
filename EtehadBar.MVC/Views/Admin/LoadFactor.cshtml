@@ -85,7 +85,34 @@
             $(modalId).find('input[name=Id]').val(itemId);
             $(modalId).find('input[name=Fee]').val(value);
             $(modalId).find('input[name=TonnageFee]').val(tonnageValue);
+            $('.uk-modal-footer .uk-button-primary').attr('onclick', `submitEditDriverFee(${itemId})`);
             UIkit.modal(modalId).show();
+        }
+        function submitEditDriverFee(itemId) {
+            var data = $('#edit-driver-fee-form').serialize();
+             $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EditLoadFactorDriverFee")',
+                data: data,
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    if (r.status == 'success') {
+                        $(`tr[data-id="${itemId}"] .IsDriverFeeEditedByAdmin`).addClass('uk-text-primary').text('بلی');
+                        $(`tr[data-id="${itemId}"] .driver-fee`).text(r.fee);
+                        UIkit.modal('#edit-driver-fee-modal').hide();
+                    }
+                    uiAlert(r.msg, r.status);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
         }
         function viewDetail(id) {
             preloader();
@@ -292,7 +319,6 @@
                         <th>مشتری</th>
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
-                        <th>موردی</th>
                         <th>تغییر نرخ</th>
                     }
                     else if (User.IsInRole("User"))
@@ -303,6 +329,7 @@
                     {
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                     }
+                    <th>موردی</th>
                     <th width="50">جزئیات</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
@@ -326,32 +353,33 @@
                         {
                             <td>@item.Contract.Customer.Name</td>
                             <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
-                            <td class="uk-text-bold md pointer" onclick="editDriverFee(this)" 
+                            <td class="uk-text-bold md driver-fee pointer" onclick="editDriverFee(this)" 
                                 data-val="@item.DriverFee" data-tonnage-val="@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value : 0)">@item.DriverFee.ToString("N0")</td>
-                            @if (item.IsFreeDriverPrice)
-                            {
-                                <td class="uk-text-primary">بلی</td>
-                            }
-                            else
-                            {
-                                <td>خیر</td>
-                            }
+                            
                             @if (item.IsDriverFeeEditedByAdmin)
                             {
                                 <td class="uk-text-primary">بلی</td>
                             }
                             else
                             {
-                                <td>خیر</td>
+                                <td class="IsDriverFeeEditedByAdmin">خیر</td>
                             }
                         }
                         else if (User.IsInRole("User"))
                         {
-                            <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                            <td class="uk-text-bold md driver-fee">@item.DriverFee.ToString("N0")</td>
                         }
                         else
                         {
                             <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                        }
+                        @if (item.IsFreeDriverPrice)
+                        {
+                            <td class="uk-text-primary">بلی</td>
+                        }
+                        else
+                        {
+                            <td>خیر</td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="getEditForm('@item.Id')"><i class="far fa-edit"></i></a></td>
@@ -438,7 +466,7 @@
                 <label><input class="uk-radio" type="radio" name="IsFree" value="false"> خیر</label>
             </div>
             <div class="uk-modal-footer uk-text-center">
-                <button class="uk-button uk-button-primary" onclick="$('#edit-driver-fee-form').submit()" type="button">ثبت</button>
+                <button class="uk-button uk-button-primary" onclick="submitEditDriverFee()" type="button">ثبت</button>
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
             </div>
         </form>

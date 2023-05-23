@@ -27,6 +27,8 @@ namespace EtehadBar.MVC.Controllers
         private readonly IPaymentRepository _paymentRepo;
         private readonly IVehicleRepository _vehicleRepo;
         private readonly IFreeLoadFactorRepository _freeLoadFactorRepository;
+        private readonly IBillRepository _billRepository;
+        private readonly IVehicleBalanceRepository _vehicleBalanceRepository;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public ReportController(
@@ -37,7 +39,9 @@ namespace EtehadBar.MVC.Controllers
             IPaymentRepository paymentRepository,
             IVehicleRepository vehicleRepository,
             UserManager<ApplicationUser> userManager,
-            IFreeLoadFactorRepository freeLoadFactorRepository)
+            IFreeLoadFactorRepository freeLoadFactorRepository,
+            IBillRepository billRepository,
+            IVehicleBalanceRepository vehicleBalanceRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -47,6 +51,8 @@ namespace EtehadBar.MVC.Controllers
             _vehicleRepo = vehicleRepository;
             _userManager = userManager;
             _freeLoadFactorRepository = freeLoadFactorRepository;
+            _billRepository = billRepository;
+            _vehicleBalanceRepository = vehicleBalanceRepository;
         }
 
         [HttpPost]
@@ -291,7 +297,7 @@ namespace EtehadBar.MVC.Controllers
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
-            ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            ViewData["Balance"] = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
             ViewData["customerId"] = customerId;
 
             var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
@@ -317,7 +323,7 @@ namespace EtehadBar.MVC.Controllers
         {
             ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
-            ViewData["payment"] = await _paymentRepo.Payments().AsNoTracking().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            ViewData["Balance"] = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
             ViewData["customerId"] = customerId;
 
             var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));

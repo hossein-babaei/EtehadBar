@@ -5,7 +5,7 @@
 
     var vehicle = (Vehicle)ViewData["vehicle"];
     var calendar = (Calendar)ViewData["calendar"];
-    var payment = (double)ViewData["payment"];
+    var balance = (double)ViewData["Balance"];
 
 
     var routes = new List<VehicleActivityVM>();
@@ -106,7 +106,7 @@
         <div>@Model.Count() عدد</div>
     </div>
     @{
-        double driverFeeTotal = Model.Sum(a => a.DriverFee);
+        double driverFeeTotal = Model.Sum(a => a.DriverFee + (a.WeighbridgePrice.HasValue ? a.WeighbridgePrice.Value : 0) + (a.DriverLoadSleepPrice.HasValue ? a.DriverLoadSleepPrice.Value : 0));
     }
     @if (Model.Any(a => a.Tonnage.HasValue))
     {
@@ -141,11 +141,7 @@
         </div>
     }
     <div class="uk-grid-small" uk-grid>
-        <div class="uk-width-expand" uk-leader="fill: .">جمع پرداختی (حقوق و مساعده)</div>
-        <div>@payment.ToString("N0") ریال</div>
-    </div>
-    <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">مجموع قابل پرداخت</div>
-        <div>@((driverFeeTotal - payment).ToString("N0")) ریال</div>
+        <div>@((balance > 0 ? balance : 0).ToString("N0")) ریال</div>
     </div>
 </div>

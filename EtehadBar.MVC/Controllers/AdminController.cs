@@ -1,4 +1,5 @@
-﻿using EtehadBar.Domain;
+﻿using Castle.Core.Resource;
+using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.MVC.Filters;
@@ -51,6 +52,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IAdminDashboardRepository _adminDashboardRepository;
         private readonly ITurnoverRepository _turnoverRepository;
         private readonly IBillRepository _billRepository;
+        private readonly IVehicleBalanceRepository _vehicleBalanceRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -78,7 +80,8 @@ namespace EtehadBar.MVC.Controllers
             IBankAccountBookRepository bankAccountBookRepository,
             IAdminDashboardRepository adminDashboardRepository,
             ITurnoverRepository turnoverRepository,
-            IBillRepository billRepository)
+            IBillRepository billRepository,
+            IVehicleBalanceRepository vehicleBalanceRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -106,6 +109,7 @@ namespace EtehadBar.MVC.Controllers
             _adminDashboardRepository = adminDashboardRepository;
             _turnoverRepository = turnoverRepository;
             _billRepository = billRepository;
+            _vehicleBalanceRepository = vehicleBalanceRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -117,6 +121,10 @@ namespace EtehadBar.MVC.Controllers
 
         public async Task<IActionResult> Index(int? dayLimit)
         {
+            //عملکرد
+            //var x = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(4) && a.SaipaPressLoadFactor != null).SumAsync(a => a.Amount + ((a.Tonnage.HasValue && a.TonnagePrice.HasValue) ? a.Tonnage.Value * a.TonnagePrice.Value : 0));
+            //var y = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(4) && a.SaipaPressLoadFactor != null).SumAsync(a => a.DriverFee + ((a.Tonnage.HasValue && a.DriverTonnagePrice.HasValue) ? a.Tonnage.Value * a.DriverTonnagePrice.Value : 0));
+
             //var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId == 3).ToListAsync();
             //var fees = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId == 3).ToListAsync();
             //foreach (var item in loadFactors)
@@ -125,6 +133,77 @@ namespace EtehadBar.MVC.Controllers
             //}
 
             //await _loadFactorRepo.Save();
+
+            //var data = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(2) && a.ShippingFeeLoadTypeId == 5).ToListAsync();
+
+            //foreach (var item in data)
+            //{
+            //    var feeToCreate = new Domain.Models.ShippingFee
+            //    {
+            //        ContractId = item.ContractId,
+            //        CreateDate = item.CreateDate,
+            //        DestinationId = item.DestinationId,
+            //        DriverPrice = item.Vehicle == "خاور" ? item.DriverPrice - 350000 : item.DriverPrice - 1000000,
+            //        OriginId = item.OriginId,
+            //        DriverTonnagePrice = item.DriverTonnagePrice,
+            //        Price = item.Price,
+            //        ShippingFeeLoadTypeId = item.ShippingFeeLoadTypeId,
+            //        ShippingFeeType = item.ShippingFeeType,
+            //        TonnagePrice = item.TonnagePrice,
+            //        Title = "دو طبقه",
+            //        CreatorId = item.CreatorId,
+            //        Vehicle = item.Vehicle
+            //    };
+            //    _shippingFeeRepo.Create(feeToCreate);
+
+            //    item.Title = "یک طبقه";
+
+            //    await _shippingFeeRepo.Save();
+
+            //    var loadFactors2 = await _loadFactorRepo.LoadFactors().Where(a => a.ShippingFeeId.Equals(item.Id) && a.SaipaPressLoadFactor.PressFloorType == SaipaPressLoadType.TwoFloor && !a.IsDriverFeeEditedByAdmin).ToListAsync();
+            //    foreach (var lf in loadFactors2)
+            //    {
+            //        lf.ShippingFeeId = feeToCreate.Id;
+            //        lf.DriverFee = feeToCreate.DriverPrice;
+            //    }
+
+            //    await _loadFactorRepo.Save();
+            //}
+
+
+            //var bills = await _billRepository.Query().Where(a => a.VehicleId.HasValue).ToListAsync();
+            //foreach (var item in bills)
+            //{
+            //    _vehicleBalanceRepository.Create(new VehicleBalance
+            //    {
+            //        Amount = -item.Amount,
+            //        BillId = item.Id,
+            //        CalendarId = item.CalendarId,
+            //        VehicleId = item.VehicleId.Value,
+            //        CreateDateTime = item.Date
+            //    });
+            //}
+
+
+            //var loadFactors = await _loadFactorRepo.LoadFactors().ToListAsync();
+            //foreach (var item in loadFactors)
+            //{
+            //    _vehicleBalanceRepository.Create(new VehicleBalance
+            //    {
+            //        Amount = item.DriverFee +
+            //        ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0) +
+            //        (item.WeighbridgePrice.HasValue ? item.WeighbridgePrice.Value : 0) +
+            //        (item.DriverLoadSleepPrice.HasValue ? item.DriverLoadSleepPrice.Value : 0),
+            //        LoadFactorId = item.Id,
+            //        CustomerId = item.Contract.CustomerId,
+            //        CalendarId = item.CalendarId,
+            //        VehicleId = item.VehicleId,
+            //        CreateDateTime = item.Date
+            //    });
+            //}
+
+            //await _vehicleBalanceRepository.Save();
+
 
             ViewData["DayLimit"] = dayLimit;
 
@@ -975,7 +1054,7 @@ namespace EtehadBar.MVC.Controllers
 
                 _calendarRepo.Create(new Domain.Models.Calendar
                 {
-                    Sequence = await _calendarRepo.Calendars().AsNoTracking().MaxAsync(a => a.Sequence),
+                    Sequence = await _calendarRepo.Calendars().AsNoTracking().MaxAsync(a => a.Sequence) + 1,
                     StartDate = startDate,
                     EndDate = endDate,
                     Title = c.Title,
@@ -2717,6 +2796,19 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _loadFactorRepo.Save();
+
+                    _vehicleBalanceRepository.Create(new VehicleBalance
+                    {
+                        Amount = loadFactor.DriverFee,
+                        CalendarId = loadFactor.CalendarId,
+                        VehicleId = loadFactor.VehicleId,
+                        CreateDateTime = loadFactor.Date,
+                        LoadFactorId = loadFactor.Id,
+                        CustomerId = customerId
+                    });
+
+                    await _vehicleBalanceRepository.Save();
+
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
@@ -2869,6 +2961,19 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _loadFactorRepo.Save();
+
+                    _vehicleBalanceRepository.Create(new VehicleBalance
+                    {
+                        Amount = loadFactor.DriverFee + ((loadFactor.Tonnage.HasValue && loadFactor.DriverTonnagePrice.HasValue) ? loadFactor.Tonnage.Value * loadFactor.DriverTonnagePrice.Value : 0),
+                        CalendarId = loadFactor.CalendarId,
+                        VehicleId = loadFactor.VehicleId,
+                        CreateDateTime = loadFactor.Date,
+                        LoadFactorId = loadFactor.Id,
+                        CustomerId = customerId
+                    });
+
+                    await _vehicleBalanceRepository.Save();
+
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
@@ -3006,6 +3111,19 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _loadFactorRepo.Save();
+
+                    _vehicleBalanceRepository.Create(new VehicleBalance
+                    {
+                        Amount = loadFactor.DriverFee,
+                        CalendarId = loadFactor.CalendarId,
+                        VehicleId = loadFactor.VehicleId,
+                        CreateDateTime = loadFactor.Date,
+                        LoadFactorId = loadFactor.Id,
+                        CustomerId = customerId
+                    });
+
+                    await _vehicleBalanceRepository.Save();
+
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
@@ -3163,6 +3281,22 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _loadFactorRepo.Save();
+
+                    _vehicleBalanceRepository.Create(new VehicleBalance
+                    {
+                        Amount = loadFactor.DriverFee +
+                    ((loadFactor.Tonnage.HasValue && loadFactor.DriverTonnagePrice.HasValue) ? loadFactor.Tonnage.Value * loadFactor.DriverTonnagePrice.Value : 0) +
+                    (loadFactor.WeighbridgePrice.HasValue ? loadFactor.WeighbridgePrice.Value : 0) +
+                    (loadFactor.DriverLoadSleepPrice.HasValue ? loadFactor.DriverLoadSleepPrice.Value : 0),
+                        CalendarId = loadFactor.CalendarId,
+                        VehicleId = loadFactor.VehicleId,
+                        CreateDateTime = loadFactor.Date,
+                        LoadFactorId = loadFactor.Id,
+                        CustomerId = customerId
+                    });
+
+                    await _vehicleBalanceRepository.Save();
+
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
@@ -3283,6 +3417,30 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _loadFactorRepo.Save();
+
+                    var balanceItem = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(item.Id)).FirstOrDefaultAsync();
+                    if (balanceItem != null)
+                    {
+                        balanceItem.Amount = item.DriverFee;
+                        balanceItem.CreateDateTime = item.Date;
+                        balanceItem.EditDatetime = DateTime.Now;
+
+                        _vehicleBalanceRepository.Update(balanceItem);
+                    }
+                    else
+                    {
+                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        {
+                            Amount = item.DriverFee,
+                            CalendarId = item.CalendarId,
+                            VehicleId = item.VehicleId,
+                            CreateDateTime = item.Date,
+                            LoadFactorId = item.Id,
+                            CustomerId = item.Contract.CustomerId
+                        });
+                    }
+
+                    await _vehicleBalanceRepository.Save();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -3389,6 +3547,31 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _loadFactorRepo.Save();
+
+                    var balanceItem = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(item.Id)).FirstOrDefaultAsync();
+                    if (balanceItem != null)
+                    {
+                        balanceItem.Amount = item.DriverFee + ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0);
+                        balanceItem.CreateDateTime = item.Date;
+                        balanceItem.EditDatetime = DateTime.Now;
+
+                        _vehicleBalanceRepository.Update(balanceItem);
+                    }
+                    else
+                    {
+                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        {
+                            Amount = item.DriverFee + ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0),
+                            CalendarId = item.CalendarId,
+                            VehicleId = item.VehicleId,
+                            CreateDateTime = item.Date,
+                            LoadFactorId = item.Id,
+                            CustomerId = item.Contract.CustomerId
+                        });
+                    }
+
+                    await _vehicleBalanceRepository.Save();
+
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -3476,6 +3659,31 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _loadFactorRepo.Save();
+
+                    var balanceItem = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(item.Id)).FirstOrDefaultAsync();
+                    if (balanceItem != null)
+                    {
+                        balanceItem.Amount = item.DriverFee;
+                        balanceItem.CreateDateTime = item.Date;
+                        balanceItem.EditDatetime = DateTime.Now;
+
+                        _vehicleBalanceRepository.Update(balanceItem);
+                    }
+                    else
+                    {
+                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        {
+                            Amount = item.DriverFee,
+                            CalendarId = item.CalendarId,
+                            VehicleId = item.VehicleId,
+                            CreateDateTime = item.Date,
+                            LoadFactorId = item.Id,
+                            CustomerId = item.Contract.CustomerId
+                        });
+                    }
+
+                    await _vehicleBalanceRepository.Save();
+
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -3580,6 +3788,37 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _loadFactorRepo.Save();
+
+                    var balanceItem = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(item.Id)).FirstOrDefaultAsync();
+                    if (balanceItem != null)
+                    {
+                        balanceItem.Amount = item.DriverFee +
+                    ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0) +
+                    (item.WeighbridgePrice.HasValue ? item.WeighbridgePrice.Value : 0) +
+                    (item.DriverLoadSleepPrice.HasValue ? item.DriverLoadSleepPrice.Value : 0);
+                        balanceItem.CreateDateTime = item.Date;
+                        balanceItem.EditDatetime = DateTime.Now;
+
+                        _vehicleBalanceRepository.Update(balanceItem);
+                    }
+                    else
+                    {
+                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        {
+                            Amount = item.DriverFee +
+                    ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0) +
+                    (item.WeighbridgePrice.HasValue ? item.WeighbridgePrice.Value : 0) +
+                    (item.DriverLoadSleepPrice.HasValue ? item.DriverLoadSleepPrice.Value : 0),
+                            CalendarId = item.CalendarId,
+                            VehicleId = item.VehicleId,
+                            CreateDateTime = item.Date,
+                            LoadFactorId = item.Id,
+                            CustomerId = item.Contract.CustomerId
+                        });
+                    }
+
+                    await _vehicleBalanceRepository.Save();
+
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -3615,7 +3854,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> DeleteLoadFactor(int id)
+        public async Task<IActionResult> DeleteLoadFactor(long id)
         {
             var item = await _loadFactorRepo.Get(id);
             if (item == null) return NotFound();
@@ -3632,6 +3871,14 @@ namespace EtehadBar.MVC.Controllers
             try
             {
                 await _loadFactorRepo.Save();
+
+                var balanceItem = await _vehicleBalanceRepository.Query().FirstOrDefaultAsync(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(id));
+                if (balanceItem == null)
+                {
+                    _vehicleBalanceRepository.Delete(balanceItem);
+                    await _vehicleBalanceRepository.Save();
+                }
+
                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
             }
             catch (Exception e)
@@ -3699,6 +3946,9 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditLoadFactorDriverFee(long Id, double Fee, double TonnageFee, bool IsFree)
         {
+            string msg;
+            string status = "danger";
+
             var item = await _loadFactorRepo.Get(Id);
             item.DriverFee = Fee;
             item.DriverTonnagePrice = TonnageFee > 0 ? TonnageFee : item.DriverTonnagePrice;
@@ -3708,13 +3958,28 @@ namespace EtehadBar.MVC.Controllers
             try
             {
                 await _loadFactorRepo.Save();
-                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+
+                var balanceItem = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(item.Id)).FirstOrDefaultAsync();
+
+                balanceItem.Amount = item.DriverFee +
+                    ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0) +
+                    (item.WeighbridgePrice.HasValue ? item.WeighbridgePrice.Value : 0) +
+                    (item.DriverLoadSleepPrice.HasValue ? item.DriverLoadSleepPrice.Value : 0);
+                balanceItem.CreateDateTime = item.Date;
+                balanceItem.EditDatetime = DateTime.Now;
+
+                _vehicleBalanceRepository.Update(balanceItem);
+
+                await _vehicleBalanceRepository.Save();
+
+                msg = "عملیات موفقیت آمیز بود.";
+                status = "success";
             }
             catch (Exception e)
             {
-                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
             }
-            return Redirect(Request.Headers["Referer"].ToString());
+            return Json(new { msg, status, fee = Fee.ToString("N0") });
         }
         #endregion
 
@@ -3724,7 +3989,7 @@ namespace EtehadBar.MVC.Controllers
             var accountBook = await _accountBookRepository.AccountBooks().AsNoTracking().SingleOrDefaultAsync(a => a.RowId.Equals(id));
             ViewData["AccountBook"] = accountBook;
 
-            return View(await _loadFactorRepo.LoadFactors().Where(a => a.AccountBookId.Equals(accountBook.Id)).ToListAsync());
+            return View(await _loadFactorRepo.LoadFactors().Where(a => a.AccountBookId.Equals(accountBook.Id)).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpPost]
@@ -5226,6 +5491,20 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _billRepository.Save();
 
+                    if (b.VehicleId.HasValue)
+                    {
+                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        {
+                            Amount = -b.Amount,
+                            BillId = b.Id,
+                            CalendarId = b.CalendarId,
+                            VehicleId = b.VehicleId.Value,
+                            CreateDateTime = b.Date
+                        });
+
+                        await _vehicleBalanceRepository.Save();
+                    }
+
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
@@ -5261,6 +5540,11 @@ namespace EtehadBar.MVC.Controllers
             if (ModelState.IsValid)
             {
                 var item = await _billRepository.Get(b.Id);
+
+                var isVehicleChanged = false;
+                if (item.VehicleId.HasValue && !b.VehicleId.HasValue)
+                    isVehicleChanged = true;
+
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
                 item.CalendarId = b.CalendarId;
@@ -5279,6 +5563,42 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _billRepository.Save();
+
+                    var balanceItem = await _vehicleBalanceRepository.Query().Where(a => a.BillId.HasValue && a.BillId.Value.Equals(item.Id)).FirstOrDefaultAsync();
+
+                    if (isVehicleChanged)
+                    {
+                        _vehicleBalanceRepository.Delete(balanceItem);
+                        await _vehicleBalanceRepository.Save();
+                    }
+
+                    if (b.VehicleId.HasValue)
+                    {
+                        if (balanceItem != null)
+                        {
+                            balanceItem.Amount = -b.Amount;
+                            balanceItem.CreateDateTime = item.Date;
+                            balanceItem.EditDatetime = DateTime.Now;
+                            balanceItem.CalendarId = b.CalendarId;
+                            balanceItem.VehicleId = b.VehicleId.Value;
+                            
+                            _vehicleBalanceRepository.Update(balanceItem);
+                        }
+                        else
+                        {
+                            _vehicleBalanceRepository.Create(new VehicleBalance
+                            {
+                                Amount = -b.Amount,
+                                BillId = b.Id,
+                                CalendarId = b.CalendarId,
+                                VehicleId = b.VehicleId.Value,
+                                CreateDateTime = item.Date
+                            });
+                        }
+
+                        await _vehicleBalanceRepository.Save();
+                    }
+
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
@@ -5297,13 +5617,20 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteBill(int id)
+        public async Task<IActionResult> DeleteBill(long id)
         {
             var item = await _billRepository.Get(id);
             _billRepository.Delete(item);
             try
             {
                 await _billRepository.Save();
+
+                var balanceItem = await _vehicleBalanceRepository.Query().FirstOrDefaultAsync(a => a.BillId.HasValue && a.BillId.Value.Equals(id));
+                if (balanceItem != null)
+                {
+                    _vehicleBalanceRepository.Delete(balanceItem);
+                    await _vehicleBalanceRepository.Save();
+                }
                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
             }
             catch (Exception e)

@@ -22,8 +22,6 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "مبلغ (ریال)")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double Amount { get; set; }
-
-        [StringLength(50)]
         public string Picture { get; set; }
 
         [Display(Name = "تقویم کاری")]

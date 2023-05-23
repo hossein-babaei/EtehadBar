@@ -5,7 +5,7 @@
 
     var vehicle = (Vehicle)ViewData["vehicle"];
     var calendar = (Calendar)ViewData["calendar"];
-    var payment = (double)ViewData["payment"];
+    var balance = (double)ViewData["Balance"];
 }
 
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -50,6 +50,15 @@
                             <th>@Html.DisplayNameFor(model => model.Tonnage)</th>
                             <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
                         }
+                        @if (Model.Any(a => a.WeighbridgePrice.HasValue))
+                        {
+                            <th>@Html.DisplayNameFor(model => model.WeighbridgePrice)</th>
+                        }
+                        @if (Model.Any(a => a.LoadSleepTime.HasValue || a.DriverLoadSleepPrice.HasValue))
+                        {
+                            <th>@Html.DisplayNameFor(model => model.LoadSleepTime)</th>
+                            <th>@Html.DisplayNameFor(model => model.DriverLoadSleepPrice)</th>
+                        }
                         <th>موردی</th>
                         <th>@Html.DisplayNameFor(model => model.DriverId)</th>
                         <th>@Html.DisplayNameFor(model => model.ContractId)</th>
@@ -73,10 +82,34 @@
                             <td>@item.DriverFee.ToString("N0")</td>
                             @if (Model.Any(a => a.Tonnage.HasValue))
                             {
-                                if (item.Tonnage.HasValue)
+                                if (item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue)
                                 {
                                     <td>@item.Tonnage.Value</td>
                                     <td>@((item.Tonnage.Value * item.DriverTonnagePrice.Value).ToString("N0"))</td>
+                                }
+                                else
+                                {
+                                    <td>0</td>
+                                    <td>0</td>
+                                }
+                            }
+                            @if (Model.Any(a => a.WeighbridgePrice.HasValue))
+                            {
+                                if (item.WeighbridgePrice.HasValue)
+                                {
+                                    <td>@item.WeighbridgePrice.Value</td>
+                                }
+                                else
+                                {
+                                    <td>0</td>
+                                }
+                            }
+                            @if (Model.Any(a => a.LoadSleepTime.HasValue || a.DriverLoadSleepPrice.HasValue))
+                            {
+                                if (item.LoadSleepTime.HasValue)
+                                {
+                                    <td>@item.LoadSleepTime.Value</td>
+                                    <td>@item.DriverLoadSleepPrice.Value</td>
                                 }
                                 else
                                 {
@@ -113,29 +146,16 @@
         <div>@Model.Count() عدد</div>
     </div>
     @{
-        double driverFeeTotal = Model.Sum(a => a.DriverFee);
+        double driverFeeTotal = Model.Sum(a => a.DriverFee + 
+            ((a.Tonnage.HasValue && a.DriverTonnagePrice.HasValue) ? (a.Tonnage.Value * a.DriverTonnagePrice.Value) : 0) +
+        (a.WeighbridgePrice.HasValue ? a.WeighbridgePrice.Value : 0) + (a.DriverLoadSleepPrice.HasValue ? a.DriverLoadSleepPrice.Value : 0));
     }
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع کرایه عملکرد</div>
-        @if (Model.Any(a => a.Tonnage.HasValue))
-        {
-            foreach (var item in Model.Where(a => a.Tonnage.HasValue))
-            {
-                driverFeeTotal += item.Tonnage.Value * item.DriverTonnagePrice.Value;
-            }
-            <div>@driverFeeTotal.ToString("N0") ریال</div>
-        }
-        else
-        {
-            <div>@driverFeeTotal.ToString("N0") ریال</div>
-        }
-    </div>
-    <div class="uk-grid-small" uk-grid>
-        <div class="uk-width-expand" uk-leader="fill: .">جمع پرداختی (حقوق و مساعده)</div>
-        <div>@payment.ToString("N0") ریال</div>
+        <div>@driverFeeTotal.ToString("N0") ریال</div>
     </div>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">مجموع قابل پرداخت</div>
-        <div>@((driverFeeTotal - payment).ToString("N0")) ریال</div>
+        <div>@((balance > 0 ? balance : 0).ToString("N0"))ریال</div>
     </div>
 </div>

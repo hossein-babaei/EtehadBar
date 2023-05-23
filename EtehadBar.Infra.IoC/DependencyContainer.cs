@@ -30,6 +30,7 @@ namespace EtehadBar.Infra.IoC
             services.AddScoped<IFreeLoadFactorRepository, FreeLoadFactorRepository>();
             services.AddScoped<ITurnoverRepository, TurnoverRepository>();
             services.AddScoped<IBillRepository, BillRepository>();
+            services.AddScoped<IVehicleBalanceRepository, VehicleBalanceRepository>();
 
             return services;
         }

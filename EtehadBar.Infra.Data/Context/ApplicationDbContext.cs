@@ -45,6 +45,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<UploadedFiles> UploadedFiles { get; set; }
         public DbSet<Turnover> Turnover { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
+        public DbSet<VehicleBalance> VehicleBalance { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
