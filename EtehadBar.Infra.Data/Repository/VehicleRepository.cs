@@ -144,6 +144,7 @@ namespace EtehadBar.Infra.Data.Repository
                                    a.WeighbridgePrice,
                                    a.DriverLoadSleepPrice,
                                    a.LoadNumber,
+                                   VehicleType = c.Type,
                                    SazehRequestNumber = a.ExitNumber,
                                    PressFloorType = a.SaipaPressLoadFactor != null ? a.SaipaPressLoadFactor.PressFloorType : SaipaPressLoadType.OneFloor,
                                    MehrcomLoad = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Load,
@@ -192,6 +193,7 @@ namespace EtehadBar.Infra.Data.Repository
                 var vehicleId = vehicle.ElementAt(0).VehicleId;
                 var thisVehicle = new ActivityListByCustomerVM
                 {
+                    VehicleType = vehicle.ElementAt(0).VehicleType,
                     VehicleNumber = vehicle.Key,
                     VehicleBalance = vehicleBalance.Where(a => a.VehicleId.Equals(vehicleId)).Sum(a => a.Amount),
                     Routes = new List<ActivityListByCustomerRouteVM>(),

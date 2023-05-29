@@ -1,0 +1,96 @@
+﻿@model IEnumerable<Turnover>
+
+@{
+    int i = 1;
+    ViewData["Title"] = "سرمایه گذاران و شرکا";
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a class="uk-button uk-button-primary" href="#search-modal" uk-toggle uk-icon="search"></a>
+    </div>
+</div>
+<div class="box uk-margin-small-bottom" style="padding:15px 30px">
+    <h3 class="uk-text-center uk-margin-remove">گزارش سرمایه گذاران و شرکا از <span class="underline">@ViewData["StartDate"].ToString()</span> الی <span class="underline">@ViewData["EndDate"].ToString()</span></h3>
+</div>
+<div class="box uk-margin-small-bottom">
+    @if (Model.Any())
+    {
+        <div class="uk-overflow-auto">
+            <div class="uk-overflow-auto">
+                <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                    <thead>
+                        <tr>
+                            <th>ردیف</th>
+                            <th>@Html.DisplayNameFor(model => model.FullName)</th>
+                            <th>@Html.DisplayNameFor(model => model.TurnoverType)</th>
+                            <th>@Html.DisplayNameFor(model => model.Date)</th>
+                            <th>@Html.DisplayNameFor(model => model.Creditor)</th>
+                            <th>@Html.DisplayNameFor(model => model.Debtor)</th>
+                            <th>@Html.DisplayNameFor(model => model.Description)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr id="@item.RowId" data-row="@i" class="uk-text-center">
+                                <td class="sequence" draggable="true">@i</td>
+                                <td>@item.FullName</td>
+                                @if (item.TurnoverType == TurnoverType.Partner)
+                                {
+                                    <td>شریک</td>
+                                }
+                                else
+                                {
+                                    <td>سرمایه گذار</td>
+                                }
+                                <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                                <td>@item.Creditor.ToString("N0")</td>
+                                <td>@item.Debtor.ToString("N0")</td>
+                                <td class="uk-text-small">
+                                    @if (string.IsNullOrWhiteSpace(item.Description))
+                                    {
+                                        <span>---</span>
+                                    }
+                                    else
+                                    {
+                                        <pre>@Html.DisplayFor(modelItem => item.Description)</pre>
+                                    }
+                                </td>
+                            </tr>
+                            i++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="uk-margin-medium-top uk-margin-medium-bottom">
+            <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+                <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+                <div>
+                    <h2>نتیجه ای یافت نشد.</h2>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div class="box" style="padding:15px 30px">
+    <h3 class="uk-heading-divider uk-text-center">گزارش سرمایه گذاران و شرکا از <span class="underline">@ViewData["StartDate"].ToString()</span> الی <span class="underline">@ViewData["EndDate"].ToString()</span></h3>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">جمع دریافت</div>
+        <div>@Model.Sum(a => a.Debtor).ToString("N0") ریال</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">جمع پرداخت</div>
+        <div>@Model.Sum(a => a.Creditor).ToString("N0") ریال</div>
+    </div>
+</div>

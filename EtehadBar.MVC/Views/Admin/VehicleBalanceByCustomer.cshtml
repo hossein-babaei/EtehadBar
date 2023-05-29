@@ -1,0 +1,247 @@
+﻿@model IEnumerable<ActivityListVM>
+@{
+    ViewData["pageId"] = 26;
+    var customer = (Customer)ViewData["Customer"];
+    var calendar = (Calendar)ViewData["Calendar"];
+    ViewData["Title"] = $"عملکرد مالی خودرو های شرکت {customer.Name} در {calendar.Title}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+}
+
+@section Links {
+    <style>
+        .uk-table .uk-button-small {
+            border-radius: 5px;
+            line-height: 17px;
+            padding: 2px 5px;
+            font-size: 12px
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        const role = '@(User.IsInRole("Admin"))';
+
+        function createBalance(vehicleId, customerId, calendarId) {
+            const modalId = '#solo-balance-modal';
+            $(`${modalId} input[name=VehicleId]`).val(vehicleId);
+
+            UIkit.modal(modalId).show();
+        }
+        function submitSoloBalance() {
+            const modalId = '#solo-balance-modal';
+            let amount = $(`${modalId} input[name=Amount]`).val();
+            if ($.trim(amount) == '' || amount <= 0)
+                uiAlert('مبلغ نباید خالی یا صفر باشد!', 'danger');
+
+            $(`${modalId} form`).submit();
+        }
+        async function moveLoadFactors() {
+            let options = '';
+            $.each(accountBooks, function (i, v) {
+                options += `<option value="${v.rowId}">${v.number} - ${v.customer}</option>`;
+            })
+            $('#account-book-modal select').html(options);
+            UIkit.modal('#account-book-modal').show();
+        }
+        function doSelect() {
+            $('#append table thead tr').append('<th class="appended" width="50">انتخاب</th>');
+            $.each($('#append table tbody tr'), function (i, v) {
+                $(v).append(`<td class="appended"><div class="uk-flex uk-flex-middle uk-flex-center"><input value="${$(v).data('id')}" name="idList[]" class="uk-checkbox uk-border-rounded" type="checkbox" /></div></td>`);
+            });
+            $('.uk-grid-collapse .uk-flex-left').html(`
+            <button onclick="cancelSelect()" class="uk-button uk-button-danger">انصراف</button>
+            <button onclick="selectAllLoadFactor()" class="uk-button uk-button-secondary select-btn uk-margin-small-right">انتخاب همه</button>
+            <button uk-toggle="#multi-balance-modal" class="uk-button uk-button-primary uk-margin-small-right">ثبت</button>
+            ${role == 'True' ? '<button uk-toggle="#create-bill-modal" class="uk-button uk-button-primary uk-margin-small-right">ثبت فیش</button>' : ''}
+            `);
+        }
+        function cancelSelect() {
+            $('.uk-grid-collapse .uk-flex-left').html('<a href="/excel/activity-list?customerId=@customer.Id&calendarId=@calendar.Id&hasPayment=true" class="uk-button uk-button-secondary uk-margin-small-left"><span class="fas fa-file-excel"></span></a><button onclick="doSelect()" class="uk-button uk-button-secondary uk-margin-small-right">انتخاب دسته ای</button>');
+            $('.appended').remove();
+        }
+        function selectAllLoadFactor() {
+            $('.select-btn').attr('onclick', 'deselectAllLoadFactors()');
+            $('td.appended input').attr('checked', true);
+        }
+        function deselectAllLoadFactors() {
+            $('.select-btn').attr('onclick', 'selectAllLoadFactor()');
+            $('td.appended input').attr('checked', false);
+        }
+        function submitMultiBalance() {
+            const modalId = '#multi-balance-modal';
+            let amount = $(`${modalId} input[name=Amount]`).val(),
+                amountType = $(`${modalId} input[name=AmountType]:checked`).val(),
+                description = $(`${modalId} textarea`).val();
+            if ($.trim(amount) == '' || amount <= 0)
+                uiAlert('مبلغ نباید خالی یا صفر باشد!', 'danger');
+
+            $('#main-form #AmountTypeHiddenInput').val(amountType);
+            $('#main-form #AmountHiddenInput').val(amount);
+            $('#main-form #DescriptionHiddenInput').val(description);
+
+            UIkit.modal('#submit-modal').show();
+        }
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        @if (Model.Count() > 0)
+        {
+            <a asp-action="ActivityList" asp-controller="Excel" asp-route-customerId="@customer.Id" asp-route-calendarId="@calendar.Id" asp-route-hasPayment="true" class="uk-button uk-button-secondary uk-margin-small-left"><span class="fas fa-file-excel"></span></a>
+            <button onclick="doSelect()" class="uk-button uk-button-secondary uk-margin-small-right">انتخاب دسته ای</button>
+        }
+        else
+        {
+            <button class="uk-button uk-button-default uk-margin-small-left" disabled><span class="fas fa-file-excel"></span></button>
+        }
+        @*<button onclick="getSearch()" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>*@
+    </div>
+</div>
+<div id="append" class="box">
+    <form id="main-form" action="@Url.Action("CreateVehicleBalanceList")" method="post">
+        <input name="CustomerId" id="CustomerIdHiddenInput" type="hidden" value="@customer.Id" />
+        <input name="CalendarId" id="CalendarIdHiddenInput" type="hidden" value="@calendar.Id" />
+        <input name="AmountType" id="AmountTypeHiddenInput" type="hidden" value="" />
+        <input name="Amount" id="AmountHiddenInput" type="hidden" value="" />
+        <input name="Description" id="DescriptionHiddenInput" type="hidden" value="" />
+        <div class="uk-overflow-auto">
+            <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                <thead>
+                    <tr>
+                        <th>ردیف</th>
+                        <th>مالک خودرو</th>
+                        <th>پلاک خودرو</th>
+                        <th>مبلغ قابل پرداخت</th>
+                        <th>جزئیات</th>
+                        <th>عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="uk-text-center sm" data-id="@item.VehicleId">
+                            <td>@i</td>
+                            <td>@item.VehicleOwnerName</td>
+                            <td>@item.VehicleNumber</td>
+                            <td>@item.Amount.ToString("N0")</td>
+                            <td><a class="uk-button uk-button-primary uk-button-small" asp-action="VehicleBalanceList" asp-route-id="@item.VehicleId" asp-route-calendarId="@calendar.Id" target="_blank">جزئیات</a></td>
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="createBalance(@item.VehicleId, @customer.Id, @calendar.Id)">ثبت اضافات و کسورات</a></td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+<div id="solo-balance-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">ثبت اضافات/کسورات</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form method="post" action="@Url.Action("CreateVehicleBalance", "Admin")" autocomplete="off">
+                <input type="hidden" name="CustomerId" value="@customer.Id" />
+                <input type="hidden" name="CalendarId" value="@calendar.Id" />
+                <input type="hidden" name="VehicleId" value="" />
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                            <label><input class="uk-radio" type="radio" name="AmountType" value="minus" checked /> کسر</label>
+                            <label><input class="uk-radio" type="radio" name="AmountType" value="plus" /> اضافه</label>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">مبلغ</label>
+                        <input class="uk-input uk-form-small uk-border-rounded format-number" name="Amount" autocomplete="off" />
+                    </div>
+                    <div>
+                        <label class="uk-form-label">شرح</label>
+                        <textarea class="uk-textarea uk-border-rounded" name="Description"></textarea>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitSoloBalance()">ثبت</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="multi-balance-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">ثبت اضافات/کسورات دسته ای</h2>
+        </div>
+        <div class="uk-modal-body">
+            <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                <div>
+                    <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                        <label><input class="uk-radio" type="radio" name="AmountType" value="minus" checked /> کسر</label>
+                        <label><input class="uk-radio" type="radio" name="AmountType" value="plus" /> اضافه</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="uk-form-label">مبلغ</label>
+                    <input class="uk-input uk-form-small uk-border-rounded format-number" name="Amount" autocomplete="off" />
+                </div>
+                <div>
+                    <label class="uk-form-label">شرح</label>
+                    <textarea class="uk-textarea uk-border-rounded" name="Description"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitMultiBalance()">ثبت</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="create-bill-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">ثبت فیش</h2>
+        </div>
+        <div class="uk-modal-body">
+            <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                <div>
+                    <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                        <label><input class="uk-radio" type="radio" name="AmountType" value="minus" checked /> کسر</label>
+                        <label><input class="uk-radio" type="radio" name="AmountType" value="plus" /> اضافه</label>
+                    </div>
+                </div>
+                <div>
+                    <label class="uk-form-label">مبلغ</label>
+                    <input class="uk-input uk-form-small uk-border-rounded format-number" name="Amount" autocomplete="off" />
+                </div>
+                <div>
+                    <label class="uk-form-label">شرح</label>
+                    <textarea class="uk-textarea uk-border-rounded" name="Description"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitMultiBalance()">ثبت</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="submit-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>آیا از ثبت مبلغ برای خودرو های انتخابی اطمینان دارید؟</h3>
+        <p class="uk-text-danger uk-text-bold">هشدار! این عملیات به سادگی قابل بازگشت نیست</p>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="$('#main-form').submit()" type="button">بلی</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+        </div>
+    </div>
+</div>

@@ -160,17 +160,17 @@
         <div>@withholdingTax.ToString("N0") ریال</div>
     </div>
     <div class="uk-grid-small" uk-grid>
-        <div class="uk-width-expand" uk-leader="fill: .">جمع حقوق/مساعده پرداختی</div>
+        <div class="uk-width-expand" uk-leader="fill: .">جمع فیش های پرداختی</div>
         <div>@totalPayment.ToString("N0") ریال</div>
     </div>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع هزینه های جاری</div>
         <div>@totalCost.ToString("N0") ریال</div>
     </div>
-    <div class="uk-grid-small" uk-grid>
+    @*<div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع کل هزینه ها</div>
         <div>@((totalPayment + totalCost).ToString("N0")) ریال</div>
-    </div>
+    </div>*@
     @*<div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">جمع کل دریافتی</div>
         <div>@totalIncome.ToString("N0") ریال</div>

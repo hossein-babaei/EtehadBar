@@ -1,0 +1,59 @@
+﻿@model IEnumerable<VehicleBalance>
+
+@{
+    ViewData["pageId"] = 26;
+    var vehicle = (Vehicle)ViewData["Vehicle"];
+    ViewData["Title"] = $"عملکرد مالی خودرو {vehicle.Type} (ایران {vehicle.IranStateNumber} - {vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber})";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var beforeBalanceSum = ViewData["BeforeBalanceSum"] is null ? 0 : (double)ViewData["BeforeBalanceSum"];
+    int i = 2;
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>تاریخ</th>
+                    <th>مبلغ</th>
+                    <th>شرح</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="uk-text-center sm">
+                    <td>1</td>
+                    <td>---</td>
+                    <td>@beforeBalanceSum.ToString("N0")</td>
+                    <td>نقل حساب از قبل</td>
+                </tr>
+                @foreach (var item in Model)
+                {
+                    <tr class="uk-text-center sm" data-id="@item.Id">
+                        <td>@i</td>
+                        <td>@(new PersianDateTime(item.CreateDateTime).ToString("yyyy/MM/dd"))</td>
+                        <td dir="ltr" class="@(item.Amount > 0 ? "uk-text-success" : "uk-text-danger")">@item.Amount.ToString("N0")</td>
+                        <td>@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
+                    </tr>
+                    i++;
+                }
+                <tr class="uk-text-center sm">
+                    <td>@i</td>
+                    <td>---</td>
+                    <td>@((beforeBalanceSum + Model.Sum(a => a.Amount)).ToString("N0"))</td>
+                    <td>مانده</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

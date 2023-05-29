@@ -57,6 +57,11 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool RealStatus { get; set; }
 
+        public DateTime CreateDatetime { get; set; } = DateTime.Now;
+        public string CreatorId { get; set; }
+        public DateTime? EditDatetime { get; set; }
+        public string EditorId { get; set; }
+
         public virtual ICollection<Bill> Bills { get; set; }
         public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }

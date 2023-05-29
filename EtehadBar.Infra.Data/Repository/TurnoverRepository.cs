@@ -50,7 +50,7 @@ namespace EtehadBar.Infra.Data.Repository
                 Debtor = item.Debtor,
                 Description = item.Description,
                 TurnoverType = item.TurnoverType,
-                UserId = item.UserId,
+                Fullname = item.FullName,
                 Day = pd.Day,
                 Month = pd.Month,
                 Year = pd.Year,

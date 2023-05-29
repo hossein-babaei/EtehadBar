@@ -1,7 +1,5 @@
 ﻿@model CreateTurnoverVM
-@{
-    var users = (List<UserNameAndIdVM>)ViewData["Users"];
-}
+
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
         <h2 class="uk-modal-title">افزودن جدید</h2>
@@ -37,14 +35,11 @@
                     <input class="uk-input uk-border-rounded uk-form-small" asp-for="Year" value="@now.Year" dir="ltr" />
                 </div>
                 <div>
-                    <label asp-for="UserId" class="uk-form-label"></label>
-                    <select asp-for="UserId">
-                        @foreach (var item in users)
-                        {
-                            <option value="@item.Id">@item.Fullname</option>
-                        }
-                    </select>
-                    <span asp-validation-for="UserId" class="uk-text-danger"></span>
+                    <label asp-for="Fullname" class="uk-form-label"></label>
+                    <div class="autocomplete">
+                        <input asp-for="Fullname" class="uk-input uk-border-rounded uk-form-small" />
+                    </div>
+                    <span asp-validation-for="Fullname" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Creditor" class="uk-form-label"></label>

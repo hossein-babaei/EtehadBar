@@ -170,10 +170,10 @@
             <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ عملکرد <span class="xs">(قابل پرداخت به رانندگان)</span></div>
             <div>@driverFeeSum.ToString("N0") ریال</div>
         </div>
-        <div class="uk-grid-small" uk-grid>
+        @*<div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">جمع ارزش افزوده</div>
             <div>@vatAmountSum.ToString("N0") ریال</div>
-        </div>
+        </div>*@
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">جمع سپرده بیمه</div>
             <div>@deductionAmountSum.ToString("N0") ریال</div>
@@ -183,21 +183,21 @@
             <div>@withholdingTax.ToString("N0") ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">جمع حقوق/مساعده پرداختی</div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع فیش های پرداختی</div>
             <div>@totalPayment.ToString("N0") ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">جمع هزینه های جاری</div>
             <div>@totalCost.ToString("N0") ریال</div>
         </div>
-        <div class="uk-grid-small" uk-grid>
+        @*<div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">جمع کل هزینه ها</div>
             <div>@((totalPayment + totalCost).ToString("N0")) ریال</div>
-        </div>
-        <div class="uk-grid-small" uk-grid>
+        </div>*@
+        @*<div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">جمع کل دریافتی</div>
             <div>@totalIncome.ToString("N0") ریال</div>
-        </div>
+        </div>*@
         @*<div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">سود <span class="xs">[جمع مبلغ بارنامه ها - (حقوق/مساعده پرداختی + هزینه های جاری + کسورات)]</span></div>
             <div><span dir="ltr">@((amount - (totalPayment + totalCost + deductionAmountSum)).ToString("N0"))</span> ریال</div>

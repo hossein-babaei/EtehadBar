@@ -1,4 +1,5 @@
 ﻿using Castle.Core.Resource;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
@@ -946,6 +947,7 @@ namespace EtehadBar.MVC.Controllers
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
 
+                v.CreatorId = _userManager.GetUserId(User);
                 _vehicleRepo.Create(v);
                 try
                 {
@@ -993,6 +995,9 @@ namespace EtehadBar.MVC.Controllers
                 item.BankAccountNumber = v.BankAccountNumber;
                 item.VehicleOwnerFullname = v.VehicleOwnerFullname;
                 item.RealStatus = v.RealStatus;
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDatetime = DateTime.Now;
+
                 _vehicleRepo.Update(item);
                 try
                 {
@@ -3989,7 +3994,7 @@ namespace EtehadBar.MVC.Controllers
             var accountBook = await _accountBookRepository.AccountBooks().AsNoTracking().SingleOrDefaultAsync(a => a.RowId.Equals(id));
             ViewData["AccountBook"] = accountBook;
 
-            return View(await _loadFactorRepo.LoadFactors().Where(a => a.AccountBookId.Equals(accountBook.Id)).OrderBy(a => a.Date).ToListAsync());
+            return View(await _loadFactorRepo.LoadFactors().Where(a => a.AccountBookId.Equals(accountBook.Id)).OrderBy(a => a.Vehicle.Type).ThenBy(a => a.Date).ThenBy(a => a.LoadNumber).ToListAsync());
         }
 
         [HttpPost]
@@ -4119,7 +4124,7 @@ namespace EtehadBar.MVC.Controllers
             if (!User.IsInRole("Admin"))
                 query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
 
-            var onePageOfData = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            var onePageOfData = await query.OrderByDescending(a => a.Number).ToPagedListAsync(pageNumber, 20);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -4132,7 +4137,7 @@ namespace EtehadBar.MVC.Controllers
             if (!User.IsInRole("Admin"))
                 query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
 
-            var onePageOfData = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNum, 15);
+            var onePageOfData = await query.OrderByDescending(a => a.Number).ToPagedListAsync(pageNum, 15);
             ViewBag.data = onePageOfData;
             ViewBag.param = param;
 
@@ -5130,7 +5135,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Type"] = type;
 
             var pageNumber = p ?? 1;
-            var onePageOfData = await _turnoverRepository.Query().Where(a => a.TurnoverType.Equals(type)).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await _turnoverRepository.Query().Where(a => a.TurnoverType.Equals(type)).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -5142,31 +5147,21 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Type"] = type;
 
             var pageNumber = p ?? 1;
-            var onePageOfData = await _turnoverRepository.Query().Where(a => a.TurnoverType.Equals(type)).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await _turnoverRepository.Query().Where(a => a.TurnoverType.Equals(type)).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             return PartialView();
         }
 
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetTurnoverFullnames()
+        {
+            return Json(await _turnoverRepository.Query().AsNoTracking().Select(a => a.FullName).Distinct().ToListAsync());
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateTurnover(TurnoverType type)
+        public IActionResult CreateTurnover()
         {
-            if (type == TurnoverType.Partner)
-            {
-                ViewData["Users"] = await _userManager.Users.Where(a => a.Role == ApplicationRoleType.Partner).AsNoTracking().Select(a => new UserNameAndIdVM
-                {
-                    Fullname = a.Firstname + " " + a.Lastname,
-                    Id = a.Id
-                }).OrderBy(a => a.Fullname).ToListAsync();
-            }
-            else
-            {
-                ViewData["Users"] = await _userManager.Users.Where(a => a.Role == ApplicationRoleType.Investor).AsNoTracking().Select(a => new UserNameAndIdVM
-                {
-                    Fullname = a.Firstname + " " + a.Lastname,
-                    Id = a.Id
-                }).OrderBy(a => a.Fullname).ToListAsync();
-            }
             return PartialView("~/Views/Admin/Create/Turnover.cshtml");
         }
 
@@ -5211,11 +5206,11 @@ namespace EtehadBar.MVC.Controllers
                     Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime(),
                     CreateDatetime = DateTime.Now,
                     CreatorId = _userManager.GetUserId(User),
-                    Creditor = v.Creditor,
-                    Debtor = v.Debtor,
+                    Creditor = v.Creditor ?? 0,
+                    Debtor = v.Debtor ?? 0,
                     Description = v.Description,
                     TurnoverType = v.TurnoverType,
-                    UserId = v.UserId,
+                    FullName = v.Fullname,
                     Attachments = fileNames
                 };
 
@@ -5244,22 +5239,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<PartialViewResult> EditTurnover(long id)
         {
             var data = await _turnoverRepository.GetEditData(id);
-            if (data.TurnoverType == TurnoverType.Partner)
-            {
-                ViewData["Users"] = await _userManager.Users.Where(a => a.Role == ApplicationRoleType.Partner).AsNoTracking().Select(a => new UserNameAndIdVM
-                {
-                    Fullname = a.Firstname + " " + a.Lastname,
-                    Id = a.Id
-                }).OrderBy(a => a.Fullname).ToListAsync();
-            }
-            else
-            {
-                ViewData["Users"] = await _userManager.Users.Where(a => a.Role == ApplicationRoleType.Investor).AsNoTracking().Select(a => new UserNameAndIdVM
-                {
-                    Fullname = a.Firstname + " " + a.Lastname,
-                    Id = a.Id
-                }).OrderBy(a => a.Fullname).ToListAsync();
-            }
+
             return PartialView("~/Views/Admin/Edit/Turnover.cshtml", data);
         }
 
@@ -5273,13 +5253,13 @@ namespace EtehadBar.MVC.Controllers
             {
                 var item = await _turnoverRepository.Get(v.Id);
                 item.TurnoverType = v.TurnoverType;
-                item.Creditor = v.Creditor;
+                item.Creditor = v.Creditor ?? 0;
                 item.Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
-                item.Debtor = v.Debtor;
+                item.Debtor = v.Debtor ?? 0;
                 item.Description = v.Description;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
-                item.UserId = v.UserId;
+                item.FullName = v.Fullname;
 
                 string fileNames = "";
                 var files = Request.Form.Files;
@@ -5382,7 +5362,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Bill(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _billRepository.Query().OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 50);
+            var onePageOfData = await _billRepository.Query().OrderByDescending(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, 50);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -5444,10 +5424,10 @@ namespace EtehadBar.MVC.Controllers
             if (calendarId > 0)
             {
                 var queryCount = await query.CountAsync();
-                ViewBag.data = await query.OrderBy(a => a.Date).ToPagedListAsync(pageNumber, queryCount == 0 ? 1 : queryCount);
+                ViewBag.data = await query.OrderBy(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, queryCount == 0 ? 1 : queryCount);
             }
             else
-                ViewBag.data = await query.OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 50);
+                ViewBag.data = await query.OrderByDescending(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, 50);
 
             ViewBag.Name = name;
             ViewBag.BillType = billType;
@@ -5499,7 +5479,8 @@ namespace EtehadBar.MVC.Controllers
                             BillId = b.Id,
                             CalendarId = b.CalendarId,
                             VehicleId = b.VehicleId.Value,
-                            CreateDateTime = b.Date
+                            CreateDateTime = b.Date,
+                            Description = b.Description
                         });
 
                         await _vehicleBalanceRepository.Save();
@@ -5581,6 +5562,7 @@ namespace EtehadBar.MVC.Controllers
                             balanceItem.EditDatetime = DateTime.Now;
                             balanceItem.CalendarId = b.CalendarId;
                             balanceItem.VehicleId = b.VehicleId.Value;
+                            balanceItem.Description = b.Description;
                             
                             _vehicleBalanceRepository.Update(balanceItem);
                         }
@@ -5592,7 +5574,8 @@ namespace EtehadBar.MVC.Controllers
                                 BillId = b.Id,
                                 CalendarId = b.CalendarId,
                                 VehicleId = b.VehicleId.Value,
-                                CreateDateTime = item.Date
+                                CreateDateTime = item.Date,
+                                Description = b.Description
                             });
                         }
 
@@ -5639,6 +5622,113 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
+        #endregion
+
+        #region VehicleBalance
+        [HttpGet]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> VehicleBalanceByCustomer(long customerId, long calendarId)
+        {
+            if (!await _customerRepo.Customers().AnyAsync(a => a.Id.Equals(customerId)))
+                return NotFound("Customer not found");
+
+            if (!await _calendarRepo.Calendars().AnyAsync(a => a.Id.Equals(calendarId)))
+                return NotFound("Calendar not found");
+
+            var data = await _vehicleRepo.ActivityList(customerId, calendarId, true);
+            ViewData["Calendar"] = await _calendarRepo.Get(calendarId);
+            ViewData["Customer"] = await _customerRepo.Get(customerId);
+
+            return View(data);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> CreateVehicleBalance(
+            long CustomerId, long CalendarId, long VehicleId, string AmountType, double Amount, string Description)
+        {
+            _vehicleBalanceRepository.Create(new VehicleBalance
+            {
+                Amount = AmountType == "minus" ? -(Amount) : Amount,
+                Description = Description,
+                CalendarId = CalendarId,
+                VehicleId = VehicleId,
+                CustomerId = CustomerId,
+                CreateDateTime = DateTime.Now
+            });
+            try
+            {
+                await _vehicleBalanceRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> CreateVehicleBalanceList(
+            List<long> idList, long CustomerId, long CalendarId, string AmountType, double Amount, string Description)
+        {
+            if (!idList.Any())
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: لطفا یک یا چند وسیله نقلیه را انتخاب کنید. |danger";
+                return Redirect(Request.Headers["Referer"].ToString());
+            }
+
+            if (CustomerId <= 0 || CalendarId <= 0)
+            {
+                TempData["msg"] = $"خطا در فرم. مشتری یا تقویم کاری. |danger";
+                return Redirect(Request.Headers["Referer"].ToString());
+            }
+
+            foreach (var vehicleId in idList)
+            {
+                _vehicleBalanceRepository.Create(new VehicleBalance
+                {
+                    Amount = AmountType == "minus" ? -(Amount) : Amount,
+                    Description = Description,
+                    CalendarId = CalendarId,
+                    VehicleId = vehicleId,
+                    CustomerId = CustomerId,
+                    CreateDateTime = DateTime.Now
+                });
+            }
+
+            try
+            {
+                await _vehicleBalanceRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> VehicleBalanceList(long? id, long? calendarId)
+        {
+            if (!id.HasValue)
+                return NotFound();
+
+            ViewData["Vehicle"] = await _vehicleRepo.Get(id.Value);
+
+            var query = _vehicleBalanceRepository.Query().Where(a => a.VehicleId.Equals(id.Value));
+            if (calendarId.HasValue)
+            {
+                var beforeCalendars = await _calendarRepo.Calendars().AsNoTracking().Where(a => a.Sequence < _calendarRepo.Calendars().Single(b => b.Id.Equals(calendarId.Value)).Sequence).Select(a => a.Id).ToListAsync();
+                ViewData["BeforeBalanceSum"] = await query.Where(a => a.CalendarId.HasValue && beforeCalendars.Contains(a.CalendarId.Value)).SumAsync(a => a.Amount);
+                query = query.Where(a => a.CalendarId.HasValue && a.CalendarId.Equals(calendarId.Value));
+            }
+            return View(await query.OrderBy(a => a.CreateDateTime).ToListAsync());
+        }
+
         #endregion
     }
 }

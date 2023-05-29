@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,7 +15,6 @@ namespace EtehadBar.Domain.Models
         public DateTime Date { get; set; }
 
         [Display(Name = "شرح")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string Description { get; set; }
 
         [Display(Name = "دریافت")]
@@ -35,8 +33,9 @@ namespace EtehadBar.Domain.Models
         public DateTime CreateDatetime { get; set; } = DateTime.Now;
 
         [Display(Name = "طرف حساب")]
-        public string UserId { get; set; }
-        public virtual ApplicationUser User { get; set; }
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string FullName { get; set; }
 
         [StringLength(450)]
         public string CreatorId { get; set; }

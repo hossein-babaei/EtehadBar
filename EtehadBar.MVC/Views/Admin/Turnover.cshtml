@@ -24,6 +24,7 @@
 @section Links{
     <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
     <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+    <link href="~/css/autocomplete.css" rel="stylesheet" asp-asp-append-version="true" />
     <style>
         .sequence {
             cursor: grab
@@ -41,16 +42,22 @@
     <script src="~/lib/select2/select2.min.js"></script>
     <script src="~/lib/persian-date/persian-date.min.js"></script>
     <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
+    <script src="~/js/autocomplete.js"></script>
     <script>
+        let autoCompleteData = [];
         const type = @((int)type);
-        function create() {
+        async function create() {
             preloader();
-            $.get('@Url.Action("CreateTurnover")', { 'type': type }, function (r) {
+            if (autoCompleteData.length == 0) {
+                await $.get('@Url.Action("GetTurnoverFullnames")', {}, function (r) {
+                    $.each(r, (i, v) => {
+                        autoCompleteData.push(v);
+                    });
+                }, 'json');
+            }
+            await $.get('@Url.Action("CreateTurnover")', {}, function (r) {
                 $('#create-modal').html(r);
-                $('#create-modal #UserId').select2({
-                    width: '100%',
-                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
-                });
+                autocomplete($('#create-modal #Fullname').get(0), autoCompleteData);
             }, 'html').then(function () {
                 $('#create-form').prepend(`<input type="hidden" name="TurnoverType" value="${type}" />`);
                 parseValidator('#create-form');
@@ -70,7 +77,7 @@
             formData.append('Day', data.find(a => a.name == 'Day').value);
             formData.append('Month', data.find(a => a.name == 'Month').value);
             formData.append('Year', data.find(a => a.name == 'Year').value);
-            formData.append('UserId', data.find(a => a.name == 'UserId').value);
+            formData.append('Fullname', data.find(a => a.name == 'Fullname').value);
             formData.append('Creditor', data.find(a => a.name == 'Creditor').value);
             formData.append('Debtor', data.find(a => a.name == 'Debtor').value);
             formData.append('Description', data.find(a => a.name == 'Description').value);
@@ -105,10 +112,7 @@
             preloader();
             $.get('@Url.Action("EditTurnover")', { 'id': id }, function (r) {
                 $('#edit-modal').html(r);
-                $('#edit-modal #UserId').select2({
-                    width: '100%',
-                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
-                });
+                autocomplete($('#edit-form #Fullname').get(0), autoCompleteData);
             }, 'html').then(function () {
                 parseValidator('#edit-form');
                 preloader();
@@ -129,7 +133,7 @@
             formData.append('Month', data.find(a => a.name == 'Month').value);
             formData.append('Year', data.find(a => a.name == 'Year').value);
             formData.append('Year', data.find(a => a.name == 'Year').value);
-            formData.append('UserId', data.find(a => a.name == 'UserId').value);
+            formData.append('Fullname', data.find(a => a.name == 'Fullname').value);
             formData.append('Creditor', data.find(a => a.name == 'Creditor').value);
             formData.append('Debtor', data.find(a => a.name == 'Debtor').value);
             formData.append('Description', data.find(a => a.name == 'Description').value);
@@ -170,12 +174,12 @@
                 attachments = files.split(';;');
             $.each(attachments, (i, v) => {
                 template += `
-                <div>
-                    <div uk-lightbox>
-                        <a class="uk-button uk-button-default uk-border-rounded uk-button-small" href="/img/turnover/${attachments[i]}">تصویر ${i + 1}</a>
-                    </div>
-                </div>
-                `;
+                        <div>
+                            <div uk-lightbox>
+                                <a class="uk-button uk-button-default uk-border-rounded uk-button-small" href="/img/turnover/${attachments[i]}">تصویر ${i + 1}</a>
+                            </div>
+                        </div>
+                        `;
             })
             $(`${modalId} .uk-grid-small`).html(template);
             UIkit.modal(modalId).show();
@@ -223,10 +227,11 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th>@Html.DisplayNameFor(model => model.FullName)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Creditor)</th>
                     <th>@Html.DisplayNameFor(model => model.Debtor)</th>
+                    <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th width="50">تصاویر</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
@@ -237,10 +242,20 @@
                 {
                     <tr id="@item.RowId" data-row="@i" class="uk-text-center">
                         <td class="sequence" draggable="true">@i</td>
-                        <td class="uk-text-small"><pre>@Html.DisplayFor(modelItem => item.Description)</pre></td>
+                        <td>@item.FullName</td>
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                         <td>@item.Creditor.ToString("N0")</td>
                         <td>@item.Debtor.ToString("N0")</td>
+                        <td class="uk-text-small">
+                            @if (string.IsNullOrWhiteSpace(item.Description))
+                            {
+                                <span>---</span>
+                            }
+                            else
+                            {
+                                <pre>@Html.DisplayFor(modelItem => item.Description)</pre>
+                            }
+                        </td>
                         @if (string.IsNullOrEmpty(item.Attachments))
                         {
                             <td>---</td>
@@ -283,7 +298,7 @@
 </div>
 <div id="delete-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
-        <form id="delete-form" method="post" asp-action="DeleteBankAccountBook" asp-controller="Admin">
+        <form id="delete-form" method="post" asp-action="DeleteTurnover" asp-controller="Admin">
             <input type="hidden" name="id" />
             <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
             <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>

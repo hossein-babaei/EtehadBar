@@ -17,10 +17,11 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th>@Html.DisplayNameFor(model => model.FullName)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Creditor)</th>
                     <th>@Html.DisplayNameFor(model => model.Debtor)</th>
+                    <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th width="50">تصاویر</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
@@ -31,10 +32,20 @@
                 {
                     <tr id="@item.RowId" data-row="@i" class="uk-text-center">
                         <td class="sequence" draggable="true">@i</td>
-                        <td class="uk-text-small"><pre>@Html.DisplayFor(modelItem => item.Description)</pre></td>
+                        <td>@item.FullName</td>
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                         <td>@item.Creditor.ToString("N0")</td>
                         <td>@item.Debtor.ToString("N0")</td>
+                        <td class="uk-text-small">
+                            @if (string.IsNullOrWhiteSpace(item.Description))
+                            {
+                                <span>---</span>
+                            }
+                            else
+                            {
+                                <pre>@Html.DisplayFor(modelItem => item.Description)</pre>
+                            }
+                        </td>
                         @if (string.IsNullOrEmpty(item.Attachments))
                         {
                             <td>---</td>

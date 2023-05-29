@@ -55,6 +55,7 @@ namespace EtehadBar.Domain
 
     public class ActivityListByCustomerVM
     {
+        public string VehicleType { get; set; }
         public string VehicleNumber { get; set; }
         public double VehicleBalance { get; set; }
         public List<ActivityListByCustomerRouteVM> Routes { get; set; }
@@ -198,21 +199,21 @@ namespace EtehadBar.Domain
         public int Day { get; set; }
 
         [Display(Name = "شرح")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string Description { get; set; }
 
         [Display(Name = "دریافت")]
-        public double Debtor { get; set; }
+        public double? Debtor { get; set; } = 0;
 
         [Display(Name = "پرداخت")]
-        public double Creditor { get; set; }
+        public double? Creditor { get; set; } = 0;
 
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public TurnoverType TurnoverType { get; set; }
 
         [Display(Name = "طرف حساب")]
-        public string UserId { get; set; }
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Fullname { get; set; }
     }
 
     public class EditTurnoverVM
@@ -232,21 +233,21 @@ namespace EtehadBar.Domain
         public int Day { get; set; }
 
         [Display(Name = "شرح")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string Description { get; set; }
 
         [Display(Name = "دریافت")]
-        public double Debtor { get; set; }
+        public double? Debtor { get; set; } = 0;
 
         [Display(Name = "پرداخت")]
-        public double Creditor { get; set; }
+        public double? Creditor { get; set; } = 0;
 
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public TurnoverType TurnoverType { get; set; }
 
         [Display(Name = "طرف حساب")]
-        public string UserId { get; set; }
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Fullname { get; set; }
         public string Attachments { get; set; }
     }
 

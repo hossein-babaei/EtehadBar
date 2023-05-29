@@ -148,6 +148,7 @@
                         $.get('@Url.Action("ShippingFeePartial")', { 'contractId': contractId }, function (r) {
                             $('#append').html(r);
                         }, 'html');
+                        UIkit.modal('#append-modal').hide();
                     }
                 }, 'json').then(function () {
                     preloader();
