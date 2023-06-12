@@ -7,8 +7,9 @@ namespace EtehadBar.Domain.Interfaces
 {
     public interface IVehicleRepository
     {
-        Task<List<ActivityListVM>> ActivityList(long customerId, long calendarId, bool hasPayment);
-        Task<List<ActivityListByCustomerVM>> ActivityListByCustomer(long customerId, long calendarId);
+        Task<List<ActivityListVM>> ActivityList(long customerId, long calendarId, bool hasPayment, bool isFreeDriverPrice);
+        Task<List<ActivityListVM>> FullActivityList(long customerId, long calendarId);
+        Task<List<ActivityListByCustomerVM>> ActivityListByCustomer(long customerId, long calendarId, bool isFreeDriverPrice);
         Task<Vehicle> Get(long id);
         IQueryable<Vehicle> Vehicles();
         void Update(Vehicle obj);

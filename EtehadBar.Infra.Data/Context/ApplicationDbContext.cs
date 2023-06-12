@@ -31,10 +31,10 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<CustomerIncome> CustomerIncome { get; set; }
         public DbSet<Definition> Definition { get; set; }
         public DbSet<Driver> Driver { get; set; }
+        public DbSet<FakeLoadFactor> FakeLoadFactor { get; set; }
         public DbSet<FreeLoadFactor> FreeLoadFactor { get; set; }
         public DbSet<LoadFactor> LoadFactor { get; set; }
         public DbSet<LoadRoutes> LoadRoute { get; set; }
-        public DbSet<Payment> Payment { get; set; }
         public DbSet<SaipaPlascoLoadFactor> SaipaPlascoLoadFactor { get; set; }
         public DbSet<SaipaPressLoadFactor> SaipaPressLoadFactor { get; set; }
         public DbSet<SazehGostarLoadFactor> SazehGostarLoadFactor { get; set; }
@@ -66,6 +66,9 @@ namespace EtehadBar.Infra.Data.Context
 
             modelBuilder.Entity<LoadFactor>().HasOne(lf => lf.Origin).WithMany().HasForeignKey(lf => lf.OriginId).OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<LoadFactor>().HasOne(lf => lf.Destination).WithMany().HasForeignKey(lf => lf.DestinationId).OnDelete(DeleteBehavior.NoAction);
+            
+            modelBuilder.Entity<FakeLoadFactor>().HasOne(lf => lf.Origin).WithMany().HasForeignKey(lf => lf.OriginId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<FakeLoadFactor>().HasOne(lf => lf.Destination).WithMany().HasForeignKey(lf => lf.DestinationId).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Customer>().HasData(
                 new { Id = 1L, Name = "پلاسکو کار سایپا", CustomerType = Domain.CustomerType.SaipaPlasco, LoadFactorDeductions = 5d, HasLoadType = false, HasAddonTonnage = false, HasLoadSleep = false, Status = true, RowId = "29f78114-f72a-427a-a3f1-8864e6eeb13c" },

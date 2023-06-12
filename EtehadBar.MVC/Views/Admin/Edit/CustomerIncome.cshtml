@@ -1,28 +1,18 @@
 ﻿@model CustomerIncome
 @{
-    var calendar = (List<Calendar>)ViewData["Calendar"];
+    var bankBranches = (List<Definition>)ViewData["BankBranches"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
         <h2 class="uk-modal-title">ویرایش دریافتی</h2>
     </div>
     <div class="uk-modal-body">
-        <form id="edit-form" asp-action="EditCustomerIncome" method="post" enctype="multipart/form-data">
+        <form id="edit-form" asp-action="EditCustomerIncome" method="post" enctype="multipart/form-data" autocomplete="off">
             <input asp-for="Id" type="hidden" />
             <input asp-for="CustomerId" type="hidden" />
             <input asp-for="Date" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
-                <div>
-                    <label asp-for="CalendarId" class="uk-form-label"></label>
-                    <select asp-for="CalendarId" class="uk-select uk-border-rounded">
-                        @foreach (var item in calendar)
-                        {
-                            <!option value="@item.Id" @if (Model.CalendarId.Equals(item.Id)) { <text> selected="selected" </text> }>@item.Title</!option>
-                        }
-                    </select>
-                    <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
-                </div>
                 @{
                     var pd = new PersianDateTime(Model.Date);
                 }
@@ -47,6 +37,16 @@
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">سال</label>
                     <input class="uk-input uk-border-rounded" name="year" value="@pd.Year" dir="ltr" readonly />
+                </div>
+                <div>
+                    <label asp-for="BankName" class="uk-form-label"></label>
+                    <select asp-for="BankName" class="uk-select uk-border-rounded">
+                        @foreach (var item in bankBranches)
+                        {
+                            <!option value="@item.Title"  @if(item.Title.Equals(Model.BankName)) { <text>selected="selected"</text> }>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="BankName" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Amount" class="uk-form-label"></label>

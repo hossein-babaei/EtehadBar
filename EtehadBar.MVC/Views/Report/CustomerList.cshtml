@@ -16,8 +16,9 @@
     <script src="~/lib/select2/select2.min.js"></script>
     <script>
         let vehicleList = [];
-        function submitForm(submitButton) {
+        function submitActivityByCustomerForm(submitButton, isFreeDriverFee) {
             let form = $(submitButton).parent().parent().find('form');
+            form.find('input[name=isFreeDriverFee]').val(isFreeDriverFee);
             form.submit();
         }
         function showFormByCalendar(id, type) {
@@ -81,9 +82,10 @@
             modal.find('input[name=customerId]').val(id);
             UIkit.modal('#account-book-modal').show();
         }
-        function submitForm(submitButton, hasPayment) {
+        function submitForm(submitButton, hasPayment, isFreeDriverFee) {
             let form = $(submitButton).parent().parent().find('form');
             form.find('input[name=hasPayment]').val(hasPayment);
+            form.find('input[name=isFreeDriverFee]').val(isFreeDriverFee);
             form.submit();
         }
         function showActivityList(id, type) {
@@ -94,6 +96,13 @@
             $('#activity-list-modal select[name=calendarId]').select2({ width: '100%' });
             //$('#modal select[name=vehicleId]').select2({ width: '100%' });
             UIkit.modal('#activity-list-modal').show();
+        }
+        function showFullActivity(id) {
+            const modalId = '#full-activity-list-modal';
+            $(`${modalId} input[name=customerId]`).val(id);
+
+            $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
+            UIkit.modal(modalId).show();
         }
         function goToDriverBalance() {
             var customerId = $('#activity-list-modal input[name=customerId]').val();
@@ -144,13 +153,17 @@
                         }
                         @if (User.IsInRole("Admin"))
                         {
-                            <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a></td>
+                            <td>
+                                <a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerBalance" asp-route-id="@item.Id">مالی</a>
+                                <a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a>
+                            </td>
                         }
                         <td>
                             @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
                             {
                                 <a class="uk-button uk-button-primary uk-button-small" onclick="showFormByCustomer(@item.Id)">عملکرد تفصیلی</a>
                                 <a class="uk-button uk-button-primary uk-button-small" onclick="showActivityList(@item.Id)">عملکرد مالی راننده</a>
+                                <a class="uk-button uk-button-primary uk-button-small" onclick="showFullActivity(@item.Id)">عملکرد تکمیلی</a>
                             }
                             <a class="uk-button uk-button-primary uk-button-small uk-margin-right" onclick="showFormByCalendar(@item.Id, @((byte)item.CustomerType))">بر اساس تقویم کاری</a>
                             <a class="uk-button uk-button-primary uk-button-small" onclick="showFormByAccountBook(@item.Id, @((byte)item.CustomerType))">بر اساس صورت وضعیت</a>
@@ -170,6 +183,7 @@
         <div class="uk-modal-body">
             <form method="post" action="@Url.Action("VehicleActivityByCustomer", "Excel")" autocomplete="off">
                 <input type="hidden" name="customerId" value="" />
+                <input type="hidden" name="isFreeDriverFee" value="" />
                 <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
                     <div>
                         <label class="uk-form-label">تاریخ</label>
@@ -186,7 +200,8 @@
             </form>
         </div>
         <div class="uk-modal-footer uk-text-center">
-            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitForm(this)">مشاهده</a>
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitActivityByCustomerForm(this, 'False')">قراردادی</a>
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitActivityByCustomerForm(this, 'True')">موردی ها</a>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
     </div>
@@ -304,6 +319,7 @@
             <form method="post" action="@Url.Action("ActivityList", "Excel")" autocomplete="off">
                 <input type="hidden" name="customerId" value="" />
                 <input type="hidden" name="hasPayment" value="" />
+                <input type="hidden" name="isFreeDriverFee" value="" />
                 <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
                     <div>
                         <label class="uk-form-label">تاریخ</label>
@@ -312,7 +328,7 @@
                             {
                                 <!option value="@item.Id" @if (latestCal.Id.Equals(item)) {
                             <text> selected="selected" </text>
- }>@item.Title</!option>
+                            }>@item.Title</!option>
                             }
                         </select>
                     </div>
@@ -323,8 +339,40 @@
         </div>
         <div class="uk-modal-footer uk-text-center">
             <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="goToDriverBalance()">حساب رانندگان</a>
-            <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="submitForm(this, true)">قابل پرداخت</a>
-            <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="submitForm(this, false)">جمع عملکرد</a>
+            <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="submitForm(this, true, false)">قابل پرداخت</a>
+            <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="submitForm(this, false, false)">جمع عملکرد</a>
+            <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="submitForm(this, false, true)">جمع عملکرد موردی</a>
+            <button class="uk-button uk-button-danger uk-modal-close uk-margin-small-top" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="full-activity-list-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">خروجی بر اساس تقویم کاری</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form method="post" action="@Url.Action("FullActivityList", "Excel")" autocomplete="off">
+                <input type="hidden" name="customerId" value="" />
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <label class="uk-form-label">تاریخ</label>
+                        <select name="calendarId">
+                            @foreach (var item in calendars)
+                            {
+                                <!option value="@item.Id" @if (latestCal.Id.Equals(item)) {
+                            <text> selected="selected" </text>
+                            }>@item.Title</!option>
+                            }
+                        </select>
+                    </div>
+                    <div id="modal-append"></div>
+                </div>
+
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="$('#full-activity-list-modal form').submit()">مشاهده</a>
             <button class="uk-button uk-button-danger uk-modal-close uk-margin-small-top" type="button">بازگشت</button>
         </div>
     </div>

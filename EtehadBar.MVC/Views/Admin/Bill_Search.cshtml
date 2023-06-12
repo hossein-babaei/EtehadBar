@@ -25,6 +25,7 @@
                     <th>@Html.DisplayNameFor(model => model.BankBranch)</th>
                     <th>@Html.DisplayNameFor(model => model.BillType)</th>
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
+                    <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
@@ -52,6 +53,7 @@
                         <td>@item.BankBranch</td>
                         <td>@item.BillType</td>
                         <td>@item.Calendar.Title</td>
+                        <td>@(item.CustomerId.HasValue ? item.Customer.Name : "---")</td>
                         <td class="uk-text-small">@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
@@ -65,7 +67,7 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("Bill_Search", new { p = page, calendarId = ViewBag.CalendarId, vehicleId = ViewBag.VehicleId, billType = ViewBag.BillType, bankBranch = ViewBag.BankBranch, name = ViewBag.Name }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+            @Html.PagedListPager(data, page => Url.Action("Bill_Search", new { p = page, calendarId = ViewBag.CalendarId, vehicleId = ViewBag.VehicleId, billType = ViewBag.BillType, bankBranch = ViewBag.BankBranch, name = ViewBag.Name, realVehicle = ViewBag.RealVehicle }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
         </div>
     }
 }

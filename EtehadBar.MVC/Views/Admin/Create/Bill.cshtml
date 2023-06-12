@@ -3,6 +3,7 @@
     var calendar = (List<Calendar>)ViewData["Calendars"];
     var vehicles = (List<Vehicle>)ViewData["Vehicles"];
     var definitions = (List<Definition>)ViewData["Definitions"];
+    var customers = (List<Customer>)ViewData["Customers"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -13,6 +14,17 @@
             <input type="submit" style="display: none" />
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="CustomerId" class="uk-form-label"></label>
+                    <select asp-for="CustomerId" class="uk-select uk-border-rounded uk-form-small">
+                        <option value="0">انتخاب مشتری</option>
+                        @foreach (var item in customers)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="uk-text-danger"></span>
+                </div>
                 <div>
                     <label asp-for="CalendarId" class="uk-form-label"></label>
                     <select asp-for="CalendarId" class="uk-select uk-border-rounded">
@@ -85,7 +97,7 @@
                     <select asp-for="BankBranch" class="uk-select uk-border-rounded">
                         @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BankBranch))
                         {
-                            <!option value="@item.Title"  @if(item.Title.Contains("سامان")) { <text>selected="selected"</text> }>@item.Title</!option>
+                            <!option value="@item.Title"  @if(item.Title.Contains("سامان 840")) { <text>selected="selected"</text> }>@item.Title</!option>
                         }
                     </select>
                     <span asp-validation-for="BankBranch" class="uk-text-danger"></span>

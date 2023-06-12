@@ -63,8 +63,8 @@ namespace EtehadBar.Domain.Models
         public string EditorId { get; set; }
 
         public virtual ICollection<Bill> Bills { get; set; }
-        public virtual ICollection<Payment> Payments { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
+        public virtual ICollection<FakeLoadFactor> FakeLoadFactors { get; set; }
         public virtual ICollection<VehicleBalance> VehicleBalances { get; set; }
 
         [Required]

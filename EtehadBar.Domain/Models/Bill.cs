@@ -57,6 +57,11 @@ namespace EtehadBar.Domain.Models
         public long? VehicleId { get; set; }
         public virtual Vehicle Vehicle { get; set; }
 
+        [Display(Name = "مشتری")]
+        [ForeignKey(nameof(Customer))]
+        public long? CustomerId { get; set; }
+        public virtual Customer Customer { get; set; }
+
         [Required]
         public DateTime CreateDatetime { get; set; } = DateTime.Now;
 

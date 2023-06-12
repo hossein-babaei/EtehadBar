@@ -24,7 +24,6 @@ namespace EtehadBar.MVC.Controllers
         private readonly ICostRepository _costRepo;
         private readonly ICustomerRepository _customerRepo;
         private readonly ILoadFactorRepository _loadFactorRepo;
-        private readonly IPaymentRepository _paymentRepo;
         private readonly IVehicleRepository _vehicleRepo;
         private readonly IFreeLoadFactorRepository _freeLoadFactorRepository;
         private readonly IBillRepository _billRepository;
@@ -37,7 +36,6 @@ namespace EtehadBar.MVC.Controllers
             ICostRepository costRepository,
             ICustomerRepository customerRepository,
             ILoadFactorRepository loadFactorRepository,
-            IPaymentRepository paymentRepository,
             IVehicleRepository vehicleRepository,
             UserManager<ApplicationUser> userManager,
             IFreeLoadFactorRepository freeLoadFactorRepository,
@@ -49,7 +47,6 @@ namespace EtehadBar.MVC.Controllers
             _costRepo = costRepository;
             _customerRepo = customerRepository;
             _loadFactorRepo = loadFactorRepository;
-            _paymentRepo = paymentRepository;
             _vehicleRepo = vehicleRepository;
             _userManager = userManager;
             _freeLoadFactorRepository = freeLoadFactorRepository;
@@ -139,7 +136,9 @@ namespace EtehadBar.MVC.Controllers
             var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["calendars"] = calendars;
 
-            return View(await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendars.First().Id) && a.CustomerId.Equals(id.Value)).OrderBy(a => a.Date).ToListAsync());
+            var firstCalendar = calendars.First();
+
+            return View(await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.Date >= firstCalendar.StartDate && a.Date <= firstCalendar.EndDate).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpPost]
@@ -147,9 +146,10 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CustomerIncome(long? id, long calendarId)
         {
             ViewData["customer"] = await _customerRepo.Get(id.Value);
-            ViewData["calendar"] = await _calendarRepo.Get(calendarId);
+            var calendar = await _calendarRepo.Get(calendarId);
+            ViewData["calendar"] = calendar;
 
-            return PartialView("_CustomerIncome", await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Equals(id.Value)).OrderBy(a => a.Date).ToListAsync());
+            return PartialView("_CustomerIncome", await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.Date >= calendar.StartDate && a.Date <= calendar.EndDate && a.CustomerId.Equals(id.Value)).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpGet]
@@ -166,7 +166,7 @@ namespace EtehadBar.MVC.Controllers
             a.Date >= latestCal.StartDate && a.Date <= latestCal.EndDate).SumAsync(a => a.Amount);
             //ViewData["excludedBills"] = await _billRepository.Query().Where(a => excludedBillTypes.Contains(a.BillType) &&
             //a.Date >= latestCal.StartDate && a.Date <= latestCal.EndDate).SumAsync(a => a.Amount);
-            ViewData["income"] = await _customerRepo.CustomerIncomes().Where(a => a.CalendarId.Equals(latestCal.Id)).SumAsync(a => a.Amount);
+            ViewData["income"] = await _customerRepo.CustomerIncomes().Where(a => a.Date >= latestCal.StartDate && a.Date <= latestCal.EndDate).SumAsync(a => a.Amount);
             return View(await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(latestCal.Id)).OrderBy(a => a.Date).ToListAsync());
         }
 
@@ -183,7 +183,7 @@ namespace EtehadBar.MVC.Controllers
             a.Date >= calendar.StartDate && a.Date <= calendar.EndDate).SumAsync(a => a.Amount);
             //ViewData["excludedBills"] = await _billRepository.Query().Where(a => excludedBillTypes.Contains(a.BillType) &&
             //a.Date >= calendar.StartDate && a.Date <= calendar.EndDate).SumAsync(a => a.Amount);
-            ViewData["income"] = await _customerRepo.CustomerIncomes().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            ViewData["income"] = await _customerRepo.CustomerIncomes().Where(a => a.Date >= calendar.StartDate && a.Date <= calendar.EndDate).SumAsync(a => a.Amount);
 
             var data = new List<GlobalLoadFactorVM>();
             var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId)).Select(a => new GlobalLoadFactorVM
@@ -270,28 +270,6 @@ namespace EtehadBar.MVC.Controllers
                 query = query.Where(a => a.UserId.Equals(userId));
 
             return PartialView("_Cost", await query.ToListAsync());
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> Payment()
-        {
-            var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
-            ViewData["calendars"] = calendars;
-
-            var latestCal = calendars.First();
-            return View(await _paymentRepo.PaymentVMList(latestCal.Id, null, null));
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> Payment(long calendarId, byte type, long vehicleId)
-        {
-            ViewData["calendar"] = await _calendarRepo.Get(calendarId);
-            ViewData["type"] = type;
-            ViewData["vehicleId"] = vehicleId;
-
-            return PartialView("_Payment", await _paymentRepo.PaymentVMList(calendarId, type, vehicleId));
         }
 
         [HttpGet]
@@ -398,7 +376,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Turnover(string startDate, string endDate)
+        public async Task<IActionResult> Turnover(string startDate, string endDate, TurnoverType turnoverType)
         {
             startDate = startDate.PersianToEnglish();
             endDate = endDate.PersianToEnglish();
@@ -418,6 +396,33 @@ namespace EtehadBar.MVC.Controllers
             {
                 return PartialView("_Turnover", await _turnoverRepository.Query().Where(a => a.Date >= startD && a.Date <= endD).OrderBy(a => a.Date).ToListAsync());
             }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CustomerBalance(long id)
+        {
+            var endDateInstance = new PersianDateTime(DateTime.Now);
+            var startDateInstance = endDateInstance.AddMonths(-2);
+
+            var startDate = new PersianDateTime(startDateInstance.Year, startDateInstance.Month, 1).ToDateTime();
+            var endDate = endDateInstance.ToDateTime();
+
+            var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= (_calendarRepo.Calendars().Where(a => a.StartDate.Equals(startDate)).FirstOrDefault().Sequence)).OrderBy(a => a.Sequence).ToListAsync();
+            
+            var data = new CustomerBalanceVM
+            { 
+                Calendars= calendars,
+                Customer = await _customerRepo.Get(id),
+                StartDate = startDate,
+                EndDate = endDate,
+                Details = new List<CustomerBalanceDetailVM>()
+            };
+            foreach (var calendar in calendars)
+            {
+            }
+
+            return View();
         }
     }
 }

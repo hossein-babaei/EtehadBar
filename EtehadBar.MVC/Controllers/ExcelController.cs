@@ -1,16 +1,12 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
-using DocumentFormat.OpenXml.Spreadsheet;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
-using EtehadBar.Infra.Data.Repository;
 using EtehadBar.MVC.Filters;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -27,7 +23,6 @@ namespace EtehadBar.MVC.Controllers
         private readonly ICostRepository _costRepo;
         private readonly ICustomerRepository _customerRepo;
         private readonly ILoadFactorRepository _loadFactorRepo;
-        private readonly IPaymentRepository _paymentRepo;
         private readonly IVehicleRepository _vehicleRepo;
         private readonly IAccountBookRepository _accountBookRepo;
         private readonly IMehrcomParsCategoryRepository _mehrcomParsCategoryRepository;
@@ -40,7 +35,6 @@ namespace EtehadBar.MVC.Controllers
             ICostRepository costRepository,
             ICustomerRepository customerRepository,
             ILoadFactorRepository loadFactorRepository,
-            IPaymentRepository paymentRepository,
             IVehicleRepository vehicleRepository,
             IAccountBookRepository accountBookRepo,
             IMehrcomParsCategoryRepository mehrcomParsCategoryRepository,
@@ -52,7 +46,6 @@ namespace EtehadBar.MVC.Controllers
             _costRepo = costRepository;
             _customerRepo = customerRepository;
             _loadFactorRepo = loadFactorRepository;
-            _paymentRepo = paymentRepository;
             _vehicleRepo = vehicleRepository;
             _accountBookRepo = accountBookRepo;
             _mehrcomParsCategoryRepository = mehrcomParsCategoryRepository;
@@ -72,7 +65,7 @@ namespace EtehadBar.MVC.Controllers
             var excludedBillTypes = new List<string> { "جابجایی از پاسارگاد", "جابجایی حساب", "واریز شرکا - تامین وجه" };
             var payment = await _billRepository.Query().Where(a => !excludedBillTypes.Contains(a.BillType) &&
             a.Date >= calendar.StartDate && a.Date <= calendar.EndDate).SumAsync(a => a.Amount);
-            var income = await _customerRepo.CustomerIncomes().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            var income = await _customerRepo.CustomerIncomes().Where(a => a.Date >= calendar.StartDate && a.Date <= calendar.EndDate).SumAsync(a => a.Amount);
 
             var loadFactors = new List<GlobalLoadFactorVM>();
             var loadFactorList = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId)).Select(a => new GlobalLoadFactorVM
@@ -302,102 +295,6 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(costs.Count + 4, 5).Value = costs.Sum(a => a.Amount).ToString("N0");
 
             var rngTable2 = ws.Range($"B{costs.Count + 3}:E{costs.Count + 4}");
-            rngTable2.RangeUsed().Style
-                .Font.SetBold()
-                .Font.SetFontSize(12);
-
-            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
-            ws.Columns().AdjustToContents();
-
-            await using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            var content = stream.ToArray();
-
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
-        }
-
-        [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> Payment(long calendarId, byte? type, long vehicleId)
-        {
-            var calendar = await _calendarRepo.Get(calendarId);
-            var payments = await _paymentRepo.PaymentVMList(calendarId, type, vehicleId);
-
-            string docTitle = $"گزارش حقوق و مساعده پرداختی در {calendar.Title}";
-
-            using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("حقوق و مساعده پرداختی");
-            ws.RightToLeft = true;
-
-            ws.Cell(1, 1).Value = docTitle;
-
-            ws.Cell(2, 1).Value = "#";
-            ws.Cell(2, 2).Value = "تاریخ";
-            ws.Cell(2, 3).Value = "نوع";
-            ws.Cell(2, 4).Value = "توضیحات";
-            ws.Cell(2, 5).Value = "مبلغ";
-            ws.Cell(2, 6).Value = "کاربر سیستم";
-            ws.Cell(2, 7).Value = "خودرو/کارمند";
-
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(payments.Count + 2, 7));
-            rngTable.FirstRow().Merge();
-
-            rngTable.FirstRow().Style
-                .Font.SetBold()
-                .Font.SetFontSize(15)
-                    .Fill.SetBackgroundColor(XLColor.LightGray)
-                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-
-            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 7)); // The address is relative to rngTable (NOT the worksheet)
-            rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            rngHeaders.Style.Font.Bold = true;
-            rngHeaders.Style.Font.FontColor = XLColor.Black;
-
-            for (int index = 1; index <= payments.Count; index++)
-            {
-                string typeStr = payments[index - 1].PaymentType switch
-                {
-                    PaymentType.AdvanceMoney => "مساعده",
-                    PaymentType.Salary => "حقوق",
-                    _ => ""
-                };
-
-                ws.Cell(index + 2, 1).Value = index;
-                ws.Cell(index + 2, 2).Value = new PersianDateTime(payments[index - 1].Date).ToString("yyyy/MM/dd");
-                ws.Cell(index + 2, 3).Value = typeStr;
-                ws.Cell(index + 2, 4).Value = payments[index - 1].Description;
-                ws.Cell(index + 2, 5).Value = payments[index - 1].Amount.ToString("N0");
-                ws.Cell(index + 2, 6).Value = payments[index - 1].AdminName;
-                if (payments[index - 1].VehicleId.HasValue)
-                    ws.Cell(index + 2, 7).Value = payments[index - 1].Vehicle;
-                else
-                    ws.Cell(index + 2, 7).Value = payments[index - 1].UserFullname;
-            }
-
-            ws.Cell($"B{payments.Count + 3}").Value = "تعداد مساعده پرداختی";
-            ws.Range($"B{payments.Count + 3}:D{payments.Count + 3}").Row(1).Merge();
-            ws.Cell(payments.Count + 3, 7).Value = payments.Count(a => a.PaymentType.Equals((byte)PaymentType.AdvanceMoney));
-
-            ws.Cell($"B{payments.Count + 4}").Value = "تعداد حقوق پرداختی";
-            ws.Range($"B{payments.Count + 4}:D{payments.Count + 4}").Row(1).Merge();
-            ws.Cell(payments.Count + 4, 7).Value = payments.Count(a => a.PaymentType.Equals((byte)PaymentType.Salary));
-
-            ws.Cell($"B{payments.Count + 5}").Value = "تعداد کل";
-            ws.Range($"B{payments.Count + 5}:D{payments.Count + 5}").Row(1).Merge();
-            ws.Cell(payments.Count + 5, 7).Value = payments.Count;
-
-            ws.Cell($"B{payments.Count + 6}").Value = "جمع کل مبلغ مساعده پرداختی";
-            ws.Range($"B{payments.Count + 6}:D{payments.Count + 6}").Row(1).Merge();
-            ws.Cell(payments.Count + 6, 7).Value = payments.Where(a => a.PaymentType.Equals((byte)PaymentType.AdvanceMoney)).Sum(a => a.Amount).ToString("N0");
-
-            ws.Cell($"B{payments.Count + 7}").Value = "جمع کل مبلغ حقوق پرداختی";
-            ws.Range($"B{payments.Count + 7}:D{payments.Count + 7}").Row(1).Merge();
-            ws.Cell(payments.Count + 7, 7).Value = payments.Where(a => a.PaymentType.Equals((byte)PaymentType.Salary)).Sum(a => a.Amount).ToString("N0");
-
-            ws.Cell($"B{payments.Count + 8}").Value = "جمع کل پرداختی";
-            ws.Range($"B{payments.Count + 8}:F{payments.Count + 8}").Row(1).Merge();
-            ws.Cell(payments.Count + 8, 7).Value = payments.Sum(a => a.Amount).ToString("N0");
-
-            var rngTable2 = ws.Range($"B{payments.Count + 3}:G{payments.Count + 8}");
             rngTable2.RangeUsed().Style
                 .Font.SetBold()
                 .Font.SetFontSize(12);
@@ -652,67 +549,67 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CustomerIncome(long? id, long calendarId)
-        {
-            if (!id.HasValue)
-                return BadRequest("parameter error");
+        //[Authorize(Roles = "Admin")]
+        //public async Task<IActionResult> CustomerIncome(long? id, long calendarId)
+        //{
+        //    if (!id.HasValue)
+        //        return BadRequest("parameter error");
 
-            if (!await _customerRepo.Customers().AnyAsync(a => a.Id.Equals(id.Value)))
-                return NotFound("مشتری پیدا نشد");
+        //    if (!await _customerRepo.Customers().AnyAsync(a => a.Id.Equals(id.Value)))
+        //        return NotFound("مشتری پیدا نشد");
 
-            var customer = await _customerRepo.Get(id.Value);
-            var calendar = await _calendarRepo.Get(calendarId);
-            var incomes = await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Equals(id.Value)).OrderBy(a => a.Date).ToListAsync();
+        //    var customer = await _customerRepo.Get(id.Value);
+        //    var calendar = await _calendarRepo.Get(calendarId);
+        //    var incomes = await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Equals(id.Value)).OrderBy(a => a.Date).ToListAsync();
 
-            string docTitle = $"گزارش دریافتی های {customer.Name}";
+        //    string docTitle = $"گزارش دریافتی های {customer.Name}";
 
-            using var workbook = new XLWorkbook();
+        //    using var workbook = new XLWorkbook();
 
-            var ws = workbook.Worksheets.Add("Sheet1");
-            ws.RightToLeft = true;
-            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+        //    var ws = workbook.Worksheets.Add("Sheet1");
+        //    ws.RightToLeft = true;
+        //    ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
-            ws.Cell("A1").Value = "ردیف";
-            ws.Cell("B1").Value = "تاریخ";
-            ws.Cell("C1").Value = "شرح";
-            ws.Cell("D1").Value = "مبلغ";
+        //    ws.Cell("A1").Value = "ردیف";
+        //    ws.Cell("B1").Value = "تاریخ";
+        //    ws.Cell("C1").Value = "شرح";
+        //    ws.Cell("D1").Value = "مبلغ";
 
-            ws.Range("A1:D1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
-                .Font.SetBold(true)
-                .Font.SetFontSize(12);
+        //    ws.Range("A1:D1").Style.Fill.SetBackgroundColor(XLColor.LightGray)
+        //        .Font.SetBold(true)
+        //        .Font.SetFontSize(12);
 
-            for (int index = 1; index <= incomes.Count; index++)
-            {
-                ws.Cell(index + 1, 1).Value = index;
-                ws.Cell(index + 1, 2).Value = new PersianDateTime(incomes[index - 1].Date).ToString("yyyy/MM/dd");
-                ws.Cell(index + 1, 3).Value = incomes[index - 1].Description;
-                ws.Cell(index + 1, 4).Value = incomes[index - 1].Amount.ToString("N0");
-            }
+        //    for (int index = 1; index <= incomes.Count; index++)
+        //    {
+        //        ws.Cell(index + 1, 1).Value = index;
+        //        ws.Cell(index + 1, 2).Value = new PersianDateTime(incomes[index - 1].Date).ToString("yyyy/MM/dd");
+        //        ws.Cell(index + 1, 3).Value = incomes[index - 1].Description;
+        //        ws.Cell(index + 1, 4).Value = incomes[index - 1].Amount.ToString("N0");
+        //    }
 
-            ws.Cell($"A{incomes.Count + 1}").Value = "جمع";
-            ws.Range($"A{incomes.Count + 1}:C{incomes.Count + 1}").Row(1).Merge();
-            ws.Cell($"D{incomes.Count + 1}").Value = incomes.Sum(a => a.Amount).ToString("N0");
-            ws.Range($"A{incomes.Count + 1}:D{incomes.Count + 1}").Style.Fill.SetBackgroundColor(XLColor.LightGray)
-                .Font.SetBold(true);
+        //    ws.Cell($"A{incomes.Count + 1}").Value = "جمع";
+        //    ws.Range($"A{incomes.Count + 1}:C{incomes.Count + 1}").Row(1).Merge();
+        //    ws.Cell($"D{incomes.Count + 1}").Value = incomes.Sum(a => a.Amount).ToString("N0");
+        //    ws.Range($"A{incomes.Count + 1}:D{incomes.Count + 1}").Style.Fill.SetBackgroundColor(XLColor.LightGray)
+        //        .Font.SetBold(true);
 
-            ws.Columns().AdjustToContents();
-            ws.LastColumnUsed().Style.Font.SetBold(true);
-            ws.CellsUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            ws.CellsUsed().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-            ws.CellsUsed().Style.Font.FontColor = XLColor.Black;
-            ws.RowsUsed().Height = 20;
-            ws.RangeUsed().Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin)
-                .Border.SetOutsideBorderColor(XLColor.Black)
-                .Border.SetInsideBorder(XLBorderStyleValues.Thin)
-                .Border.SetInsideBorderColor(XLColor.Black);
+        //    ws.Columns().AdjustToContents();
+        //    ws.LastColumnUsed().Style.Font.SetBold(true);
+        //    ws.CellsUsed().Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        //    ws.CellsUsed().Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+        //    ws.CellsUsed().Style.Font.FontColor = XLColor.Black;
+        //    ws.RowsUsed().Height = 20;
+        //    ws.RangeUsed().Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin)
+        //        .Border.SetOutsideBorderColor(XLColor.Black)
+        //        .Border.SetInsideBorder(XLBorderStyleValues.Thin)
+        //        .Border.SetInsideBorderColor(XLColor.Black);
 
-            await using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            var content = stream.ToArray();
+        //    await using var stream = new MemoryStream();
+        //    workbook.SaveAs(stream);
+        //    var content = stream.ToArray();
 
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
-        }
+        //    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+        //}
 
         public async Task<IActionResult> Customer(long customerId, long? calendarId, long? accountBookId, ExcelExportType? exportType)
         {
@@ -2262,9 +2159,9 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> ActivityList(long customerId, long calendarId, bool hasPayment)
+        public async Task<IActionResult> ActivityList(long customerId, long calendarId, bool hasPayment, bool isFreeDriverFee)
         {
-            var data = await _vehicleRepo.ActivityList(customerId, calendarId, hasPayment);
+            var data = await _vehicleRepo.ActivityList(customerId, calendarId, hasPayment, isFreeDriverFee);
             var calendar = await _calendarRepo.Get(calendarId);
             var customer = await _customerRepo.Get(customerId);
 
@@ -2350,14 +2247,87 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> VehicleActivityByCustomer(long customerId, long calendarId)
+        public async Task<IActionResult> FullActivityList(long customerId, long calendarId)
         {
-            var data = await _vehicleRepo.ActivityListByCustomer(customerId, calendarId);
+            var data = await _vehicleRepo.FullActivityList(customerId, calendarId);
             var calendar = await _calendarRepo.Get(calendarId);
             var customer = await _customerRepo.Get(customerId);
 
             using var workbook = new XLWorkbook();
-            var docTitle = $"عملکرد {customer.Name} در {calendar.Title}";
+            var docTitle = $"لیست عملکرد کلی {customer.Name} در {calendar.Title}";
+
+            var ws = workbook.Worksheets.Add(calendar.Title);
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Titr";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+            ws.Cell(2, 1).Value = "#";
+            ws.Cell(2, 2).Value = "نام و نام خانوادگی";
+            ws.Cell(2, 3).Value = "شماره خودرو";
+            ws.Cell(2, 4).Value = "پرداخت شده";
+            ws.Cell(2, 5).Value = "عملکرد";
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 5));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetBold()
+                .Font.SetFontSize(14)
+                    .Fill.SetBackgroundColor(XLColor.LightGray)
+                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 5)); // The address is relative to rngTable (NOT the worksheet)
+            rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            rngHeaders.Style.Font.Bold = true;
+            rngHeaders.Style.Font.FontColor = XLColor.Black;
+
+            for (int i = 0; i < data.Count; i++)
+            {
+                ws.Cell(i + 3, 1).Value = i + 1;
+                ws.Cell(i + 3, 2).Value = data[i].VehicleOwnerName;
+                ws.Cell(i + 3, 3).Value = data[i].VehicleNumber;
+                ws.Cell(i + 3, 4).Value = data[i].Amount < 0 ? 0 : data[i].Amount.ToString("N0");
+                ws.Cell(i + 3, 5).Value = data[i].ActivityAmount.Value < 0 ? 0 : data[i].ActivityAmount.Value.ToString("N0");
+            }
+
+            ws.Cell(data.Count + 3, 1).Value = "جمع";
+            ws.Range(data.Count + 3, 1, data.Count + 3, 3).Merge();
+            ws.Cell(data.Count + 3, 4).Value = data.Sum(a => a.Amount < 0 ? 0 : a.Amount).ToString("N0");
+            ws.Cell(data.Count + 3, 5).Value = data.Sum(a => a.ActivityAmount.Value).ToString("N0");
+
+            ws.Column("A").Width = 5;
+            ws.Column("B").Width = 18;
+            ws.Column("C").Width = 20;
+            ws.Column("D").Width = 20;
+            ws.Column("E").Width = 20;
+
+            ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var table = ws.Range(2, 1, data.Count + 2, 5).CreateTable();
+            table.Theme = XLTableTheme.None;
+            table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+            table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+        }
+
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> VehicleActivityByCustomer(long customerId, long calendarId, bool isFreeDriverFee)
+        {
+            var data = await _vehicleRepo.ActivityListByCustomer(customerId, calendarId, isFreeDriverFee);
+            if (!data.Any())
+                return NotFound("بارنامه ای وجود ندارد.");
+
+            var calendar = await _calendarRepo.Get(calendarId);
+            var customer = await _customerRepo.Get(customerId);
+
+            using var workbook = new XLWorkbook();
+            var docTitle = $"عملکرد {customer.Name} در {calendar.Title}{(isFreeDriverFee ? " | موردی" : "")}";
 
             foreach (var item in data)
             {

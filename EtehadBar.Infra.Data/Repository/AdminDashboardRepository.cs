@@ -53,7 +53,7 @@ namespace EtehadBar.Infra.Data.Repository
                 LoadFactorsDriverFee = loadFactors.Sum(a => a.DriverFee),
                 RegisteredLoadFactorCount = loadFactors.Count,
                 CostAmount = await db.Cost.Where(a => a.Date >= limit).SumAsync(a => a.Amount),
-                PaymentAmount = await db.Payment.Where(a => a.Date >= limit).SumAsync(a => a.Amount),
+                PaymentAmount = await db.Bill.Where(a => a.Date >= limit && a.BillType.Equals("حقوق پرسنل")).SumAsync(a => a.Amount),
                 SaipaPlascoAmount = loadFactors.Where(a => a.SaipaPlascoLoadFactor is not null).Sum(a => a.Amount),
                 SaipaPlascoDriverFee = loadFactors.Where(a => a.SaipaPlascoLoadFactor is not null).Sum(a => a.DriverFee),
                 SaipaPressAmount = loadFactors.Where(a => a.SaipaPressLoadFactor is not null).Sum(a => a.Amount),

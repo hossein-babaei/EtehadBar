@@ -13,7 +13,11 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "تاریخ")]
         public DateTime Date { get; set; } = DateTime.Now;
 
-        [Display(Name = "مبلغ (تومان)")]
+        [Display(Name = "بانک")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string BankName { get; set; }
+
+        [Display(Name = "مبلغ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double Amount { get; set; }
 
@@ -32,12 +36,6 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
-
-        [Display(Name = "تقویم")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(50)]
-        public long CalendarId { get; set; }
-        public virtual Calendar Calendar { get; set; }
 
         [Required]
         [StringLength(36)]

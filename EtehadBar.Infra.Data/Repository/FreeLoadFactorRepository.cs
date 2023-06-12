@@ -30,7 +30,7 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<FreeLoadFactor> Get(long id)
         {
-            return db.FreeLoadFactor.Find(id);
+            return await db.FreeLoadFactor.FindAsync(id);
         }
 
         public async Task<EditFreeLoadFactorVM> GetEditData(long id)

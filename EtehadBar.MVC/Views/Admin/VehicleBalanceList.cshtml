@@ -34,7 +34,7 @@
                 <tr class="uk-text-center sm">
                     <td>1</td>
                     <td>---</td>
-                    <td>@beforeBalanceSum.ToString("N0")</td>
+                    <td dir="ltr">@beforeBalanceSum.ToString("N0")</td>
                     <td>نقل حساب از قبل</td>
                 </tr>
                 @foreach (var item in Model)
@@ -50,7 +50,7 @@
                 <tr class="uk-text-center sm">
                     <td>@i</td>
                     <td>---</td>
-                    <td>@((beforeBalanceSum + Model.Sum(a => a.Amount)).ToString("N0"))</td>
+                    <td dir="ltr">@((beforeBalanceSum + Model.Sum(a => a.Amount)).ToString("N0"))</td>
                     <td>مانده</td>
                 </tr>
             </tbody>

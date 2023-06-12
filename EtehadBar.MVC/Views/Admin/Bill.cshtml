@@ -34,6 +34,11 @@
             filter();
         });
 
+        $('#sum-modal form').submit(function (e) {
+            e.preventDefault();
+            calcBillSum();
+        });
+
         function getSearch() {
             if (!isSearchLoaded) {
                 preloader();
@@ -221,6 +226,27 @@
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();
         }
+        function calcBillSum(){
+            let billNo = $('#sum-modal input').val();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CalculateBillSum")',
+                data: {'billNo' : billNo },
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#sum-modal .result').text(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -232,6 +258,7 @@
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <button uk-toggle="#sum-modal" class="uk-button uk-button-secondary uk-margin-small-right">محاسبه</button>
         <button onclick="getSearch()" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
     </div>
 </div>
@@ -250,6 +277,7 @@
                     <th>@Html.DisplayNameFor(model => model.BankBranch)</th>
                     <th>@Html.DisplayNameFor(model => model.BillType)</th>
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
+                    <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
@@ -277,6 +305,7 @@
                         <td>@item.BankBranch</td>
                         <td>@item.BillType</td>
                         <td>@item.Calendar.Title</td>
+                        <td>@(item.CustomerId.HasValue ? item.Customer.Name : "---")</td>
                         <td class="uk-text-small">@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
@@ -304,6 +333,22 @@
             <div class="uk-modal-footer uk-text-center">
                 <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="sum-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form>
+            <p class="uk-text-bold">برای محاسبه مجموع یک فیش، شماره ان را وارد نمائید.</p>
+            <input class="uk-input uk-border-rounded" dir="ltr" />
+
+            <hr />
+            <p class="uk-text-bold">حاصل جمع: <span class ="result">0</span></p>
+
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="calcBillSum()" type="button">محاسبه و نمایش</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
             </div>
         </form>
     </div>
@@ -347,6 +392,21 @@
                     <label class="uk-form-label">جستجو در شرح</label>
                     <input class="uk-input uk-border-rounded" id="description" name="description" autocomplete="off" />
                 </div>
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="uk-margin-small-top">
+                        <label class="uk-form-label">خودرو های حقیقی</label>
+                        <select class="uk-select uk-border-rounded" id="realVehicle" name="realVehicle">
+                            <option value="-1">همه</option>
+                            <option value="1">بلی</option>
+                            <option value="0">خیر</option>
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <input id="realVehicle" name="realVehicle" type="hidden" value="-1" />
+                }
             </form>
             <div class="uk-margin-top uk-text-center">
                 <a asp-action="Payment" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>

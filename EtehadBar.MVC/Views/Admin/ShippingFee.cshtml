@@ -133,6 +133,33 @@
                     matcher: ignoreSpecialCharAndWhitespaceInSelect2
                 });
                 parseValidator('#append-modal form');
+                $('#edit-form #CalendarLimit').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#append-modal .datepicker').persianDatepicker({
+                    initialValue: false,
+                    autoClose: true,
+                    timePicker: {
+                        enabled: false
+                    },
+                    format: 'YYYY/MM/DD',
+                    navigator: {
+                        enabled: true,
+                        scroll: {
+                            "enabled": true
+                        },
+                        text: {
+                            btnNextText: '>',
+                            btnPrevText: '<'
+                        }
+                    },
+                    toolbox: {
+                        calendarSwitch: {
+                            enabled: false
+                        }
+                    }
+                });
                 preloader();
                 UIkit.modal('#append-modal').show();
             });

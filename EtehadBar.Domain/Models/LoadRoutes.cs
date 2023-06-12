@@ -20,6 +20,10 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public LoadRouteType RouteType { get; set; }
 
+        [Display(Name = "حقیقی")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool RealStatus { get; set; }
+
         [Required]
         [StringLength(36)]
         public string RowId { get; set; } = Guid.NewGuid().ToString();

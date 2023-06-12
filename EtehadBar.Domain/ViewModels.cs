@@ -7,6 +7,23 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain
 {
+    public class CustomerBalanceVM
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public Customer Customer { get; set; }
+        public List<Calendar> Calendars { get; set; }
+        public List<CustomerBalanceDetailVM> Details { get; set; }
+    }
+
+    public class CustomerBalanceDetailVM
+    {
+        public long CalendarId { get; set; }
+        public int AccountBookQuantity { get; set; }
+        public double AccountBookLoadFactorsSum { get; set; }
+        public List<CustomerIncome> CustomerIncomes { get; set; }
+    }
+
     public class ExcelLoadFactorVM
     {
         public long Id { get; set; }
@@ -94,6 +111,7 @@ namespace EtehadBar.Domain
         public string VehicleOwnerName { get; set; }
         public string VehicleNumber { get; set; }
         public double Amount { get; set; }
+        public double? ActivityAmount { get; set; }
         public string BankAccountNumber { get; set; }
     }
 

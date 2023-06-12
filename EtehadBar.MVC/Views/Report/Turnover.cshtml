@@ -183,6 +183,14 @@
                     <label class="uk-form-label">تا تاریخ</label>
                     <input name="endDate" class="endDate uk-input uk-border-rounded" dir="ltr" />
                 </div>
+
+                <div class="uk-margin-top">
+                    <label class="uk-form-label">نوع</label>
+                    <select name="turnoverType" class="uk-select uk-border-rounded">
+                        <option value="@((int)TurnoverType.Partner)">شریک</option>
+                        <option value="@((int)TurnoverType.Investor)">سرمایه گذار</option>
+                    </select>
+                </div>
             </form>
             <div class="uk-margin-top uk-text-center">
                 <a asp-action="Turnover" asp-controller="Report" class="uk-button uk-button-text">ریست کردن نتایج</a>

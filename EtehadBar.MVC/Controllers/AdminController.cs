@@ -1,6 +1,4 @@
-﻿using Castle.Core.Resource;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using EtehadBar.Domain;
+﻿using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.MVC.Filters;
@@ -36,7 +34,6 @@ namespace EtehadBar.MVC.Controllers
         private readonly ICustomerRepository _customerRepo;
         private readonly IDefinitionRepository _definitionRepo;
         private readonly ILoadFactorRepository _loadFactorRepo;
-        private readonly IPaymentRepository _paymentRepo;
         private readonly IShippingFeeRepository _shippingFeeRepo;
         private readonly IVehicleRepository _vehicleRepo;
         private readonly IWebHostEnvironment _environment;
@@ -65,7 +62,6 @@ namespace EtehadBar.MVC.Controllers
             ICustomerRepository customerRepository,
             IDefinitionRepository definitionRepository,
             ILoadFactorRepository loadFactorRepository,
-            IPaymentRepository paymentRepository,
             IShippingFeeRepository shippingFeeRepository,
             IVehicleRepository vehicleRepository,
             IWebHostEnvironment environment,
@@ -93,7 +89,6 @@ namespace EtehadBar.MVC.Controllers
             _customerRepo = customerRepository;
             _definitionRepo = definitionRepository;
             _loadFactorRepo = loadFactorRepository;
-            _paymentRepo = paymentRepository;
             _shippingFeeRepo = shippingFeeRepository;
             _vehicleRepo = vehicleRepository;
             _environment = environment;
@@ -1155,7 +1150,7 @@ namespace EtehadBar.MVC.Controllers
             var item = await _calendarRepo.Get(id);
             if (item == null) return NotFound();
 
-            if (item.Costs.Any() || item.CustomerIncomes.Any() || item.LoadFactors.Any() || item.Payments.Any())
+            if (item.Costs.Any() || item.CustomerIncomes.Any() || item.LoadFactors.Any() || item.Bills.Any())
             {
                 TempData["msg"] = "این تقویم قابل حذف نیست. |danger";
                 return Redirect(Request.Headers["Referer"].ToString());
@@ -1389,241 +1384,6 @@ namespace EtehadBar.MVC.Controllers
         }
         #endregion
 
-        #region Payment
-        [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> Payment(int? p)
-        {
-            var pageNumber = p ?? 1;
-            var onePageOfData = await _paymentRepo.Payments().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
-            ViewBag.data = onePageOfData;
-            return View();
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> Payment_Search()
-        {
-            var vehicles = await _vehicleRepo.Vehicles().AsNoTracking().OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).Select(a => new
-            {
-                a.Id,
-                number = $"ایران {a.IranStateNumber} - {a.RightNumber} {a.NumberWord} {a.LeftNumber}",
-                owner = a.VehicleOwnerFullname
-            }).ToListAsync();
-            var users = await _userManager.Users.AsNoTracking().OrderBy(a => a.Firstname).ThenByDescending(a => a.Lastname).Select(a => new
-            {
-                a.Id,
-                name = $"{a.Firstname} {a.Lastname}"
-            }).ToListAsync();
-            return Json(new { vehicles, users });
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> Payment_Search(int? p, string description, long vehicleId, string userId)
-        {
-            var pageNumber = p ?? 1;
-            var query = _paymentRepo.Payments();
-            if (!string.IsNullOrWhiteSpace(description))
-                query = query.Where(a => a.Description.Contains(description));
-            if (vehicleId > 0)
-                query = query.Where(a => a.VehicleId.HasValue && a.VehicleId.Equals(vehicleId));
-            if (userId != "all")
-                query = query.Where(a => a.UserId.Equals(userId));
-
-            var onePageOfData = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
-            ViewBag.data = onePageOfData;
-
-            ViewBag.Description = description;
-            ViewBag.VehicleId = vehicleId;
-            ViewBag.UserId = userId;
-            return PartialView();
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin, User, Milad")]
-        public async Task<PartialViewResult> CreatePayment(string itemId, string type)
-        {
-            ViewData["AdminId"] = _userManager.GetUserId(User);
-            ViewData["Year"] = await _configRepo.CurrentYear();
-            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
-            if (type == "vehicle")
-                ViewData["VehicleInfo"] = await _vehicleRepo.Get(Convert.ToInt64(itemId));
-            else
-                ViewData["UserInfo"] = await _userManager.Users.FirstOrDefaultAsync(a => a.Id == itemId);
-
-            ViewData["Type"] = type;
-            return PartialView("~/Views/Admin/Create/Payment.cshtml");
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin, User, Milad")]
-        public async Task<IActionResult> CreatePayment(Payment p, int day, int month, int year, IFormFile pic)
-        {
-            if (ModelState.IsValid)
-            {
-                if (pic != null)
-                {
-                    if (pic.Length <= 1024000)
-                    {
-                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-                        {
-                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\payment")))
-                            {
-                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\payment"));
-                            }
-                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-                            var path = Path.Combine(_environment.WebRootPath, "img\\payment", fileName);
-                            using (var stream = new FileStream(path, FileMode.Create))
-                            {
-                                await pic.CopyToAsync(stream);
-                            }
-
-                            p.Picture = fileName;
-                        }
-                        else
-                        {
-                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-                        }
-                    }
-                    else
-                    {
-                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-                    }
-                }
-
-                p.Date = new PersianDateTime(year, month, day).ToDateTime();
-
-                _paymentRepo.Create(p);
-                try
-                {
-                    await _paymentRepo.Save();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                }
-                catch (Exception e)
-                {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                }
-            }
-            else
-            {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-            }
-            return Redirect(Request.Headers["Referer"].ToString());
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin, User, Milad")]
-        public async Task<PartialViewResult> EditPayment(int id)
-        {
-            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
-            return PartialView("~/Views/Admin/Edit/Payment.cshtml", await _paymentRepo.Get(id));
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin, User, Milad")]
-        public async Task<IActionResult> EditPayment(Payment p, int day, int month, int year, IFormFile pic)
-        {
-            if (ModelState.IsValid)
-            {
-                var item = await _paymentRepo.Get(p.Id);
-                item.AdminId = _userManager.GetUserId(User);
-                item.Amount = p.Amount;
-                item.PaymentType = p.PaymentType;
-                item.CalendarId = p.CalendarId;
-
-                item.Date = new PersianDateTime(year, month, day).ToDateTime();
-
-                if (pic != null)
-                {
-                    if (pic.Length <= 1024000)
-                    {
-                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
-                        {
-                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\payment")))
-                            {
-                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\payment"));
-                            }
-                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
-                            var path = Path.Combine(_environment.WebRootPath, "img\\payment", fileName);
-                            using (var stream = new FileStream(path, FileMode.Create))
-                            {
-                                await pic.CopyToAsync(stream);
-                            }
-
-                            if (!string.IsNullOrEmpty(item.Picture))
-                            {
-                                try
-                                {
-                                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\payment", item.Picture));
-                                }
-                                catch (Exception)
-                                {
-                                    throw;
-                                }
-                            }
-
-                            item.Picture = fileName;
-                        }
-                        else
-                        {
-                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
-                        }
-                    }
-                    else
-                    {
-                        TempData["msg"] = "حجم تصویر بیشتر از 1 مگابایت است |danger";
-                    }
-                }
-
-                _paymentRepo.Update(item);
-                try
-                {
-                    await _paymentRepo.Save();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                }
-                catch (Exception e)
-                {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-                }
-            }
-            else
-            {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
-            }
-            return Redirect(Request.Headers["Referer"].ToString());
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin, User, Milad")]
-        public async Task<IActionResult> DeletePayment(int id)
-        {
-            var item = await _paymentRepo.Get(id);
-            if (!string.IsNullOrEmpty(item.Picture))
-            {
-                try
-                {
-                    System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\payment", item.Picture));
-                }
-                catch (Exception)
-                {
-                    throw;
-                }
-            }
-            _paymentRepo.Delete(item);
-            try
-            {
-                await _paymentRepo.Save();
-                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-            }
-            catch (Exception e)
-            {
-                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
-            }
-            return Redirect(Request.Headers["Referer"].ToString());
-        }
-        #endregion
-
         #region Customer
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -1704,7 +1464,7 @@ namespace EtehadBar.MVC.Controllers
             }
             ViewData["CustomerInfo"] = customer;
             ViewData["Year"] = await _configRepo.CurrentYear();
-            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["BankBranches"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderByDescending(a => a.Title).ToListAsync();
             var pageNumber = p ?? 1;
             var onePageOfData = await _customerRepo.CustomerIncomes().Where(a => a.CustomerId.Equals(id)).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
             ViewBag.data = onePageOfData;
@@ -1713,7 +1473,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CustomerIncome([Bind("Amount,Description,CustomerId")] CustomerIncome c, int day, int month, int year, IFormFile pic)
+        public async Task<IActionResult> CustomerIncome([Bind("BankName,Amount,Description,CustomerId")] CustomerIncome c, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
             {
@@ -1772,7 +1532,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<PartialViewResult> EditCustomerIncome(int id)
         {
-            ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["BankBranches"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderByDescending(a => a.Title).ToListAsync();
             return PartialView("~/Views/Admin/Edit/CustomerIncome.cshtml", await _customerRepo.GetIncome(id));
         }
 
@@ -1785,6 +1545,7 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _customerRepo.GetIncome(p.Id);
                 item.AdminId = _userManager.GetUserId(User);
                 item.Amount = p.Amount;
+                item.BankName = p.BankName;
 
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
 
@@ -2117,7 +1878,7 @@ namespace EtehadBar.MVC.Controllers
                 DefinitionType.Car
             };
             ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.DefinitionType)).ToListAsync();
-            ViewData["LoadRoutes"] = await _loadRouteRepo.LoadRoutes().AsNoTracking().ToListAsync();
+            ViewData["LoadRoutes"] = await _loadRouteRepo.LoadRoutes().Where(a => a.RealStatus).AsNoTracking().ToListAsync();
             ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().ToListAsync();
 
             return PartialView("~/Views/Admin/Create/ShippingFee.cshtml");
@@ -2176,15 +1937,16 @@ namespace EtehadBar.MVC.Controllers
                 DefinitionType.Car
             };
             ViewData["Data"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => types.Contains(a.DefinitionType)).ToListAsync();
-            ViewData["LoadRoutes"] = await _loadRouteRepo.LoadRoutes().AsNoTracking().ToListAsync();
+            ViewData["LoadRoutes"] = await _loadRouteRepo.LoadRoutes().Where(a => a.RealStatus).AsNoTracking().ToListAsync();
             ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().ToListAsync();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.Sequence).ToListAsync();
 
             return PartialView("~/Views/Admin/Edit/ShippingFee.cshtml", await _shippingFeeRepo.Get(id));
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> EditShippingFee(ShippingFee s)
+        public async Task<IActionResult> EditShippingFee(ShippingFee s, string DateLimit, long CalendarLimit)
         {
             string msg;
             string status = "danger";
@@ -2229,9 +1991,25 @@ namespace EtehadBar.MVC.Controllers
                     if (latestContractAddon == null)
                         latestContractAddon = await _contractRepo.Get(item.ContractId);
 
-                    var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(item.ContractId) && a.ShippingFeeId.Equals(item.Id) && a.Date >= latestContractAddon.StartDate && !a.IsDriverFeeEditedByAdmin).ToListAsync();
+                    var loadFactorQuery = _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(item.ContractId) && a.ShippingFeeId.Equals(item.Id) && a.Date >= latestContractAddon.StartDate && !a.IsDriverFeeEditedByAdmin);
+                    if (!string.IsNullOrWhiteSpace(DateLimit))
+                    {
+                        DateLimit = DateLimit.PersianToEnglish();
+                        var dateLimitArr = DateLimit.Split("/");
+                        var date = new PersianDateTime(Convert.ToInt32(dateLimitArr[0]), Convert.ToInt32(dateLimitArr[1]), Convert.ToInt32(dateLimitArr[2])).ToDateTime();
+                        loadFactorQuery = loadFactorQuery.Where(a => a.Date >= date);
+                    }
+
+                    if (CalendarLimit > 0)
+                    {
+                        var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= _calendarRepo.Calendars().Single(a => a.Id.Equals(CalendarLimit)).Sequence).Select(a => a.Id).ToListAsync();
+                        loadFactorQuery = loadFactorQuery.Where(a => calendars.Contains(a.CalendarId));
+                    }
+
+                    var loadFactors = await loadFactorQuery.ToListAsync();
                     if (loadFactors.Any())
                     {
+                        var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(a => a.Id).Contains(a.LoadFactorId.Value)).ToListAsync();
                         foreach (var factor in loadFactors)
                         {
                             factor.OriginId = item.OriginId;
@@ -2240,9 +2018,18 @@ namespace EtehadBar.MVC.Controllers
                             factor.Amount = item.Price;
                             factor.TonnagePrice = item.TonnagePrice;
                             factor.DriverTonnagePrice = item.DriverTonnagePrice;
+
+                            var balance = vehicleBalances.Single(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(factor.Id));
+                            balance.Amount = factor.DriverFee +
+                    ((factor.Tonnage.HasValue && factor.DriverTonnagePrice.HasValue) ? factor.Tonnage.Value * factor.DriverTonnagePrice.Value : 0) +
+                    (factor.WeighbridgePrice.HasValue ? factor.WeighbridgePrice.Value : 0) +
+                    (factor.DriverLoadSleepPrice.HasValue ? factor.DriverLoadSleepPrice.Value : 0);
+                            balance.EditDatetime = DateTime.Now;
                         }
                         _loadFactorRepo.UpdateRange(loadFactors);
                         await _loadFactorRepo.Save();
+
+                        await _vehicleBalanceRepository.Save();
                     }
 
                     msg = "عملیات موفقیت آمیز بود.";
@@ -2371,6 +2158,7 @@ namespace EtehadBar.MVC.Controllers
 
             var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
             var loadFactors = await _shippingFeeRepo.GetLoadFactorsByContractId(contractId, latestContractAddon.StartDate);
+            var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(b => b.Id).Contains(a.Id)).ToListAsync();
 
             foreach (var fee in feeList)
             {
@@ -2430,6 +2218,13 @@ namespace EtehadBar.MVC.Controllers
 
                         if (loadFactor.Date >= tonnageDriverAmountDatetime && loadFactor.DriverTonnagePrice.HasValue)
                             loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
+
+                        var balanceItem = vehicleBalances.Single(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(loadFactor.Id));
+                        balanceItem.Amount = loadFactor.DriverFee +
+                    ((loadFactor.Tonnage.HasValue && loadFactor.DriverTonnagePrice.HasValue) ? loadFactor.Tonnage.Value * loadFactor.DriverTonnagePrice.Value : 0) +
+                    (loadFactor.WeighbridgePrice.HasValue ? loadFactor.WeighbridgePrice.Value : 0) +
+                    (loadFactor.DriverLoadSleepPrice.HasValue ? loadFactor.DriverLoadSleepPrice.Value : 0);
+                        balanceItem.EditDatetime = DateTime.Now;
                     }
                     _shippingFeeRepo.UpdateLoadFactors(thisLoadFactor);
                 }
@@ -2440,6 +2235,7 @@ namespace EtehadBar.MVC.Controllers
             try
             {
                 await _shippingFeeRepo.Save();
+                await _vehicleBalanceRepository.Save();
                 msg = "عملیات موفقیت آمیز بود.";
                 status = "success";
             }
@@ -3429,6 +3225,7 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.Amount = item.DriverFee;
                         balanceItem.CreateDateTime = item.Date;
                         balanceItem.EditDatetime = DateTime.Now;
+                        balanceItem.VehicleId = item.VehicleId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
@@ -3559,6 +3356,7 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.Amount = item.DriverFee + ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0);
                         balanceItem.CreateDateTime = item.Date;
                         balanceItem.EditDatetime = DateTime.Now;
+                        balanceItem.VehicleId = item.VehicleId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
@@ -3671,6 +3469,7 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.Amount = item.DriverFee;
                         balanceItem.CreateDateTime = item.Date;
                         balanceItem.EditDatetime = DateTime.Now;
+                        balanceItem.VehicleId = item.VehicleId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
@@ -3803,6 +3602,7 @@ namespace EtehadBar.MVC.Controllers
                     (item.DriverLoadSleepPrice.HasValue ? item.DriverLoadSleepPrice.Value : 0);
                         balanceItem.CreateDateTime = item.Date;
                         balanceItem.EditDatetime = DateTime.Now;
+                        balanceItem.VehicleId = item.VehicleId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
@@ -3906,7 +3706,7 @@ namespace EtehadBar.MVC.Controllers
             var shippingFees = contract.ShippingFees;
 
             var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(contract.Id) && a.Date >= date).ToListAsync();
-
+            var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(a => a.Id).Contains(a.LoadFactorId.Value)).ToListAsync();
             foreach (var item in loadFactors)
             {
                 var shippingFee = shippingFees.Single(a => a.Id.Equals(item.ShippingFeeId));
@@ -3930,14 +3730,21 @@ namespace EtehadBar.MVC.Controllers
 
                     item.TonnagePrice = newShippingFee.TonnagePrice;
                     item.DriverTonnagePrice = newShippingFee.DriverTonnagePrice;
+
+                    var balance = vehicleBalances.Single(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(item.Id));
+                    balance.Amount = item.DriverFee +
+                    ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0) +
+                    (item.WeighbridgePrice.HasValue ? item.WeighbridgePrice.Value : 0) +
+                    (item.DriverLoadSleepPrice.HasValue ? item.DriverLoadSleepPrice.Value : 0);
+                    balance.EditDatetime = DateTime.Now;
                 }
                 _loadFactorRepo.Update(item);
             }
 
-
             try
             {
                 await _loadFactorRepo.Save();
+                await _vehicleBalanceRepository.Save();
                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
             }
             catch (Exception e)
@@ -4121,7 +3928,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var pageNumber = p ?? 1;
             var query = _accountBookRepository.AccountBooks();
-            if (!User.IsInRole("Admin"))
+            if (!User.IsInRole("Admin") || !User.IsInRole("Milad"))
                 query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
 
             var onePageOfData = await query.OrderByDescending(a => a.Number).ToPagedListAsync(pageNumber, 20);
@@ -4134,7 +3941,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var pageNum = p ?? 1;
             var query = _accountBookRepository.AccountBooks().Where(a => a.Number.Contains(param) || a.FactorNumber.Contains(param));
-            if (!User.IsInRole("Admin"))
+            if (!User.IsInRole("Admin") || !User.IsInRole("Milad"))
                 query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
 
             var onePageOfData = await query.OrderByDescending(a => a.Number).ToPagedListAsync(pageNum, 15);
@@ -5399,10 +5206,17 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Bill_Search(int? p, long vehicleId, long calendarId, string name, string bankBranch, string billType, string description, string bankBillNo, string billNo)
+        public async Task<IActionResult> Bill_Search(int? p, long vehicleId, long calendarId, string name, string bankBranch, string billType, string description, string bankBillNo, string billNo, int realVehicle = -1)
         {
             var pageNumber = p ?? 1;
             var query = _billRepository.Query();
+
+            if (realVehicle == 0)
+            {
+                var fakeVehicles = await _vehicleRepo.Vehicles().Where(a => !a.RealStatus).Select(a => a.Id).ToListAsync();
+                query = query.Where(a => a.VehicleId.HasValue && fakeVehicles.Contains(a.VehicleId.Value));
+            }
+
             if (name != "all" && name != null)
                 query = query.Where(a => a.ReceiverName.Contains(name));
             if (bankBranch != "all" && bankBranch != null)
@@ -5434,6 +5248,8 @@ namespace EtehadBar.MVC.Controllers
             ViewBag.VehicleId = vehicleId;
             ViewBag.BankBranch = bankBranch;
             ViewBag.CalendarId = calendarId;
+            ViewBag.RealVehicle = realVehicle;
+
             return PartialView();
         }
 
@@ -5448,6 +5264,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<PartialViewResult> CreateBill()
         {
             ViewData["Year"] = await _configRepo.CurrentYear();
+            ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderByDescending(a => a.Name).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().OrderByDescending(a => a.LeftNumber).ToListAsync();
             ViewData["Definitions"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BillType || a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderBy(a => a.Title).ToListAsync();
@@ -5465,6 +5282,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 b.Date = new PersianDateTime(year, month, day).ToDateTime();
                 b.CreatorId = _userManager.GetUserId(User);
+                b.CustomerId = b.CustomerId.Value == 0 ? null : b.CustomerId;
 
                 _billRepository.Create(b);
                 try
@@ -5480,7 +5298,8 @@ namespace EtehadBar.MVC.Controllers
                             CalendarId = b.CalendarId,
                             VehicleId = b.VehicleId.Value,
                             CreateDateTime = b.Date,
-                            Description = b.Description
+                            Description = b.Description,
+                            CustomerId = b.CustomerId
                         });
 
                         await _vehicleBalanceRepository.Save();
@@ -5506,6 +5325,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<PartialViewResult> EditBill(long id)
         {
+            ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderByDescending(a => a.Name).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().OrderByDescending(a => a.LeftNumber).ToListAsync();
             ViewData["Definitions"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BillType || a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderBy(a => a.Title).ToListAsync();
@@ -5520,6 +5340,8 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                b.CustomerId = b.CustomerId.Value == 0 ? null : b.CustomerId;
+
                 var item = await _billRepository.Get(b.Id);
 
                 var isVehicleChanged = false;
@@ -5537,6 +5359,7 @@ namespace EtehadBar.MVC.Controllers
                 item.BillType = b.BillType;
                 item.Description = b.Description;
                 item.ReceiverName = b.ReceiverName;
+                item.CustomerId = b.CustomerId;
 
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
 
@@ -5563,7 +5386,8 @@ namespace EtehadBar.MVC.Controllers
                             balanceItem.CalendarId = b.CalendarId;
                             balanceItem.VehicleId = b.VehicleId.Value;
                             balanceItem.Description = b.Description;
-                            
+                            balanceItem.CustomerId = b.CustomerId;
+
                             _vehicleBalanceRepository.Update(balanceItem);
                         }
                         else
@@ -5575,7 +5399,8 @@ namespace EtehadBar.MVC.Controllers
                                 CalendarId = b.CalendarId,
                                 VehicleId = b.VehicleId.Value,
                                 CreateDateTime = item.Date,
-                                Description = b.Description
+                                Description = b.Description,
+                                CustomerId = b.CustomerId
                             });
                         }
 
@@ -5622,12 +5447,20 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<JsonResult> CalculateBillSum(string billNo)
+        {
+            var sum = await _billRepository.Query().Where(a => a.BillNo.Equals(billNo)).SumAsync(a => a.Amount);
+            return Json(sum.ToString("N0"));
+        }
         #endregion
 
         #region VehicleBalance
         [HttpGet]
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> VehicleBalanceByCustomer(long customerId, long calendarId)
+        public async Task<IActionResult> VehicleBalanceByCustomer(long customerId, long calendarId, bool isFreeDriverPrice)
         {
             if (!await _customerRepo.Customers().AnyAsync(a => a.Id.Equals(customerId)))
                 return NotFound("Customer not found");
@@ -5635,7 +5468,7 @@ namespace EtehadBar.MVC.Controllers
             if (!await _calendarRepo.Calendars().AnyAsync(a => a.Id.Equals(calendarId)))
                 return NotFound("Calendar not found");
 
-            var data = await _vehicleRepo.ActivityList(customerId, calendarId, true);
+            var data = await _vehicleRepo.ActivityList(customerId, calendarId, true, isFreeDriverPrice);
             ViewData["Calendar"] = await _calendarRepo.Get(calendarId);
             ViewData["Customer"] = await _customerRepo.Get(customerId);
 

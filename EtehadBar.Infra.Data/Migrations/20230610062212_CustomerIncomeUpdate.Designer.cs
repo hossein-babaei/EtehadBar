@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230610062212_CustomerIncomeUpdate")]
+    partial class CustomerIncomeUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -379,9 +381,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<long?>("CustomerId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
@@ -412,8 +411,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CalendarId");
-
-                    b.HasIndex("CustomerId");
 
                     b.HasIndex("RowId")
                         .IsUnique();
@@ -1957,17 +1954,11 @@ namespace EtehadBar.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
-                        .WithMany()
-                        .HasForeignKey("CustomerId");
-
                     b.HasOne("EtehadBar.Domain.Models.Vehicle", "Vehicle")
                         .WithMany("Bills")
                         .HasForeignKey("VehicleId");
 
                     b.Navigation("Calendar");
-
-                    b.Navigation("Customer");
 
                     b.Navigation("Vehicle");
                 });
