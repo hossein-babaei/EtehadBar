@@ -87,9 +87,12 @@
             <li><span>@ViewData["Title"]</span></li>
         </ul>
     </div>
-    <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <button onclick="moveLoadFactors()" class="uk-button uk-button-secondary uk-margin-small-right">انتقال</button>
-    </div>
+    @if (accountBook.IsOpen)
+    {
+        <div class="uk-width-expand@m uk-flex uk-flex-left">
+            <button onclick="moveLoadFactors()" class="uk-button uk-button-secondary uk-margin-small-right">انتقال</button>
+        </div>
+    }
 </div>
 <div id="append" class="box">
     <form id="main-form" action="@Url.Action("MoveAccountBookLoadFactor")" method="post">

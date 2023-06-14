@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230613091413_AccountBookAmount")]
+    partial class AccountBookAmount
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -33,9 +35,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.Property<double>("Amount")
                         .HasColumnType("float");
-
-                    b.Property<long>("CalendarId")
-                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("CreateDatetime")
                         .HasColumnType("datetime2");
@@ -73,8 +72,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("nvarchar(36)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CalendarId");
 
                     b.HasIndex("CustomerId");
 
@@ -1928,19 +1925,11 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.AccountBook", b =>
                 {
-                    b.HasOne("EtehadBar.Domain.Models.Calendar", "Calendar")
-                        .WithMany("AccountBooks")
-                        .HasForeignKey("CalendarId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
                         .WithMany("AccountBooks")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Calendar");
 
                     b.Navigation("Customer");
                 });
@@ -2318,8 +2307,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Calendar", b =>
                 {
-                    b.Navigation("AccountBooks");
-
                     b.Navigation("Bills");
 
                     b.Navigation("Costs");

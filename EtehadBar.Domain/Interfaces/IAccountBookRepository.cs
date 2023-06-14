@@ -12,6 +12,7 @@ namespace EtehadBar.Domain.Interfaces
         void Update(AccountBook obj);
         void Create(AccountBook obj);
         void Delete(AccountBook obj);
+        Task UpdateAmount(long accountBookId);
         Task<int> Save();
     }
 }

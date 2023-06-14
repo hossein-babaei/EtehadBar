@@ -18,6 +18,7 @@
     @await Component.InvokeAsync("AdminTheme")
     <link href="~/css/admin-print.css" rel="stylesheet" asp-append-version="true" />
     <link href="~/fontawesome/css/all.min.css" rel="stylesheet" />
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
     <style>
         .layout-avatar {
             width: 28px;
@@ -115,6 +116,28 @@
             <partial name="_AdminSidebarPartial" />
         </div>
     </div>
+    <div id="slashed-load-factor-modal" uk-modal>
+        <div class="uk-modal-dialog">
+            <div class="uk-modal-header uk-light">
+                <h2 class="uk-modal-title">خروجی بارنامه های اسلش دار</h2>
+            </div>
+            <div class="uk-modal-body">
+                <form method="post" action="@Url.Action("SlashedLoadFactor", "Excel")" autocomplete="off">
+                    <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                        <div>
+                            <label class="uk-form-label">تاریخ</label>
+                            <select name="calendarId">
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="uk-modal-footer uk-text-center">
+                <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitSlashedLoadFactor()">دانلود فایل</a>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            </div>
+        </div>
+    </div>
     <form id="logout-form" asp-action="Logout" asp-controller="Home" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"></form>
     @if (TempData["msg"] != null)
     {
@@ -130,6 +153,7 @@
     <script defer src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script defer src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     <script defer src="~/lib/jquery-unobtrusive-ajax/jquery.unobtrusive-ajax.min.js"></script>
+    <script src="~/lib/select2/select2.min.js"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

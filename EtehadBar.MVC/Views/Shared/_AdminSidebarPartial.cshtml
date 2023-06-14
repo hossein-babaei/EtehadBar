@@ -94,6 +94,7 @@
                 @if (User.IsInRole("Admin"))
                 {
                     <li @if (param == 9) { <text> class="active" </text> }><a asp-action="Detailed" asp-controller="Report">تفصیلی</a></li>
+                    <li @if (param == 38) { <text> class="active" </text> }><a onclick="getSlashedLoadFactor()">بارنامه موردی /</a></li>
                     <li @if (param == 37) { <text> class="active" </text> }><a asp-action="Turnover" asp-controller="Report">سرمایه گذار و شرکا</a></li>
                 }
                 <li @if (param == 14) { <text> class="active" </text> }><a asp-action="Customer" asp-controller="Report">بر اساس مشتری</a></li>

@@ -1036,6 +1036,10 @@ namespace EtehadBar.Domain
         [Display(Name = "شماره فاکتور")]
         public string FactorNumber { get; set; }
 
+        [Display(Name = "تقویم کاری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CalendarId { get; set; }
+
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerId { get; set; }
@@ -1056,6 +1060,10 @@ namespace EtehadBar.Domain
 
         [Display(Name = "شماره فاکتور")]
         public string FactorNumber { get; set; }
+
+        [Display(Name = "تقویم کاری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CalendarId { get; set; }
 
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]

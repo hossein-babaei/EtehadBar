@@ -21,6 +21,10 @@
                     <th>@Html.DisplayNameFor(model => model.Number)</th>
                     <th>@Html.DisplayNameFor(model => model.FactorNumber)</th>
                     <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
+                    @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
+                    {
+                        <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    }
                     <th>@Html.DisplayNameFor(model => model.IsOpen)</th>
                     <th width="50">ویرایش</th>
                     <th width="50">عملیات</th>
@@ -43,6 +47,10 @@
                             <td>@Html.DisplayFor(modelItem => item.FactorNumber)</td>
                         }
                         <td>@Html.DisplayFor(modelItem => item.Customer.Name)</td>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
+                        {
+                            <td>@item.Amount.ToString("N0")</td>
+                        }
                         @if (item.IsOpen)
                         {
                             <td class="uk-text-success">باز</td>

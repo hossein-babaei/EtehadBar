@@ -30,6 +30,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IVehicleBalanceRepository _vehicleBalanceRepository;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ITurnoverRepository _turnoverRepository;
+        private readonly IAccountBookRepository _accountBookRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -41,7 +42,8 @@ namespace EtehadBar.MVC.Controllers
             IFreeLoadFactorRepository freeLoadFactorRepository,
             IBillRepository billRepository,
             IVehicleBalanceRepository vehicleBalanceRepository,
-            ITurnoverRepository turnoverRepository)
+            ITurnoverRepository turnoverRepository,
+            IAccountBookRepository accountBookRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -53,6 +55,7 @@ namespace EtehadBar.MVC.Controllers
             _billRepository = billRepository;
             _vehicleBalanceRepository = vehicleBalanceRepository;
             _turnoverRepository = turnoverRepository;
+            _accountBookRepository = accountBookRepository;
         }
 
         [HttpPost]
@@ -408,7 +411,9 @@ namespace EtehadBar.MVC.Controllers
             var startDate = new PersianDateTime(startDateInstance.Year, startDateInstance.Month, 1).ToDateTime();
             var endDate = endDateInstance.ToDateTime();
 
-            var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= (_calendarRepo.Calendars().Where(a => a.StartDate.Equals(startDate)).FirstOrDefault().Sequence)).OrderBy(a => a.Sequence).ToListAsync();
+            var startCalendarSequence = await _calendarRepo.Calendars().Where(a => a.StartDate.Equals(startDate)).Select(a => a.Sequence).FirstOrDefaultAsync();
+            var beforeStartCalendarIdList = await _calendarRepo.Calendars().Where(a => a.Sequence < startCalendarSequence).Select(a => a.Id).OrderByDescending(a => a).ToListAsync();
+            var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= startCalendarSequence).OrderBy(a => a.Sequence).ToListAsync();
             
             var data = new CustomerBalanceVM
             { 
@@ -418,11 +423,34 @@ namespace EtehadBar.MVC.Controllers
                 EndDate = endDate,
                 Details = new List<CustomerBalanceDetailVM>()
             };
+
+            var customerIncomes = await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CustomerId.Equals(id)).ToListAsync();
+            var beforeIncome = customerIncomes.Where(a => a.Date < startDate).ToList();
+
+            var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(id)).ToListAsync();
+            var beforeActivityQuantity = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Count();
+            var beforeActivitySum = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Sum(a => a.Amount);
+
+            data.Details.Add(new CustomerBalanceDetailVM
+            {
+                CustomerIncomes = beforeIncome,
+                CalendarId = 0,
+                AccountBookLoadFactorsSum = beforeActivitySum,
+                AccountBookQuantity = beforeActivityQuantity
+            });
+
             foreach (var calendar in calendars)
             {
+                data.Details.Add(new CustomerBalanceDetailVM
+                {
+                    CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
+                    CalendarId = calendar.Id,
+                    AccountBookLoadFactorsSum = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Sum(a => a.Amount),
+                    AccountBookQuantity = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Count()
+                });
             }
 
-            return View();
+            return View(data);
         }
     }
 }

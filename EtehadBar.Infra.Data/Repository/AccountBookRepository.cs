@@ -50,5 +50,17 @@ namespace EtehadBar.Infra.Data.Repository
         {
             db.Update(obj);
         }
+
+        public async Task UpdateAmount(long accountBookId) 
+        { 
+            var accountBook = await db.AccountBook.FindAsync(accountBookId);
+            var loadFactorAmount = await db.LoadFactor.AsNoTracking().Where(a => a.AccountBookId.Equals(accountBookId)).SumAsync(a =>
+            a.Amount +
+                    ((a.Tonnage.HasValue && a.TonnagePrice.HasValue) ? a.Tonnage.Value * a.TonnagePrice.Value : 0) +
+                    (a.WeighbridgePrice.HasValue ? a.WeighbridgePrice.Value : 0) +
+                    (a.DriverLoadSleepPrice.HasValue ? a.LoadSleepPrice.Value : 0));
+            accountBook.Amount = loadFactorAmount;
+            db.Update(accountBook);
+        }
     }
 }

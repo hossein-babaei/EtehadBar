@@ -246,7 +246,7 @@ namespace EtehadBar.Infra.Data.Repository
             var query = await(from a in db.LoadFactor
                               join b in db.Contract on a.ContractId equals b.Id
                               join c in db.Vehicles on a.VehicleId equals c.Id
-                              where a.CalendarId.Equals(calendarId) && b.CustomerId.Equals(customerId)
+                              where a.CalendarId.Equals(calendarId) && b.CustomerId.Equals(customerId) && a.IsFreeDriverPrice
                               select new
                               {
                                   a.Tonnage,
@@ -296,7 +296,7 @@ namespace EtehadBar.Infra.Data.Repository
                     BankAccountNumber = vehicle.BankAccountNumber,
                     VehicleNumber = vehicle.VehicleNumber,
                     VehicleOwnerName = vehicle.VehicleOwnerFullname,
-                    Amount = thisVehicleBalance < 0 ? 0 : thisVehicleBalance,
+                    Amount = -thisVehicleBalance,
                     ActivityAmount = driverFee
                 });
             }

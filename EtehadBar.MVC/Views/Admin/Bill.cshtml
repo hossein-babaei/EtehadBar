@@ -204,9 +204,9 @@
                 success: function (r) {
                     uiAlert(r.msg, r.status);
                     if (r.status == 'success') {
-                        $.post('@Url.Action("Bill_Search")', {}, function (r) {
-                            $('#append').html(r);
-                        }, 'html');
+                        //$.post('@Url.Action("Bill_Search")', {}, function (r) {
+                        //    $('#append').html(r);
+                        //}, 'html');
                     }
                     UIkit.modal('#edit-modal').hide();
                 },

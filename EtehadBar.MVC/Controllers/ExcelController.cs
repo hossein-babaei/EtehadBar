@@ -1,4 +1,6 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Spreadsheet;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
@@ -2648,6 +2650,77 @@ namespace EtehadBar.MVC.Controllers
 
             ws.PageSetup.SetPageOrientation(XLPageOrientation.Landscape)
                 .SetPaperSize(XLPaperSize.A4Paper);
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+        }
+
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> SlashedLoadFactor(long calendarId)
+        {
+            var calendar = await _calendarRepo.Get(calendarId);
+            string docTitle = $"گزارش {calendar.Title}";
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add(docTitle);
+            var bills = await _billRepository.Query().Where(a => a.CalendarId.Equals(calendarId) && (a.VehicleId.HasValue &&
+            (_vehicleRepo.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).OrderBy(a => a.Date).ToListAsync();
+
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Titr";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+            ws.Cell(2, 1).Value = "#";
+            ws.Cell(2, 2).Value = "نام و نام خانوادگی";
+            ws.Cell(2, 3).Value = "شماره خودرو";
+            ws.Cell(2, 4).Value = "عملکرد";
+            ws.Cell(2, 5).Value = "مشتری";
+
+            var data = bills.DistinctBy(a => a.VehicleId.Value).ToList();
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 5));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetBold()
+                .Font.SetFontSize(14)
+                    .Fill.SetBackgroundColor(XLColor.LightGray)
+                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 5)); // The address is relative to rngTable (NOT the worksheet)
+            rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            rngHeaders.Style.Font.Bold = true;
+            rngHeaders.Style.Font.FontColor = XLColor.Black;
+            for (int i = 0; i < data.Count; i++)
+            {
+                var vehicleNumber = $"ایران {data[i].Vehicle.IranStateNumber} - {data[i].Vehicle.RightNumber} {data[i].Vehicle.NumberWord} {data[i].Vehicle.LeftNumber}";
+                ws.Cell(i + 3, 1).Value = i + 1;
+                ws.Cell(i + 3, 2).Value = data[i].ReceiverName;
+                ws.Cell(i + 3, 3).Value = vehicleNumber;
+                ws.Cell(i + 3, 4).Value = bills.Where(a => a.VehicleId.Value.Equals(data[i].VehicleId.Value)).Sum(a => a.Amount).ToString("N0");
+                ws.Cell(i + 3, 5).Value = data[i].CustomerId.HasValue ? data[i].Customer.Name : "---";
+            }
+
+            ws.Cell(data.Count + 3, 1).Value = "جمع";
+            ws.Range(data.Count + 3, 1, data.Count + 3, 3).Merge();
+            ws.Cell(data.Count + 3, 4).Value = bills.Sum(a => a.Amount).ToString("N0");
+
+            ws.Column("A").Width = 5;
+            ws.Column("B").Width = 20;
+            ws.Column("C").Width = 20;
+            ws.Column("D").Width = 20;
+            ws.Column("E").Width = 15;
+
+            ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var table = ws.Range(2, 1, data.Count + 2, 5).CreateTable();
+            table.Theme = XLTableTheme.None;
+            table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+            table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
 
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);

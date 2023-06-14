@@ -2610,6 +2610,9 @@ namespace EtehadBar.MVC.Controllers
 
                     await _vehicleBalanceRepository.Save();
 
+                    await _accountBookRepository.UpdateAmount(loadFactor.AccountBookId);
+                    await _accountBookRepository.Save();
+
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
@@ -2775,6 +2778,9 @@ namespace EtehadBar.MVC.Controllers
 
                     await _vehicleBalanceRepository.Save();
 
+                    await _accountBookRepository.UpdateAmount(loadFactor.AccountBookId);
+                    await _accountBookRepository.Save();
+
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
@@ -2924,6 +2930,9 @@ namespace EtehadBar.MVC.Controllers
                     });
 
                     await _vehicleBalanceRepository.Save();
+
+                    await _accountBookRepository.UpdateAmount(loadFactor.AccountBookId);
+                    await _accountBookRepository.Save();
 
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
@@ -3098,6 +3107,9 @@ namespace EtehadBar.MVC.Controllers
 
                     await _vehicleBalanceRepository.Save();
 
+                    await _accountBookRepository.UpdateAmount(loadFactor.AccountBookId);
+                    await _accountBookRepository.Save();
+
                     msg = "عملیات موفقیت آمیز بود.";
                     status = "success";
                 }
@@ -3183,6 +3195,8 @@ namespace EtehadBar.MVC.Controllers
                 //if (await _loadFactorRepo.SequenceExistInSaipaPlasco(item.Id, input.Sequence))
                 //    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
 
+                var oldAccountBookId = item.AccountBookId;
+
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDateTime = DateTime.Now;
                 item.OriginId = fee.OriginId;
@@ -3243,6 +3257,18 @@ namespace EtehadBar.MVC.Controllers
                     }
 
                     await _vehicleBalanceRepository.Save();
+
+                    if (item.AccountBookId != oldAccountBookId)
+                    {
+                        await _accountBookRepository.UpdateAmount(item.AccountBookId);
+                        await _accountBookRepository.UpdateAmount(oldAccountBookId);
+                    }
+                    else
+                    {
+                        await _accountBookRepository.UpdateAmount(item.AccountBookId);
+                    }
+                    await _accountBookRepository.Save();
+
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -3302,6 +3328,8 @@ namespace EtehadBar.MVC.Controllers
 
                 if (await _loadFactorRepo.SequenceExistInSaipaPress(item.Id, input.Sequence))
                     return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
+
+                var oldAccountBookId = item.AccountBookId;
 
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDateTime = DateTime.Now;
@@ -3375,6 +3403,17 @@ namespace EtehadBar.MVC.Controllers
 
                     await _vehicleBalanceRepository.Save();
 
+                    if (item.AccountBookId != oldAccountBookId)
+                    {
+                        await _accountBookRepository.UpdateAmount(item.AccountBookId);
+                        await _accountBookRepository.UpdateAmount(oldAccountBookId);
+                    }
+                    else
+                    {
+                        await _accountBookRepository.UpdateAmount(item.AccountBookId);
+                    }
+                    await _accountBookRepository.Save();
+
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -3420,6 +3459,8 @@ namespace EtehadBar.MVC.Controllers
 
                 //if (await _loadFactorRepo.SequenceExistInSazehGostar(item.Id, input.Sequence))
                 //    return NotFound("ترتیب وارد شده برای بارنامه تکراری است");
+
+                var oldAccountBookId = item.AccountBookId;
 
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDateTime = DateTime.Now;
@@ -3488,6 +3529,17 @@ namespace EtehadBar.MVC.Controllers
 
                     await _vehicleBalanceRepository.Save();
 
+                    if (item.AccountBookId != oldAccountBookId)
+                    {
+                        await _accountBookRepository.UpdateAmount(item.AccountBookId);
+                        await _accountBookRepository.UpdateAmount(oldAccountBookId);
+                    }
+                    else
+                    {
+                        await _accountBookRepository.UpdateAmount(item.AccountBookId);
+                    }
+                    await _accountBookRepository.Save();
+
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -3539,6 +3591,8 @@ namespace EtehadBar.MVC.Controllers
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (item.AccountBookId != input.AccountBookId && await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
                     return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
+
+                var oldAccountBookId = item.AccountBookId;
 
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDateTime = DateTime.Now;
@@ -3624,6 +3678,17 @@ namespace EtehadBar.MVC.Controllers
 
                     await _vehicleBalanceRepository.Save();
 
+                    if (item.AccountBookId != oldAccountBookId)
+                    {
+                        await _accountBookRepository.UpdateAmount(item.AccountBookId);
+                        await _accountBookRepository.UpdateAmount(oldAccountBookId);
+                    }
+                    else
+                    {
+                        await _accountBookRepository.UpdateAmount(item.AccountBookId);
+                    }
+                    await _accountBookRepository.Save();
+
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -3683,6 +3748,9 @@ namespace EtehadBar.MVC.Controllers
                     _vehicleBalanceRepository.Delete(balanceItem);
                     await _vehicleBalanceRepository.Save();
                 }
+
+                await _accountBookRepository.UpdateAmount(item.AccountBookId);
+                await _accountBookRepository.Save();
 
                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
             }
@@ -3811,6 +3879,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 var accountBookId = await _accountBookRepository.AccountBooks().Where(a => a.RowId.Equals(accountBookRowId)).Select(a => a.Id).SingleOrDefaultAsync();
                 var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => idList.Contains(a.Id)).ToListAsync();
+                var oldAccountBookId = loadFactors.Single().AccountBookId;
 
                 foreach (var item in loadFactors)
                 {
@@ -3820,6 +3889,11 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _loadFactorRepo.Save();
+
+                    await _accountBookRepository.UpdateAmount(accountBookId);
+                    await _accountBookRepository.UpdateAmount(oldAccountBookId);
+                    await _accountBookRepository.Save();
+
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -3928,7 +4002,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var pageNumber = p ?? 1;
             var query = _accountBookRepository.AccountBooks();
-            if (!User.IsInRole("Admin") || !User.IsInRole("Milad"))
+            if (!User.IsInRole("Admin") && !User.IsInRole("Milad"))
                 query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
 
             var onePageOfData = await query.OrderByDescending(a => a.Number).ToPagedListAsync(pageNumber, 20);
@@ -3941,7 +4015,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var pageNum = p ?? 1;
             var query = _accountBookRepository.AccountBooks().Where(a => a.Number.Contains(param) || a.FactorNumber.Contains(param));
-            if (!User.IsInRole("Admin") || !User.IsInRole("Milad"))
+            if (!User.IsInRole("Admin") && !User.IsInRole("Milad"))
                 query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
 
             var onePageOfData = await query.OrderByDescending(a => a.Number).ToPagedListAsync(pageNum, 15);
@@ -3955,6 +4029,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CreateAccountBook()
         {
             ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             return PartialView("~/Views/Admin/Create/AccountBook.cshtml");
         }
 
@@ -3977,6 +4052,7 @@ namespace EtehadBar.MVC.Controllers
                     IsOpen = true,
                     FactorNumber = c.FactorNumber,
                     LoadFactorLimit = c.LoadFactorLimit,
+                    CalendarId = c.CalendarId,
                     CreatorId = _userManager.GetUserId(User)
                 });
                 try
@@ -4000,6 +4076,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<PartialViewResult> EditAccountBook(long id)
         {
             ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
 
             var item = await _accountBookRepository.Get(id);
 
@@ -4009,7 +4086,8 @@ namespace EtehadBar.MVC.Controllers
                 CustomerId = item.CustomerId,
                 FactorNumber = item.FactorNumber,
                 Number = item.Number,
-                LoadFactorLimit = item.LoadFactorLimit
+                LoadFactorLimit = item.LoadFactorLimit,
+                CalendarId = item.CalendarId
             });
         }
 
@@ -4031,6 +4109,7 @@ namespace EtehadBar.MVC.Controllers
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
                 item.LoadFactorLimit = c.LoadFactorLimit;
+                item.CalendarId = c.CalendarId;
                 _accountBookRepository.Update(item);
                 try
                 {
@@ -5286,7 +5365,7 @@ namespace EtehadBar.MVC.Controllers
 
                 _billRepository.Create(b);
                 try
-                {
+                 {
                     await _billRepository.Save();
 
                     if (b.VehicleId.HasValue)

@@ -27,11 +27,21 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool IsOpen { get; set; } = true;
 
+        [Display(Name = "مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; } = 0;
+
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [ForeignKey(nameof(Customer))]
         public long CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
+
+        [Display(Name = "تقویم کاری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [ForeignKey(nameof(Calendar))]
+        public long CalendarId { get; set; }
+        public virtual Calendar Calendar { get; set; }
 
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
 

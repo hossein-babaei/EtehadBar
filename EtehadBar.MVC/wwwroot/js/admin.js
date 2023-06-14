@@ -77,7 +77,24 @@ function ignoreSpecialCharAndWhitespaceInSelect2(params, data) {
         return null;
 }
 
+function getSlashedLoadFactor() {
+    const modalId = '#slashed-load-factor-modal';
+    $.post('/admin/get-calendars-json', {}, function (r) {
+        let options = '';
+        $.each(r, (i, v) => {
+            options += `<option value="${v.id}">${v.title}</options>`;
+        });
+        $(`${modalId} select`).html(options);
+    }, 'json');
+    UIkit.modal(modalId).show();
+}
+
+function submitSlashedLoadFactor() {
+    $('#slashed-load-factor-modal form').submit();
+}
+
 $(document).ready(function () {
+    $(`#slashed-load-factor-modal select[name=calendarId]`).select2({ width: '100%' });
     new StickySidebar('#sidebar', {
         containerSelector: '#main-content',
         innerWrapperSelector: '#sidebar-inner',

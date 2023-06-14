@@ -1,6 +1,7 @@
 ﻿@model CreateAccountBookVM
 @{
     var customers = (List<Customer>)ViewData["Customers"];
+    var calendars = (List<Calendar>)ViewData["Calendars"];
 }
 
 <div class="uk-modal-dialog">
@@ -20,6 +21,16 @@
                         }
                     </select>
                     <span asp-validation-for="CustomerId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="CalendarId" class="uk-form-label"></label>
+                    <select asp-for="CalendarId" class="uk-select uk-border-rounded">
+                        @foreach (var calendar in calendars)
+                        {
+                            <option value="@calendar.Id">@calendar.Title</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Number" class="uk-form-label"></label>

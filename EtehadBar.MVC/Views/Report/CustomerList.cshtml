@@ -9,11 +9,7 @@
     var calendars = (List<Calendar>)ViewData["calendars"];
     var latestCal = calendars.First();
 }
-@section Links{
-    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
-}
 @section Scripts{
-    <script src="~/lib/select2/select2.min.js"></script>
     <script>
         let vehicleList = [];
         function submitActivityByCustomerForm(submitButton, isFreeDriverFee) {
