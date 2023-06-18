@@ -2,10 +2,11 @@
 
 @{
     ViewData["pageId"] = 14;
-    var pdStartdate = new PersianDateTime(Model.StartDate);
-    var pdEndDate = new PersianDateTime(Model.EndDate);
-    ViewData["Title"] = $"گزارش مالی {Model.Customer.Name} از تاریخ {pdStartdate.ToString("yyyy/MM/dd")} الی {pdEndDate.ToString("yyyy/MM/dd")}";
+    ViewData["Title"] = $"گزارش مالی {Model.Customer.Name} به تاریخ {new PersianDateTime(DateTime.Now).ToString("yyyy/MM/dd")}";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int days = 45;
+    if (Model.Customer.CustomerType == CustomerType.SaipaPlasco)
+        days = 60;
 }
 
 @section Links {
@@ -31,6 +32,32 @@
     </style>
 }
 
+@section Scripts {
+    <script>
+        function submitSearch() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CustomerBalance", "Report")',
+                data: $('#search-modal form').serialize(),
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                    UIkit.modal('#search-modal').hide();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+    </script>
+}
+
 <div id="append">
     <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
         <div class="uk-width-auto@m">
@@ -48,7 +75,15 @@
             {
             <button class="uk-button uk-button-default uk-margin-small-left" disabled><span class="fas fa-file-excel"></span></button>
             }*@
-            <a class="uk-button uk-button-primary" href="#search-modal" uk-toggle uk-icon="search"></a>
+            @*<a class="uk-button uk-button-primary" href="#search-modal" uk-toggle uk-icon="search"></a>*@
+            @if (Model.Type)
+            {
+                <a class="uk-button uk-button-primary" asp-action="CustomerBalance" asp-route-contractId="@Model.Contract.Id" asp-route-type="false">مشاهده خلاصه</a>
+            }
+            else
+            {
+                <a class="uk-button uk-button-primary" asp-action="CustomerBalance" asp-route-contractId="@Model.Contract.Id" asp-route-type="true">مشاهده همه</a>
+            }
         </div>
     </div>
     <div class="box uk-margin-small-bottom" style="padding:15px 30px">
@@ -65,7 +100,7 @@
                         <a class="uk-accordion-title" href="#">
                             @if (item.CalendarId == 0)
                             {
-                                <span>دوره قبل از @pdStartdate.ToString("yyyy/MM/dd")</span>
+                                <span>دوره قبل از @(new PersianDateTime(Model.StartDate).ToString("yyyy/MM/dd"))</span>
                             }
                             else
                             {
@@ -140,16 +175,60 @@
         </div>
     </div>
     <div class="box" style="padding:15px 30px">
-        <h3 class="uk-text-center">گزارش دریافتی های @Model.Customer.Name در <span class="underline uk-text-left" dir="ltr">@pdEndDate.ToString("yyyy/MM/dd - HH:mm:ss")</span></h3>
+        <h3 class="uk-text-center">گزارش دریافتی های @Model.Customer.Name در <span class="underline uk-text-left" dir="ltr">@(new PersianDateTime(DateTime.Now).ToString("yyyy/MM/dd"))</span></h3>
         <hr />
         <div class="uk-grid-small" uk-grid>
             <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ دریافتی</div>
             <div>@Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount)).ToString("N0") ریال</div>
         </div>
         <div class="uk-grid-small" uk-grid>
-            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ فاکتور ها</div>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ فاکتور ها (صفر روزه)</div>
             <div>@Model.Details.Sum(a => a.AccountBookLoadFactorsSum).ToString("N0") ریال</div>
+        </div>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">مانده (صفر روزه)</div>
+            <div>@((Model.Details.Sum(a => a.AccountBookLoadFactorsSum) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0")) ریال</div>
+        </div>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ فاکتور ها (@days روزه)</div>
+            <div>@Model.Details.Sum(a => a.AccountBookLoadFactorsSum).ToString("N0") ریال</div>
+        </div>
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">مانده (@days روزه)</div>
+            <div>@((Model.Details.Sum(a => a.AccountBookLoadFactorsSum) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0")) ریال</div>
         </div>
     </div>
 </div>
 
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">فیلتر نتایج</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form method="post" action="@Url.Action("CustomerBalance", "Report")" autocomplete="off">
+                <input type="hidden" name="customerId" value="@Model.Customer.Id" />
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <label class="uk-form-label">دوره</label>
+                        <select class="uk-select uk-border-rounded uk-form-small" name="period">
+                            <option value="0">0 روزه</option>
+                            @if (Model.Customer.CustomerType == CustomerType.SaipaPlasco)
+                            {
+                                <option value="-60">60 روزه</option>
+                            }
+                            else
+                            {
+                                <option value="-45">45 روزه</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitSearch()">مشاهده</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

@@ -31,6 +31,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ITurnoverRepository _turnoverRepository;
         private readonly IAccountBookRepository _accountBookRepository;
+        private readonly IContractRepository _contractRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -43,7 +44,8 @@ namespace EtehadBar.MVC.Controllers
             IBillRepository billRepository,
             IVehicleBalanceRepository vehicleBalanceRepository,
             ITurnoverRepository turnoverRepository,
-            IAccountBookRepository accountBookRepository)
+            IAccountBookRepository accountBookRepository,
+            IContractRepository contractRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -56,6 +58,7 @@ namespace EtehadBar.MVC.Controllers
             _vehicleBalanceRepository = vehicleBalanceRepository;
             _turnoverRepository = turnoverRepository;
             _accountBookRepository = accountBookRepository;
+            _contractRepository = contractRepository;
         }
 
         [HttpPost]
@@ -401,56 +404,121 @@ namespace EtehadBar.MVC.Controllers
             }
         }
 
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CustomerBalance(long id)
-        {
-            var endDateInstance = new PersianDateTime(DateTime.Now);
-            var startDateInstance = endDateInstance.AddMonths(-2);
+        //[HttpGet]
+        //[Authorize(Roles = "Admin")]
+        //public async Task<IActionResult> CustomerBalance(long contractId, bool type = false)
+        //{
+        //    var contract = await _contractRepository.Get(contractId);
 
-            var startDate = new PersianDateTime(startDateInstance.Year, startDateInstance.Month, 1).ToDateTime();
-            var endDate = endDateInstance.ToDateTime();
-
-            var startCalendarSequence = await _calendarRepo.Calendars().Where(a => a.StartDate.Equals(startDate)).Select(a => a.Sequence).FirstOrDefaultAsync();
-            var beforeStartCalendarIdList = await _calendarRepo.Calendars().Where(a => a.Sequence < startCalendarSequence).Select(a => a.Id).OrderByDescending(a => a).ToListAsync();
-            var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= startCalendarSequence).OrderBy(a => a.Sequence).ToListAsync();
+        //    var customerIncomes = await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
             
-            var data = new CustomerBalanceVM
-            { 
-                Calendars= calendars,
-                Customer = await _customerRepo.Get(id),
-                StartDate = startDate,
-                EndDate = endDate,
-                Details = new List<CustomerBalanceDetailVM>()
-            };
+        //    var accountBooks = await _accountBookRepository.AccountBooks().Where(a => a.ContractId.Equals(contractId)).OrderByDescending(a => a.CalendarId).ToListAsync();
+        //    var calendarIdCount = accountBooks.DistinctBy(a => a.CalendarId).Count();
 
-            var customerIncomes = await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CustomerId.Equals(id)).ToListAsync();
-            var beforeIncome = customerIncomes.Where(a => a.Date < startDate).ToList();
+        //    var endDate = accountBooks.First().Calendar.EndDate;
+        //    var startDateCounter = type ? -(calendarIdCount - 1) : calendarIdCount < 3 ? -(calendarIdCount - 1) : -2;
 
-            var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(id)).ToListAsync();
-            var beforeActivityQuantity = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Count();
-            var beforeActivitySum = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Sum(a => a.Amount);
+        //    var endDateInstance = new PersianDateTime(endDate);
+        //    var startDateInstance = endDateInstance.AddMonths(startDateCounter);
+        //    var startDate = new PersianDateTime(startDateInstance.Year, startDateInstance.Month, 1).ToDateTime();
 
-            data.Details.Add(new CustomerBalanceDetailVM
-            {
-                CustomerIncomes = beforeIncome,
-                CalendarId = 0,
-                AccountBookLoadFactorsSum = beforeActivitySum,
-                AccountBookQuantity = beforeActivityQuantity
-            });
 
-            foreach (var calendar in calendars)
-            {
-                data.Details.Add(new CustomerBalanceDetailVM
-                {
-                    CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
-                    CalendarId = calendar.Id,
-                    AccountBookLoadFactorsSum = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Sum(a => a.Amount),
-                    AccountBookQuantity = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Count()
-                });
-            }
+        //    var startCalendarSequence = await _calendarRepo.Calendars().Where(a => a.StartDate.Equals(startDate)).Select(a => a.Sequence).FirstOrDefaultAsync();
+        //    var beforeStartCalendarIdList = await _calendarRepo.Calendars().Where(a => a.Sequence < startCalendarSequence).Select(a => a.Id).OrderByDescending(a => a).ToListAsync();
+        //    var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= startCalendarSequence).OrderBy(a => a.Sequence).ToListAsync();
 
-            return View(data);
-        }
+
+        //    var beforeIncome = customerIncomes.Where(a => a.Date < startDate).ToList();
+
+        //    var beforeActivityQuantity = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Count();
+        //    var beforeActivitySum = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Sum(a => a.Amount);
+
+        //    var data = new CustomerBalanceVM
+        //    {
+        //        Type = type,
+        //        Calendars = calendars,
+        //        Contract = contract,
+        //        Customer = await _customerRepo.Get(contract.CustomerId),
+        //        StartDate = startDate,
+        //        EndDate = endDate,
+        //        Details = new List<CustomerBalanceDetailVM>()
+        //    };
+
+        //    if (beforeActivityQuantity > 0 || beforeIncome.Any())
+        //        data.Details.Add(new CustomerBalanceDetailVM
+        //        {
+        //            CustomerIncomes = beforeIncome,
+        //            CalendarId = 0,
+        //            AccountBookLoadFactorsSum = beforeActivitySum,
+        //            AccountBookQuantity = beforeActivityQuantity
+        //        });
+
+        //    foreach (var calendar in calendars)
+        //    {
+        //        data.Details.Add(new CustomerBalanceDetailVM
+        //        {
+        //            CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
+        //            CalendarId = calendar.Id,
+        //            AccountBookLoadFactorsSum = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Sum(a => a.Amount),
+        //            AccountBookQuantity = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Count()
+        //        });
+        //    }
+
+        //    return View(data);
+        //}
+
+        //[HttpPost]
+        //[Authorize(Roles = "Admin")]
+        //public async Task<IActionResult> CustomerBalance(long customerId, int period)
+        //{
+        //    var initialDate = DateTime.Now.AddDays(period);
+        //    var endDateInstance = new PersianDateTime(initialDate);
+        //    var startDateInstance = endDateInstance.AddMonths(-2);
+
+        //    var startDate = new PersianDateTime(startDateInstance.Year, startDateInstance.Month, 1).ToDateTime();
+        //    var endDate = endDateInstance.ToDateTime();
+
+        //    var startCalendarSequence = await _calendarRepo.Calendars().Where(a => a.StartDate.Equals(startDate)).Select(a => a.Sequence).FirstOrDefaultAsync();
+        //    var beforeStartCalendarIdList = await _calendarRepo.Calendars().Where(a => a.Sequence < startCalendarSequence).Select(a => a.Id).OrderByDescending(a => a).ToListAsync();
+        //    var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= startCalendarSequence && 
+        //    a.Sequence <= _calendarRepo.Calendars().Where(a => a.StartDate < endDate && a.EndDate >= endDate).Single().Sequence).OrderBy(a => a.Sequence).ToListAsync();
+
+        //    var data = new CustomerBalanceVM
+        //    {
+        //        Calendars = calendars,
+        //        Customer = await _customerRepo.Get(customerId),
+        //        StartDate = startDate,
+        //        EndDate = endDate,
+        //        Details = new List<CustomerBalanceDetailVM>()
+        //    };
+
+        //    var customerIncomes = await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).ToListAsync();
+        //    var beforeIncome = customerIncomes.Where(a => a.Date < startDate).ToList();
+
+        //    var accountBooks = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).ToListAsync();
+        //    var beforeActivityQuantity = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Count();
+        //    var beforeActivitySum = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Sum(a => a.Amount);
+
+        //    data.Details.Add(new CustomerBalanceDetailVM
+        //    {
+        //        CustomerIncomes = beforeIncome,
+        //        CalendarId = 0,
+        //        AccountBookLoadFactorsSum = beforeActivitySum,
+        //        AccountBookQuantity = beforeActivityQuantity
+        //    });
+
+        //    foreach (var calendar in calendars)
+        //    {
+        //        data.Details.Add(new CustomerBalanceDetailVM
+        //        {
+        //            CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
+        //            CalendarId = calendar.Id,
+        //            AccountBookLoadFactorsSum = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Sum(a => a.Amount),
+        //            AccountBookQuantity = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Count()
+        //        });
+        //    }
+
+        //    return PartialView("_CustomerBalance", data);
+        //}
     }
 }

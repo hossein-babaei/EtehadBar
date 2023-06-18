@@ -40,6 +40,8 @@ namespace EtehadBar.Domain.Models
         public long CustomerId { get; set; }
         public virtual Customer Customer { get; set; }
 
+        public virtual ICollection<CustomerIncome> Incomes { get; set; }
+        public virtual ICollection<CustomerFactor> CustomerFactors { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
         public virtual ICollection<ShippingFee> ShippingFees { get; set; }
 

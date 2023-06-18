@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230615092707_AccountBookContract")]
+    partial class AccountBookContract
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,6 +37,9 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasColumnType("float");
 
                     b.Property<long>("CalendarId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ContractId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("CreateDatetime")
@@ -75,6 +80,8 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CalendarId");
+
+                    b.HasIndex("ContractId");
 
                     b.HasIndex("CustomerId");
 
@@ -744,55 +751,6 @@ namespace EtehadBar.Infra.Data.Migrations
                             RowId = "e70bffab-fa42-4c66-8af8-d7090a6ccbea",
                             Status = true
                         });
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.CustomerFactor", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
-                    b.Property<double>("Amount")
-                        .HasColumnType("float");
-
-                    b.Property<long>("ContractId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("CreateDatetime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatorId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("EditDatetime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EditorId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("FactorNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RowId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ContractId");
-
-                    b.HasIndex("RowId")
-                        .IsUnique();
-
-                    b.ToTable("CustomerFactor", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.CustomerIncome", b =>
@@ -1988,6 +1946,12 @@ namespace EtehadBar.Infra.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("EtehadBar.Domain.Models.Contract", "Contract")
+                        .WithMany("AccountBooks")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
                     b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
                         .WithMany("AccountBooks")
                         .HasForeignKey("CustomerId")
@@ -1995,6 +1959,8 @@ namespace EtehadBar.Infra.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Calendar");
+
+                    b.Navigation("Contract");
 
                     b.Navigation("Customer");
                 });
@@ -2076,17 +2042,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("Calendar");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.CustomerFactor", b =>
-                {
-                    b.HasOne("EtehadBar.Domain.Models.Contract", "Contract")
-                        .WithMany("CustomerFactors")
-                        .HasForeignKey("ContractId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Contract");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.CustomerIncome", b =>
@@ -2410,9 +2365,9 @@ namespace EtehadBar.Infra.Data.Migrations
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Contract", b =>
                 {
-                    b.Navigation("ContractAddons");
+                    b.Navigation("AccountBooks");
 
-                    b.Navigation("CustomerFactors");
+                    b.Navigation("ContractAddons");
 
                     b.Navigation("Incomes");
 

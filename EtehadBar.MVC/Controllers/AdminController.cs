@@ -1,4 +1,5 @@
-﻿using EtehadBar.Domain;
+﻿using Castle.Core.Resource;
+using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.MVC.Filters;
@@ -51,6 +52,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ITurnoverRepository _turnoverRepository;
         private readonly IBillRepository _billRepository;
         private readonly IVehicleBalanceRepository _vehicleBalanceRepository;
+        private readonly ICustomerFactorRepository _customerFactorRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -78,7 +80,8 @@ namespace EtehadBar.MVC.Controllers
             IAdminDashboardRepository adminDashboardRepository,
             ITurnoverRepository turnoverRepository,
             IBillRepository billRepository,
-            IVehicleBalanceRepository vehicleBalanceRepository)
+            IVehicleBalanceRepository vehicleBalanceRepository,
+            ICustomerFactorRepository customerFactorRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -106,6 +109,7 @@ namespace EtehadBar.MVC.Controllers
             _turnoverRepository = turnoverRepository;
             _billRepository = billRepository;
             _vehicleBalanceRepository = vehicleBalanceRepository;
+            _customerFactorRepository = customerFactorRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -117,6 +121,39 @@ namespace EtehadBar.MVC.Controllers
 
         public async Task<IActionResult> Index(int? dayLimit)
         {
+            //#region edit fee by price
+            //var date = new DateTime(2023, 05, 22);
+            //var contractId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.RowId == "62153ffa-328f-48f0-aaed-dc497d058402")
+            //    .Select(a => a.Id).FirstOrDefaultAsync();
+
+            //var shippingFees = await _shippingFeeRepo.ShippingFees().Where(a => a.DriverPrice.Equals(28500000) 
+            //    && a.ContractId.Equals(contractId)).ToListAsync();
+
+            //var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => shippingFees.Select(b => b.Id).Contains(a.ShippingFeeId) && a.Date >= date && !a.IsFreeDriverPrice).ToListAsync();
+            //var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(b => b.Id).Contains(a.LoadFactorId.Value)).ToListAsync();
+
+            //foreach (var item in shippingFees)
+            //{
+            //    item.DriverPrice = 37000000;
+            //}
+
+            //foreach (var item in loadFactors)
+            //{
+            //    item.DriverFee = 37000000;
+
+            //    var vb = vehicleBalances.Single(a => a.LoadFactorId.Value.Equals(item.Id));
+            //    vb.Amount = item.DriverFee +
+            //            ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0) +
+            //            (item.WeighbridgePrice.HasValue ? item.WeighbridgePrice.Value : 0) +
+            //            (item.DriverLoadSleepPrice.HasValue ? item.DriverLoadSleepPrice.Value : 0);
+            //    vb.EditDatetime = DateTime.Now;
+            //}
+
+            //await _shippingFeeRepo.Save();
+            //await _loadFactorRepo.Save();
+            //await _vehicleBalanceRepository.Save();
+            //#endregion
+
             //عملکرد
             //var x = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(4) && a.SaipaPressLoadFactor != null).SumAsync(a => a.Amount + ((a.Tonnage.HasValue && a.TonnagePrice.HasValue) ? a.Tonnage.Value * a.TonnagePrice.Value : 0));
             //var y = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(4) && a.SaipaPressLoadFactor != null).SumAsync(a => a.DriverFee + ((a.Tonnage.HasValue && a.DriverTonnagePrice.HasValue) ? a.Tonnage.Value * a.DriverTonnagePrice.Value : 0));
@@ -1464,6 +1501,7 @@ namespace EtehadBar.MVC.Controllers
             }
             ViewData["CustomerInfo"] = customer;
             ViewData["Year"] = await _configRepo.CurrentYear();
+            ViewData["Contracts"] = await _contractRepo.Contracts().Where(a => a.CustomerId.Equals(id) && !a.ParentContractId.HasValue).OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["BankBranches"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderByDescending(a => a.Title).ToListAsync();
             var pageNumber = p ?? 1;
             var onePageOfData = await _customerRepo.CustomerIncomes().Where(a => a.CustomerId.Equals(id)).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 20);
@@ -1473,7 +1511,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CustomerIncome([Bind("BankName,Amount,Description,CustomerId")] CustomerIncome c, int day, int month, int year, IFormFile pic)
+        public async Task<IActionResult> CustomerIncome([Bind("BankName,Amount,Description,CustomerId,ContractId")] CustomerIncome c, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
             {
@@ -1532,8 +1570,10 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<PartialViewResult> EditCustomerIncome(int id)
         {
+            var item = await _customerRepo.GetIncome(id);
+            ViewData["Contracts"] = await _contractRepo.Contracts().Where(a => a.CustomerId.Equals(item.CustomerId) && !a.ParentContractId.HasValue).OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["BankBranches"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderByDescending(a => a.Title).ToListAsync();
-            return PartialView("~/Views/Admin/Edit/CustomerIncome.cshtml", await _customerRepo.GetIncome(id));
+            return PartialView("~/Views/Admin/Edit/CustomerIncome.cshtml", item);
         }
 
         [HttpPost]
@@ -1546,6 +1586,7 @@ namespace EtehadBar.MVC.Controllers
                 item.AdminId = _userManager.GetUserId(User);
                 item.Amount = p.Amount;
                 item.BankName = p.BankName;
+                item.ContractId = p.ContractId;
 
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
 
@@ -1840,6 +1881,17 @@ namespace EtehadBar.MVC.Controllers
                 TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> GetContractsJson()
+        {
+            return Json(await _contractRepo.Contracts().AsNoTracking().Where(a => !a.ParentContractId.HasValue).Select(a => new
+            {
+                a.Number,
+                a.Id,
+                a.CustomerId
+            }).ToListAsync());
         }
         #endregion
 
@@ -2158,7 +2210,7 @@ namespace EtehadBar.MVC.Controllers
 
             var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
             var loadFactors = await _shippingFeeRepo.GetLoadFactorsByContractId(contractId, latestContractAddon.StartDate);
-            var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(b => b.Id).Contains(a.Id)).ToListAsync();
+            var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(b => b.Id).ToList().Contains(a.LoadFactorId.Value)).ToListAsync();
 
             foreach (var fee in feeList)
             {
@@ -2202,29 +2254,44 @@ namespace EtehadBar.MVC.Controllers
                     else fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + tonnageDriverAmount;
                 }
 
-                var thisLoadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id) && !a.IsDriverFeeEditedByAdmin).ToList();
+                var thisLoadFactor = loadFactors.Where(a => a.ShippingFeeId.Equals(fee.Id)).ToList();
                 if (thisLoadFactor.Any())
                 {
                     foreach (var loadFactor in thisLoadFactor)
                     {
-                        if (loadFactor.Date >= amountDatetime)
-                            loadFactor.Amount = fee.Price;
+                        bool isEdited = false;
 
-                        if (loadFactor.Date >= driverAmountDatetime)
+                        if (loadFactor.Date >= amountDatetime)
+                        {
+                            loadFactor.Amount = fee.Price;
+                        }
+
+                        if (loadFactor.Date >= driverAmountDatetime && !loadFactor.IsFreeDriverPrice)
+                        {
+                            isEdited = true;
                             loadFactor.DriverFee = fee.DriverPrice;
+                        }
 
                         if (loadFactor.Date >= tonnageAmountDatetime && loadFactor.TonnagePrice.HasValue)
+                        {
                             loadFactor.TonnagePrice = fee.TonnagePrice;
+                        }
 
-                        if (loadFactor.Date >= tonnageDriverAmountDatetime && loadFactor.DriverTonnagePrice.HasValue)
+                        if (loadFactor.Date >= tonnageDriverAmountDatetime && loadFactor.DriverTonnagePrice.HasValue && !loadFactor.IsFreeDriverPrice)
+                        {
+                            isEdited = true;
                             loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
+                        }
 
-                        var balanceItem = vehicleBalances.Single(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(loadFactor.Id));
-                        balanceItem.Amount = loadFactor.DriverFee +
-                    ((loadFactor.Tonnage.HasValue && loadFactor.DriverTonnagePrice.HasValue) ? loadFactor.Tonnage.Value * loadFactor.DriverTonnagePrice.Value : 0) +
-                    (loadFactor.WeighbridgePrice.HasValue ? loadFactor.WeighbridgePrice.Value : 0) +
-                    (loadFactor.DriverLoadSleepPrice.HasValue ? loadFactor.DriverLoadSleepPrice.Value : 0);
-                        balanceItem.EditDatetime = DateTime.Now;
+                        if (isEdited)
+                        {
+                            var balanceItem = vehicleBalances.Single(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(loadFactor.Id));
+                            balanceItem.Amount = loadFactor.DriverFee +
+                        ((loadFactor.Tonnage.HasValue && loadFactor.DriverTonnagePrice.HasValue) ? loadFactor.Tonnage.Value * loadFactor.DriverTonnagePrice.Value : 0) +
+                        (loadFactor.WeighbridgePrice.HasValue ? loadFactor.WeighbridgePrice.Value : 0) +
+                        (loadFactor.DriverLoadSleepPrice.HasValue ? loadFactor.DriverLoadSleepPrice.Value : 0);
+                            balanceItem.EditDatetime = DateTime.Now;
+                        }
                     }
                     _shippingFeeRepo.UpdateLoadFactors(thisLoadFactor);
                 }
@@ -3240,6 +3307,7 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.CreateDateTime = item.Date;
                         balanceItem.EditDatetime = DateTime.Now;
                         balanceItem.VehicleId = item.VehicleId;
+                        balanceItem.CustomerId = item.Contract.CustomerId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
@@ -3385,6 +3453,7 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.CreateDateTime = item.Date;
                         balanceItem.EditDatetime = DateTime.Now;
                         balanceItem.VehicleId = item.VehicleId;
+                        balanceItem.CustomerId = item.Contract.CustomerId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
@@ -3511,6 +3580,7 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.CreateDateTime = item.Date;
                         balanceItem.EditDatetime = DateTime.Now;
                         balanceItem.VehicleId = item.VehicleId;
+                        balanceItem.CustomerId = item.Contract.CustomerId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
@@ -3657,6 +3727,7 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.CreateDateTime = item.Date;
                         balanceItem.EditDatetime = DateTime.Now;
                         balanceItem.VehicleId = item.VehicleId;
+                        balanceItem.CustomerId = item.Contract.CustomerId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
@@ -3743,7 +3814,7 @@ namespace EtehadBar.MVC.Controllers
                 await _loadFactorRepo.Save();
 
                 var balanceItem = await _vehicleBalanceRepository.Query().FirstOrDefaultAsync(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(id));
-                if (balanceItem == null)
+                if (balanceItem != null)
                 {
                     _vehicleBalanceRepository.Delete(balanceItem);
                     await _vehicleBalanceRepository.Save();
@@ -3879,7 +3950,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 var accountBookId = await _accountBookRepository.AccountBooks().Where(a => a.RowId.Equals(accountBookRowId)).Select(a => a.Id).SingleOrDefaultAsync();
                 var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => idList.Contains(a.Id)).ToListAsync();
-                var oldAccountBookId = loadFactors.Single().AccountBookId;
+                var oldAccountBookId = loadFactors.First().AccountBookId;
 
                 foreach (var item in loadFactors)
                 {
@@ -4075,10 +4146,10 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<PartialViewResult> EditAccountBook(long id)
         {
+            var item = await _accountBookRepository.Get(id);
+
             ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
-
-            var item = await _accountBookRepository.Get(id);
 
             return PartialView("~/Views/Admin/Edit/AccountBook.cshtml", new EditAccountBookVM
             {
@@ -4212,6 +4283,134 @@ namespace EtehadBar.MVC.Controllers
                 query = query.Where(a => a.CreatorId.Equals(userId));
             }
             return Json(await query.Select(a => new { a.RowId, a.Number, Customer = a.Customer.Name }).ToListAsync());
+        }
+        #endregion
+
+        #region CustomerFactor
+        [HttpGet]
+        public async Task<IActionResult> CustomerFactor(int? p)
+        {
+            var pageNumber = p ?? 1;
+            ViewBag.data = await _customerFactorRepository.Query().OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNumber, 20);
+            return View();
+        }
+
+        //[HttpPost]
+        //public async Task<IActionResult> SearchCustomerFactor(int? p, string param)
+        //{
+        //    var pageNum = p ?? 1;
+        //    var query = _customerFactorRepository.AccountBooks().Where(a => a.Number.Contains(param) || a.FactorNumber.Contains(param));
+        //    if (!User.IsInRole("Admin") && !User.IsInRole("Milad"))
+        //        query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
+
+        //    var onePageOfData = await query.OrderByDescending(a => a.Number).ToPagedListAsync(pageNum, 15);
+        //    ViewBag.data = onePageOfData;
+        //    ViewBag.param = param;
+
+        //    return PartialView("_CustomerFactor");
+        //}
+
+        [HttpGet]
+        public async Task<IActionResult> CreateCustomerFactor()
+        {
+            ViewData["Contracts"] = await _contractRepo.Contracts().OrderBy(a => a.StartDate).ToListAsync();
+            return PartialView("~/Views/Admin/Create/CustomerFactor.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateCustomerFactor(CustomerFactor c, int day, int month, int year)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _customerFactorRepository.Query().AnyAsync(a => a.FactorNumber.Equals(c.FactorNumber)))
+                {
+                    TempData["msg"] = "شماره صورت وضعیت وارد شده تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                c.Date = new PersianDateTime(year, month, day).ToDateTime();
+                c.CreatorId = _userManager.GetUserId(User);
+                _customerFactorRepository.Create(c);
+                try
+                {
+                    await _customerFactorRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditCustomerFactor(long id)
+        {
+            var item = await _customerFactorRepository.Get(id);
+
+            ViewData["Contracts"] = await _contractRepo.Contracts().OrderBy(a => a.StartDate).ToListAsync();
+
+            return PartialView("~/Views/Admin/Edit/CustomerFactor.cshtml", item);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditCustomerFactor(CustomerFactor c, int day, int month, int year)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _customerFactorRepository.Query().AnyAsync(a => !a.Id.Equals(c.Id) && a.FactorNumber.Equals(c.FactorNumber)))
+                {
+                    TempData["msg"] = "شماره صورت وضعیت تکراری است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = await _customerFactorRepository.Get(c.Id);
+                item.FactorNumber = c.FactorNumber;
+                item.Amount = c.Amount;
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDatetime = DateTime.Now;
+                item.Date = new PersianDateTime(year, month, day).ToDateTime();
+
+                _customerFactorRepository.Update(item);
+                try
+                {
+                    await _customerFactorRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCustomerFactor(string id)
+        {
+            var item = await _customerFactorRepository.Get(id);
+
+            _customerFactorRepository.Delete(item);
+            try
+            {
+                await _customerFactorRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+
+            return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion
 

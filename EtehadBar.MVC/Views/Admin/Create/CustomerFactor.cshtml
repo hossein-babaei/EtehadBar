@@ -1,0 +1,70 @@
+﻿@model CustomerFactor
+@{
+    var contracts = (List<Contract>)ViewData["Contracts"];
+}
+
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">افزودن جدید</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="create-form" asp-action="CreateCustomerFactor" method="post">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                @{
+                    var now = PersianDateTime.Now;
+                }
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">روز</label>
+                    <select class="uk-select uk-border-rounded" name="day" dir="ltr">
+                        @for (int i = 1; i < 32; i++)
+                        {
+                            <!option value="@i" @if (now.Day == i) {
+                        <text> selected="selected" </text>
+                        }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">ماه</label>
+                    <select class="uk-select uk-border-rounded" name="month" dir="ltr">
+                        @for (int i = 1; i < 13; i++)
+                        {
+                            <!option value="@i" @if (now.Month == i) {
+                        <text> selected="selected" </text>
+                        }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">سال</label>
+                    <input class="uk-input uk-border-rounded" name="year" value="@now.Year" dir="ltr" />
+                </div>
+                <div>
+                    <label asp-for="ContractId" class="uk-form-label"></label>
+                    <select asp-for="ContractId" class="uk-select uk-border-rounded">
+                        @foreach (var contract in contracts)
+                        {
+                            <option value="@contract.Id">@contract.Number (@contract.Customer.Name)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ContractId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="FactorNumber" class="uk-form-label"></label>
+                    <input asp-for="FactorNumber" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="FactorNumber" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Amount" class="uk-form-label"></label>
+                    <input asp-for="Amount" class="uk-input uk-border-rounded format-number" dir="ltr" />
+                    <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitForm('#create-form')">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

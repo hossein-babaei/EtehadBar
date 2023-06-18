@@ -11,7 +11,8 @@
 }
 @section Scripts{
     <script>
-        let vehicleList = [];
+        let vehicleList = [],
+            contractList = [];
         function submitActivityByCustomerForm(submitButton, isFreeDriverFee) {
             let form = $(submitButton).parent().parent().find('form');
             form.find('input[name=isFreeDriverFee]').val(isFreeDriverFee);
@@ -105,6 +106,41 @@
             var calendarId = $('#activity-list-modal select[name=calendarId]').val();
             window.open(`/admin/vehicle-balance-by-customer?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
         }
+        function showContracts(customerId) {
+            if (contractList.length == 0) {
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("GetContractsJson", "Admin")',
+                    data: {},
+                    dataType: 'json',
+                    async: false,
+                    beforeSend: function () {
+                        preloader();
+                    },
+                    success: function (r) {
+                        contractList = r;
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger')
+                    },
+                    complete: function () {
+                        preloader();
+                    }
+                });
+            }
+
+            const modalId = '#contract-modal';
+            $(`${modalId} select[name=contractId]`).select2({ width: '100%' });
+            let thisCustomerContracts = contractList.filter(a => a.customerId == customerId);
+
+            let options = '';
+            $.each(thisCustomerContracts, (i, v) => {
+                options += `<option value="${v.id}">${v.number}</option>`;
+            })
+            $(`${modalId} select[name=contractId]`).html(options);
+
+            UIkit.modal(modalId).show();
+        }
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -150,7 +186,7 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <td>
-                                <a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerBalance" asp-route-id="@item.Id">مالی</a>
+                                <a class="uk-button uk-button-primary uk-button-small" onclick="showContracts(@item.Id)">مالی</a>
                                 <a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a>
                             </td>
                         }
@@ -369,6 +405,30 @@
         </div>
         <div class="uk-modal-footer uk-text-center">
             <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="$('#full-activity-list-modal form').submit()">مشاهده</a>
+            <button class="uk-button uk-button-danger uk-modal-close uk-margin-small-top" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="contract-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">خروجی مالی بر اساس قرارداد</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form method="get" action="@Url.Action("CustomerBalance", "Report")" autocomplete="off">
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <label class="uk-form-label">قرارداد</label>
+                        <select name="contractId">
+                        </select>
+                    </div>
+                    <div id="modal-append"></div>
+                </div>
+
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="$('#contract-modal form').submit()">مشاهده</a>
             <button class="uk-button uk-button-danger uk-modal-close uk-margin-small-top" type="button">بازگشت</button>
         </div>
     </div>

@@ -1,5 +1,6 @@
 ﻿@model CustomerIncome
 @{
+    var contracts = (List<Contract>)ViewData["Contracts"];
     var bankBranches = (List<Definition>)ViewData["BankBranches"];
 }
 <div class="uk-modal-dialog">
@@ -37,6 +38,16 @@
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">سال</label>
                     <input class="uk-input uk-border-rounded" name="year" value="@pd.Year" dir="ltr" readonly />
+                </div>
+                <div>
+                    <label asp-for="ContractId" class="uk-form-label"></label>
+                    <select asp-for="ContractId" class="uk-select uk-border-rounded">
+                        @foreach (var contract in contracts)
+                        {
+                            <!option @if(Model.ContractId.Equals(contract.Id)){<text>selected="selected"</text>} value="@contract.Id">@contract.Number (@contract.Customer.Name)</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="ContractId" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="BankName" class="uk-form-label"></label>

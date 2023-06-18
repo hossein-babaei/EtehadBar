@@ -162,7 +162,9 @@ namespace EtehadBar.Infra.Data.Repository
             var vehicleIds = query.Select(a => a.VehicleId).Distinct().ToList();
             var thisCalendarSequence = await db.Calendar.AsNoTracking().Where(a => a.Id.Equals(calendarId)).Select(a => a.Sequence).SingleAsync();
             var calendars = await db.Calendar.AsNoTracking().Where(a => a.Sequence <= thisCalendarSequence).Select(a => a.Id).ToListAsync();
-            var vehicleBalance = await db.VehicleBalance.AsNoTracking().Where(a => a.CalendarId.HasValue && calendars.Contains(a.CalendarId.Value) && vehicleIds.Contains(a.VehicleId))
+            var vehicleBalance = await db.VehicleBalance.AsNoTracking().Where(a =>
+            (a.CustomerId.HasValue ? a.CustomerId.Value.Equals(customerId) : true) &&
+            a.CalendarId.HasValue && calendars.Contains(a.CalendarId.Value) && vehicleIds.Contains(a.VehicleId))
                 .Select(a => new
                 {
                     a.VehicleId,

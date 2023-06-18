@@ -9,8 +9,10 @@ namespace EtehadBar.Domain
 {
     public class CustomerBalanceVM
     {
+        public bool Type { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public Contract Contract { get; set; }
         public Customer Customer { get; set; }
         public List<Calendar> Calendars { get; set; }
         public List<CustomerBalanceDetailVM> Details { get; set; }

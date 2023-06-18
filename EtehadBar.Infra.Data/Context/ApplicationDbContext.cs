@@ -28,6 +28,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<Contract> Contract { get; set; }
         public DbSet<Cost> Cost { get; set; }
         public DbSet<Customer> Customer { get; set; }
+        public DbSet<CustomerFactor> CustomerFactor { get; set; }
         public DbSet<CustomerIncome> CustomerIncome { get; set; }
         public DbSet<Definition> Definition { get; set; }
         public DbSet<Driver> Driver { get; set; }
@@ -60,6 +61,8 @@ namespace EtehadBar.Infra.Data.Context
             //modelBuilder.Entity<LoadFactor>().Property(u => u.Counter).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
 
             modelBuilder.Entity<LoadFactor>().HasOne(a => a.AccountBook).WithMany(a => a.LoadFactors).OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<CustomerIncome>().HasOne(a => a.Contract).WithMany(a => a.Incomes).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Origin).WithMany().HasForeignKey(sf => sf.OriginId).OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Destination).WithMany().HasForeignKey(sf => sf.DestinationId).OnDelete(DeleteBehavior.NoAction);

@@ -1,28 +1,35 @@
-﻿@model CustomerIncome
+﻿@model CustomerFactor
 @using X.PagedList
 @using X.PagedList.Mvc.Core
 
 @{
-    ViewData["pageId"] = 13;
-    var data = ViewBag.data as IPagedList<CustomerIncome>;
-    var customerInfo = (Customer)ViewData["CustomerInfo"];
-    ViewData["Title"] = $"دریافتی از {customerInfo.Name}";
+    ViewData["pageId"] = 39;
+    var data = ViewBag.data as IPagedList<CustomerFactor>;
+    ViewData["Title"] = "فاکتور ها";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     int i = 1;
     if (data.PageNumber > 1)
-    {
         i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
-    }
-    var m = new CustomerIncome();
 }
-@section Scripts{
+
+@section Scripts {
     <script>
+        function create() {
+            preloader();
+            $.get('@Url.Action("CreateCustomerFactor")', {}, function (r) {
+                $('#create-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#create-form');
+                preloader();
+                UIkit.modal('#create-modal').show();
+            });
+        }
         function edit(id) {
             preloader();
-            $.get('@Url.Action("EditCustomerIncome")', { 'id': id }, function (r) {
+            $.get('@Url.Action("EditCustomerFactor")', { 'id': id }, function (r) {
                 $('#edit-modal').html(r);
             }, 'html').then(function () {
-                parseValidator('#edit-modal form');
+                parseValidator('#edit-form');
                 preloader();
                 UIkit.modal('#edit-modal').show();
             });
@@ -33,16 +40,17 @@
         }
     </script>
 }
+
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
     <div class="uk-width-auto@m">
         <ul class="uk-breadcrumb">
             <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
-            <li><a asp-action="Customer" asp-controller="Admin">مشتریان خدمات</a></li>
             <li><span>@ViewData["Title"]</span></li>
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a class="uk-button uk-button-primary" uk-toggle="#create-modal">افزودن</a>
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <button onclick="getSearch()" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
     </div>
 </div>
 <div id="append" class="box">
@@ -51,12 +59,10 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.BankName)</th>
+                    <th>@Html.DisplayNameFor(model => model.FactorNumber)</th>
                     <th>@Html.DisplayNameFor(model => model.ContractId)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
-                    <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
-                    <th>تصویر</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -65,28 +71,15 @@
                 @foreach (var item in data)
                 {
                     var pd = new PersianDateTime(item.Date);
-                    <tr class="uk-text-center sm">
-                        <td>@i</td>
-                        <td>@item.BankName</td>
-                        <td>@item.Contract.Number</td>
-                        <td>@pd.ToString("yyyy/MM/dd")</td>
-                        <td>@item.Description</td>
-                        <td>@item.Amount.ToString("N0")</td>
-                        @if (string.IsNullOrEmpty(item.Picture))
-                        {
-                            <td>بدون تصویر</td>
-                        }
-                        else
-                        {
-                            <td>
-                                <div uk-lightbox>
-                                    <a class="uk-button uk-button-default" href="/img/income/@item.Picture" data-caption="@item.Description">مشاهده تصویر</a>
-                                </div>
-                            </td>
-                        }
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
-                    </tr>
+                        <tr class="uk-text-center sm">
+                            <td>@i</td>
+                            <td>@item.FactorNumber</td>
+                            <td>@item.Contract.Number - @item.Contract.Customer.Name</td>
+                            <td>@pd.ToString("yyyy/MM/dd")</td>
+                            <td>@item.Amount.ToString("N0")</td>
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.RowId')"><i class="fas fa-trash-alt"></i></a></td>
+                        </tr>
                     i++;
                 }
             </tbody>
@@ -95,15 +88,15 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("CustomerIncome", new { id = customerInfo.Id, p = page }))
+            @Html.PagedListPager(data, page => Url.Action("CustomerFactor", new { p = page }))
         </div>
     }
 </div>
-<partial name="~/Views/Admin/Create/CustomerIncome.cshtml" model="m" view-data="ViewData" />
+<div id="create-modal" uk-modal="bg-close: false"></div>
 <div id="edit-modal" uk-modal="bg-close: false"></div>
 <div id="delete-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
-        <form id="delete-form" method="post" asp-action="DeleteCustomerIncome" asp-controller="Admin">
+        <form id="delete-form" method="post" asp-action="DeleteCustomerFactor" asp-controller="Admin">
             <input type="hidden" name="id" />
             <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
             <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
