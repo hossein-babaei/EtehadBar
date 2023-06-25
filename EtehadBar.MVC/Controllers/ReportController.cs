@@ -1,4 +1,5 @@
 ﻿using Castle.Core.Resource;
+using DocumentFormat.OpenXml.Drawing.Charts;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
@@ -32,6 +33,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ITurnoverRepository _turnoverRepository;
         private readonly IAccountBookRepository _accountBookRepository;
         private readonly IContractRepository _contractRepository;
+        private readonly ICustomerFactorRepository _customerFactorRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -45,7 +47,8 @@ namespace EtehadBar.MVC.Controllers
             IVehicleBalanceRepository vehicleBalanceRepository,
             ITurnoverRepository turnoverRepository,
             IAccountBookRepository accountBookRepository,
-            IContractRepository contractRepository)
+            IContractRepository contractRepository,
+            ICustomerFactorRepository customerFactorRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -59,6 +62,7 @@ namespace EtehadBar.MVC.Controllers
             _turnoverRepository = turnoverRepository;
             _accountBookRepository = accountBookRepository;
             _contractRepository = contractRepository;
+            _customerFactorRepository = customerFactorRepository;
         }
 
         [HttpPost]
@@ -410,28 +414,34 @@ namespace EtehadBar.MVC.Controllers
         //{
         //    var contract = await _contractRepository.Get(contractId);
 
-        //    var customerIncomes = await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
-            
-        //    var accountBooks = await _accountBookRepository.AccountBooks().Where(a => a.ContractId.Equals(contractId)).OrderByDescending(a => a.CalendarId).ToListAsync();
-        //    var calendarIdCount = accountBooks.DistinctBy(a => a.CalendarId).Count();
+        //    var customerIncomes = await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.ContractId.Equals(contractId)).OrderBy(a => a.Date).ToListAsync();
 
-        //    var endDate = accountBooks.First().Calendar.EndDate;
-        //    var startDateCounter = type ? -(calendarIdCount - 1) : calendarIdCount < 3 ? -(calendarIdCount - 1) : -2;
+        //    var customerFactors = await _customerFactorRepository.Query().AsNoTracking().Where(a => a.ContractId.Equals(contractId)).OrderBy(a => a.Date).ToListAsync();
 
-        //    var endDateInstance = new PersianDateTime(endDate);
+        //    var monthCount = await _calendarRepo.Calendars().AsNoTracking().CountAsync(a => a.Sequence >=
+        //    _calendarRepo.Calendars().AsNoTracking().Where(b => b.StartDate >= contract.StartDate).OrderBy(b => b.StartDate).First().Sequence &&
+        //    a.Sequence <= _calendarRepo.Calendars().AsNoTracking().Where(b => b.EndDate <= contract.EndDate).OrderByDescending(b => b.EndDate).First().Sequence);
+
+        //    var now = DateTime.Now;
+        //    var initialDate = now > contract.EndDate ? contract.EndDate : now;
+        //    var endDateInstance = new PersianDateTime(initialDate);
+        //    var endDate = endDateInstance.ToDateTime();
+        //    var endCalendarSequence = await _calendarRepo.Calendars().Where(a => a.StartDate < contract.EndDate && a.EndDate >= contract.EndDate).Select(a => a.Sequence).FirstOrDefaultAsync();
+
+        //    var startDateCounter = type ? -(monthCount - 1) : monthCount < 3 ? -(monthCount - 1) : -2;
+
         //    var startDateInstance = endDateInstance.AddMonths(startDateCounter);
         //    var startDate = new PersianDateTime(startDateInstance.Year, startDateInstance.Month, 1).ToDateTime();
 
-
         //    var startCalendarSequence = await _calendarRepo.Calendars().Where(a => a.StartDate.Equals(startDate)).Select(a => a.Sequence).FirstOrDefaultAsync();
         //    var beforeStartCalendarIdList = await _calendarRepo.Calendars().Where(a => a.Sequence < startCalendarSequence).Select(a => a.Id).OrderByDescending(a => a).ToListAsync();
-        //    var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= startCalendarSequence).OrderBy(a => a.Sequence).ToListAsync();
+        //    var calendars = await _calendarRepo.Calendars().Where(a => endCalendarSequence > 0 ? a.Sequence >= startCalendarSequence &&  a.Sequence <= endCalendarSequence : a.Sequence >= startCalendarSequence).OrderBy(a => a.Sequence).ToListAsync();
 
+        //    var beforeIncomes = customerIncomes.Where(a => a.Date < startDate).ToList();
+        //    var beforeFactors = customerFactors.Where(a => a.Date < startDate).ToList();
 
-        //    var beforeIncome = customerIncomes.Where(a => a.Date < startDate).ToList();
-
-        //    var beforeActivityQuantity = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Count();
-        //    var beforeActivitySum = accountBooks.Where(a => beforeStartCalendarIdList.Contains(a.CalendarId)).Sum(a => a.Amount);
+        //    var afterIncomes = customerIncomes.Where(a => a.Date >= endDate).ToList();
+        //    var afterFactors = customerFactors.Where(a => a.Date >= endDate).ToList();
 
         //    var data = new CustomerBalanceVM
         //    {
@@ -444,25 +454,31 @@ namespace EtehadBar.MVC.Controllers
         //        Details = new List<CustomerBalanceDetailVM>()
         //    };
 
-        //    if (beforeActivityQuantity > 0 || beforeIncome.Any())
+        //    if (beforeFactors.Any() || beforeIncomes.Any())
         //        data.Details.Add(new CustomerBalanceDetailVM
         //        {
-        //            CustomerIncomes = beforeIncome,
-        //            CalendarId = 0,
-        //            AccountBookLoadFactorsSum = beforeActivitySum,
-        //            AccountBookQuantity = beforeActivityQuantity
+        //            CustomerIncomes = beforeIncomes,
+        //            CalendarId = -1,
+        //            CustomerFactors = beforeFactors
         //        });
 
         //    foreach (var calendar in calendars)
         //    {
         //        data.Details.Add(new CustomerBalanceDetailVM
         //        {
-        //            CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
         //            CalendarId = calendar.Id,
-        //            AccountBookLoadFactorsSum = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Sum(a => a.Amount),
-        //            AccountBookQuantity = accountBooks.Where(a => a.CalendarId.Equals(calendar.Id)).Count()
+        //            CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
+        //            CustomerFactors = customerFactors.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList()
         //        });
         //    }
+
+        //    if (afterFactors.Any() || afterIncomes.Any())
+        //        data.Details.Add(new CustomerBalanceDetailVM
+        //        {
+        //            CustomerIncomes = afterIncomes,
+        //            CalendarId = 0,
+        //            CustomerFactors = afterFactors
+        //        });
 
         //    return View(data);
         //}

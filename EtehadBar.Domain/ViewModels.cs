@@ -21,8 +21,7 @@ namespace EtehadBar.Domain
     public class CustomerBalanceDetailVM
     {
         public long CalendarId { get; set; }
-        public int AccountBookQuantity { get; set; }
-        public double AccountBookLoadFactorsSum { get; set; }
+        public List<CustomerFactor> CustomerFactors { get; set; }
         public List<CustomerIncome> CustomerIncomes { get; set; }
     }
 

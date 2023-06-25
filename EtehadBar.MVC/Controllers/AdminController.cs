@@ -1511,7 +1511,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CustomerIncome([Bind("BankName,Amount,Description,CustomerId,ContractId")] CustomerIncome c, int day, int month, int year, IFormFile pic)
+        public async Task<IActionResult> CustomerIncome([Bind("BankName,Amount,Description,CustomerId")] CustomerIncome c, int day, int month, int year, IFormFile pic)
         {
             if (ModelState.IsValid)
             {
@@ -1586,7 +1586,7 @@ namespace EtehadBar.MVC.Controllers
                 item.AdminId = _userManager.GetUserId(User);
                 item.Amount = p.Amount;
                 item.BankName = p.BankName;
-                item.ContractId = p.ContractId;
+                //item.ContractId = p.ContractId;
 
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
 
@@ -4046,6 +4046,7 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _loadRouteRepo.Get(v.Id);
                 item.Title = v.Title;
                 item.RouteType = v.RouteType;
+                item.RealStatus = v.RealStatus;
 
                 _loadRouteRepo.Update(item);
                 try
@@ -4324,12 +4325,13 @@ namespace EtehadBar.MVC.Controllers
             {
                 if (await _customerFactorRepository.Query().AnyAsync(a => a.FactorNumber.Equals(c.FactorNumber)))
                 {
-                    TempData["msg"] = "شماره صورت وضعیت وارد شده تکراری است. |danger";
+                    TempData["msg"] = "شماره فاکتور وارد شده تکراری است. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
 
                 c.Date = new PersianDateTime(year, month, day).ToDateTime();
                 c.CreatorId = _userManager.GetUserId(User);
+                c.CustomerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(c.ContractId)).Select(a => a.CustomerId).FirstAsync();
                 _customerFactorRepository.Create(c);
                 try
                 {
@@ -4374,6 +4376,8 @@ namespace EtehadBar.MVC.Controllers
                 item.Amount = c.Amount;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
+                item.ContractId = c.ContractId;
+                item.CustomerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(c.ContractId)).Select(a => a.CustomerId).FirstAsync();
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
 
                 _customerFactorRepository.Update(item);

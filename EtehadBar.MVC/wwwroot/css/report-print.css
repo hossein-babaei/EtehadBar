@@ -1,0 +1,17 @@
+﻿@media print {
+    .box {
+        border: 1px solid #000
+    }
+
+    .uk-sticky, .content > h3{
+        display: none
+    }
+
+    .uk-table thead th {
+        background: #eee !important
+    }
+
+    .uk-table-divider > :first-child > tr:not(:first-child), .uk-table-divider > :not(:first-child) > tr, .uk-table-divider > tr:not(:first-child) {
+        border-color: #000 !important
+    }
+}

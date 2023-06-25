@@ -2268,8 +2268,8 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 1).Value = "#";
             ws.Cell(2, 2).Value = "نام و نام خانوادگی";
             ws.Cell(2, 3).Value = "شماره خودرو";
-            ws.Cell(2, 4).Value = "پرداخت شده";
-            ws.Cell(2, 5).Value = "عملکرد";
+            ws.Cell(2, 4).Value = "عملکرد";
+            ws.Cell(2, 5).Value = "پرداخت شده";
 
             var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 5));
             rngTable.FirstRow().Merge();
@@ -2290,14 +2290,14 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 1).Value = i + 1;
                 ws.Cell(i + 3, 2).Value = data[i].VehicleOwnerName;
                 ws.Cell(i + 3, 3).Value = data[i].VehicleNumber;
-                ws.Cell(i + 3, 4).Value = data[i].Amount < 0 ? 0 : data[i].Amount.ToString("N0");
-                ws.Cell(i + 3, 5).Value = data[i].ActivityAmount.Value < 0 ? 0 : data[i].ActivityAmount.Value.ToString("N0");
+                ws.Cell(i + 3, 4).Value = data[i].ActivityAmount.Value < 0 ? 0 : data[i].ActivityAmount.Value.ToString("N0");
+                ws.Cell(i + 3, 5).Value = data[i].Amount < 0 ? 0 : data[i].Amount.ToString("N0");
             }
 
             ws.Cell(data.Count + 3, 1).Value = "جمع";
             ws.Range(data.Count + 3, 1, data.Count + 3, 3).Merge();
-            ws.Cell(data.Count + 3, 4).Value = data.Sum(a => a.Amount < 0 ? 0 : a.Amount).ToString("N0");
-            ws.Cell(data.Count + 3, 5).Value = data.Sum(a => a.ActivityAmount.Value).ToString("N0");
+            ws.Cell(data.Count + 3, 4).Value = data.Sum(a => a.ActivityAmount.Value).ToString("N0");
+            ws.Cell(data.Count + 3, 5).Value = data.Sum(a => a.Amount < 0 ? 0 : a.Amount).ToString("N0");
 
             ws.Column("A").Width = 5;
             ws.Column("B").Width = 18;

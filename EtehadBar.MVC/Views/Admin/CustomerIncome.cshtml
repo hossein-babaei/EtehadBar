@@ -52,7 +52,6 @@
                 <tr>
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.BankName)</th>
-                    <th>@Html.DisplayNameFor(model => model.ContractId)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
@@ -68,7 +67,6 @@
                     <tr class="uk-text-center sm">
                         <td>@i</td>
                         <td>@item.BankName</td>
-                        <td>@item.Contract.Number</td>
                         <td>@pd.ToString("yyyy/MM/dd")</td>
                         <td>@item.Description</td>
                         <td>@item.Amount.ToString("N0")</td>

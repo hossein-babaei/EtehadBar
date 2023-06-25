@@ -23,6 +23,9 @@ namespace EtehadBar.Domain.Models
         public double Amount { get; set; } = 0;
 
         [Display(Name = "قرارداد")]
+        public long CustomerId { get; set; }
+
+        [Display(Name = "قرارداد")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [ForeignKey(nameof(Contract))]
         public long ContractId { get; set; }

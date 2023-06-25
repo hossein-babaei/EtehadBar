@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230625071854_StaticRouteFee_OtherCost")]
+    partial class StaticRouteFee_OtherCost
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -767,9 +769,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<long>("CustomerId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
@@ -820,7 +819,7 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Property<long?>("CalendarId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ContractId")
+                    b.Property<long>("ContractId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("CustomerId")
@@ -2118,15 +2117,19 @@ namespace EtehadBar.Infra.Data.Migrations
                         .WithMany("CustomerIncomes")
                         .HasForeignKey("CalendarId");
 
-                    b.HasOne("EtehadBar.Domain.Models.Contract", null)
+                    b.HasOne("EtehadBar.Domain.Models.Contract", "Contract")
                         .WithMany("Incomes")
-                        .HasForeignKey("ContractId");
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("EtehadBar.Domain.Models.Customer", "Customer")
                         .WithMany("CustomerIncomes")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Contract");
 
                     b.Navigation("Customer");
                 });

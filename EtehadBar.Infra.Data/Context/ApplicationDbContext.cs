@@ -1,4 +1,5 @@
 ﻿using EtehadBar.Domain.Models;
+using EtehadBar.Domain.Models.LoadFactorCreator;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -32,7 +33,6 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<CustomerIncome> CustomerIncome { get; set; }
         public DbSet<Definition> Definition { get; set; }
         public DbSet<Driver> Driver { get; set; }
-        public DbSet<FakeLoadFactor> FakeLoadFactor { get; set; }
         public DbSet<FreeLoadFactor> FreeLoadFactor { get; set; }
         public DbSet<LoadFactor> LoadFactor { get; set; }
         public DbSet<LoadRoutes> LoadRoute { get; set; }
@@ -41,8 +41,10 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<SazehGostarLoadFactor> SazehGostarLoadFactor { get; set; }
         public DbSet<MehrcomParsLoadFactor> MehrcomParsLoadFactor { get; set; }
         public DbSet<MehrcomParsCategory> MehrcomParsCategory { get; set; }
+        public DbSet<OtherCost> OtherCost { get; set; }
         public DbSet<ShippingFeeLoadType> ShippingFeeLoadType { get; set; }
         public DbSet<ShippingFee> ShippingFee { get; set; }
+        public DbSet<StaticRouteFee> StaticRouteFee { get; set; }
         public DbSet<UploadedFiles> UploadedFiles { get; set; }
         public DbSet<Turnover> Turnover { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
@@ -62,16 +64,13 @@ namespace EtehadBar.Infra.Data.Context
 
             modelBuilder.Entity<LoadFactor>().HasOne(a => a.AccountBook).WithMany(a => a.LoadFactors).OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<CustomerIncome>().HasOne(a => a.Contract).WithMany(a => a.Incomes).OnDelete(DeleteBehavior.NoAction);
+            //modelBuilder.Entity<CustomerIncome>().HasOne(a => a.Contract).WithMany(a => a.Incomes).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Origin).WithMany().HasForeignKey(sf => sf.OriginId).OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Destination).WithMany().HasForeignKey(sf => sf.DestinationId).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<LoadFactor>().HasOne(lf => lf.Origin).WithMany().HasForeignKey(lf => lf.OriginId).OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<LoadFactor>().HasOne(lf => lf.Destination).WithMany().HasForeignKey(lf => lf.DestinationId).OnDelete(DeleteBehavior.NoAction);
-            
-            modelBuilder.Entity<FakeLoadFactor>().HasOne(lf => lf.Origin).WithMany().HasForeignKey(lf => lf.OriginId).OnDelete(DeleteBehavior.NoAction);
-            modelBuilder.Entity<FakeLoadFactor>().HasOne(lf => lf.Destination).WithMany().HasForeignKey(lf => lf.DestinationId).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Customer>().HasData(
                 new { Id = 1L, Name = "پلاسکو کار سایپا", CustomerType = Domain.CustomerType.SaipaPlasco, LoadFactorDeductions = 5d, HasLoadType = false, HasAddonTonnage = false, HasLoadSleep = false, Status = true, RowId = "29f78114-f72a-427a-a3f1-8864e6eeb13c" },

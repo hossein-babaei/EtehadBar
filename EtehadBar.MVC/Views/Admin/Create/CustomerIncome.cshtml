@@ -39,7 +39,7 @@
                         <label class="uk-form-label">سال</label>
                         <input class="uk-input uk-border-rounded" name="year" value="@ViewData["Year"].ToString()" dir="ltr" readonly />
                     </div>
-                    <div>
+                    @*<div>
                         <label asp-for="ContractId" class="uk-form-label"></label>
                         <select asp-for="ContractId" class="uk-select uk-border-rounded">
                             @foreach (var contract in contracts)
@@ -48,7 +48,7 @@
                             }
                         </select>
                         <span asp-validation-for="ContractId" class="uk-text-danger"></span>
-                    </div>
+                    </div>*@
                     <div>
                         <label asp-for="BankName" class="uk-form-label"></label>
                         <select asp-for="BankName" class="uk-select uk-border-rounded">

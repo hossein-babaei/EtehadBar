@@ -33,11 +33,11 @@ namespace EtehadBar.Domain.Models
         [StringLength(450)]
         public string AdminId { get; set; }
 
-        [Display(Name = "قرارداد")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [ForeignKey(nameof(Contract ))]
-        public long ContractId { get; set; }
-        public virtual Contract Contract { get; set; }
+        //[Display(Name = "قرارداد")]
+        //[Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        //[ForeignKey(nameof(Contract ))]
+        //public long ContractId { get; set; }
+        //public virtual Contract Contract { get; set; }
 
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]

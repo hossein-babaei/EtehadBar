@@ -55,7 +55,7 @@
     @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
     {
         <li @if (param == 5) { <text> class="active" </text> }>
-            <a asp-action="Vehicle" asp-controller="Admin"><i class="uk-margin-left fas fa-robot"></i>بارنامه ساز</a>
+            <a asp-action="Index" asp-controller="LoadFactorCreator"><i class="uk-margin-left fas fa-robot"></i>بارنامه ساز</a>
         </li>
     }
     @if (User.IsInRole("Admin"))

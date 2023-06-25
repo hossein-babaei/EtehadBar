@@ -248,7 +248,7 @@ namespace EtehadBar.Infra.Data.Repository
             var query = await(from a in db.LoadFactor
                               join b in db.Contract on a.ContractId equals b.Id
                               join c in db.Vehicles on a.VehicleId equals c.Id
-                              where a.CalendarId.Equals(calendarId) && b.CustomerId.Equals(customerId) && a.IsFreeDriverPrice
+                              where a.CalendarId.Equals(calendarId) && b.CustomerId.Equals(customerId)
                               select new
                               {
                                   a.Tonnage,
@@ -269,7 +269,7 @@ namespace EtehadBar.Infra.Data.Repository
             var calendars = await db.Calendar.AsNoTracking().Where(a => a.Sequence <= thisCalendarSequence).Select(a => a.Id).ToListAsync();
             var vehicleBalances = await db.VehicleBalance
                     .Where(a => (a.CustomerId.HasValue ? a.CustomerId.Value.Equals(customerId) : true) && a.BillId.HasValue &&
-                    a.CalendarId.HasValue && calendars.Contains(a.CalendarId.Value) && vehicleIdList.Contains(a.VehicleId))
+                    a.CalendarId.HasValue && a.CalendarId.Value.Equals(calendarId) /*calendars.Contains(a.CalendarId.Value)*/ && vehicleIdList.Contains(a.VehicleId))
                     .Select(a => new ActivityListPaymentVM { VehicleId = a.VehicleId, Amount = a.Amount }).AsNoTracking().ToListAsync();
 
             var data = new List<ActivityListVM>();

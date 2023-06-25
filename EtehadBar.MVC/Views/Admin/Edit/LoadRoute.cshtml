@@ -21,6 +21,14 @@
                     <label><input class="uk-radio" type="radio" name="RouteType" value="@((int)LoadRouteType.Destionation)" @if(Model.RouteType.Equals(LoadRouteType.Destionation)) { <text>checked</text> }> مقصد</label>
                 </div>
             </div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
+                    <label><input class="uk-radio" type="radio" name="RealStatus" value="true" @if(Model.RealStatus) { <text>checked</text> }> بلی</label>
+                    <label><input class="uk-radio" type="radio" name="RealStatus" value="false" @if(!Model.RealStatus) {
+                        <text>checked</text>
+ }> خیر</label>
+                </div>
+            </div>
         </form>
     </div>
     <div class="uk-modal-footer uk-text-center">
