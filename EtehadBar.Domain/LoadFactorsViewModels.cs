@@ -588,9 +588,6 @@ namespace EtehadBar.Domain
         [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
         public double? DriverTonnagePrice { get; set; }
 
-        [Display(Name = "تناژ اضافه")]
-        public double? Tonnage { get; set; } = 0;
-
         [Display(Name = "افزایش 30%")]
         public bool HasAddonMessage { get; set; } = false;
 
@@ -691,9 +688,6 @@ namespace EtehadBar.Domain
 
         [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
         public double? DriverTonnagePrice { get; set; }
-
-        [Display(Name = "تناژ اضافه")]
-        public double? Tonnage { get; set; } = 0;
 
         [Display(Name = "افزایش 30%")]
         public bool HasAddonMessage { get; set; } = false;

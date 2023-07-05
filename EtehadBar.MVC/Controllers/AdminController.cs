@@ -207,7 +207,7 @@ namespace EtehadBar.MVC.Controllers
             //var bills = await _billRepository.Query().Where(a => a.VehicleId.HasValue).ToListAsync();
             //foreach (var item in bills)
             //{
-            //    _vehicleBalanceRepository.Create(new VehicleBalance
+            //    await _vehicleBalanceRepository.Create(new VehicleBalance
             //    {
             //        Amount = -item.Amount,
             //        BillId = item.Id,
@@ -221,7 +221,7 @@ namespace EtehadBar.MVC.Controllers
             //var loadFactors = await _loadFactorRepo.LoadFactors().ToListAsync();
             //foreach (var item in loadFactors)
             //{
-            //    _vehicleBalanceRepository.Create(new VehicleBalance
+            //    await _vehicleBalanceRepository.Create(new VehicleBalance
             //    {
             //        Amount = item.DriverFee +
             //        ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0) +
@@ -2261,7 +2261,7 @@ namespace EtehadBar.MVC.Controllers
                     {
                         bool isEdited = false;
 
-                        if (loadFactor.Date >= amountDatetime)
+                        if (loadFactor.Date >= amountDatetime /*&& loadFactor.CalendarId >= 5*/)
                         {
                             loadFactor.Amount = fee.Price;
                         }
@@ -2665,7 +2665,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _loadFactorRepo.Save();
 
-                    _vehicleBalanceRepository.Create(new VehicleBalance
+                    await _vehicleBalanceRepository.Create(new VehicleBalance
                     {
                         Amount = loadFactor.DriverFee,
                         CalendarId = loadFactor.CalendarId,
@@ -2833,7 +2833,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _loadFactorRepo.Save();
 
-                    _vehicleBalanceRepository.Create(new VehicleBalance
+                    await _vehicleBalanceRepository.Create(new VehicleBalance
                     {
                         Amount = loadFactor.DriverFee + ((loadFactor.Tonnage.HasValue && loadFactor.DriverTonnagePrice.HasValue) ? loadFactor.Tonnage.Value * loadFactor.DriverTonnagePrice.Value : 0),
                         CalendarId = loadFactor.CalendarId,
@@ -2986,7 +2986,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _loadFactorRepo.Save();
 
-                    _vehicleBalanceRepository.Create(new VehicleBalance
+                    await _vehicleBalanceRepository.Create(new VehicleBalance
                     {
                         Amount = loadFactor.DriverFee,
                         CalendarId = loadFactor.CalendarId,
@@ -3117,7 +3117,9 @@ namespace EtehadBar.MVC.Controllers
                     VAT = config.VAT,
                     LoadFactorDeductions = customerLoadFactorDeduction,
                     AccountBookId = input.AccountBookId,
-                    Tonnage = input.Tonnage,
+                    Tonnage = (input.TonnagePrice.HasValue && input.DriverTonnagePrice.HasValue) ? 1 : null,
+                    TonnagePrice = input.TonnagePrice,
+                    DriverTonnagePrice = input.DriverTonnagePrice,
                     WeighbridgePrice = input.WeighbridgePrice,
                     LoadSleepTime = input.LoadSleepTime,
                     LoadSleepPrice = input.LoadSleepPrice,
@@ -3128,17 +3130,13 @@ namespace EtehadBar.MVC.Controllers
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
-                    loadFactor.Amount = input.HasAddonMessage ? input.Amount + (input.Amount * 0.3) : input.Amount;
-                    loadFactor.DriverFee = input.HasAddonMessage ? input.DriverFee + (input.DriverFee * 0.3) : input.DriverFee;
-                    loadFactor.TonnagePrice = input.TonnagePrice;
-                    loadFactor.DriverTonnagePrice = input.DriverTonnagePrice;
+                    loadFactor.Amount = input.HasAddonMessage ? Math.Floor(input.Amount + (input.Amount * 0.3)) : input.Amount;
+                    loadFactor.DriverFee = input.HasAddonMessage ? Math.Floor(input.DriverFee + (input.DriverFee * 0.3)) : input.DriverFee;
                 }
                 else
                 {
-                    loadFactor.Amount = input.HasAddonMessage ? fee.Price + (fee.Price * 0.3) : fee.Price;
-                    loadFactor.DriverFee = input.HasAddonMessage ? fee.DriverPrice + (fee.DriverPrice * 0.3) : fee.DriverPrice;
-                    loadFactor.TonnagePrice = fee.TonnagePrice;
-                    loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
+                    loadFactor.Amount = input.HasAddonMessage ? Math.Floor(fee.Price + (fee.Price * 0.3)) : fee.Price;
+                    loadFactor.DriverFee = input.HasAddonMessage ? Math.Floor(fee.DriverPrice + (fee.DriverPrice * 0.3)) : fee.DriverPrice;
                 }
                 loadFactor.MehrcomParsLoadFactor = new MehrcomParsLoadFactor
                 {
@@ -3159,7 +3157,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _loadFactorRepo.Save();
 
-                    _vehicleBalanceRepository.Create(new VehicleBalance
+                    await _vehicleBalanceRepository.Create(new VehicleBalance
                     {
                         Amount = loadFactor.DriverFee +
                     ((loadFactor.Tonnage.HasValue && loadFactor.DriverTonnagePrice.HasValue) ? loadFactor.Tonnage.Value * loadFactor.DriverTonnagePrice.Value : 0) +
@@ -3308,12 +3306,13 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.EditDatetime = DateTime.Now;
                         balanceItem.VehicleId = item.VehicleId;
                         balanceItem.CustomerId = item.Contract.CustomerId;
+                        balanceItem.CalendarId = item.CalendarId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
                     else
                     {
-                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        await _vehicleBalanceRepository.Create(new VehicleBalance
                         {
                             Amount = item.DriverFee,
                             CalendarId = item.CalendarId,
@@ -3454,12 +3453,13 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.EditDatetime = DateTime.Now;
                         balanceItem.VehicleId = item.VehicleId;
                         balanceItem.CustomerId = item.Contract.CustomerId;
+                        balanceItem.CalendarId = item.CalendarId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
                     else
                     {
-                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        await _vehicleBalanceRepository.Create(new VehicleBalance
                         {
                             Amount = item.DriverFee + ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0),
                             CalendarId = item.CalendarId,
@@ -3581,12 +3581,13 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.EditDatetime = DateTime.Now;
                         balanceItem.VehicleId = item.VehicleId;
                         balanceItem.CustomerId = item.Contract.CustomerId;
+                        balanceItem.CalendarId = item.CalendarId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
                     else
                     {
-                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        await _vehicleBalanceRepository.Create(new VehicleBalance
                         {
                             Amount = item.DriverFee,
                             CalendarId = item.CalendarId,
@@ -3677,7 +3678,8 @@ namespace EtehadBar.MVC.Controllers
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.AccountBookId = input.AccountBookId;
-                item.Tonnage = input.Tonnage;
+                item.Tonnage = (input.TonnagePrice.HasValue && input.DriverTonnagePrice.HasValue) ? 1 : null;
+                item.TonnagePrice = input.TonnagePrice;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
 
                 item.MehrcomParsLoadFactor.LoadNumberGovReturn = input.LoadNumberGovReturn;
@@ -3693,23 +3695,19 @@ namespace EtehadBar.MVC.Controllers
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
-                    item.Amount = input.HasAddonMessage ? input.Amount + (input.Amount * 0.3) : input.Amount;
+                    item.Amount = input.HasAddonMessage ? Math.Floor(input.Amount + (input.Amount * 0.3)) : input.Amount;
                     if (!item.IsDriverFeeEditedByAdmin)
                     {
-                        item.DriverFee = input.HasAddonMessage ? input.DriverFee + (input.DriverFee * 0.3) : input.DriverFee;
-                        item.DriverTonnagePrice = input.DriverTonnagePrice;
+                        item.DriverFee = input.HasAddonMessage ? Math.Floor(input.DriverFee + (input.DriverFee * 0.3)) : input.DriverFee;
                     }
-                    item.TonnagePrice = input.TonnagePrice;
                 }
                 else
                 {
-                    item.Amount = input.HasAddonMessage ? fee.Price + (fee.Price * 0.3) : fee.Price;
+                    item.Amount = input.HasAddonMessage ? Math.Floor(fee.Price + (fee.Price * 0.3)) : fee.Price;
                     if (!item.IsDriverFeeEditedByAdmin)
                     {
-                        item.DriverFee = input.HasAddonMessage ? fee.DriverPrice + (fee.DriverPrice * 0.3) : fee.DriverPrice;
-                        item.DriverTonnagePrice = fee.DriverTonnagePrice;
+                        item.DriverFee = input.HasAddonMessage ? Math.Floor(fee.DriverPrice + (fee.DriverPrice * 0.3)) : fee.DriverPrice;
                     }
-                    item.TonnagePrice = fee.TonnagePrice;
                 }
 
                 _loadFactorRepo.Update(item);
@@ -3728,12 +3726,13 @@ namespace EtehadBar.MVC.Controllers
                         balanceItem.EditDatetime = DateTime.Now;
                         balanceItem.VehicleId = item.VehicleId;
                         balanceItem.CustomerId = item.Contract.CustomerId;
+                        balanceItem.CalendarId = item.CalendarId;
 
                         _vehicleBalanceRepository.Update(balanceItem);
                     }
                     else
                     {
-                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        await _vehicleBalanceRepository.Create(new VehicleBalance
                         {
                             Amount = item.DriverFee +
                     ((item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue) ? item.Tonnage.Value * item.DriverTonnagePrice.Value : 0) +
@@ -5573,7 +5572,7 @@ namespace EtehadBar.MVC.Controllers
 
                     if (b.VehicleId.HasValue)
                     {
-                        _vehicleBalanceRepository.Create(new VehicleBalance
+                        await _vehicleBalanceRepository.Create(new VehicleBalance
                         {
                             Amount = -b.Amount,
                             BillId = b.Id,
@@ -5674,7 +5673,7 @@ namespace EtehadBar.MVC.Controllers
                         }
                         else
                         {
-                            _vehicleBalanceRepository.Create(new VehicleBalance
+                            await _vehicleBalanceRepository.Create(new VehicleBalance
                             {
                                 Amount = -b.Amount,
                                 BillId = b.Id,
@@ -5762,7 +5761,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CreateVehicleBalance(
             long CustomerId, long CalendarId, long VehicleId, string AmountType, double Amount, string Description)
         {
-            _vehicleBalanceRepository.Create(new VehicleBalance
+            await _vehicleBalanceRepository.Create(new VehicleBalance
             {
                 Amount = AmountType == "minus" ? -(Amount) : Amount,
                 Description = Description,
@@ -5802,7 +5801,7 @@ namespace EtehadBar.MVC.Controllers
 
             foreach (var vehicleId in idList)
             {
-                _vehicleBalanceRepository.Create(new VehicleBalance
+                await _vehicleBalanceRepository.Create(new VehicleBalance
                 {
                     Amount = AmountType == "minus" ? -(Amount) : Amount,
                     Description = Description,

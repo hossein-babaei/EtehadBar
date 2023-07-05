@@ -13,7 +13,7 @@ namespace EtehadBar.Domain.Interfaces
         Task<List<VehicleBalance>> GetVehicleBalance(long vehicleId, long? calendarId);
         IQueryable<VehicleBalance> Query();
         void Update(VehicleBalance obj);
-        void Create(VehicleBalance obj);
+        Task Create(VehicleBalance obj);
         void Delete(VehicleBalance obj);
         Task<int> Save();
     }

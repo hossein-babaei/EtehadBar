@@ -186,7 +186,7 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <td>
-                                <a class="uk-button uk-button-primary uk-button-small" onclick="showContracts(@item.Id)">مالی</a>
+                                <a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerBalance" asp-route-customerId="@item.Id">مالی</a>@*onclick="showContracts(@item.Id)"*@
                                 <a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a>
                             </td>
                         }

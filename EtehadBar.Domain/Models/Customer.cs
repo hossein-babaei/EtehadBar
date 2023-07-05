@@ -43,6 +43,7 @@ namespace EtehadBar.Domain.Models
         public virtual ICollection<AccountBook> AccountBooks { get; set; }
         public virtual ICollection<Contract> Contracts { get; set; }
         public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }
+        public virtual ICollection<CustomerPeriodicBalanceSummary> CustomerPeriodicBalanceSummaries { get; set; }
 
         [Required]
         [StringLength(36)]

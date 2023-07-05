@@ -1,13 +1,19 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Presentation;
+using DocumentFormat.OpenXml.Wordprocessing;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
+using EtehadBar.Domain.Models.LoadFactorCreator;
 using EtehadBar.Infra.Data;
 using EtehadBar.Infra.Data.Context;
 using EtehadBar.Infra.Data.Repository;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,16 +27,18 @@ namespace EtehadBar.MVC.Controllers
     public class LoadFactorCreatorController : Controller
     {
         private readonly ApplicationDbContext db;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICalendarRepository _calendarRepository;
         private readonly IBillRepository _billRepository;
         private readonly IVehicleRepository _vehicleRepository;
 
-        public LoadFactorCreatorController(ICalendarRepository calendarRepository, IBillRepository billRepository, IVehicleRepository vehicleRepository, ApplicationDbContext context)
+        public LoadFactorCreatorController(ICalendarRepository calendarRepository, IBillRepository billRepository, IVehicleRepository vehicleRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _calendarRepository = calendarRepository;
             _billRepository = billRepository;
             _vehicleRepository = vehicleRepository;
             db = context;
+            _userManager = userManager;
         }
 
         public async Task<IActionResult> Index(int? p)
@@ -55,9 +63,53 @@ namespace EtehadBar.MVC.Controllers
 
         public async Task<IActionResult> Create(long id)
         {
-            var origins = LoadFactorCreatorStaticData.GetOrigins();
-            var destination = LoadFactorCreatorStaticData.GetDestinations();
-            var ranges = LoadFactorCreatorStaticData.GetPriceRanges();
+            #region OldLogic
+            //var origins = LoadFactorCreatorStaticData.GetOrigins();
+            //var destination = LoadFactorCreatorStaticData.GetDestinations();
+            //var ranges = LoadFactorCreatorStaticData.GetPriceRanges();
+            //var data = new List<LoadFactorModel>();
+
+            //var calendar = await _calendarRepository.Get(id);
+            //var persianDate = new PersianDateTime(calendar.StartDate);
+
+            //var bills = await _billRepository.Query().Where(a => a.CalendarId.Equals(id) && (a.VehicleId.HasValue &&
+            //(_vehicleRepository.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).OrderBy(a => a.Date).ToListAsync();
+            //var distinctedBills = bills.DistinctBy(a => a.VehicleId.Value).ToList();
+
+            //foreach (var item in distinctedBills)
+            //{
+            //    data.Add(new LoadFactorModel
+            //    {
+            //        DriverName = item.ReceiverName,
+            //        VehicleId = item.VehicleId.Value,
+            //        VehicleNumber = $"ایران {item.Vehicle.IranStateNumber} - {item.Vehicle.RightNumber} {item.Vehicle.NumberWord} {item.Vehicle.LeftNumber}",
+            //        Amount = bills.Where(a => a.VehicleId.Value.Equals(item.VehicleId.Value)).Sum(a => a.Amount)
+            //    });
+            //}
+
+            //var rnd = new Random();
+            //foreach (var item in data)
+            //{
+            //    var range = ranges.Where(a => a.Minimum <= item.Amount && a.Maximum >= item.Amount).Single();
+            //    var amount = item.Amount / range.Divider;
+
+            //    for (int i = 0; i < range.Divider; i++)
+            //    {
+            //        int day = rnd.Next(1, 30);
+            //        item.Details.Add(new LoadFactorDetailModel
+            //        {
+            //            Day = day,
+            //            Amount = amount,
+            //            Date = $"{persianDate.ToString("yyyy/MM")}/{(day < 10 ? $"0{day}" : day)}",
+            //            Origin = origins.ElementAt(rnd.Next(0, origins.Count - 1)).Name,
+            //            Destination = destination.ElementAt(rnd.Next(0, destination.Count - 1)).Name,
+            //            LoadFactorNumber = $"{persianDate.Year}/{rnd.Next(rnd.Next(11111111, 19999999))}"
+            //        });
+            //    }
+            //}
+            #endregion
+
+            var routes = await db.StaticRouteFee.AsNoTracking().ToListAsync();
             var data = new List<LoadFactorModel>();
 
             var calendar = await _calendarRepository.Get(id);
@@ -79,23 +131,50 @@ namespace EtehadBar.MVC.Controllers
             }
 
             var rnd = new Random();
+            var minimumRouteAmount = routes.Min(a => a.Amount);
+
             foreach (var item in data)
             {
-                var range = ranges.Where(a => a.Minimum <= item.Amount && a.Maximum >= item.Amount).Single();
-                var amount = item.Amount / range.Divider;
-
-                for (int i = 0; i < range.Divider; i++)
+                var itemAmount = item.Amount;
+                List<int> takenDays = new();
+                while (itemAmount > 0)
                 {
-                    int day = rnd.Next(1, 30);
-                    item.Details.Add(new LoadFactorDetailModel
+                    int day = 0;
+
+                    day = rnd.Next(1, 30);
+                    while (takenDays.Contains(day) && takenDays.Count <= 30)
+                        day = rnd.Next(1, 30);
+                    takenDays.Add(day);
+
+                    var possibleRoutes = routes.Where(a => a.Amount <= itemAmount).ToList();
+                    if (possibleRoutes.Any())
                     {
-                        Day = day,
-                        Amount = amount,
-                        Date = $"{persianDate.ToString("yyyy/MM")}/{(day < 10 ? $"0{day}" : day)}",
-                        Origin = origins.ElementAt(rnd.Next(0, origins.Count - 1)).Name,
-                        Destination = destination.ElementAt(rnd.Next(0, destination.Count - 1)).Name,
-                        LoadFactorNumber = $"{persianDate.Year}/{rnd.Next(rnd.Next(11111111, 19999999))}"
-                    });
+                        var route = possibleRoutes.ElementAt(rnd.Next(0, possibleRoutes.Count - 1));
+                        itemAmount -= route.Amount;
+
+                        item.Details.Add(new LoadFactorDetailModel
+                        {
+                            Day = day,
+                            Amount = route.Amount,
+                            Date = $"{persianDate.ToString("yyyy/MM")}/{(day < 10 ? $"0{day}" : day)}",
+                            Origin = route.Origin,
+                            Destination = route.Destination,
+                            LoadFactorNumber = $"{persianDate.Year}/{rnd.Next(11111111, 59999999)}"
+                        });
+                    }
+                    else
+                    {
+                        item.Details.Add(new LoadFactorDetailModel
+                        {
+                            Day = 31,
+                            Amount = itemAmount,
+                            Date = "---",
+                            Origin = "---",
+                            Destination = "---",
+                            LoadFactorNumber = "سایر / تناژ"
+                        });
+                        itemAmount = 0;
+                    }
                 }
             }
 
@@ -140,11 +219,11 @@ namespace EtehadBar.MVC.Controllers
                     var detail = item.Details[i];
                     ws.Cell(i + 3, 1).SetValue(i + 1);
                     ws.Cell(i + 3, 2).SetValue(detail.Date);
-                    ws.Cell(i + 3, 3).SetValue(item.DriverName);
+                    ws.Cell(i + 3, 3).SetValue(detail.Day == 31 ? "---" : item.DriverName);
                     ws.Cell(i + 3, 4).SetValue(detail.Origin);
                     ws.Cell(i + 3, 5).SetValue(detail.Destination);
                     ws.Cell(i + 3, 6).SetValue(detail.LoadFactorNumber);
-                    ws.Cell(i + 3, 7).SetValue("بلی");
+                    ws.Cell(i + 3, 7).SetValue(detail.Day == 31 ? "---" : "بلی");
                     ws.Cell(i + 3, 8).SetValue(detail.Amount.ToString("N0"));
                 }
 
@@ -174,6 +253,102 @@ namespace EtehadBar.MVC.Controllers
             workbook.SaveAs(stream);
             var content = stream.ToArray();
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+        }
+
+        public async Task<IActionResult> OtherCost(int? p)
+        {
+            var pageNumber = p ?? 1;
+            ViewBag.data = await db.OtherCost.AsNoTracking().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            return View();
+        }
+
+        public async Task<IActionResult> OtherCost_Search(int? p)
+        {
+            var pageNumber = p ?? 1;
+            ViewBag.data = await db.OtherCost.AsNoTracking().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            return PartialView();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateOtherCost()
+        {
+            ViewData["Calendars"] = await _calendarRepository.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            return PartialView("~/Views/LoadFactorCreator/Create/OtherCost.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateOtherCost(OtherCost c)
+        {
+            if (ModelState.IsValid)
+            {
+                db.Add(new OtherCost
+                {
+                    Amount= c.Amount,
+                    DriverName= c.DriverName,
+                    IranStateNumber= c.IranStateNumber,
+                    LeftNumber= c.LeftNumber,
+                    RightNumber= c.RightNumber,
+                    NumberWord= c.NumberWord,
+                    CalendarId = c.CalendarId,
+                    AdminId = _userManager.GetUserId(User)
+                });
+                try
+                {
+                    await db.SaveChangesAsync();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditOtherCost(long id)
+        {
+            ViewData["Calendars"] = await _calendarRepository.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+
+            return PartialView("~/Views/LoadFactorCreator/Edit/OtherCost.cshtml", await db.OtherCost.FindAsync(id));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditOtherCost(OtherCost c)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await db.OtherCost.FindAsync(c.Id);
+                item.EditorId = _userManager.GetUserId(User);
+                item.EditDateTime = DateTime.Now;
+                item.CalendarId = c.CalendarId;
+                item.LeftNumber = c.LeftNumber;
+                item.RightNumber = c.RightNumber;
+                item.NumberWord = c.NumberWord;
+                item.IranStateNumber = c.IranStateNumber;
+                item.Amount = c.Amount;
+                item.DriverName = c.DriverName;
+
+                db.Update(item);
+                try
+                {
+                    await db.SaveChangesAsync();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
         }
     }
 }

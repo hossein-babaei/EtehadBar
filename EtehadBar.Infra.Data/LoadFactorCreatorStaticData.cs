@@ -32,7 +32,9 @@ namespace EtehadBar.Infra.Data
                 new DestinationModel() { Name = "بابلسر"},//8000
                 new DestinationModel() { Name = "تبریز"},//12000
                 new DestinationModel() { Name = "رشت"},//9000
-                new DestinationModel() { Name = "اصفهان"}//8500
+                new DestinationModel() { Name = "اصفهان"},//8500
+                new DestinationModel() { Name = "پلاسکو قزوین"},//4500
+                new DestinationModel() { Name = "خاوران"},//2500
             };
         }
 

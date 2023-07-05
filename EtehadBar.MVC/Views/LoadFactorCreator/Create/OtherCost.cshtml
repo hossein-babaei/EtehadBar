@@ -1,0 +1,61 @@
+﻿@model EtehadBar.Domain.Models.LoadFactorCreator.OtherCost
+
+@{
+    var calendars = (List<Calendar>)ViewData["Calendars"];
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">افزودن جدید</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="create-form" asp-action="CreateOtherCost" method="post">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-flex-bottom uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="CalendarId" class="uk-form-label"></label>
+                    <select asp-for="CalendarId" class="uk-select uk-border-rounded">
+                        @foreach (var item in calendars)
+                        {
+                            <option value="@item.Id">@item.Title</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-4">
+                    <label asp-for="IranStateNumber" class="uk-form-label"></label>
+                    <input asp-for="IranStateNumber" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="IranStateNumber" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-4">
+                    <label asp-for="RightNumber" class="uk-form-label"></label>
+                    <input asp-for="RightNumber" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="RightNumber" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-4">
+                    <label asp-for="NumberWord" class="uk-form-label"></label>
+                    <input asp-for="NumberWord" class="uk-input uk-border-rounded" value="ع" />
+                    <span asp-validation-for="NumberWord" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-4">
+                    <label asp-for="LeftNumber" class="uk-form-label"></label>
+                    <input asp-for="LeftNumber" dir="ltr" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="LeftNumber" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="DriverName" class="uk-form-label"></label>
+                    <input asp-for="DriverName" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="DriverName" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Amount" class="uk-form-label"></label>
+                    <input asp-for="Amount" class="uk-input uk-border-rounded format-number" dir="ltr"/>
+                    <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitCreateForm()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

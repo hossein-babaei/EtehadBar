@@ -140,9 +140,14 @@
                     <span asp-validation-for="LoadNumberGovReturn" class="uk-text-danger"></span>
                 </div>
                 <div>
-                    <label asp-for="Tonnage" class="uk-form-label"></label>
-                    <input asp-for="Tonnage" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
-                    <span asp-validation-for="Tonnage" class="uk-text-danger"></span>
+                    <label asp-for="TonnagePrice" class="uk-form-label"></label>
+                    <input asp-for="TonnagePrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="TonnagePrice" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="DriverTonnagePrice" class="uk-form-label"></label>
+                    <input asp-for="DriverTonnagePrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="DriverTonnagePrice" class="uk-text-danger"></span>
                 </div>
                 @*<div>
                 <label asp-for="LoadType" class="uk-form-label"></label>

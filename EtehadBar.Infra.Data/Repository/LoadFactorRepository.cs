@@ -387,7 +387,6 @@ namespace EtehadBar.Infra.Data.Repository
                 CategoryId = loadFactor.MehrcomParsLoadFactor.CategoryId,
                 DriverLoadSleepPrice = loadFactor.DriverLoadSleepPrice,
                 DriverTonnagePrice = loadFactor.DriverTonnagePrice,
-                Tonnage = loadFactor.Tonnage,
                 TonnagePrice = loadFactor.TonnagePrice,
                 LoadSleepPrice = loadFactor.LoadSleepPrice,
                 LoadSleepTime = loadFactor.LoadSleepTime,

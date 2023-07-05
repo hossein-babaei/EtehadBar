@@ -1539,7 +1539,7 @@ namespace EtehadBar.MVC.Controllers
                             if (!string.IsNullOrWhiteSpace(commentText))
                                 commentText += " | ";
 
-                            commentText += $"میزان اضافه تناژ: {allLoadFactors[i].Tonnage.Value} تن | مبلغ اضافه تناژ: {(exportType.HasValue ? (exportType.Value == ExcelExportType.WithAllPrices || exportType.Value == ExcelExportType.OnlyReceivingPrice) ? allLoadFactors[i].TonnagePrice.Value.ToString("N0") : allLoadFactors[i].DriverTonnagePrice.Value.ToString("N0") : allLoadFactors[i].DriverTonnagePrice.Value.ToString("N0"))}";
+                            commentText += $"مبلغ اضافه تناژ: {(exportType.HasValue ? (exportType.Value == ExcelExportType.WithAllPrices || exportType.Value == ExcelExportType.OnlyReceivingPrice) ? allLoadFactors[i].TonnagePrice.Value.ToString("N0") : allLoadFactors[i].DriverTonnagePrice.Value.ToString("N0") : allLoadFactors[i].DriverTonnagePrice.Value.ToString("N0"))}";
                         }
 
                         if (!string.IsNullOrWhiteSpace(commentText))
@@ -1849,7 +1849,7 @@ namespace EtehadBar.MVC.Controllers
                                         if (!string.IsNullOrWhiteSpace(commentText))
                                             commentText += " | ";
 
-                                        commentText += $"میزان اضافه تناژ: {loadFactors[i].Tonnage.Value} تن | مبلغ اضافه تناژ: {(exportType.HasValue ? (exportType.Value == ExcelExportType.WithAllPrices || exportType.Value == ExcelExportType.OnlyReceivingPrice) ? loadFactors[i].TonnagePrice.Value.ToString("N0") : loadFactors[i].DriverTonnagePrice.Value.ToString("N0") : loadFactors[i].DriverTonnagePrice.Value.ToString("N0"))}";
+                                        commentText += $"مبلغ اضافه تناژ: {(exportType.HasValue ? (exportType.Value == ExcelExportType.WithAllPrices || exportType.Value == ExcelExportType.OnlyReceivingPrice) ? loadFactors[i].TonnagePrice.Value.ToString("N0") : loadFactors[i].DriverTonnagePrice.Value.ToString("N0") : loadFactors[i].DriverTonnagePrice.Value.ToString("N0"))}";
                                     }
 
                                     if (!string.IsNullOrWhiteSpace(commentText))
@@ -2269,9 +2269,11 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 2).Value = "نام و نام خانوادگی";
             ws.Cell(2, 3).Value = "شماره خودرو";
             ws.Cell(2, 4).Value = "عملکرد";
-            ws.Cell(2, 5).Value = "پرداخت شده";
+            ws.Cell(2, 5).Value = "کسر / خسارت";
+            ws.Cell(2, 6).Value = "پرداخت شده";
+            ws.Cell(2, 7).Value = "توضیحات";
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 5));
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 7));
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
@@ -2280,37 +2282,45 @@ namespace EtehadBar.MVC.Controllers
                     .Fill.SetBackgroundColor(XLColor.LightGray)
                         .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 5)); // The address is relative to rngTable (NOT the worksheet)
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 7)); // The address is relative to rngTable (NOT the worksheet)
             rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             rngHeaders.Style.Font.Bold = true;
             rngHeaders.Style.Font.FontColor = XLColor.Black;
 
             for (int i = 0; i < data.Count; i++)
             {
+                var activity = data[i].ActivityAmount.Value < 0 ? 0 : data[i].ActivityAmount.Value;
+                var amount = data[i].Amount < 0 ? 0 : data[i].Amount;
+
                 ws.Cell(i + 3, 1).Value = i + 1;
                 ws.Cell(i + 3, 2).Value = data[i].VehicleOwnerName;
                 ws.Cell(i + 3, 3).Value = data[i].VehicleNumber;
-                ws.Cell(i + 3, 4).Value = data[i].ActivityAmount.Value < 0 ? 0 : data[i].ActivityAmount.Value.ToString("N0");
-                ws.Cell(i + 3, 5).Value = data[i].Amount < 0 ? 0 : data[i].Amount.ToString("N0");
+                ws.Cell(i + 3, 4).Value = activity.ToString("N0");
+                ws.Cell(i + 3, 5).Value = (amount - activity).ToString("N0");
+                ws.Cell(i + 3, 6).Value = amount.ToString("N0");
+                ws.Cell(i + 3, 7).Value = "";
             }
 
             ws.Cell(data.Count + 3, 1).Value = "جمع";
             ws.Range(data.Count + 3, 1, data.Count + 3, 3).Merge();
             ws.Cell(data.Count + 3, 4).Value = data.Sum(a => a.ActivityAmount.Value).ToString("N0");
-            ws.Cell(data.Count + 3, 5).Value = data.Sum(a => a.Amount < 0 ? 0 : a.Amount).ToString("N0");
+            ws.Cell(data.Count + 3, 6).Value = data.Sum(a => a.Amount < 0 ? 0 : a.Amount).ToString("N0");
 
             ws.Column("A").Width = 5;
             ws.Column("B").Width = 18;
-            ws.Column("C").Width = 20;
-            ws.Column("D").Width = 20;
-            ws.Column("E").Width = 20;
+            ws.Column("C").Width = 16;
+            ws.Column("D").Width = 11;
+            ws.Column("E").Width = 11;
+            ws.Column("F").Width = 11;
+            ws.Column("G").Width = 18;
 
             ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var table = ws.Range(2, 1, data.Count + 2, 5).CreateTable();
+            var table = ws.Range(2, 1, data.Count + 2, 7).CreateTable();
             table.Theme = XLTableTheme.None;
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
+            table.Style.Font.FontSize = 9;
 
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);

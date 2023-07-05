@@ -17,9 +17,9 @@ namespace EtehadBar.Infra.Data.Repository
             db = context;
         }
 
-        public void Create(VehicleBalance obj)
+        public async Task Create(VehicleBalance obj)
         {
-            db.Add(obj);
+            await db.AddAsync(obj);
         }
 
         public void Delete(VehicleBalance obj)
