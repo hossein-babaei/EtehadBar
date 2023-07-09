@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -1720,7 +1721,7 @@ namespace EtehadBar.MVC.Controllers
                     return Redirect(Request.Headers["Referer"].ToString());
                 }
 
-                var contract = new Contract
+                var contract = new EtehadBar.Domain.Models.Contract
                 {
                     CustomerId = c.CustomerId,
                     EndDate = endDate,
@@ -1919,6 +1920,51 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Contract"] = contract;
             return PartialView("_ShippingFee", await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
         }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ShippingFee_Search()
+        {
+            var vehicleTypes = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType == DefinitionType.Car)
+                .Select(a => new
+                {
+                    a.Title
+                }).ToListAsync();
+
+            var loadRoutes = await _loadRouteRepo.LoadRoutes().AsNoTracking().Where(a => a.RealStatus).OrderBy(a => a.Title).ToListAsync();
+            return Json(new
+            {
+                vehicleTypes = vehicleTypes,
+                origins = loadRoutes.Where(a => a.RouteType == LoadRouteType.Origin).Select(a => new { a.Id, a.Title }).ToList(),
+                destinations = loadRoutes.Where(a => a.RouteType == LoadRouteType.Destionation).Select(a => new { a.Id, a.Title }).ToList()
+            });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ShippingFee_Search(int? p, long contractId, long originId, long destinationId, string vehicleType, string title, double? amount, double? driverFee)
+        {
+            var pageNumber = p ?? 1;
+            ViewData["Contract"] = await _contractRepo.Get(contractId);
+
+            var query = _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId));
+
+            if (vehicleType != "all")
+                query = query.Where(a => a.Vehicle.Equals(vehicleType));
+            if (!string.IsNullOrWhiteSpace(title) && title != null)
+                query = query.Where(a => a.Title.Contains(title));
+            if (originId > 0)
+                query = query.Where(a => a.OriginId.Equals(originId));
+            if (destinationId > 0)
+                query = query.Where(a => a.Destination.Equals(destinationId));
+            if (driverFee.HasValue && driverFee.Value >= 0)
+                query = query.Where(a => a.DriverPrice.Equals(driverFee.Value));
+            if (amount.HasValue && amount.Value >= 0)
+                query = query.Where(a => a.Price.Equals(amount.Value));
+
+            return PartialView(await query.OrderBy(a => a.Id).ToListAsync());
+        }
+
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -3812,7 +3858,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 await _loadFactorRepo.Save();
 
-                var balanceItem = await _vehicleBalanceRepository.Query().FirstOrDefaultAsync(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(id));
+                var balanceItem = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(id)).FirstOrDefaultAsync();
                 if (balanceItem != null)
                 {
                     _vehicleBalanceRepository.Delete(balanceItem);

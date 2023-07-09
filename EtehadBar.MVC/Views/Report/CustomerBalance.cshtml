@@ -96,7 +96,6 @@
     <div class="uk-grid-small uk-child-width-1-1" uk-grid>
         @foreach (var item in Model.Details)
         {
-            int i = 1;
             <div>
                 <div class="box">
                     <h4 class="uk-heading-line uk-text-center">
@@ -117,6 +116,7 @@
                         <div class="uk-width-1-2@s">
                             @if (item.CustomerIncomes.Any())
                             {
+                                int i = 1;
                                 <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
                                     <caption>جدول دریافتی</caption>
                                     <thead>
@@ -159,6 +159,7 @@
                         <div class="uk-width-1-2@s">
                             @if (item.CustomerFactors.Any())
                             {
+                                int i = 1;
                                 <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
                                     <caption>جدول فاکتور ها</caption>
                                     <thead>

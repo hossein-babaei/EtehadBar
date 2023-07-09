@@ -130,6 +130,25 @@ namespace EtehadBar.MVC.Controllers
                 });
             }
 
+            var otherCosts = await db.OtherCost.AsNoTracking().Where(a => a.CalendarId.Equals(calendar.Id)).Select(a => new
+            {
+                a.Amount,
+                a.DriverName,
+                VehicleNumber = $"ایران {a.IranStateNumber} - {a.RightNumber} {a.NumberWord} {a.LeftNumber}"
+            }).ToListAsync();
+            var distinctedOtherCosts = otherCosts.DistinctBy(a => a.VehicleNumber).ToList();
+
+            foreach (var item in distinctedOtherCosts)
+            {
+                data.Add(new LoadFactorModel
+                {
+                    DriverName = item.DriverName,
+                    VehicleId = 0,
+                    VehicleNumber = item.VehicleNumber,
+                    Amount = otherCosts.Where(a => a.VehicleNumber.Equals(item.VehicleNumber)).Sum(a => a.Amount)
+                });
+            }
+
             var rnd = new Random();
             var minimumRouteAmount = routes.Min(a => a.Amount);
 
@@ -258,14 +277,14 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> OtherCost(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await db.OtherCost.AsNoTracking().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await db.OtherCost.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             return View();
         }
 
         public async Task<IActionResult> OtherCost_Search(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await db.OtherCost.AsNoTracking().OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await db.OtherCost.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             return PartialView();
         }
 
@@ -279,6 +298,8 @@ namespace EtehadBar.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateOtherCost(OtherCost c)
         {
+            string msg;
+            string status = "danger";
             if (ModelState.IsValid)
             {
                 db.Add(new OtherCost
@@ -295,18 +316,19 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await db.SaveChangesAsync();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
                 }
                 catch (Exception e)
                 {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
                 }
             }
             else
             {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Redirect(Request.Headers["Referer"].ToString());
+            return Json(new { msg, status });
         }
 
         [HttpGet]

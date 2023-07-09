@@ -148,7 +148,7 @@ namespace EtehadBar.MVC.Controllers
 
             var firstCalendar = calendars.First();
 
-            return View(await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.Date >= firstCalendar.StartDate && a.Date <= firstCalendar.EndDate).OrderBy(a => a.Date).ToListAsync());
+            return View(await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CustomerId.Equals(id.Value) && a.Date >= firstCalendar.StartDate && a.Date <= firstCalendar.EndDate).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpPost]
@@ -515,7 +515,7 @@ namespace EtehadBar.MVC.Controllers
             && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Date).ToListAsync();
 
             var customerFactors = await _customerFactorRepository.Query().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)
-            && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Date).ToListAsync();
+            && a.Date >= startDate && a.Date <= endDate).OrderBy(a => a.Date).ThenBy(a => a.FactorNumber).ToListAsync();
 
             //var monthCount = await _calendarRepo.Calendars().AsNoTracking().CountAsync(a => a.Sequence >=
             //_calendarRepo.Calendars().AsNoTracking().Where(b => b.StartDate >= startDate).OrderBy(b => b.StartDate).First().Sequence &&

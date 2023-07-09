@@ -23,6 +23,11 @@
     <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
     <script>
         var contractId = '@contractInfo.RowId';
+        let select2Config = {
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        };
+        let isSearchLoaded = false;
 
         let datePickerConfig = {
             initialValue: true,
@@ -282,7 +287,71 @@
                     preloader();
                 }
             });
+        } 
+        function getSearch() {
+            if (!isSearchLoaded) {
+                preloader();
+                $.get('@Url.Action("ShippingFee_Search")', {}, function (r) {
+                    let vehicleTypeOptions = '<option value="all">همه</option>',
+                        originOptions = '<option value="0">همه</option>',
+                        destinationOptions = '<option value="0">همه</option>';
+
+                    $.each(r.vehicleTypes, (i, v) => {
+                        vehicleTypeOptions += `<option value="${v.title}">${v.title}</option>`;
+                    });
+                    $.each(r.origins, (i, v) => {
+                        originOptions += `<option value="${v.id}">${v.title}</option>`;
+                    });
+                    $.each(r.destinations, (i, v) => {
+                        destinationOptions += `<option value="${v.id}">${v.title}</option>`;
+                    });
+                    $('#search-modal #vehicleType').html(vehicleTypeOptions);
+                    $('#search-modal #originId').html(originOptions);
+                    $('#search-modal #destinationId').html(destinationOptions);
+
+                    $('#search-modal #vehicleType').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#search-modal #originId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#search-modal #destinationId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                }, 'json').then(function () {
+                    preloader();
+                    UIkit.modal('#search-modal').show();
+                });
+            } else {
+                UIkit.modal('#search-modal').show();
+            }
         }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("ShippingFee_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -303,6 +372,7 @@
         {
             <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="copyFeeFromOldContract()">کپی نرخ از قرارداد</a>
         }
+        <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="getSearch()">جستجو</a>
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
     </div>
 </div>
@@ -572,6 +642,49 @@
         <div class="uk-modal-footer uk-text-center">
             <button class="uk-button uk-button-primary" onclick="submitChange()" type="button">ثبت تغییرات</button>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <input id="contractId" name="contractId" type="hidden" value="@contractInfo.Id" />
+                <div>
+                    <label class="uk-form-label">بر اساس نوع خودرو</label>
+                    <select class="uk-select uk-border-rounded" id="vehicleType" name="vehicleType"></select>
+                </div>
+                <div>
+                    <label class="uk-form-label">بر اساس مبدا</label>
+                    <select class="uk-select uk-border-rounded" id="originId" name="originId"></select>
+                </div>
+                <div>
+                    <label class="uk-form-label">بر اساس مقصد</label>
+                    <select class="uk-select uk-border-rounded" id="destinationId" name="destinationId"></select>
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">عنوان</label>
+                    <input class="uk-input uk-border-rounded uk-form-small" id="title" name="title" autocomplete="off" />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">کرایه دریافتی</label>
+                    <input class="uk-input uk-border-rounded uk-form-small" id="amount" name="amount" autocomplete="off" />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">کرایه پرداختی به راننده</label>
+                    <input class="uk-input uk-border-rounded uk-form-small" id="driverFee" name="driverFee" autocomplete="off" />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="ShippingFee" asp-controller="Admin" asp-route-contractId="@contractInfo.RowId" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
     </div>
 </div>

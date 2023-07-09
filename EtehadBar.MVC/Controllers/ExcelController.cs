@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
+using EtehadBar.Infra.Data.Context;
 using EtehadBar.MVC.Filters;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
@@ -31,6 +32,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IFreeLoadFactorRepository _freeLoadFactorRepository;
         private readonly IVehicleBalanceRepository _vehicleBalanceRepository;
         private readonly IBillRepository _billRepository;
+        private readonly ApplicationDbContext db;
 
         public ExcelController(
             ICalendarRepository calendarRepository,
@@ -42,7 +44,8 @@ namespace EtehadBar.MVC.Controllers
             IMehrcomParsCategoryRepository mehrcomParsCategoryRepository,
             IFreeLoadFactorRepository freeLoadFactorRepository,
             IVehicleBalanceRepository vehicleBalanceRepository,
-            IBillRepository billRepository)
+            IBillRepository billRepository,
+            ApplicationDbContext dbContext)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -54,6 +57,7 @@ namespace EtehadBar.MVC.Controllers
             _freeLoadFactorRepository = freeLoadFactorRepository;
             _vehicleBalanceRepository = vehicleBalanceRepository;
             _billRepository = billRepository;
+            db = dbContext;
         }
 
         [Authorize(Roles = "Admin")]
@@ -2715,9 +2719,28 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 5).Value = data[i].CustomerId.HasValue ? data[i].Customer.Name : "---";
             }
 
-            ws.Cell(data.Count + 3, 1).Value = "جمع";
-            ws.Range(data.Count + 3, 1, data.Count + 3, 3).Merge();
-            ws.Cell(data.Count + 3, 4).Value = bills.Sum(a => a.Amount).ToString("N0");
+            var otherCosts = await db.OtherCost.AsNoTracking().Where(a => a.CalendarId.Equals(calendar.Id)).Select(a => new
+            {
+                a.Amount,
+                a.DriverName,
+                VehicleNumber = $"ایران {a.IranStateNumber} - {a.RightNumber} {a.NumberWord} {a.LeftNumber}"
+            }).ToListAsync();
+
+            var distinctedOtherCosts = otherCosts.DistinctBy(a => a.VehicleNumber).ToList();
+
+            for (int i = 0; i < distinctedOtherCosts.Count; i++)
+            {
+                var j = data.Count + i;
+                ws.Cell(j + 3, 1).Value = j + 1;
+                ws.Cell(j + 3, 2).Value = distinctedOtherCosts[i].DriverName;
+                ws.Cell(j + 3, 3).Value = distinctedOtherCosts[i].VehicleNumber;
+                ws.Cell(j + 3, 4).Value = otherCosts.Where(a => a.VehicleNumber.Equals(distinctedOtherCosts[i].VehicleNumber)).Sum(a => a.Amount).ToString("N0");
+                ws.Cell(j + 3, 5).Value = "---";
+            }
+
+            ws.Cell(data.Count + distinctedOtherCosts.Count + 3, 1).Value = "جمع";
+            ws.Range(data.Count + distinctedOtherCosts.Count + 3, 1, data.Count + distinctedOtherCosts.Count + 3, 3).Merge();
+            ws.Cell(data.Count + distinctedOtherCosts.Count + 3, 4).Value = (bills.Sum(a => a.Amount) + otherCosts.Sum(a => a.Amount)).ToString("N0");
 
             ws.Column("A").Width = 5;
             ws.Column("B").Width = 20;
@@ -2727,7 +2750,7 @@ namespace EtehadBar.MVC.Controllers
 
             ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var table = ws.Range(2, 1, data.Count + 2, 5).CreateTable();
+            var table = ws.Range(2, 1, data.Count + distinctedOtherCosts.Count + 2, 5).CreateTable();
             table.Theme = XLTableTheme.None;
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
