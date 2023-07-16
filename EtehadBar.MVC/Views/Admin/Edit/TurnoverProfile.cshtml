@@ -1,0 +1,32 @@
+﻿@model TurnoverProfile
+
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">ویرایش</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="edit-form" asp-action="EditTurnoverProfile" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="FullName" class="uk-form-label"></label>
+                    <input asp-for="FullName" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="FullName" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="TurnoverType" class="uk-form-label"></label>
+                    <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                        <label><input class="uk-radio" type="radio" name="TurnoverType" value="@((int)TurnoverType.Partner)" @if(Model.TurnoverType.Equals(TurnoverType.Partner)){<text>checked</text>} /> شریک</label>
+                        <label><input class="uk-radio" type="radio" name="TurnoverType" value="@((int)TurnoverType.Investor)" @if(Model.TurnoverType.Equals(TurnoverType.Investor)){<text>checked</text>}/> سرمایه گذار</label>
+                    </div>
+                    <span asp-validation-for="TurnoverType" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitForm('#edit-form')">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

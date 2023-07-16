@@ -83,8 +83,8 @@
                 @if (User.IsInRole("Admin"))
                 {
                     <li @if (param == 36) { <text> class="active" </text> }><a asp-action="Bill" asp-controller="Admin">پرداختی</a></li>
-                    <li @if (param == 33) { <text> class="active" </text> }><a asp-action="Turnover" asp-controller="Admin" asp-route-type="@((int)TurnoverType.Partner)">شرکا</a></li>
-                    <li @if (param == 34) { <text> class="active" </text> }><a asp-action="Turnover" asp-controller="Admin" asp-route-type="@((int)TurnoverType.Investor)">سرمایه گذار</a></li>
+                    <li @if (param == 33) { <text> class="active" </text> }><a asp-action="TurnoverProfile" asp-controller="Admin" asp-route-type="@((int)TurnoverType.Partner)">شرکا</a></li>
+                    <li @if (param == 34) { <text> class="active" </text> }><a asp-action="TurnoverProfile" asp-controller="Admin" asp-route-type="@((int)TurnoverType.Investor)">سرمایه گذار</a></li>
                 }
             </ul>
         </li>

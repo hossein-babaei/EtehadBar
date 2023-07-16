@@ -4,6 +4,7 @@
     ViewData["pageId"] = 7;
 
     var contractInfo = (Contract)ViewData["Contract"];
+    var calendars = (List<Calendar>)ViewData["Calendars"];
     var addons = contractInfo.ContractAddons;
     var startPersianDate = new PersianDateTime(contractInfo.StartDate);
     var endPersianDate = new PersianDateTime(contractInfo.EndDate);
@@ -53,7 +54,9 @@
             }
         };
         $('#move-date').persianDatepicker(datePickerConfig);
-        $('#amountDate').persianDatepicker(datePickerConfig);
+        $('#change-modal #amountDate').persianDatepicker(datePickerConfig);
+        $('#do-change-amount-modal #amountDate').persianDatepicker(datePickerConfig);
+        $('#do-change-driver-amount-modal #amountDate').persianDatepicker(datePickerConfig);
         $('#driverAmountDate').persianDatepicker(datePickerConfig);
         $('#tonnageAmountDate').persianDatepicker(datePickerConfig);
         $('#tonnageDriverAmountDate').persianDatepicker(datePickerConfig);
@@ -287,7 +290,7 @@
                     preloader();
                 }
             });
-        } 
+        }
         function getSearch() {
             if (!isSearchLoaded) {
                 preloader();
@@ -351,7 +354,11 @@
                 }
             });
         }
-
+        function submitChangeAmount(type) {
+            let form = type == 'driver' ? $('#do-change-driver-amount-modal form') : $('#do-change-amount-modal form');
+            preloader();
+            form.submit();
+        }
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -366,7 +373,7 @@
         <a onclick="moveLoadfactor()" class="uk-button uk-button-danger uk-margin-small-left">انتقال</a>
         @if (Model.Any())
         {
-            <a uk-toggle="#change-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ کلی</a>
+            <a uk-toggle="#change-fee-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ</a>
         }
         else
         {
@@ -685,6 +692,106 @@
         <div class="uk-modal-footer uk-text-center">
             <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="change-fee-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>تغییر قیمت بر اساس</h3>
+        <ul class="uk-list">
+            <li>
+                <button class="uk-button uk-button-primary uk-border-rounded" uk-toggle="#do-change-driver-amount-modal">نرخ پرداختی</button>
+            </li>
+            <li>
+                <button class="uk-button uk-button-primary uk-border-rounded" uk-toggle="#do-change-amount-modal">نرخ دریافتی</button>
+            </li>
+            <li>
+                <button class="uk-button uk-button-primary uk-border-rounded" uk-toggle="#change-modal">تغییر نرخ درصدی</button>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id="do-change-amount-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="change-form" asp-action="ChangeShippingFeeByAmount">
+            <input type="hidden" name="contractId" value="@contractInfo.Id" />
+            <input type="hidden" name="type" value="amount" />
+            <h4 class="uk-text-light">تغییر نرخ دریافتی</h4>
+            <ul class="uk-list uk-list-bullet uk-text-light sm">
+                <li>تا پایان عملیات مرورگر خود را نبندید و از تازه سازی (رفرش) صفحه خودداری نمائید.</li>
+                <li>این عملیات ممکن است بر اساس تعداد نرخ ها و بارنامه هایی را که شامل می شود، طولانی و زمان بر باشد. لطفا از داشتن اتصال اینترنت مناسب و مطمئن اطمینان حاصل نمائید.</li>
+            </ul>
+            <label class="uk-form-label">تغییر نرخ بارنامه های مرتبط از تاریخ</label>
+            <div>
+                <input id="amountDate" name="amountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            </div>
+            <br />
+            <label class="uk-form-label">یا از تقویم کاری</label>
+            <div>
+                <select id="calendarId" name="calendarId" class="uk-select uk-border-rounded uk-form-small">
+                    <option value="0">انتخاب نمائید</option>
+                    @foreach (var item in calendars)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                </select>
+            </div>
+            <br />
+            <label class="uk-form-label">نرخ کرایه قدیم</label>
+            <div>
+                <input name="oldAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <br />
+            <label class="uk-form-label">نرخ کرایه جدید</label>
+            <div>
+                <input name="newAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="submitChangeAmount('amount')" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="do-change-driver-amount-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="change-form" asp-action="ChangeShippingFeeByAmount">
+            <input type="hidden" name="contractId" value="@contractInfo.Id" />
+            <input type="hidden" name="type" value="driver" />
+            <h4 class="uk-text-light">تغییر نرخ پرداختی</h4>
+            <ul class="uk-list uk-list-bullet uk-text-light sm">
+                <li>تا پایان عملیات مرورگر خود را نبندید و از تازه سازی (رفرش) صفحه خودداری نمائید.</li>
+                <li>این عملیات ممکن است بر اساس تعداد نرخ ها و بارنامه هایی را که شامل می شود، طولانی و زمان بر باشد. لطفا از داشتن اتصال اینترنت مناسب و مطمئن اطمینان حاصل نمائید.</li>
+            </ul>
+            <label class="uk-form-label">تغییر نرخ بارنامه های مرتبط از تاریخ</label>
+            <div>
+                <input id="amountDate" name="amountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            </div>
+            <br />
+            <label class="uk-form-label">یا از تقویم کاری</label>
+            <div>
+                <select id="calendarId" name="calendarId" class="uk-select uk-border-rounded uk-form-small">
+                    <option value="0">انتخاب نمائید</option>
+                    @foreach (var item in calendars)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                </select>
+            </div>
+            <br />
+            <label class="uk-form-label">نرخ کرایه قدیم</label>
+            <div>
+                <input name="oldAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <br />
+            <label class="uk-form-label">نرخ کرایه جدید</label>
+            <div>
+                <input name="newAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="submitChangeAmount('driver')" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
         </div>
     </div>
 </div>

@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230711065004_TurnoverProfile")]
+    partial class TurnoverProfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1724,13 +1726,21 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
                     b.Property<string>("RowId")
                         .IsRequired()
                         .HasMaxLength(36)
                         .HasColumnType("nvarchar(36)");
 
-                    b.Property<long>("TurnoverProfileId")
+                    b.Property<long?>("TurnoverProfileId")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("TurnoverType")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -2375,9 +2385,7 @@ namespace EtehadBar.Infra.Data.Migrations
                 {
                     b.HasOne("EtehadBar.Domain.Models.TurnoverProfile", "TurnoverProfile")
                         .WithMany("Turnovers")
-                        .HasForeignKey("TurnoverProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TurnoverProfileId");
 
                     b.Navigation("TurnoverProfile");
                 });

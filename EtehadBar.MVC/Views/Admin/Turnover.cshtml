@@ -4,17 +4,13 @@
 
 @{
     var data = ViewBag.data as IPagedList<Turnover>;
-    var type = (TurnoverType)ViewData["Type"];
-    if (type == TurnoverType.Partner)
-    {
-        ViewData["Title"] = "شرکا";
+    var profile = (TurnoverProfile)ViewData["Profile"];
+    ViewData["Title"] = $"گردش {profile.FullName}";
+
+    if (profile.TurnoverType == TurnoverType.Partner)
         ViewData["pageId"] = 33;
-    }
     else
-    {
-        ViewData["Title"] = "سرمایه گذار";
         ViewData["pageId"] = 34;
-    }
 
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     int i = 1;
@@ -40,24 +36,22 @@
 @section Scripts{
     <script src="~/lib/persian-date/persian-date.min.js"></script>
     <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
-    <script src="~/js/autocomplete.js"></script>
     <script>
-        let autoCompleteData = [];
-        const type = @((int)type);
+        //let autoCompleteData = [];
         async function create() {
             preloader();
-            if (autoCompleteData.length == 0) {
-                await $.get('@Url.Action("GetTurnoverFullnames")', {}, function (r) {
-                    $.each(r, (i, v) => {
-                        autoCompleteData.push(v);
-                    });
-                }, 'json');
-            }
+            //if (autoCompleteData.length == 0) {
+            //    await $.get('@Url.Action("GetTurnoverFullnames")', {}, function (r) {
+            //        $.each(r, (i, v) => {
+            //            autoCompleteData.push(v);
+            //        });
+            //    }, 'json');
+            //}
             await $.get('@Url.Action("CreateTurnover")', {}, function (r) {
                 $('#create-modal').html(r);
-                autocomplete($('#create-modal #Fullname').get(0), autoCompleteData);
+                //autocomplete($('#create-modal #Fullname').get(0), autoCompleteData);
             }, 'html').then(function () {
-                $('#create-form').prepend(`<input type="hidden" name="TurnoverType" value="${type}" />`);
+                $('#create-form').prepend(`<input type="hidden" name="TurnoverProfileId" value="${@profile.Id}" />`);
                 parseValidator('#create-form');
                 preloader();
                 UIkit.modal('#create-modal').show();
@@ -71,11 +65,10 @@
                 });
             });
             let data = $('#create-modal form').serializeArray();
-            formData.append('TurnoverType', data.find(a => a.name == 'TurnoverType').value);
+            formData.append('TurnoverProfileId', data.find(a => a.name == 'TurnoverProfileId').value);
             formData.append('Day', data.find(a => a.name == 'Day').value);
             formData.append('Month', data.find(a => a.name == 'Month').value);
             formData.append('Year', data.find(a => a.name == 'Year').value);
-            formData.append('Fullname', data.find(a => a.name == 'Fullname').value);
             formData.append('Creditor', data.find(a => a.name == 'Creditor').value);
             formData.append('Debtor', data.find(a => a.name == 'Debtor').value);
             formData.append('Description', data.find(a => a.name == 'Description').value);
@@ -93,7 +86,7 @@
                 success: function (r) {
                     uiAlert(r.msg, r.status);
                     if (r.status == 'success') {
-                        $.post('@Url.Action("Turnover_Search")', { 'type': type }, function (r) {
+                        $.post('@Url.Action("Turnover_Search")', { 'id': '@profile.RowId' }, function (r) {
                             $('#append').html(r);
                         }, 'html');
                     }
@@ -110,7 +103,7 @@
             preloader();
             $.get('@Url.Action("EditTurnover")', { 'id': id }, function (r) {
                 $('#edit-modal').html(r);
-                autocomplete($('#edit-form #Fullname').get(0), autoCompleteData);
+                //autocomplete($('#edit-form #Fullname').get(0), autoCompleteData);
             }, 'html').then(function () {
                 parseValidator('#edit-form');
                 preloader();
@@ -125,13 +118,12 @@
                 });
             });
             let data = $('#edit-modal form').serializeArray();
-            formData.append('TurnoverType', data.find(a => a.name == 'TurnoverType').value);
+            formData.append('TurnoverProfileId', data.find(a => a.name == 'TurnoverProfileId').value);
             formData.append('Id', data.find(a => a.name == 'Id').value);
             formData.append('Day', data.find(a => a.name == 'Day').value);
             formData.append('Month', data.find(a => a.name == 'Month').value);
             formData.append('Year', data.find(a => a.name == 'Year').value);
             formData.append('Year', data.find(a => a.name == 'Year').value);
-            formData.append('Fullname', data.find(a => a.name == 'Fullname').value);
             formData.append('Creditor', data.find(a => a.name == 'Creditor').value);
             formData.append('Debtor', data.find(a => a.name == 'Debtor').value);
             formData.append('Description', data.find(a => a.name == 'Description').value);
@@ -149,7 +141,7 @@
                 success: function (r) {
                     uiAlert(r.msg, r.status);
                     if (r.status == 'success') {
-                        $.post('@Url.Action("Turnover_Search")', { 'type': type }, function (r) {
+                        $.post('@Url.Action("Turnover_Search")', { 'id': '@profile.RowId' }, function (r) {
                             $('#append').html(r);
                         }, 'html');
                     }
@@ -172,12 +164,12 @@
                 attachments = files.split(';;');
             $.each(attachments, (i, v) => {
                 template += `
-                        <div>
-                            <div uk-lightbox>
-                                <a class="uk-button uk-button-default uk-border-rounded uk-button-small" href="/img/turnover/${attachments[i]}">تصویر ${i + 1}</a>
-                            </div>
-                        </div>
-                        `;
+                                <div>
+                                    <div uk-lightbox>
+                                        <a class="uk-button uk-button-default uk-border-rounded uk-button-small" href="/img/turnover/${attachments[i]}">تصویر ${i + 1}</a>
+                                    </div>
+                                </div>
+                                `;
             })
             $(`${modalId} .uk-grid-small`).html(template);
             UIkit.modal(modalId).show();
@@ -211,12 +203,12 @@
     <div class="uk-width-auto@m">
         <ul class="uk-breadcrumb">
             <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="TurnoverProfile" asp-controller="Admin" asp-route-type="@((int)profile.TurnoverType)">@(profile.TurnoverType == TurnoverType.Partner ? "شرکا" : "سرمایه گذار")</a></li>
             <li><span>@ViewData["Title"]</span></li>
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
-        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
     </div>
 </div>
 <div id="append" class="box">
@@ -225,7 +217,6 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.FullName)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Creditor)</th>
                     <th>@Html.DisplayNameFor(model => model.Debtor)</th>
@@ -240,7 +231,6 @@
                 {
                     <tr id="@item.RowId" data-row="@i" class="uk-text-center">
                         <td class="sequence" draggable="true">@i</td>
-                        <td>@item.FullName</td>
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                         <td>@item.Creditor.ToString("N0")</td>
                         <td>@item.Debtor.ToString("N0")</td>
@@ -278,7 +268,7 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("Turnover", new { type = type, p = page }))
+            @Html.PagedListPager(data, page => Url.Action("Turnover", new { id = profile.RowId, p = page }))
         </div>
     }
 </div>

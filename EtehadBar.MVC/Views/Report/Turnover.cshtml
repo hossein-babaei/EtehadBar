@@ -99,8 +99,8 @@
                         <thead>
                             <tr>
                                 <th>ردیف</th>
-                                <th>@Html.DisplayNameFor(model => model.FullName)</th>
-                                <th>@Html.DisplayNameFor(model => model.TurnoverType)</th>
+                                <th>نام و نام خانوادگی</th>
+                                @*<th>@Html.DisplayNameFor(model => model.TurnoverType)</th>*@
                                 <th>@Html.DisplayNameFor(model => model.Date)</th>
                                 <th>@Html.DisplayNameFor(model => model.Creditor)</th>
                                 <th>@Html.DisplayNameFor(model => model.Debtor)</th>
@@ -112,15 +112,15 @@
                             {
                                 <tr id="@item.RowId" data-row="@i" class="uk-text-center">
                                     <td class="sequence" draggable="true">@i</td>
-                                    <td>@item.FullName</td>
-                                    @if (item.TurnoverType == TurnoverType.Partner)
+                                    <td>@item.TurnoverProfile.FullName</td>
+                                    @*@if (item.TurnoverType == TurnoverType.Partner)
                                     {
                                         <td>شریک</td>
                                     }
                                     else
                                     {
                                         <td>سرمایه گذار</td>
-                                    }
+                                    }*@
                                     <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                                     <td>@item.Creditor.ToString("N0")</td>
                                     <td>@item.Debtor.ToString("N0")</td>

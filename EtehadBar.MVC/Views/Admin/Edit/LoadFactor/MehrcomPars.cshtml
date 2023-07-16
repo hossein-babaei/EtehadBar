@@ -21,7 +21,7 @@
                 <div class="uk-width-1-5@m">
                      <label asp-for="AccountBookId" class="uk-form-label"></label>
                     <select asp-for="AccountBookId" class="uk-select uk-border-rounded uk-form-small">
-                        @foreach (var accountBook in accountBooks)
+                        @foreach (var accountBook in accountBooks.Where(a => a.IsOpen || a.Id.Equals(Model.AccountBookId)).ToList())
                         {
                             <!option value="@accountBook.Id" @if(Model.AccountBookId.Equals(accountBook.Id)) {<text>selected="selected"</text>}>@accountBook.Number (@(accountBook.IsOpen ? "باز" : "بسته"))</!option>
                         }

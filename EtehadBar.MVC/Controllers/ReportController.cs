@@ -34,6 +34,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IAccountBookRepository _accountBookRepository;
         private readonly IContractRepository _contractRepository;
         private readonly ICustomerFactorRepository _customerFactorRepository;
+        private readonly ITurnoverProfileRepository _turnoverProfileRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -48,7 +49,8 @@ namespace EtehadBar.MVC.Controllers
             ITurnoverRepository turnoverRepository,
             IAccountBookRepository accountBookRepository,
             IContractRepository contractRepository,
-            ICustomerFactorRepository customerFactorRepository)
+            ICustomerFactorRepository customerFactorRepository,
+            ITurnoverProfileRepository turnoverProfileRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -63,6 +65,7 @@ namespace EtehadBar.MVC.Controllers
             _accountBookRepository = accountBookRepository;
             _contractRepository = contractRepository;
             _customerFactorRepository = customerFactorRepository;
+            _turnoverProfileRepository = turnoverProfileRepository;
         }
 
         [HttpPost]
@@ -404,7 +407,8 @@ namespace EtehadBar.MVC.Controllers
             }
             else
             {
-                return PartialView("_Turnover", await _turnoverRepository.Query().Where(a => a.Date >= startD && a.Date <= endD).OrderBy(a => a.Date).ToListAsync());
+                var turnoverProfiles = await _turnoverProfileRepository.Query().AsNoTracking().Where(a => a.TurnoverType == turnoverType).Select(a => a.Id).ToListAsync();
+                return PartialView("_Turnover", await _turnoverRepository.Query().Where(a => a.Date >= startD && a.Date <= endD && turnoverProfiles.Contains(a.TurnoverProfileId)).OrderBy(a => a.Date).ToListAsync());
             }
         }
 

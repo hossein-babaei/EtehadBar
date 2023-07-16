@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230710142413_CustomerPeriodicBalanceSummary")]
+    partial class CustomerPeriodicBalanceSummary
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1724,32 +1726,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("RowId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<long>("TurnoverProfileId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RowId")
-                        .IsUnique();
-
-                    b.HasIndex("TurnoverProfileId");
-
-                    b.ToTable("Turnover", "dbo");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.TurnoverProfile", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -1768,7 +1744,7 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.HasIndex("RowId")
                         .IsUnique();
 
-                    b.ToTable("TurnoverProfile", "dbo");
+                    b.ToTable("Turnover", "dbo");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.UploadedFiles", b =>
@@ -2371,17 +2347,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("ShippingFeeLoadType");
                 });
 
-            modelBuilder.Entity("EtehadBar.Domain.Models.Turnover", b =>
-                {
-                    b.HasOne("EtehadBar.Domain.Models.TurnoverProfile", "TurnoverProfile")
-                        .WithMany("Turnovers")
-                        .HasForeignKey("TurnoverProfileId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("TurnoverProfile");
-                });
-
             modelBuilder.Entity("EtehadBar.Domain.Models.VehicleBalance", b =>
                 {
                     b.HasOne("EtehadBar.Domain.Models.Calendar", "Calendar")
@@ -2529,11 +2494,6 @@ namespace EtehadBar.Infra.Data.Migrations
             modelBuilder.Entity("EtehadBar.Domain.Models.MehrcomParsCategory", b =>
                 {
                     b.Navigation("LoadFactors");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.TurnoverProfile", b =>
-                {
-                    b.Navigation("Turnovers");
                 });
 
             modelBuilder.Entity("EtehadBar.Domain.Models.Vehicle", b =>

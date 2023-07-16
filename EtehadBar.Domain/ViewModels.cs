@@ -223,14 +223,7 @@ namespace EtehadBar.Domain
 
         [Display(Name = "پرداخت")]
         public double? Creditor { get; set; } = 0;
-
-        [Display(Name = "نوع")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public TurnoverType TurnoverType { get; set; }
-
-        [Display(Name = "طرف حساب")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string Fullname { get; set; }
+        public long TurnoverProfileId { get; set; }
     }
 
     public class EditTurnoverVM
@@ -257,15 +250,8 @@ namespace EtehadBar.Domain
 
         [Display(Name = "پرداخت")]
         public double? Creditor { get; set; } = 0;
-
-        [Display(Name = "نوع")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public TurnoverType TurnoverType { get; set; }
-
-        [Display(Name = "طرف حساب")]
-        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public string Fullname { get; set; }
         public string Attachments { get; set; }
+        public long TurnoverProfileId { get; set; }
     }
 
     public class CreateBankAccountBookVM

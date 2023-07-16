@@ -18,6 +18,7 @@ namespace EtehadBar.Infra.IoC
             services.AddScoped<IContractRepository, ContractRepository>();
             services.AddScoped<ICostRepository, CostRepository>();
             services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<ICustomerPeriodicBalanceSummaryRepository, CustomerPeriodicBalanceSummaryRepository>();
             services.AddScoped<IDefinitionRepository, DefinitionRepository>();
             services.AddScoped<ILoadFactorRepository, LoadFactorRepository>();
             services.AddScoped<IShippingFeeRepository, ShippingFeeRepository>();
@@ -28,6 +29,7 @@ namespace EtehadBar.Infra.IoC
             services.AddScoped<IMehrcomParsCategoryRepository, MehrcomParsCategoryRepository>();
             services.AddScoped<IFreeLoadFactorRepository, FreeLoadFactorRepository>();
             services.AddScoped<ITurnoverRepository, TurnoverRepository>();
+            services.AddScoped<ITurnoverProfileRepository, TurnoverProfileRepository>();
             services.AddScoped<IBillRepository, BillRepository>();
             services.AddScoped<IVehicleBalanceRepository, VehicleBalanceRepository>();
             services.AddScoped<ICustomerFactorRepository, CustomerFactorRepository>();

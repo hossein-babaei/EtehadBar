@@ -4,7 +4,7 @@
 
 @{
     var data = ViewBag.data as IPagedList<Turnover>;
-    var type = (TurnoverType)ViewData["Type"];
+    var profile = (TurnoverProfile)ViewData["Profile"];
 
     int i = 1;
     if (data.PageNumber > 1)
@@ -17,7 +17,6 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.FullName)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Creditor)</th>
                     <th>@Html.DisplayNameFor(model => model.Debtor)</th>
@@ -32,7 +31,6 @@
                 {
                     <tr id="@item.RowId" data-row="@i" class="uk-text-center">
                         <td class="sequence" draggable="true">@i</td>
-                        <td>@item.FullName</td>
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                         <td>@item.Creditor.ToString("N0")</td>
                         <td>@item.Debtor.ToString("N0")</td>
@@ -71,6 +69,6 @@
 @if (data.PageCount > 1)
 {
     <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-        @Html.PagedListPager(data, page => Url.Action("Turnover_Search", new {type = type, p = page }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+        @Html.PagedListPager(data, page => Url.Action("Turnover_Search", new {id = profile.RowId, p = page }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
     </div>
 }

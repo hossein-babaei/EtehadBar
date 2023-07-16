@@ -31,6 +31,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<Customer> Customer { get; set; }
         public DbSet<CustomerFactor> CustomerFactor { get; set; }
         public DbSet<CustomerIncome> CustomerIncome { get; set; }
+        public DbSet<CustomerPeriodicBalanceSummary> CustomerPeriodicBalanceSummary { get; set; }
         public DbSet<Definition> Definition { get; set; }
         public DbSet<Driver> Driver { get; set; }
         public DbSet<FreeLoadFactor> FreeLoadFactor { get; set; }
@@ -47,6 +48,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<StaticRouteFee> StaticRouteFee { get; set; }
         public DbSet<UploadedFiles> UploadedFiles { get; set; }
         public DbSet<Turnover> Turnover { get; set; }
+        public DbSet<TurnoverProfile> TurnoverProfile { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<VehicleBalance> VehicleBalance { get; set; }
 

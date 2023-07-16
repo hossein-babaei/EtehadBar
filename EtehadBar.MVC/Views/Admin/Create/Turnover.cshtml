@@ -35,13 +35,6 @@
                     <input class="uk-input uk-border-rounded uk-form-small" asp-for="Year" value="@now.Year" dir="ltr" />
                 </div>
                 <div>
-                    <label asp-for="Fullname" class="uk-form-label"></label>
-                    <div class="autocomplete">
-                        <input asp-for="Fullname" class="uk-input uk-border-rounded uk-form-small" />
-                    </div>
-                    <span asp-validation-for="Fullname" class="uk-text-danger"></span>
-                </div>
-                <div>
                     <label asp-for="Creditor" class="uk-form-label"></label>
                     <input asp-for="Creditor" class="uk-input uk-border-rounded uk-form-small format-number" />
                     <span asp-validation-for="Creditor" class="uk-text-danger"></span>

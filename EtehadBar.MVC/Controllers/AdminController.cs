@@ -2,6 +2,7 @@
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
+using EtehadBar.Infra.Data.Context;
 using EtehadBar.MVC.Filters;
 using Helpers;
 using MD.PersianDateTime.Standard;
@@ -20,6 +21,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using X.PagedList;
+using static MongoDB.Driver.WriteConcern;
 
 namespace EtehadBar.MVC.Controllers
 {
@@ -54,6 +56,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IBillRepository _billRepository;
         private readonly IVehicleBalanceRepository _vehicleBalanceRepository;
         private readonly ICustomerFactorRepository _customerFactorRepository;
+        private readonly ITurnoverProfileRepository _turnoverProfileRepository;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -82,7 +85,8 @@ namespace EtehadBar.MVC.Controllers
             ITurnoverRepository turnoverRepository,
             IBillRepository billRepository,
             IVehicleBalanceRepository vehicleBalanceRepository,
-            ICustomerFactorRepository customerFactorRepository)
+            ICustomerFactorRepository customerFactorRepository,
+            ITurnoverProfileRepository turnoverProfileRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -111,6 +115,7 @@ namespace EtehadBar.MVC.Controllers
             _billRepository = billRepository;
             _vehicleBalanceRepository = vehicleBalanceRepository;
             _customerFactorRepository = customerFactorRepository;
+            _turnoverProfileRepository = turnoverProfileRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -1587,6 +1592,7 @@ namespace EtehadBar.MVC.Controllers
                 item.AdminId = _userManager.GetUserId(User);
                 item.Amount = p.Amount;
                 item.BankName = p.BankName;
+                item.Description = p.Description;
                 //item.ContractId = p.ContractId;
 
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
@@ -1907,6 +1913,7 @@ namespace EtehadBar.MVC.Controllers
             if (contract == null) return NotFound();
 
             ViewData["Contract"] = contract;
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             return View(await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
         }
 
@@ -1956,7 +1963,7 @@ namespace EtehadBar.MVC.Controllers
             if (originId > 0)
                 query = query.Where(a => a.OriginId.Equals(originId));
             if (destinationId > 0)
-                query = query.Where(a => a.Destination.Equals(destinationId));
+                query = query.Where(a => a.DestinationId.Equals(destinationId));
             if (driverFee.HasValue && driverFee.Value >= 0)
                 query = query.Where(a => a.DriverPrice.Equals(driverFee.Value));
             if (amount.HasValue && amount.Value >= 0)
@@ -2405,6 +2412,90 @@ namespace EtehadBar.MVC.Controllers
             {
                 TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
             }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ChangeShippingFeeByAmount(long contractId, string type, string amountDate, long calendarId, double oldAmount, double newAmount)
+        {
+            var amountDateArray = amountDate.PersianToEnglish().Split('/');
+            var amountDatetime = new PersianDateTime(Convert.ToInt32(amountDateArray[0]), Convert.ToInt32(amountDateArray[1]), Convert.ToInt32(amountDateArray[2])).ToDateTime();
+    
+            var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
+            if (latestContractAddon == null)
+                latestContractAddon = await _contractRepo.Get(contractId);
+
+            var feeQuery = _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId));
+            if (type == "driver")
+                feeQuery = feeQuery.Where(a => a.DriverPrice.Equals(oldAmount));
+            else
+                feeQuery = feeQuery.Where(a => a.Price.Equals(oldAmount));
+            var feeList = await feeQuery.ToListAsync();
+
+            var loadFactorQuery = _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(contractId));
+            if (type == "driver")
+                loadFactorQuery = loadFactorQuery.Where(a => a.DriverFee.Equals(oldAmount));
+            else
+                loadFactorQuery = loadFactorQuery.Where(a => a.Amount.Equals(oldAmount));
+
+            if (calendarId > 0)
+                loadFactorQuery = loadFactorQuery.Where(a => a.CalendarId >= calendarId);
+            else
+                loadFactorQuery = loadFactorQuery.Where(a => a.Date >= amountDatetime);
+            var loadFactors = await loadFactorQuery.ToListAsync();
+
+            var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(b => b.Id).ToList().Contains(a.LoadFactorId.Value)).ToListAsync();
+
+            foreach (var fee in feeList)
+            {
+                if (type == "amount")
+                {
+                    fee.Price = newAmount;
+                }
+                else
+                {
+                    fee.DriverPrice = newAmount;
+                }
+            }
+
+            if (type == "amount")
+            {
+                foreach (var loadFactor in loadFactors)
+                {
+                    loadFactor.Amount = newAmount;
+                }
+            }
+            else
+            {
+                foreach (var loadFactor in loadFactors)
+                {
+                    loadFactor.DriverFee = newAmount;
+
+                    var balanceItem = vehicleBalances.Single(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(loadFactor.Id));
+                    balanceItem.Amount = loadFactor.DriverFee +
+                ((loadFactor.Tonnage.HasValue && loadFactor.DriverTonnagePrice.HasValue) ? loadFactor.Tonnage.Value * loadFactor.DriverTonnagePrice.Value : 0) +
+                (loadFactor.WeighbridgePrice.HasValue ? loadFactor.WeighbridgePrice.Value : 0) +
+                (loadFactor.DriverLoadSleepPrice.HasValue ? loadFactor.DriverLoadSleepPrice.Value : 0);
+                    balanceItem.EditDatetime = DateTime.Now;
+                }
+            }
+
+            _shippingFeeRepo.UpdateRange(feeList);
+            _loadFactorRepo.UpdateRange(loadFactors);
+
+            try
+            {
+                await _shippingFeeRepo.Save();
+                await _loadFactorRepo.Save();
+                await _vehicleBalanceRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+
             return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion
@@ -5262,35 +5353,113 @@ namespace EtehadBar.MVC.Controllers
         #endregion
 
         #region Turnover
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Turnover(int? p, TurnoverType type)
+        public async Task<IActionResult> TurnoverProfile(TurnoverType type)
         {
             ViewData["Type"] = type;
+            return View(await _turnoverProfileRepository.Query().Where(a => a.TurnoverType == type).ToListAsync());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public PartialViewResult CreateTurnoverProfile()
+        {
+            return PartialView("~/Views/Admin/Create/TurnoverProfile.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateTurnoverProfile(TurnoverProfile v)
+        {
+            if (ModelState.IsValid)
+            {
+                _turnoverProfileRepository.Create(v);
+                try
+                {
+                    await _turnoverProfileRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> EditTurnoverProfile(int id)
+        {
+            return PartialView("~/Views/Admin/Edit/TurnoverProfile.cshtml", await _turnoverProfileRepository.Get(id));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditTurnoverProfile(TurnoverProfile v)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _turnoverProfileRepository.Get(v.Id);
+
+                item.TurnoverType = v.TurnoverType;
+                item.FullName = v.FullName;
+
+                _turnoverProfileRepository.Update(item);
+                try
+                {
+                    await _turnoverProfileRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Turnover(string id, int? p)
+        {
+            var profile = await _turnoverProfileRepository.Query().Where(a => a.RowId.Equals(id)).SingleOrDefaultAsync();
+            ViewData["Profile"] = profile;
 
             var pageNumber = p ?? 1;
-            var onePageOfData = await _turnoverRepository.Query().Where(a => a.TurnoverType.Equals(type)).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
-            ViewBag.data = onePageOfData;
+            ViewBag.data = await _turnoverRepository.Query().Where(a => a.TurnoverProfileId.Equals(profile.Id))
+            .OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
             return View();
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Turnover_Search(int? p, TurnoverType type)
+        public async Task<IActionResult> Turnover_Search(string id, int? p)
         {
-            ViewData["Type"] = type;
+            var profile = await _turnoverProfileRepository.Query().Where(a => a.RowId.Equals(id)).SingleOrDefaultAsync();
+            ViewData["Profile"] = profile;
 
             var pageNumber = p ?? 1;
-            var onePageOfData = await _turnoverRepository.Query().Where(a => a.TurnoverType.Equals(type)).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
-            ViewBag.data = onePageOfData;
+            ViewBag.data = await _turnoverRepository.Query().Where(a => a.TurnoverProfileId.Equals(profile.Id))
+            .OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
             return PartialView();
         }
 
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetTurnoverFullnames()
-        {
-            return Json(await _turnoverRepository.Query().AsNoTracking().Select(a => a.FullName).Distinct().ToListAsync());
-        }
+        //[Authorize(Roles = "Admin")]
+        //public async Task<IActionResult> GetTurnoverFullnames()
+        //{
+        //    return Json(await _turnoverRepository.Query().AsNoTracking().Select(a => a.FullName).Distinct().ToListAsync());
+        //}
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -5343,8 +5512,7 @@ namespace EtehadBar.MVC.Controllers
                     Creditor = v.Creditor ?? 0,
                     Debtor = v.Debtor ?? 0,
                     Description = v.Description,
-                    TurnoverType = v.TurnoverType,
-                    FullName = v.Fullname,
+                    TurnoverProfileId = v.TurnoverProfileId,
                     Attachments = fileNames
                 };
 
@@ -5386,14 +5554,13 @@ namespace EtehadBar.MVC.Controllers
             if (ModelState.IsValid)
             {
                 var item = await _turnoverRepository.Get(v.Id);
-                item.TurnoverType = v.TurnoverType;
                 item.Creditor = v.Creditor ?? 0;
                 item.Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
                 item.Debtor = v.Debtor ?? 0;
                 item.Description = v.Description;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
-                item.FullName = v.Fullname;
+                item.TurnoverProfileId = v.TurnoverProfileId;
 
                 string fileNames = "";
                 var files = Request.Form.Files;
@@ -5613,7 +5780,7 @@ namespace EtehadBar.MVC.Controllers
 
                 _billRepository.Create(b);
                 try
-                 {
+                {
                     await _billRepository.Save();
 
                     if (b.VehicleId.HasValue)

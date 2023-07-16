@@ -49,11 +49,10 @@ namespace EtehadBar.Infra.Data.Repository
                 Creditor = item.Creditor,
                 Debtor = item.Debtor,
                 Description = item.Description,
-                TurnoverType = item.TurnoverType,
-                Fullname = item.FullName,
                 Day = pd.Day,
                 Month = pd.Month,
                 Year = pd.Year,
+                TurnoverProfileId = item.TurnoverProfileId
             };
         }
 
