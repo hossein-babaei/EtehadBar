@@ -35,6 +35,8 @@ namespace EtehadBar.MVC.Controllers
         private readonly IContractRepository _contractRepository;
         private readonly ICustomerFactorRepository _customerFactorRepository;
         private readonly ITurnoverProfileRepository _turnoverProfileRepository;
+        private readonly ILoadRoutesRepository _loadRoutesRepository;
+        private readonly IShippingFeeRepository _shippingFeeRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -50,7 +52,9 @@ namespace EtehadBar.MVC.Controllers
             IAccountBookRepository accountBookRepository,
             IContractRepository contractRepository,
             ICustomerFactorRepository customerFactorRepository,
-            ITurnoverProfileRepository turnoverProfileRepository)
+            ITurnoverProfileRepository turnoverProfileRepository,
+            ILoadRoutesRepository loadRoutesRepository,
+            IShippingFeeRepository shippingFeeRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -66,6 +70,8 @@ namespace EtehadBar.MVC.Controllers
             _contractRepository = contractRepository;
             _customerFactorRepository = customerFactorRepository;
             _turnoverProfileRepository = turnoverProfileRepository;
+            _loadRoutesRepository = loadRoutesRepository;
+            _shippingFeeRepository = shippingFeeRepository;
         }
 
         [HttpPost]
@@ -574,6 +580,51 @@ namespace EtehadBar.MVC.Controllers
             }
 
             return PartialView("_CustomerBalance", data);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CustomerSeparateRoute(long customerId, long calendarId)
+        {
+            var routes = await _loadRoutesRepository.LoadRoutes().AsNoTracking().ToListAsync();
+            var calendar = await _calendarRepo.Calendars().AsNoTracking().SingleAsync(a => a.Id.Equals(calendarId));
+            var customer = await _customerRepo.Customers().AsNoTracking().SingleAsync(a => a.Id.Equals(customerId));
+            var contracts = await _contractRepository.Contracts().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).Select(a => a.Id).ToListAsync();
+            var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId) && contracts.Contains(a.ContractId)).ToListAsync();
+
+            var data = new CustomerSeparateRouteVM
+            {
+                Title = $"گزارش به تفکیک مسیر شرکت {customer.Name} در {calendar.Title}",
+                DriverLoadSleepPrice = loadFactors.Where(a => a.DriverLoadSleepPrice.HasValue).Sum(a => a.LoadSleepPrice.Value),
+                WeighbridgeAmount = loadFactors.Where(a => a.WeighbridgePrice.HasValue).Sum(a => a.WeighbridgePrice.Value),
+                TonnageAmount = loadFactors.Where(a => a.Tonnage.HasValue && a.DriverTonnagePrice.HasValue).Sum(a => a.Tonnage.Value * a.DriverTonnagePrice.Value),
+                Details = new List<CustomerSeparateRouteDetailVM>()
+            };
+
+            var prices = loadFactors.DistinctBy(a => a.DriverFee).Select(a => new { a.DriverFee, a.ShippingFeeId }).ToList();
+            var shippingFeeIds = loadFactors.DistinctBy(a => a.ShippingFeeId).Select(a => a.ShippingFeeId);
+            var shippingFees = await _shippingFeeRepository.ShippingFees().AsNoTracking()
+                .Where(a => shippingFeeIds.Contains(a.Id))
+                .Select(a => new { a.Vehicle, a.Id }).ToListAsync();
+            foreach (var item in prices.OrderBy(a => a.DriverFee))
+            {
+                var originIdList = loadFactors.Where(a => a.DriverFee.Equals(item.DriverFee)).DistinctBy(a => a.OriginId).Select(a => a.OriginId).ToList();
+                var origins = routes.Where(a => originIdList.Contains(a.Id)).Select(a => a.Title).ToList();
+                var destinationIdList = loadFactors.Where(a => a.DriverFee.Equals(item.DriverFee)).DistinctBy(a => a.DestinationId).Select(a => a.DestinationId).ToList();
+                var destinations = routes.Where(a => destinationIdList.Contains(a.Id)).Select(a => a.Title).ToList();
+
+                data.Details.Add(new CustomerSeparateRouteDetailVM
+                {
+                    Amount = item.DriverFee,
+                    Quantity = loadFactors.Count(a => a.DriverFee.Equals(item.DriverFee)),
+                    Origins = origins,
+                    Destinaitons = destinations,
+                    Vehicle = shippingFees.Single(a => a.Id.Equals(item.ShippingFeeId)).Vehicle
+                });
+            }
+
+
+            return View(data);
         }
     }
 }

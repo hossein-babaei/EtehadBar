@@ -948,10 +948,13 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Vehicle(int? p)
+        public async Task<IActionResult> Vehicle(int? p, bool type = true)
         {
+            ViewData["Type"] = type;
+            var query = _vehicleRepo.Vehicles().Where(a => a.RealStatus == type);
+
             var pageNumber = p ?? 1;
-            var onePageOfData = await _vehicleRepo.Vehicles().OrderBy(a => a.LeftNumber).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await query.OrderBy(a => a.LeftNumber).ToPagedListAsync(pageNumber, type ? 15 : await query.CountAsync());
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -2421,7 +2424,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var amountDateArray = amountDate.PersianToEnglish().Split('/');
             var amountDatetime = new PersianDateTime(Convert.ToInt32(amountDateArray[0]), Convert.ToInt32(amountDateArray[1]), Convert.ToInt32(amountDateArray[2])).ToDateTime();
-    
+
             var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
             if (latestContractAddon == null)
                 latestContractAddon = await _contractRepo.Get(contractId);
@@ -3911,7 +3914,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> GetShippingFeeJson(string contractId)
+        public async Task<JsonResult> GetShippingFeeJson(long contractId)
         {
             var query = _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId));
             if (!User.IsInRole("Admin"))
@@ -3925,7 +3928,7 @@ namespace EtehadBar.MVC.Controllers
                 Origin = a.Origin.Title,
                 price = a.Price.ToString("N0"),
                 a.Vehicle,
-                a.Title,
+                Title = string.IsNullOrWhiteSpace(a.Title) ? "" : $"({a.Title})",
                 LoadType = a.ShippingFeeLoadType.Name
             }).ToListAsync());
         }

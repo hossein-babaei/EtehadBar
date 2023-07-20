@@ -1098,4 +1098,22 @@ namespace EtehadBar.Domain
         public string value { get; set; }
         public string label { get; set; }
     }
+
+    public class CustomerSeparateRouteVM
+    {
+        public string Title { get; set; }
+        public double TonnageAmount { get; set; } = 0;
+        public double WeighbridgeAmount { get; set; } = 0;
+        public double DriverLoadSleepPrice { get; set; } = 0;
+        public List<CustomerSeparateRouteDetailVM> Details { get; set; }
+    }
+
+    public class CustomerSeparateRouteDetailVM
+    {
+        public List<string> Origins { get; set; }
+        public List<string> Destinaitons { get; set; }
+        public double Amount { get; set; }
+        public int Quantity { get; set; }
+        public string Vehicle { get; set; }
+    }
 }

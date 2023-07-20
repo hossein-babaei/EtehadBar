@@ -85,6 +85,12 @@
             form.find('input[name=isFreeDriverFee]').val(isFreeDriverFee);
             form.submit();
         }
+        function submitCustomerSeparateRouteReport() {
+            let calendarId = $('#activity-modal select').val();
+            let customerId = $('#activity-modal input[name=customerId]').val();
+
+            window.open(`/report/customer-separate-route?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
+        }
         function showActivityList(id, type) {
             $('#modal-append').html('');
 
@@ -162,10 +168,6 @@
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.Name)</th>
                     <th>@Html.DisplayNameFor(model => model.Status)</th>
-                    @if (User.IsInRole("Admin"))
-                    {
-                        <th>گزارش دریافتی</th>
-                    }
                     <th>گزارشات</th>
                 </tr>
             </thead>
@@ -183,22 +185,42 @@
                         {
                             <td class="uk-text-bold uk-text-danger">غیر فعال</td>
                         }
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <td>
-                                <a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerBalance" asp-route-customerId="@item.Id">مالی</a>@*onclick="showContracts(@item.Id)"*@
-                                <a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a>
-                            </td>
-                        }
                         <td>
-                            @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
-                            {
-                                <a class="uk-button uk-button-primary uk-button-small" onclick="showFormByCustomer(@item.Id)">عملکرد تفصیلی</a>
-                                <a class="uk-button uk-button-primary uk-button-small" onclick="showActivityList(@item.Id)">عملکرد مالی راننده</a>
-                                <a class="uk-button uk-button-primary uk-button-small" onclick="showFullActivity(@item.Id)">عملکرد تکمیلی</a>
-                            }
-                            <a class="uk-button uk-button-primary uk-button-small uk-margin-right" onclick="showFormByCalendar(@item.Id, @((byte)item.CustomerType))">بر اساس تقویم کاری</a>
-                            <a class="uk-button uk-button-primary uk-button-small" onclick="showFormByAccountBook(@item.Id, @((byte)item.CustomerType))">بر اساس صورت وضعیت</a>
+                            <button class="uk-button uk-button-default" type="button"><i uk-icon="chevron-down"></i></button>
+                            <div uk-dropdown="pos: bottom-center; mode: click">
+                                <ul class="uk-nav uk-dropdown-nav">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li class="uk-nav-header">دریافتی</li>
+                                        <li>
+                                            <a asp-action="CustomerBalance" asp-route-customerId="@item.Id">مالی</a>
+                                        </li>
+                                        <li>
+                                            <a asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a>
+                                        </li>
+                                    }
+                                    <li class="uk-nav-header">گزارشات</li>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
+                                    {
+                                        <li>
+                                            <a onclick="showFormByCustomer(@item.Id)">عملکرد تفصیلی</a>
+                                        </li>
+                                        <li>
+                                            <a onclick="showActivityList(@item.Id)">عملکرد مالی راننده</a>
+                                        </li>
+                                        <li>
+                                            <a onclick="showFullActivity(@item.Id)">عملکرد تکمیلی</a>
+                                        </li>
+                                    }
+                                    <li class="uk-nav-divider"></li>
+                                    <li>
+                                        <a onclick="showFormByCalendar(@item.Id, @((byte)item.CustomerType))">بر اساس تقویم کاری</a>
+                                    </li>
+                                    <li>
+                                        <a onclick="showFormByAccountBook(@item.Id, @((byte)item.CustomerType))">بر اساس صورت وضعیت</a>
+                                    </li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                     i++;
@@ -234,6 +256,7 @@
         <div class="uk-modal-footer uk-text-center">
             <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitActivityByCustomerForm(this, 'False')">قراردادی</a>
             <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitActivityByCustomerForm(this, 'True')">موردی ها</a>
+            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitCustomerSeparateRouteReport()">تفکیکی</a>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
     </div>

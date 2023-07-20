@@ -131,8 +131,12 @@
     </div>
     @if (data.PageCount > 1)
     {
+        var type = (bool)ViewData["Type"];
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("Vehicle", new { p = page }))
+            @if (type) 
+                @Html.PagedListPager(data, page => Url.Action("Vehicle", new { p = page }))
+            else
+                @Html.PagedListPager(data, page => Url.Action("Vehicle", new { p = page, type = type }))
         </div>
     }
 </div>
