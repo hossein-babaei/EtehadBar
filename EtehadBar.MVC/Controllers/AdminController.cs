@@ -2004,7 +2004,7 @@ namespace EtehadBar.MVC.Controllers
                     return Json(new { msg = "مبدا و مقصد نمی تواند یکی باشد.", status });
 
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
-                    .AnyAsync(a => a.ShippingFeeType == s.ShippingFeeType && a.ShippingFeeLoadTypeId.Equals(s.ShippingFeeLoadTypeId) && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice) && a.Title.Equals(s.Title)))
+                    .AnyAsync(a => a.ContractId.Equals(s.ContractId) && a.ShippingFeeType == s.ShippingFeeType && a.ShippingFeeLoadTypeId.Equals(s.ShippingFeeLoadTypeId) && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice) && a.Title.Equals(s.Title)))
                     return Json(new { msg = "نرخ حمل و نقل ثبت شده تکراری است.", status });
 
                 if (s.ShippingFeeType == ShippingFeeType.Custom)
@@ -2064,7 +2064,7 @@ namespace EtehadBar.MVC.Controllers
                     return Json(new { msg = "مبدا و مقصد نمی تواند یکی باشد.", status });
 
                 if (await _shippingFeeRepo.ShippingFees().AsNoTracking()
-                    .AnyAsync(a => !a.Id.Equals(s.Id) && a.ShippingFeeLoadTypeId.Equals(s.ShippingFeeLoadTypeId) && a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice) && a.Title.Equals(s.Title)))
+                    .AnyAsync(a => !a.Id.Equals(s.Id) && a.ContractId.Equals(s.ContractId) && a.ShippingFeeLoadTypeId.Equals(s.ShippingFeeLoadTypeId) && a.ShippingFeeType == s.ShippingFeeType && a.Vehicle.Equals(s.Vehicle) && a.OriginId.Equals(s.OriginId) && a.DestinationId.Equals(s.DestinationId) && a.DriverPrice.Equals(s.DriverPrice) && a.Title.Equals(s.Title)))
                     return Json(new { msg = "نرخ حمل و نقل ثبت شده تکراری است.", status });
 
                 if (s.ShippingFeeType == ShippingFeeType.Custom)
@@ -5694,6 +5694,7 @@ namespace EtehadBar.MVC.Controllers
             return Json(new
             {
                 vehicles,
+                customers = await _customerRepo.Customers().AsNoTracking().Select(a => new { id = a.Id, name = a.Name }).OrderBy(a => a.name).ToListAsync(),
                 calendars = await _calendarRepo.Calendars().AsNoTracking().Select(a => new { id = a.Id, title = a.Title }).OrderBy(a => a.title).ToListAsync(),
                 names = await _billRepository.Query().AsNoTracking().Select(a => a.ReceiverName).Distinct().OrderBy(a => a).ToListAsync(),
                 bankBranches = definitions.Where(a => a.DefinitionType == DefinitionType.BankBranch).Select(a => a.Title).ToList(),
@@ -5703,7 +5704,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Bill_Search(int? p, long vehicleId, long calendarId, string name, string bankBranch, string billType, string description, string bankBillNo, string billNo, int realVehicle = -1)
+        public async Task<IActionResult> Bill_Search(int? p, long customerId, long vehicleId, long calendarId, string name, string bankBranch, string billType, string description, string bankBillNo, string billNo, int realVehicle = -1)
         {
             var pageNumber = p ?? 1;
             var query = _billRepository.Query();
@@ -5730,6 +5731,8 @@ namespace EtehadBar.MVC.Controllers
                 query = query.Where(a => a.CalendarId.Equals(calendarId));
             if (vehicleId > 0)
                 query = query.Where(a => a.VehicleId.HasValue && a.VehicleId.Equals(vehicleId));
+            if (customerId > 0)
+                query = query.Where(a => a.CustomerId.HasValue && a.CustomerId.Equals(customerId));
 
 
             if (calendarId > 0)
@@ -5742,6 +5745,7 @@ namespace EtehadBar.MVC.Controllers
 
             ViewBag.Name = name;
             ViewBag.BillType = billType;
+            ViewBag.CustomerId = customerId;
             ViewBag.VehicleId = vehicleId;
             ViewBag.BankBranch = bankBranch;
             ViewBag.CalendarId = calendarId;
@@ -6042,7 +6046,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> VehicleBalanceList(long? id, long? calendarId)
+        public async Task<IActionResult> VehicleBalanceList(long? id, long? calendarId, long? customerId)
         {
             if (!id.HasValue)
                 return NotFound();
@@ -6050,6 +6054,10 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Vehicle"] = await _vehicleRepo.Get(id.Value);
 
             var query = _vehicleBalanceRepository.Query().Where(a => a.VehicleId.Equals(id.Value));
+            if (customerId.HasValue)
+            {
+                query = query.Where(a => a.CustomerId.Equals(customerId.Value));
+            }
             if (calendarId.HasValue)
             {
                 var beforeCalendars = await _calendarRepo.Calendars().AsNoTracking().Where(a => a.Sequence < _calendarRepo.Calendars().Single(b => b.Id.Equals(calendarId.Value)).Sequence).Select(a => a.Id).ToListAsync();

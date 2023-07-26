@@ -91,6 +91,12 @@
 
             window.open(`/report/customer-separate-route?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
         }
+        function submitCustomerSeparateRouteIncomeReport() {
+            let calendarId = $('#activity-modal select').val();
+            let customerId = $('#activity-modal input[name=customerId]').val();
+
+            window.open(`/report/customer-separate-route-income?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
+        }
         function showActivityList(id, type) {
             $('#modal-append').html('');
 
@@ -254,10 +260,23 @@
             </form>
         </div>
         <div class="uk-modal-footer uk-text-center">
-            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitActivityByCustomerForm(this, 'False')">قراردادی</a>
-            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitActivityByCustomerForm(this, 'True')">موردی ها</a>
-            <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitCustomerSeparateRouteReport()">تفکیکی</a>
-            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            <div class="uk-grid-small uk-child-width-auto uk-flex-center" uk-grid>
+                <div>
+                    <a class="uk-button uk-button-primary" onclick="submitActivityByCustomerForm(this, 'False')">قراردادی</a>
+                </div>
+                <div>
+                    <a class="uk-button uk-button-primary" onclick="submitActivityByCustomerForm(this, 'True')">موردی ها</a>
+                </div>
+                <div>
+                    <a class="uk-button uk-button-primary" onclick="submitCustomerSeparateRouteReport()">پرداختی تفکیکی</a>
+                </div>
+                <div>
+                    <a class="uk-button uk-button-primary" onclick="submitCustomerSeparateRouteIncomeReport()">دریافتی تفکیکی</a>
+                </div>
+                <div>
+                    <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>

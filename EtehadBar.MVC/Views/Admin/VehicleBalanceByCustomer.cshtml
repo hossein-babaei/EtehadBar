@@ -133,7 +133,7 @@
                             <td>@item.VehicleOwnerName</td>
                             <td>@item.VehicleNumber</td>
                             <td>@item.Amount.ToString("N0")</td>
-                            <td><a class="uk-button uk-button-primary uk-button-small" asp-action="VehicleBalanceList" asp-route-id="@item.VehicleId" asp-route-calendarId="@calendar.Id" target="_blank">جزئیات</a></td>
+                            <td><a class="uk-button uk-button-primary uk-button-small" asp-action="VehicleBalanceList" asp-route-id="@item.VehicleId" asp-route-calendarId="@calendar.Id" asp-route-customerId="@customer.Id" target="_blank">جزئیات</a></td>
                             <td><a class="uk-button uk-button-primary uk-button-small" onclick="createBalance(@item.VehicleId, @customer.Id, @calendar.Id)">ثبت اضافات و کسورات</a></td>
                         </tr>
                         i++;

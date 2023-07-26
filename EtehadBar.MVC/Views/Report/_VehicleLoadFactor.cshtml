@@ -97,7 +97,7 @@
                             {
                                 if (item.WeighbridgePrice.HasValue)
                                 {
-                                    <td>@item.WeighbridgePrice.Value</td>
+                                    <td>@item.WeighbridgePrice.Value.ToString("N0")</td>
                                 }
                                 else
                                 {
@@ -109,7 +109,7 @@
                                 if (item.LoadSleepTime.HasValue)
                                 {
                                     <td>@item.LoadSleepTime.Value</td>
-                                    <td>@item.DriverLoadSleepPrice.Value</td>
+                                    <td>@item.DriverLoadSleepPrice.Value.ToString("N0")</td>
                                 }
                                 else
                                 {

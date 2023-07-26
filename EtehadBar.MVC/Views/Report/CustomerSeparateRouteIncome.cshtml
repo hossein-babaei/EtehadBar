@@ -1,0 +1,109 @@
+﻿@model CustomerSeparateRouteVM
+
+@{
+    int i = 1;
+    ViewData["pageId"] = 14;
+    ViewData["Title"] = Model.Title;
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .uk-table-divider > :first-child > tr:not(:first-child), .uk-table-divider > :not(:first-child) > tr, .uk-table-divider > tr:not(:first-child) {
+        border-top: 1px solid #ccc
+    }
+</style>
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="Customer" asp-controller="Report">گزارشات</a></li>
+            <li><span>گزارش</span></li>
+        </ul>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>نوع خودرو</th>
+                    <th>مبادی</th>
+                    <th>مقاصد</th>
+                    <th>تعداد</th>
+                    <th>مبلغ</th>
+                    <th>جمع</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.Details)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>@item.Vehicle</td>
+                        <td>
+                            @foreach (var origin in item.Origins)
+                            {
+                                <span class="uk-font-small uk-text-light uk-display-block">
+                                    @origin
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            @foreach (var destination in item.Destinaitons)
+                            {
+                                <span class="uk-font-small uk-text-light uk-display-block">
+                                    @destination
+                                </span>
+                            }
+                        </td>
+                        <td>@item.Quantity</td>
+                        <td>@item.Amount.ToString("N0")</td>
+                        <td>@((item.Amount * item.Quantity).ToString("N0"))</td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="box uk-margin-top" style="padding:15px 30px">
+    <h3 class="uk-heading-divider uk-text-center">@Model.Title</h3>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">تعداد بارنامه</div>
+        <div>@Model.Details.Sum(a => a.Quantity) فقره</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ بارنامه</div>
+        <div>@Model.Details.Sum(a => a.Amount * a.Quantity).ToString("N0") ریال</div>
+    </div>
+    @if (Model.TonnageAmount > 0)
+    {
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ تناژ</div>
+            <div>@Model.TonnageAmount.ToString("N0") ریال</div>
+        </div>
+    }
+    @if (Model.WeighbridgeAmount > 0)
+    {
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ باسکول</div>
+            <div>@Model.WeighbridgeAmount.ToString("N0") ریال</div>
+        </div>
+    }
+    @if (Model.DriverLoadSleepPrice > 0)
+    {
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ خواب</div>
+            <div>@Model.DriverLoadSleepPrice.ToString("N0") ریال</div>
+        </div>
+    }
+    @if (Model.TonnageAmount > 0 || Model.WeighbridgeAmount > 0 || Model.DriverLoadSleepPrice > 0)
+    {
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ کل</div>
+            <div>@((Model.TonnageAmount + Model.WeighbridgeAmount + Model.DriverLoadSleepPrice + Model.Details.Sum(a => a.Amount * a.Quantity)).ToString("N0")) ریال</div>
+        </div>
+    }
+</div>

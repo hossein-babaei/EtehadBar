@@ -42,10 +42,15 @@
                 preloader();
                 $.get('@Url.Action("Bill_Search")', {}, function (r) {
                     let vehicleOptions = '<option value="0">همه</option>',
+                        customerOptions = '<option value="0">همه</option>'
                         nameOptions = '<option value="all">همه</option>',
                         calendarOptions = '<option value="0">همه</option>',
                         bankBranchOptions = '<option value="all">همه</option>',
                         billTypeOptions = '<option value="all">همه</option>';
+
+                    $.each(r.customers, (i, v) => {
+                        customerOptions += `<option value="${v.id}">${v.name}</option>`;
+                    });
 
                     $.each(r.vehicles, (i, v) => {
                         vehicleOptions += `<option value="${v.id}">${v.number} - ${v.owner}</option>`;
@@ -62,12 +67,17 @@
                     $.each(r.billTypes, (i, v) => {
                         billTypeOptions += `<option value="${v}">${v}</option>`;
                     });
+                    $('#search-modal #customerId').html(customerOptions);
                     $('#search-modal #vehicleId').html(vehicleOptions);
                     $('#search-modal #name').html(nameOptions);
                     $('#search-modal #calendarId').html(calendarOptions);
                     $('#search-modal #bankBranch').html(bankBranchOptions);
                     $('#search-modal #billType').html(billTypeOptions);
 
+                    $('#search-modal #customerId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
                     $('#search-modal #vehicleId').select2({
                         width: '100%',
                         matcher: ignoreSpecialCharAndWhitespaceInSelect2
@@ -358,53 +368,59 @@
         </div>
         <div class="uk-modal-body">
             <form>
-                <div>
-                    <label class="uk-form-label">بر اساس خودرو</label>
-                    <select class="uk-select uk-border-rounded" id="vehicleId" name="vehicleId"></select>
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">بر اساس تقویم کاری</label>
-                    <select class="uk-select uk-border-rounded" id="calendarId" name="calendarId"></select>
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">بر اساس نام دریافت کننده</label>
-                    <select class="uk-select uk-border-rounded" id="name" name="name"></select>
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">بر اساس شعبه بانک</label>
-                    <select class="uk-select uk-border-rounded" id="bankBranch" name="bankBranch"></select>
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">بر اساس نوع هزینه</label>
-                    <select class="uk-select uk-border-rounded" id="billType" name="billType"></select>
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">شماره فیش</label>
-                    <input class="uk-input uk-border-rounded" id="billNo" name="billNo" autocomplete="off" />
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">شماره رسید</label>
-                    <input class="uk-input uk-border-rounded" id="bankBillNo" name="bankBillNo" autocomplete="off" />
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">جستجو در شرح</label>
-                    <input class="uk-input uk-border-rounded" id="description" name="description" autocomplete="off" />
-                </div>
-                @if (User.IsInRole("Admin"))
-                {
-                    <div class="uk-margin-small-top">
-                        <label class="uk-form-label">خودرو های حقیقی</label>
-                        <select class="uk-select uk-border-rounded" id="realVehicle" name="realVehicle">
-                            <option value="-1">همه</option>
-                            <option value="1">بلی</option>
-                            <option value="0">خیر</option>
-                        </select>
+                <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@s" uk-grid>
+                    <div>
+                        <label class="uk-form-label">بر اساس مشتری</label>
+                        <select class="uk-select uk-border-rounded" id="customerId" name="customerId"></select>
                     </div>
-                }
-                else
-                {
-                    <input id="realVehicle" name="realVehicle" type="hidden" value="-1" />
-                }
+                    <div>
+                        <label class="uk-form-label">بر اساس تقویم کاری</label>
+                        <select class="uk-select uk-border-rounded" id="calendarId" name="calendarId"></select>
+                    </div>
+                    <div class="uk-width-1-1">
+                        <label class="uk-form-label">بر اساس خودرو</label>
+                        <select class="uk-select uk-border-rounded" id="vehicleId" name="vehicleId"></select>
+                    </div>
+                    <div class="uk-width-1-1">
+                        <label class="uk-form-label">بر اساس نام دریافت کننده</label>
+                        <select class="uk-select uk-border-rounded" id="name" name="name"></select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">بر اساس شعبه بانک</label>
+                        <select class="uk-select uk-border-rounded" id="bankBranch" name="bankBranch"></select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">بر اساس نوع هزینه</label>
+                        <select class="uk-select uk-border-rounded" id="billType" name="billType"></select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">شماره فیش</label>
+                        <input class="uk-input uk-border-rounded uk-form-small" id="billNo" name="billNo" autocomplete="off" />
+                    </div>
+                    <div>
+                        <label class="uk-form-label">شماره رسید</label>
+                        <input class="uk-input uk-border-rounded uk-form-small" id="bankBillNo" name="bankBillNo" autocomplete="off" />
+                    </div>
+                    <div>
+                        <label class="uk-form-label">جستجو در شرح</label>
+                        <input class="uk-input uk-border-rounded uk-form-small" id="description" name="description" autocomplete="off" />
+                    </div>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <div>
+                            <label class="uk-form-label">خودرو های حقیقی</label>
+                            <select class="uk-select uk-border-rounded uk-form-small" id="realVehicle" name="realVehicle">
+                                <option value="-1">همه</option>
+                                <option value="1">بلی</option>
+                                <option value="0">خیر</option>
+                            </select>
+                        </div>
+                    }
+                    else
+                    {
+                        <input id="realVehicle" name="realVehicle" type="hidden" value="-1" />
+                    }
+                </div>
             </form>
             <div class="uk-margin-top uk-text-center">
                 <a asp-action="Bill" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
