@@ -105,6 +105,7 @@
                 <li @if (param == 23) { <text> class="active" </text> }><a asp-action="VehicleActivity" asp-controller="Report">جزئیات عملکرد خودرو</a></li>
                 <li @if (param == 10) { <text> class="active" </text> }><a asp-action="Cost" asp-controller="Report">هزینه های جاری</a></li>
                 <li @if (param == 11) { <text> class="active" </text> }><a asp-action="Payment" asp-controller="Report">حقوق و مساعده پرداختی</a></li>
+                <li><a uk-toggle="#vehicle-report-modal">لیست خودرو ها</a></li>
                 <li @if (param == 35) { <text> class="active" </text> }><a asp-action="FreeLoadFactor" asp-controller="Report">بارنامه های آزاد</a></li>
                 @*<li @if (param == 15) { <text> class="active" </text> }><a asp-action="PaymentByDriver" asp-controller="Report">حقوق و مساعده جزء</a></li>*@
             </ul>

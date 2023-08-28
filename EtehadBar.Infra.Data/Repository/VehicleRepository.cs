@@ -3,6 +3,7 @@ using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -243,12 +244,15 @@ namespace EtehadBar.Infra.Data.Repository
             return data;
         }
 
-        public async Task<List<ActivityListVM>> FullActivityList(long customerId, long calendarId)
+        public async Task<List<ActivityListVM>> FullActivityList(long customerId, long calendarId, int type)
         {
+            bool binaryType = Convert.ToBoolean(type);
+
             var query = await(from a in db.LoadFactor
                               join b in db.Contract on a.ContractId equals b.Id
                               join c in db.Vehicles on a.VehicleId equals c.Id
                               where a.CalendarId.Equals(calendarId) && b.CustomerId.Equals(customerId)
+                              where binaryType || !a.IsFreeDriverPrice
                               select new
                               {
                                   a.Tonnage,

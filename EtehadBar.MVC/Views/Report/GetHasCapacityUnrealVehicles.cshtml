@@ -1,0 +1,46 @@
+﻿@model IEnumerable<Vehicle>
+
+@{
+    ViewData["pageId"] = 6;
+    var calendar = (Calendar)ViewData["Calendar"];
+    ViewData["Title"] = $"خودرو های دارای ظرفیت در {calendar.Title}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Type)</th>
+                    <th>شماره خودرو</th>
+                    <th>@Html.DisplayNameFor(model => model.VehicleOwnerFullname)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.Type)</td>
+                        <td class="uk-text-bold">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</td>
+                        <td>@Html.DisplayFor(modelItem => item.VehicleOwnerFullname)</td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

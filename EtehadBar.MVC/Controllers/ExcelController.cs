@@ -74,7 +74,8 @@ namespace EtehadBar.MVC.Controllers
             var income = await _customerRepo.CustomerIncomes().Where(a => a.Date >= calendar.StartDate && a.Date <= calendar.EndDate).SumAsync(a => a.Amount);
 
             var loadFactors = new List<GlobalLoadFactorVM>();
-            var loadFactorList = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId)).Select(a => new GlobalLoadFactorVM
+            var loadFactorList = await _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Vehicle).Include(a => a.Contract).ThenInclude(a => a.Customer)
+                .Where(a => a.CalendarId.Equals(calendarId)).Select(a => new GlobalLoadFactorVM
             {
                 Amount = a.Tonnage.HasValue ? ((a.Tonnage.Value * a.TonnagePrice.Value) + a.Amount) : a.Amount,
                 DriverFee = a.Tonnage.HasValue ? ((a.Tonnage.Value * a.DriverTonnagePrice.Value) + a.DriverFee) : a.DriverFee,
@@ -249,7 +250,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var calendar = await _calendarRepo.Get(calendarId);
 
-            var query = _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId));
+            var query = _costRepo.Costs().Include(a => a.ApplicationUser).Where(a => a.CalendarId.Equals(calendarId));
             if (userId != "all")
                 query = query.Where(a => a.UserId.Equals(userId));
 
@@ -322,7 +323,8 @@ namespace EtehadBar.MVC.Controllers
             var calendar = await _calendarRepo.Get(calendarId);
             var balance = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
 
-            var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
+            var query = _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Contract).ThenInclude(a => a.Customer)
+                .Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
             if (customerId > 0)
                 query = query.Where(a => a.Contract.CustomerId.Equals(customerId));
 
@@ -429,7 +431,7 @@ namespace EtehadBar.MVC.Controllers
             var vehicle = await _vehicleRepo.Get(vehicleId);
             var calendar = await _calendarRepo.Get(calendarId);
             var balance = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
-            var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
+            var query = _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
             if (customerId > 0)
                 query = query.Where(a => a.Contract.CustomerId.Equals(customerId));
 
@@ -2249,13 +2251,13 @@ namespace EtehadBar.MVC.Controllers
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             var content = stream.ToArray();
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
 
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> FullActivityList(long customerId, long calendarId)
+        public async Task<IActionResult> FullActivityList(long customerId, long calendarId, int type)
         {
-            var data = await _vehicleRepo.FullActivityList(customerId, calendarId);
+            var data = await _vehicleRepo.FullActivityList(customerId, calendarId, type);
             var calendar = await _calendarRepo.Get(calendarId);
             var customer = await _customerRepo.Get(customerId);
 
@@ -2305,10 +2307,27 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 7).Value = "";
             }
 
-            ws.Cell(data.Count + 3, 1).Value = "جمع";
-            ws.Range(data.Count + 3, 1, data.Count + 3, 3).Merge();
-            ws.Cell(data.Count + 3, 4).Value = data.Sum(a => a.ActivityAmount.Value).ToString("N0");
-            ws.Cell(data.Count + 3, 6).Value = data.Sum(a => a.Amount < 0 ? 0 : a.Amount).ToString("N0");
+            var bills = await _billRepository.Query().Include(a => a.Vehicle).Include(a => a.Customer)
+               .Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Value.Equals(customerId) && (a.VehicleId.HasValue && 
+           (_vehicleRepo.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).OrderBy(a => a.Vehicle.LeftNumber).ThenBy(a => a.Vehicle.RightNumber).ToListAsync();
+            var slashedLoadFactors = bills.DistinctBy(a => a.VehicleId.Value).ToList();
+            for (int i = 0; i < slashedLoadFactors.Count; i++)
+            {
+                var amount = bills.Where(a => a.VehicleId.Value.Equals(slashedLoadFactors[i].VehicleId.Value)).Sum(a => a.Amount).ToString("N0");
+                var vehicleNumber = $"ایران {slashedLoadFactors[i].Vehicle.IranStateNumber} - {slashedLoadFactors[i].Vehicle.RightNumber} {slashedLoadFactors[i].Vehicle.NumberWord} {slashedLoadFactors[i].Vehicle.LeftNumber}";
+                ws.Cell(i + data.Count + 3, 1).Value = i + data.Count + 1;
+                ws.Cell(i + data.Count + 3, 2).Value = slashedLoadFactors[i].ReceiverName;
+                ws.Cell(i + data.Count + 3, 3).Value = vehicleNumber;
+                ws.Cell(i + data.Count + 3, 4).Value = amount;
+                ws.Cell(i + data.Count + 3, 5).Value = "0";
+                ws.Cell(i + data.Count + 3, 6).Value = amount;
+                ws.Cell(i + data.Count + 3, 7).Value = "";
+            }
+
+            ws.Cell(slashedLoadFactors.Count + data.Count + 3, 1).Value = "جمع";
+            ws.Range(slashedLoadFactors.Count + data.Count + 3, 1, slashedLoadFactors.Count + data.Count + 3, 3).Merge();
+            ws.Cell(slashedLoadFactors.Count + data.Count + 3, 4).Value = (data.Sum(a => a.ActivityAmount.Value) + bills.Sum(a => a.Amount)).ToString("N0");
+            ws.Cell(slashedLoadFactors.Count + data.Count + 3, 6).Value = (data.Sum(a => a.Amount < 0 ? 0 : a.Amount) + bills.Sum(a => a.Amount)).ToString("N0");
 
             ws.Column("A").Width = 5;
             ws.Column("B").Width = 18;
@@ -2320,7 +2339,7 @@ namespace EtehadBar.MVC.Controllers
 
             ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var table = ws.Range(2, 1, data.Count + 2, 7).CreateTable();
+            var table = ws.Range(2, 1, slashedLoadFactors.Count + data.Count + 2, 7).CreateTable();
             table.Theme = XLTableTheme.None;
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
@@ -2329,7 +2348,7 @@ namespace EtehadBar.MVC.Controllers
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             var content = stream.ToArray();
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
 
         [Authorize(Roles = "Admin, Milad")]
@@ -2500,7 +2519,7 @@ namespace EtehadBar.MVC.Controllers
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             var content = stream.ToArray();
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
 
         [Authorize(Roles = "Admin, Milad")]
@@ -2669,7 +2688,7 @@ namespace EtehadBar.MVC.Controllers
             workbook.SaveAs(stream);
             var content = stream.ToArray();
 
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
 
         [Authorize(Roles = "Admin, Milad")]
@@ -2679,7 +2698,8 @@ namespace EtehadBar.MVC.Controllers
             string docTitle = $"گزارش {calendar.Title}";
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add(docTitle);
-            var bills = await _billRepository.Query().Where(a => a.CalendarId.Equals(calendarId) && (a.VehicleId.HasValue &&
+            var bills = await _billRepository.Query().Include(a => a.Vehicle).Include(a => a.Customer)
+                .Where(a => a.CalendarId.Equals(calendarId) && (a.VehicleId.HasValue &&
             (_vehicleRepo.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).OrderBy(a => a.Date).ToListAsync();
 
             ws.RightToLeft = true;
@@ -2694,9 +2714,43 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 4).Value = "عملکرد";
             ws.Cell(2, 5).Value = "مشتری";
 
-            var data = bills.DistinctBy(a => a.VehicleId.Value).ToList();
+            //var data = bills.DistinctBy(a => a.VehicleId.Value).ToList();
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 5));
+            var counter = 0;
+            var customers = await _customerRepo.Customers().AsNoTracking().Select(a => a.Id).ToListAsync();
+            foreach (var customer in customers)
+            {
+                var data = bills.Where(a => a.CustomerId.HasValue && a.CustomerId.Value.Equals(customer)).DistinctBy(a => a.VehicleId.Value).ToList();
+
+                for (int i = 0; i < data.Count; i++)
+                {
+                    var vehicleNumber = $"ایران {data[i].Vehicle.IranStateNumber} - {data[i].Vehicle.RightNumber} {data[i].Vehicle.NumberWord} {data[i].Vehicle.LeftNumber}";
+                    ws.Cell(counter + 3, 1).Value = i + 1;
+                    ws.Cell(counter + 3, 2).Value = data[i].ReceiverName;
+                    ws.Cell(counter + 3, 3).Value = vehicleNumber;
+                    ws.Cell(counter + 3, 4).Value = bills.Where(a => a.VehicleId.Value.Equals(data[i].VehicleId.Value) && a.CustomerId.HasValue && a.CustomerId.Value.Equals(customer)).Sum(a => a.Amount).ToString("N0");
+                    ws.Cell(counter + 3, 5).Value = data[i].CustomerId.HasValue ? data[i].Customer.Name : "---";
+                    counter++;
+                }
+            }
+
+            var unsetCustomerData = bills.Where(a => !a.CustomerId.HasValue).DistinctBy(a => a.VehicleId.Value).ToList();
+
+            if (unsetCustomerData.Any())
+            {
+                for (int i = 0; i < unsetCustomerData.Count; i++)
+                {
+                    var vehicleNumber = $"ایران {unsetCustomerData[i].Vehicle.IranStateNumber} - {unsetCustomerData[i].Vehicle.RightNumber} {unsetCustomerData[i].Vehicle.NumberWord} {unsetCustomerData[i].Vehicle.LeftNumber}";
+                    ws.Cell(counter + 3, 1).Value = i + 1;
+                    ws.Cell(counter + 3, 2).Value = unsetCustomerData[i].ReceiverName;
+                    ws.Cell(counter + 3, 3).Value = vehicleNumber;
+                    ws.Cell(counter + 3, 4).Value = bills.Where(a => a.VehicleId.Value.Equals(unsetCustomerData[i].VehicleId.Value) && !a.CustomerId.HasValue).Sum(a => a.Amount).ToString("N0");
+                    ws.Cell(counter + 3, 5).Value = unsetCustomerData[i].CustomerId.HasValue ? unsetCustomerData[i].Customer.Name : "---";
+                    counter++;
+                }
+            }
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(counter + 2, 5));
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
@@ -2709,15 +2763,6 @@ namespace EtehadBar.MVC.Controllers
             rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             rngHeaders.Style.Font.Bold = true;
             rngHeaders.Style.Font.FontColor = XLColor.Black;
-            for (int i = 0; i < data.Count; i++)
-            {
-                var vehicleNumber = $"ایران {data[i].Vehicle.IranStateNumber} - {data[i].Vehicle.RightNumber} {data[i].Vehicle.NumberWord} {data[i].Vehicle.LeftNumber}";
-                ws.Cell(i + 3, 1).Value = i + 1;
-                ws.Cell(i + 3, 2).Value = data[i].ReceiverName;
-                ws.Cell(i + 3, 3).Value = vehicleNumber;
-                ws.Cell(i + 3, 4).Value = bills.Where(a => a.VehicleId.Value.Equals(data[i].VehicleId.Value)).Sum(a => a.Amount).ToString("N0");
-                ws.Cell(i + 3, 5).Value = data[i].CustomerId.HasValue ? data[i].Customer.Name : "---";
-            }
 
             var otherCosts = await db.OtherCost.AsNoTracking().Where(a => a.CalendarId.Equals(calendar.Id)).Select(a => new
             {
@@ -2730,7 +2775,7 @@ namespace EtehadBar.MVC.Controllers
 
             for (int i = 0; i < distinctedOtherCosts.Count; i++)
             {
-                var j = data.Count + i;
+                var j = counter + i;
                 ws.Cell(j + 3, 1).Value = j + 1;
                 ws.Cell(j + 3, 2).Value = distinctedOtherCosts[i].DriverName;
                 ws.Cell(j + 3, 3).Value = distinctedOtherCosts[i].VehicleNumber;
@@ -2738,9 +2783,9 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(j + 3, 5).Value = "---";
             }
 
-            ws.Cell(data.Count + distinctedOtherCosts.Count + 3, 1).Value = "جمع";
-            ws.Range(data.Count + distinctedOtherCosts.Count + 3, 1, data.Count + distinctedOtherCosts.Count + 3, 3).Merge();
-            ws.Cell(data.Count + distinctedOtherCosts.Count + 3, 4).Value = (bills.Sum(a => a.Amount) + otherCosts.Sum(a => a.Amount)).ToString("N0");
+            ws.Cell(counter + distinctedOtherCosts.Count + 3, 1).Value = "جمع";
+            ws.Range(counter + distinctedOtherCosts.Count + 3, 1, counter + distinctedOtherCosts.Count + 3, 3).Merge();
+            ws.Cell(counter + distinctedOtherCosts.Count + 3, 4).Value = (bills.Sum(a => a.Amount) + otherCosts.Sum(a => a.Amount)).ToString("N0");
 
             ws.Column("A").Width = 5;
             ws.Column("B").Width = 20;
@@ -2750,7 +2795,7 @@ namespace EtehadBar.MVC.Controllers
 
             ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var table = ws.Range(2, 1, data.Count + distinctedOtherCosts.Count + 2, 5).CreateTable();
+            var table = ws.Range(2, 1, counter + distinctedOtherCosts.Count + 2, 5).CreateTable();
             table.Theme = XLTableTheme.None;
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
@@ -2759,7 +2804,80 @@ namespace EtehadBar.MVC.Controllers
             workbook.SaveAs(stream);
             var content = stream.ToArray();
 
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
+        }
+
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> Vehicles(string type)
+        {
+            string docTitle = $"لیست خودرو های اتحاد بار آسیا";
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add(docTitle);
+
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Titr";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+            ws.Cell(2, 1).Value = "#";
+            ws.Cell(2, 2).Value = "نام و نام خانوادگی";
+            ws.Cell(2, 3).Value = "شماره خودرو";
+            ws.Cell(2, 4).Value = "کد ملی";
+
+            var query = _vehicleRepo.Vehicles();
+            if (type == "all")
+                query = query.Where(a => a.RealStatus);
+
+            var vehicles = await query.AsNoTracking().OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
+
+
+            for (int i = 0; i < vehicles.Count; i++)
+            {
+                var vehicleNumber = $"ایران {vehicles[i].IranStateNumber} - {vehicles[i].RightNumber} {vehicles[i].NumberWord} {vehicles[i].LeftNumber}";
+                ws.Cell(i + 3, 1).Value = i + 1;
+                ws.Cell(i + 3, 2).Value = vehicles[i].VehicleOwnerFullname;
+                ws.Cell(i + 3, 3).Value = vehicleNumber;
+                ws.Cell(i + 3, 4).Value = vehicles[i].NationalNumber;
+
+                if (string.IsNullOrWhiteSpace(vehicles[i].BankAccountNumber))
+                    ws.Cell(i + 3, 2).Style.Fill.SetBackgroundColor(XLColor.LightGray);
+
+                if (!vehicles[i].RealStatus)
+                    ws.Cell(i + 3, 2).Style.Fill.SetBackgroundColor(XLColor.LightSkyBlue);
+            }
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(vehicles.Count + 2, 4));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetBold()
+                .Font.SetFontSize(14)
+                    .Fill.SetBackgroundColor(XLColor.LightGray)
+                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 4)); // The address is relative to rngTable (NOT the worksheet)
+            rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            rngHeaders.Style.Font.Bold = true;
+            rngHeaders.Style.Font.FontColor = XLColor.Black;
+
+            ws.Column("A").Width = 5;
+            ws.Column("B").Width = 25;
+            ws.Column("C").Width = 25;
+            ws.Column("D").Width = 25;
+
+            ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var table = ws.Range(2, 1, vehicles.Count + 2, 4).CreateTable();
+            table.Theme = XLTableTheme.None;
+            table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+            table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
     }
 }

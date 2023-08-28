@@ -113,7 +113,7 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<ESaipaPressLoadFactorVM> GetSaipaPressLoadFactor(long loadFactorId)
         {
-            var loadFactor = await db.LoadFactor.SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
+            var loadFactor = await db.LoadFactor.Include(a => a.SaipaPressLoadFactor).SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESaipaPressLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);
@@ -147,7 +147,7 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<ESazehGostarLoadFactorVM> GetSazehGostarLoadFactor(long loadFactorId)
         {
-            var loadFactor = await db.LoadFactor.SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
+            var loadFactor = await db.LoadFactor.Include(a => a.SazehGostarLoadFactor).SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new ESazehGostarLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);
@@ -184,7 +184,7 @@ namespace EtehadBar.Infra.Data.Repository
         {
             if (!calendarId.HasValue)
             {
-                var data = from a in db.LoadFactor
+                var data = from a in db.LoadFactor.Include(a => a.MehrcomParsLoadFactor).ThenInclude(a => a.Category)
                            join b in db.Contract on a.ContractId equals b.Id
                            join c in db.AccountBook on a.AccountBookId equals c.Id
                            join d in db.ShippingFee on a.ShippingFeeId equals d.Id
@@ -359,7 +359,7 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<EMehrcomParsLoadFactorVM> GetMehrcomParsLoadFactor(long loadFactorId)
         {
-            var loadFactor = await db.LoadFactor.SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
+            var loadFactor = await db.LoadFactor.Include(a => a.MehrcomParsLoadFactor).SingleOrDefaultAsync(a => a.Id.Equals(loadFactorId));
             if (loadFactor == null) return new EMehrcomParsLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);

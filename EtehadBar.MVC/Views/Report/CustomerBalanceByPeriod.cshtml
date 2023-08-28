@@ -8,6 +8,7 @@
     if (Model.Customer.CustomerType == CustomerType.SaipaPlasco)
         days = 60;
 
+    var balanceAmount = (double)ViewData["BalanceAmount"];
     var calendars = (List<Calendar>)ViewData["Calendars"];
 }
 
@@ -71,23 +72,7 @@
             </ul>
         </div>
         <div class="uk-width-expand@m uk-flex uk-flex-left">
-            @*@if (Model.Count() > 0)
-            {
-            <a asp-action="CustomerIncome" asp-controller="Excel" asp-route-calendarId="@latestCal.Id" asp-route-id="@customer.Id" class="uk-button uk-button-secondary uk-margin-small-left"><span class="fas fa-file-excel"></span></a>
-            }
-            else
-            {
-            <button class="uk-button uk-button-default uk-margin-small-left" disabled><span class="fas fa-file-excel"></span></button>
-            }*@
             <a class="uk-button uk-button-primary" href="#search-modal" uk-toggle uk-icon="search"></a>
-            @*@if (Model.Type)
-            {
-            <a class="uk-button uk-button-primary" asp-action="CustomerBalance" asp-route-contractId="@Model.Contract.Id" asp-route-type="false">مشاهده خلاصه</a>
-            }
-            else
-            {
-            <a class="uk-button uk-button-primary" asp-action="CustomerBalance" asp-route-contractId="@Model.Contract.Id" asp-route-type="true">مشاهده همه</a>
-            }*@
         </div>
     </div>
     <div class="box uk-margin-small-bottom" style="padding:15px 30px">
@@ -100,18 +85,7 @@
             <div>
                 <div class="box">
                     <h4 class="uk-heading-line uk-text-center">
-                        @if (item.CalendarId == -1)
-                        {
-                            <span>مطالبات معوق پیش از @(new PersianDateTime(Model.StartDate).ToString("yyyy/MM/dd"))</span>
-                        }
-                        //else if (item.CalendarId == 0)
-                        //{
-                        //    <span>دوره بعد از اتمام قرارداد@(new PersianDateTime(Model.Contract.EndDate).ToString("yyyy/MM/dd"))</span>
-                        //}
-                        else
-                        {
-                            <span>@Model.Calendars.Single(a => a.Id.Equals(item.CalendarId)).Title</span>
-                        }
+                        <span>@Model.Calendars.Single(a => a.Id.Equals(item.CalendarId)).Title</span>
                     </h4>
                     <div class="uk-grid-small uk-grid-divider uk-child-width-1-1 uk-flex-middle" uk-grid>
                         <div class="uk-width-1-2@s">
@@ -220,19 +194,23 @@
                 <h3 class="uk-text-center">خلاصه گزارش مالی @Model.Customer.Name در <span class="underline uk-text-left" dir="ltr">@(new PersianDateTime(DateTime.Now).ToString("yyyy/MM/dd"))</span></h3>
                 <hr />
                 <div class="uk-grid-small" uk-grid>
+                    <div class="uk-width-expand" uk-leader="fill: .">مانده دوره قبل</div>
+                    <div>@balanceAmount.ToString("N0") ریال</div>
+                </div>
+                <div class="uk-grid-small" uk-grid>
                     <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ دریافتی</div>
                     <div>@Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount)).ToString("N0") ریال</div>
                 </div>
                 <div class="uk-grid-small" uk-grid>
                     <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ فاکتور ها (صفر روزه)</div>
-                    <div>@Model.Details.Sum(a => a.CustomerFactors.Sum(a => a.Amount)).ToString("N0") ریال</div>
+                    <div>@((Model.Details.Sum(a => a.CustomerFactors.Sum(a => a.Amount)) + balanceAmount).ToString("N0")) ریال</div>
                 </div>
                 <div class="uk-grid-small" uk-grid>
                     <div class="uk-width-expand" uk-leader="fill: .">مانده (صفر روزه)</div>
-                    <div>@((Model.Details.Sum(a => a.CustomerFactors.Sum(a => a.Amount)) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0")) ریال</div>
+                    <div>@(((Model.Details.Sum(a => a.CustomerFactors.Sum(a => a.Amount)) + balanceAmount) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0")) ریال</div>
                 </div>
                 @{
-                    var daysSum = Model.Details.Sum(a => a.CustomerFactors.Where(a => a.Date <= DateTime.Now.AddDays(-days)).Sum(a => a.Amount));
+                    var daysSum = balanceAmount + Model.Details.Sum(a => a.CustomerFactors.Where(a => a.Date <= DateTime.Now.AddDays(-days)).Sum(a => a.Amount));
                 }
                 <div class="uk-grid-small" uk-grid>
                     <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ فاکتور ها (@days روزه)</div>

@@ -53,6 +53,10 @@ namespace EtehadBar.Domain.Models
         [StringLength(64)]
         public string BankAccountNumber { get; set; }
 
+        [Display(Name = "کد ملی")]
+        [StringLength(10, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string NationalNumber { get; set; }
+
         [Display(Name = "حقیقی")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool RealStatus { get; set; }

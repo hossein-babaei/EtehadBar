@@ -134,6 +134,17 @@
             </div>
             <div class="uk-modal-footer uk-text-center">
                 <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitSlashedLoadFactor()">دانلود فایل</a>
+                <a class="uk-button uk-button-primary uk-margin-small-left" onclick="getHasCapacityUnrealVehicles()">خودرو های دارای ظرفیت</a>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            </div>
+        </div>
+    </div>
+    <div id="vehicle-report-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <h3>گزارش لیست خودرو ها</h3>
+            <div class="uk-modal-footer uk-text-center">
+                <a class="uk-button uk-button-primary" asp-controller="Excel" asp-action="Vehicles" asp-route-type="all">همه</a>
+                <a class="uk-button uk-button-primary" asp-controller="Excel" asp-action="Vehicles" asp-route-type="complete">کامل</a>
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
             </div>
         </div>

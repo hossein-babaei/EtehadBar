@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using X.PagedList;
 
 namespace EtehadBar.MVC.Controllers
 {
@@ -37,6 +38,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ITurnoverProfileRepository _turnoverProfileRepository;
         private readonly ILoadRoutesRepository _loadRoutesRepository;
         private readonly IShippingFeeRepository _shippingFeeRepository;
+        private readonly ICustomerPeriodicBalanceSummaryRepository _customerPeriodicBalanceSummaryRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -54,7 +56,8 @@ namespace EtehadBar.MVC.Controllers
             ICustomerFactorRepository customerFactorRepository,
             ITurnoverProfileRepository turnoverProfileRepository,
             ILoadRoutesRepository loadRoutesRepository,
-            IShippingFeeRepository shippingFeeRepository)
+            IShippingFeeRepository shippingFeeRepository,
+            ICustomerPeriodicBalanceSummaryRepository customerPeriodicBalanceSummaryRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -72,6 +75,7 @@ namespace EtehadBar.MVC.Controllers
             _turnoverProfileRepository = turnoverProfileRepository;
             _loadRoutesRepository = loadRoutesRepository;
             _shippingFeeRepository = shippingFeeRepository;
+            _customerPeriodicBalanceSummaryRepository = customerPeriodicBalanceSummaryRepository;
         }
 
         [HttpPost]
@@ -186,7 +190,10 @@ namespace EtehadBar.MVC.Controllers
             //ViewData["excludedBills"] = await _billRepository.Query().Where(a => excludedBillTypes.Contains(a.BillType) &&
             //a.Date >= latestCal.StartDate && a.Date <= latestCal.EndDate).SumAsync(a => a.Amount);
             ViewData["income"] = await _customerRepo.CustomerIncomes().Where(a => a.Date >= latestCal.StartDate && a.Date <= latestCal.EndDate).SumAsync(a => a.Amount);
-            return View(await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(latestCal.Id)).OrderBy(a => a.Date).ToListAsync());
+            return View(await _loadFactorRepo.LoadFactors()
+                .Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Vehicle).Include(a => a.Calendar)
+                .Include(a => a.Contract).ThenInclude(a => a.Customer)
+                .Where(a => a.CalendarId.Equals(latestCal.Id)).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpPost]
@@ -205,7 +212,10 @@ namespace EtehadBar.MVC.Controllers
             ViewData["income"] = await _customerRepo.CustomerIncomes().Where(a => a.Date >= calendar.StartDate && a.Date <= calendar.EndDate).SumAsync(a => a.Amount);
 
             var data = new List<GlobalLoadFactorVM>();
-            var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.CalendarId.Equals(calendarId)).Select(a => new GlobalLoadFactorVM
+            var loadFactors = await _loadFactorRepo.LoadFactors()
+                .Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Vehicle)
+                .Include(a => a.Contract).ThenInclude(a => a.Customer)
+                .Where(a => a.CalendarId.Equals(calendarId)).Select(a => new GlobalLoadFactorVM
             {
                 Amount = a.Amount,
                 CustomerName = a.Contract.Customer.Name + " " + a.Contract.Number,
@@ -266,7 +276,7 @@ namespace EtehadBar.MVC.Controllers
             var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["calendars"] = calendars;
 
-            var query = _costRepo.Costs();
+            var query = _costRepo.Costs().Include(a => a.ApplicationUser).AsQueryable();
             if (!User.IsInRole("Admin"))
                 query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
 
@@ -281,7 +291,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["userId"] = userId;
             ViewData["calendar"] = await _calendarRepo.Get(calendarId);
 
-            var query = _costRepo.Costs().Where(a => a.CalendarId.Equals(calendarId));
+            var query = _costRepo.Costs().Include(a => a.ApplicationUser).Where(a => a.CalendarId.Equals(calendarId));
             if (!User.IsInRole("Admin"))
                 query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
 
@@ -309,7 +319,8 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Balance"] = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
             ViewData["customerId"] = customerId;
 
-            var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
+            var query = _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Contract).ThenInclude(a => a.Customer)
+                .Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
             if (customerId > 0)
                 query = query.Where(a => a.Contract.CustomerId.Equals(customerId));
 
@@ -335,7 +346,8 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Balance"] = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
             ViewData["customerId"] = customerId;
 
-            var query = _loadFactorRepo.LoadFactors().Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
+            var query = _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Contract).ThenInclude(a => a.Customer)
+                .Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
             if (customerId > 0)
                 query = query.Where(a => a.Contract.CustomerId.Equals(customerId));
 
@@ -390,7 +402,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Turnover()
         {
             var startOfPersianYear = new PersianDateTime(new PersianDateTime(DateTime.Now).Year, 1, 1).ToDateTime();
-            return View(await _turnoverRepository.Query().Where(a => a.Date >= startOfPersianYear).OrderBy(a => a.Date).ToListAsync());
+            return View(await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startOfPersianYear).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpPost]
@@ -414,15 +426,198 @@ namespace EtehadBar.MVC.Controllers
             else
             {
                 var turnoverProfiles = await _turnoverProfileRepository.Query().AsNoTracking().Where(a => a.TurnoverType == turnoverType).Select(a => a.Id).ToListAsync();
-                return PartialView("_Turnover", await _turnoverRepository.Query().Where(a => a.Date >= startD && a.Date <= endD && turnoverProfiles.Contains(a.TurnoverProfileId)).OrderBy(a => a.Date).ToListAsync());
+                return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startD && a.Date <= endD && turnoverProfiles.Contains(a.TurnoverProfileId)).OrderBy(a => a.Date).ToListAsync());
             }
+        }
+
+        #region CustomerPeriodicBalanceSummary
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CustomerPeriodicBalanceSummary(long customerId)
+        {
+            ViewData["CustomerInfo"] = await _customerRepo.Get(customerId);
+            return View(await _customerPeriodicBalanceSummaryRepository.Query().AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).OrderByDescending(a => a.EndDate).ToListAsync());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult CreateCustomerPeriodicBalanceSummary(long customerId)
+        {
+            ViewData["CustomerId"] = customerId;
+            return PartialView("~/Views/Report/Create/CustomerPeriodicBalanceSummary.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateCustomerPeriodicBalanceSummary(CreateCustomerPeriodicBalanceSummaryVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                DateTime startDate = new PersianDateTime(c.StartYear, c.StartMonth, c.StartDay, 0, 0, 0).ToDateTime();
+                DateTime endDate = new PersianDateTime(c.EndYear, c.EndMonth, c.EndDay, 23, 59, 59).ToDateTime();
+
+                if (startDate >= endDate)
+                {
+                    TempData["msg"] = "تاریخ شروع وارد شده از تاریخ پایان بزرگ تر است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                _customerPeriodicBalanceSummaryRepository.Create(new CustomerPeriodicBalanceSummary
+                {
+                    BalanceAmount = c.BalanceAmount,
+                    CustomerId = c.CustomerId,
+                    StartDate = startDate,
+                    EndDate = endDate
+                });
+                try
+                {
+                    await _customerPeriodicBalanceSummaryRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> EditCustomerPeriodicBalanceSummary(int id)
+        {
+            var item = await _customerPeriodicBalanceSummaryRepository.Get(id);
+            var persianStartDate = new PersianDateTime(item.StartDate);
+            var persianEndDate = new PersianDateTime(item.EndDate);
+
+            return PartialView("~/Views/Report/Edit/CustomerPeriodicBalanceSummary.cshtml", new EditCustomerPeriodicBalanceSummaryVM
+            {
+                EndDay = persianEndDate.Day,
+                EndMonth = persianEndDate.Month,
+                EndYear = persianEndDate.Year,
+                Id = item.Id,
+                StartDay = persianStartDate.Day,
+                StartMonth = persianStartDate.Month,
+                StartYear = persianStartDate.Year,
+                BalanceAmount = item.BalanceAmount,
+                CustomerId = item.CustomerId
+            });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditCustomerPeriodicBalanceSummary(EditCustomerPeriodicBalanceSummaryVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                DateTime startDate = new PersianDateTime(c.StartYear, c.StartMonth, c.StartDay, 0, 0, 0).ToDateTime();
+                DateTime endDate = new PersianDateTime(c.EndYear, c.EndMonth, c.EndDay, 23, 59, 59).ToDateTime();
+
+                if (startDate >= endDate)
+                {
+                    TempData["msg"] = "تاریخ شروع وارد شده از تاریخ پایان بزرگ تر است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = await _customerPeriodicBalanceSummaryRepository.Get(c.Id);
+                item.StartDate = startDate;
+                item.EndDate = endDate;
+                item.CustomerId = c.Id;
+                item.BalanceAmount = c.BalanceAmount;
+
+                _customerPeriodicBalanceSummaryRepository.Update(item);
+                try
+                {
+                    await _customerPeriodicBalanceSummaryRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteCustomerPeriodicBalanceSummary(int id)
+        {
+            var item = await _customerPeriodicBalanceSummaryRepository.Get(id);
+            if (item == null) return NotFound();
+
+            _customerPeriodicBalanceSummaryRepository.Delete(item);
+            try
+            {
+                await _customerPeriodicBalanceSummaryRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        public async Task<IActionResult> CustomerBalanceByPeriod(long id)
+        {
+            var periodItem = await _customerPeriodicBalanceSummaryRepository.Query().Include(a => a.Customer).AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(id));
+            if (periodItem == null) return NotFound();
+
+            ViewData["BalanceAmount"] = periodItem.BalanceAmount;
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.Sequence).ToListAsync();
+
+            var startDate = periodItem.StartDate;
+            var endDate = periodItem.EndDate > DateTime.Now ? DateTime.Now : periodItem.EndDate;
+
+            var startCalendarSequence = await _calendarRepo.Calendars().Where(a => a.StartDate.Equals(startDate)).Select(a => a.Sequence).FirstOrDefaultAsync();
+            var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= startCalendarSequence &&
+            a.Sequence <= _calendarRepo.Calendars().Where(a => a.StartDate < endDate && a.EndDate >= endDate).Single().Sequence).OrderBy(a => a.Sequence).ToListAsync();
+
+            var customerIncomes = await _customerRepo.CustomerIncomes().AsNoTracking().Where(a => a.CustomerId.Equals(periodItem.CustomerId)).OrderBy(a => a.Date).ToListAsync();
+
+            var customerFactors = await _customerFactorRepository.Query().AsNoTracking().Where(a => a.CustomerId.Equals(periodItem.CustomerId)).OrderBy(a => a.Date).ToListAsync();
+
+            var monthCount = await _calendarRepo.Calendars().AsNoTracking().CountAsync(a => a.Sequence >=
+            _calendarRepo.Calendars().AsNoTracking().Where(b => b.StartDate >= startDate).OrderBy(b => b.StartDate).First().Sequence &&
+            a.Sequence <= _calendarRepo.Calendars().AsNoTracking().Where(b => b.EndDate <= endDate).OrderByDescending(b => b.EndDate).First().Sequence);
+
+            var data = new CustomerBalanceVM
+            {
+                Calendars = calendars,
+                Customer = periodItem.Customer,
+                StartDate = startDate,
+                EndDate = endDate,
+                Details = new List<CustomerBalanceDetailVM>()
+            };
+
+            foreach (var calendar in calendars)
+            {
+                data.Details.Add(new CustomerBalanceDetailVM
+                {
+                    CalendarId = calendar.Id,
+                    CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
+                    CustomerFactors = customerFactors.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList()
+                });
+            }
+
+            return View(data);
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CustomerBalance(/*long contractId,*/ long customerId, int? period/*, bool type = false*/)
         {
-            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderBy(a => a.Sequence).ToListAsync();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.Sequence).ToListAsync();
             //var contract = await _contractRepository.Get(contractId);
             var customer = await _customerRepo.Get(customerId);
 
@@ -670,6 +865,21 @@ namespace EtehadBar.MVC.Controllers
 
 
             return View(data);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetHasCapacityUnrealVehicles(long calendarId)
+        {
+            var calendar = await _calendarRepo.Get(calendarId);
+            if (calendar == null) return NotFound();
+
+            var unrealVehicles = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => !a.RealStatus && a.Status).OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
+            var usedVehicles = await _billRepository.Query().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && a.VehicleId.HasValue && unrealVehicles.Select(a => a.Id).Contains(a.VehicleId.Value)).Select(a => a.VehicleId.Value).Distinct().ToListAsync();
+
+            ViewData["Calendar"] = calendar;
+
+            return View(unrealVehicles.Where(a => !usedVehicles.Contains(a.Id)).ToList());
         }
     }
 }

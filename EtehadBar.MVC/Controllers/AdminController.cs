@@ -1036,6 +1036,7 @@ namespace EtehadBar.MVC.Controllers
                 item.BankAccountNumber = v.BankAccountNumber;
                 item.VehicleOwnerFullname = v.VehicleOwnerFullname;
                 item.RealStatus = v.RealStatus;
+                item.NationalNumber = v.NationalNumber;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
 
@@ -1231,7 +1232,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
 
-            var query = _costRepo.Costs();
+            var query = _costRepo.Costs().Include(a => a.Calendar).Include(a => a.ApplicationUser).AsQueryable();
             if (!User.IsInRole("Admin"))
                 query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
 
@@ -1245,7 +1246,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Cost_Search(int? p)
         {
-            var query = _costRepo.Costs();
+            var query = _costRepo.Costs().Include(a => a.Calendar).Include(a => a.ApplicationUser).AsQueryable();
             if (!User.IsInRole("Admin"))
                 query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
 
@@ -1696,7 +1697,8 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Contract(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _contractRepo.Contracts().Where(a => !a.ParentContractId.HasValue).OrderByDescending(a => a.StartDate).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await _contractRepo.Contracts().Include(a => a.ContractAddons)
+                .Where(a => !a.ParentContractId.HasValue).OrderByDescending(a => a.StartDate).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -1912,23 +1914,23 @@ namespace EtehadBar.MVC.Controllers
         {
             if (string.IsNullOrWhiteSpace(contractId)) return BadRequest();
 
-            var contract = await _contractRepo.Get(contractId);
+            var contract = await _contractRepo.Contracts().Where(a => a.RowId.Equals(contractId)).Include(a => a.ContractAddons).Include(a => a.Customer).FirstOrDefaultAsync();
             if (contract == null) return NotFound();
 
             ViewData["Contract"] = contract;
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
-            return View(await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
+            return View(await _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ShippingFeePartial(string contractId)
         {
-            var contract = await _contractRepo.Get(contractId);
+            var contract = await _contractRepo.Contracts().Include(a => a.Customer).AsNoTracking().FirstOrDefaultAsync(a => a.RowId.Equals(contractId));
             if (contract == null) return NotFound();
 
             ViewData["Contract"] = contract;
-            return PartialView("_ShippingFee", await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
+            return PartialView("_ShippingFee", await _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
         }
 
         [HttpGet]
@@ -1955,9 +1957,9 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> ShippingFee_Search(int? p, long contractId, long originId, long destinationId, string vehicleType, string title, double? amount, double? driverFee)
         {
             var pageNumber = p ?? 1;
-            ViewData["Contract"] = await _contractRepo.Get(contractId);
+            ViewData["Contract"] = await _contractRepo.Contracts().Include(a => a.Customer).FirstOrDefaultAsync(a => a.Id.Equals(contractId));
 
-            var query = _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId));
+            var query = _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contractId));
 
             if (vehicleType != "all")
                 query = query.Where(a => a.Vehicle.Equals(vehicleType));
@@ -1980,7 +1982,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateShippingFee(string contractId)
         {
-            ViewData["Contract"] = await _contractRepo.Get(contractId);
+            ViewData["Contract"] = await _contractRepo.Contracts().Where(a => a.RowId.Equals(contractId)).Include(a => a.Customer).FirstOrDefaultAsync();
             List<DefinitionType> types = new()
             {
                 DefinitionType.Car
@@ -2386,7 +2388,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> DoCreateShippingFeeTypeFromNormal(string contractRowId, string newContractRowId)
         {
             var newContract = await _contractRepo.Get(newContractRowId);
-            var contract = await _contractRepo.Get(contractRowId);
+            var contract = await _contractRepo.Contracts().Include(a => a.ShippingFees).Where(a => a.RowId.Equals(contractRowId)).FirstOrDefaultAsync();
             foreach (var item in contract.ShippingFees)
             {
                 _shippingFeeRepo.Create(new Domain.Models.ShippingFee
@@ -2613,7 +2615,7 @@ namespace EtehadBar.MVC.Controllers
             }
             ViewData["Customer"] = await _customerRepo.GetAllActive();
 
-            var query = _loadFactorRepo.LoadFactors();
+            var query = _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Vehicle).Include(a => a.Driver).Include(a => a.Contract).ThenInclude(a => a.Customer).AsQueryable();
             if (User.IsInRole("RegisterUser"))
                 query = query.Where(a => a.AdminId.Equals(_userManager.GetUserId(User)));
 
@@ -2626,7 +2628,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var pageNumber = p ?? 1;
 
-            var query = _loadFactorRepo.LoadFactors();
+            var query = _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Vehicle).Include(a => a.Driver).Include(a => a.Contract).ThenInclude(a => a.Customer).AsQueryable();
             if (User.IsInRole("RegisterUser"))
                 query = query.Where(a => a.AdminId.Equals(_userManager.GetUserId(User)));
 
@@ -2638,7 +2640,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<PartialViewResult> LoadFactorDetail(int id)
         {
-            var item = await _loadFactorRepo.Get(id);
+            var item = await _loadFactorRepo.LoadFactors().Include(a => a.Driver).Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Vehicle).Include(a => a.Calendar).Include(a => a.Contract).Where(a => a.Id.Equals(id)).SingleOrDefaultAsync();
             ViewData["Admin"] = await _userManager.FindByIdAsync(item.AdminId);
             return PartialView("_LoadFactorDetail", item);
         }
@@ -2650,7 +2652,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 var pageNum = p ?? 1;
 
-                var query = _loadFactorRepo.LoadFactors();
+                var query = _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Vehicle).Include(a => a.Driver).Include(a => a.Contract).ThenInclude(a => a.Customer).AsQueryable();
 
                 if (!string.IsNullOrWhiteSpace(exitNumber))
                     query = query.Where(a => a.ExitNumber.Contains(exitNumber));
@@ -2691,9 +2693,9 @@ namespace EtehadBar.MVC.Controllers
 
             var activeContract = contracts.OrderByDescending(a => a.StartDate).First().Id;
             if (User.IsInRole("Admin"))
-                ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(activeContract)).OrderBy(a => a.Origin).ToListAsync();
+                ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(activeContract)).OrderBy(a => a.Origin).ToListAsync();
             else
-                ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(activeContract) && a.ShippingFeeType == ShippingFeeType.Normal).OrderBy(a => a.Origin).ToListAsync();
+                ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(activeContract) && a.ShippingFeeType == ShippingFeeType.Normal).OrderBy(a => a.Origin).ToListAsync();
 
             ViewData["Contracts"] = contracts;
 
@@ -2893,7 +2895,7 @@ namespace EtehadBar.MVC.Controllers
 
                 if (input.PressFloorType == SaipaPressLoadType.OneFloor)
                 {
-                    if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().AnyAsync(a => a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)))
+                    if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).AnyAsync(a => a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)))
                         return NotFound("شماره ورود تکراری است.");
 
                     if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().AnyAsync(a => a.ExitNumber.Equals(input.ExitNumber)))
@@ -2902,7 +2904,7 @@ namespace EtehadBar.MVC.Controllers
 
                 if (input.PressFloorType == SaipaPressLoadType.TwoFloor)
                 {
-                    if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().CountAsync(a => a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)) >= 2)
+                    if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).CountAsync(a => a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)) >= 2)
                         return NotFound("شماره ورود تکراری است.");
 
                     if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().CountAsync(a => a.ExitNumber.Equals(input.ExitNumber)) >= 2)
@@ -2916,7 +2918,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPressLoadFactor != null))
+                if (await _loadFactorRepo.LoadFactors().AsNoTracking().Include(a => a.SaipaPressLoadFactor).AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPressLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 var config = await _configRepo.LoadFactorTax();
@@ -3056,7 +3058,7 @@ namespace EtehadBar.MVC.Controllers
                 var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
                 var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
 
-                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                var fee = await _shippingFeeRepo.ShippingFees().Where(a => a.Id.Equals(input.ShippingFeeId)).Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).FirstOrDefaultAsync();
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 if ((input.SazehLoadType == SazehGostarLoadType.OneWay && fee.Title.Equals("رفت و برگشت")) ||
@@ -3209,7 +3211,7 @@ namespace EtehadBar.MVC.Controllers
                 var customerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(input.ContractId)).Select(a => a.CustomerId).FirstOrDefaultAsync();
                 var customerLoadFactorDeduction = await _customerRepo.Customers().AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.LoadFactorDeductions).FirstOrDefaultAsync();
 
-                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                var fee = await _shippingFeeRepo.ShippingFees().Where(a => a.Id.Equals(input.ShippingFeeId)).Include(a => a.ShippingFeeLoadType).FirstOrDefaultAsync();
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
@@ -3228,7 +3230,7 @@ namespace EtehadBar.MVC.Controllers
                     )
                     return NotFound("مقادیر بار/پالت/برگشت با نرخ انتخابی تناسب ندارد.");
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
+                if (await _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
@@ -3331,9 +3333,9 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> EditLoadFactor(int loadFactorId)
+        public async Task<IActionResult> EditLoadFactor(long loadFactorId)
         {
-            var loadFactor = await _loadFactorRepo.Get(loadFactorId);
+            var loadFactor = await _loadFactorRepo.LoadFactors().Include(a => a.Contract).ThenInclude(a => a.Customer).FirstOrDefaultAsync(a => a.Id.Equals(loadFactorId));
 
             if (loadFactor == null) return NotFound("بارنامه پیدا نشد.");
 
@@ -3346,9 +3348,9 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             if (User.IsInRole("Admin"))
-                ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
+                ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
             else
-                ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(loadFactor.ContractId) && a.ShippingFeeType == ShippingFeeType.Normal).OrderBy(a => a.Origin).ToListAsync();
+                ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(loadFactor.ContractId) && a.ShippingFeeType == ShippingFeeType.Normal).OrderBy(a => a.Origin).ToListAsync();
 
             if (customer.CustomerType == CustomerType.SaipaPress)
                 ViewData["LoadTypes"] = await _shippingFeeLoadTypeRepo.ShippingFeeLoadTypes().AsNoTracking().OrderBy(a => a.Name).ToListAsync();
@@ -3375,7 +3377,7 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPlascoLoadFactor != null))
+                if (await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPlascoLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPlascoLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
@@ -3389,7 +3391,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
-                var item = await _loadFactorRepo.Get(input.Id);
+                var item = await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPlascoLoadFactor).Include(a => a.Contract).FirstAsync(a => a.Id.Equals(input.Id));
                 if (item == null) return NotFound();
 
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
@@ -3516,7 +3518,7 @@ namespace EtehadBar.MVC.Controllers
                         return NotFound("شماره خروج تکراری است.");
                 }
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPressLoadFactor != null))
+                if (await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPressLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
@@ -3526,7 +3528,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
-                var item = await _loadFactorRepo.Get(input.Id);
+                var item = await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).Include(a => a.Contract).FirstAsync(a => a.Id.Equals(input.Id)); ;
                 if (item == null) return NotFound();
 
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
@@ -3642,13 +3644,13 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SazehGostarLoadFactor != null))
+                if (await _loadFactorRepo.LoadFactors().Include(a => a.SazehGostarLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SazehGostarLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.ExitNumber.Equals(input.ExitNumber) && a.SazehGostarLoadFactor != null))
+                if (await _loadFactorRepo.LoadFactors().Include(a => a.SazehGostarLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.ExitNumber.Equals(input.ExitNumber) && a.SazehGostarLoadFactor != null))
                     return NotFound("شماره درخواست درج شده تکراری است.");
 
-                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                var fee = await _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).FirstOrDefaultAsync(a => a.Id.Equals(input.ShippingFeeId));
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 if ((input.SazehLoadType == SazehGostarLoadType.OneWay && fee.Title.Equals("رفت و برگشت")) ||
@@ -3659,7 +3661,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
-                var item = await _loadFactorRepo.Get(input.Id);
+                var item = await _loadFactorRepo.LoadFactors().Include(a => a.SazehGostarLoadFactor).Include(a => a.Contract).FirstAsync(a => a.Id.Equals(input.Id)); ;
                 if (item == null) return NotFound();
 
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
@@ -3770,14 +3772,14 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
+                if (await _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
                     if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumberGov.Equals(input.LoadNumberGov)))
                         return NotFound("شماره بارنامه دولتی درج شده تکراری است.");
 
-                var fee = await _shippingFeeRepo.Get(input.ShippingFeeId);
+                var fee = await _shippingFeeRepo.ShippingFees().Include(a => a.ShippingFeeLoadType).FirstOrDefaultAsync(a => a.Id.Equals(input.ShippingFeeId));
                 if (fee == null) return NotFound("نرخ انتخابی شما پیدا نشد. ممکن است حذف شده باشد.");
 
                 var vehicle = await _vehicleRepo.Get(input.VehicleId);
@@ -3796,7 +3798,7 @@ namespace EtehadBar.MVC.Controllers
                     )
                     return NotFound("مقادیر بار/پالت/برگشت با نرخ انتخابی تناسب ندارد.");
 
-                var item = await _loadFactorRepo.Get(input.Id);
+                var item = await _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).Include(a => a.Contract).FirstAsync(a => a.Id.Equals(input.Id)); ;
                 if (item == null) return NotFound();
 
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
@@ -3916,7 +3918,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpPost]
         public async Task<JsonResult> GetShippingFeeJson(long contractId)
         {
-            var query = _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId));
+            var query = _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contractId));
             if (!User.IsInRole("Admin"))
                 query = query.Where(a => a.ShippingFeeType == ShippingFeeType.Normal);
 
@@ -3936,7 +3938,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> DeleteLoadFactor(long id)
         {
-            var item = await _loadFactorRepo.Get(id);
+            var item = await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).Include(a => a.SaipaPressLoadFactor).Include(a => a.MehrcomParsLoadFactor).Include(a => a.Origin).Include(a => a.Destination).SingleOrDefaultAsync(a => a.Id.Equals(id));
             if (item == null) return NotFound();
 
             if (item.SazehGostarLoadFactor != null)
@@ -3950,9 +3952,9 @@ namespace EtehadBar.MVC.Controllers
             _loadFactorRepo.Delete(item);
             try
             {
-                await _loadFactorRepo.Save();
-
                 var balanceItem = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(id)).FirstOrDefaultAsync();
+
+                await _loadFactorRepo.Save();
                 if (balanceItem != null)
                 {
                     _vehicleBalanceRepository.Delete(balanceItem);
@@ -4079,7 +4081,9 @@ namespace EtehadBar.MVC.Controllers
             var accountBook = await _accountBookRepository.AccountBooks().AsNoTracking().SingleOrDefaultAsync(a => a.RowId.Equals(id));
             ViewData["AccountBook"] = accountBook;
 
-            return View(await _loadFactorRepo.LoadFactors().Where(a => a.AccountBookId.Equals(accountBook.Id)).OrderBy(a => a.Vehicle.Type).ThenBy(a => a.Date).ThenBy(a => a.LoadNumber).ToListAsync());
+            return View(await _loadFactorRepo.LoadFactors().Where(a => a.AccountBookId.Equals(accountBook.Id))
+                .Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Vehicle).Include(a => a.Contract).ThenInclude(a => a.Customer)
+                .OrderBy(a => a.Vehicle.Type).ThenBy(a => a.Date).ThenBy(a => a.LoadNumber).ToListAsync());
         }
 
         [HttpPost]
@@ -4212,7 +4216,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> AccountBook(int? p)
         {
             var pageNumber = p ?? 1;
-            var query = _accountBookRepository.AccountBooks();
+            var query = _accountBookRepository.AccountBooks().Include(a => a.Customer).Include(a => a.Calendar).AsQueryable();
             if (!User.IsInRole("Admin") && !User.IsInRole("Milad"))
                 query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
 
@@ -4225,7 +4229,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> SearchAccountBook(int? p, string param)
         {
             var pageNum = p ?? 1;
-            var query = _accountBookRepository.AccountBooks().Where(a => a.Number.Contains(param) || a.FactorNumber.Contains(param));
+            var query = _accountBookRepository.AccountBooks().Include(a => a.Customer).Include(a => a.Calendar).Where(a => a.Number.Contains(param) || a.FactorNumber.Contains(param));
             if (!User.IsInRole("Admin") && !User.IsInRole("Milad"))
                 query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
 
@@ -4416,7 +4420,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> GetAccountBookJson()
         {
-            var query = _accountBookRepository.AccountBooks().Where(a => a.IsOpen);
+            var query = _accountBookRepository.AccountBooks().Include(a => a.Customer).Where(a => a.IsOpen);
             if (User.IsInRole("RegisterUser"))
             {
                 var userId = _userManager.GetUserId(User);
@@ -4431,7 +4435,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CustomerFactor(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await _customerFactorRepository.Query().OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await _customerFactorRepository.Query().Include(a => a.Contract).ThenInclude(a => a.Customer).OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNumber, 20);
             return View();
         }
 
@@ -4453,7 +4457,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateCustomerFactor()
         {
-            ViewData["Contracts"] = await _contractRepo.Contracts().OrderBy(a => a.StartDate).ToListAsync();
+            ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderBy(a => a.StartDate).ToListAsync();
             return PartialView("~/Views/Admin/Create/CustomerFactor.cshtml");
         }
 
@@ -4494,7 +4498,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var item = await _customerFactorRepository.Get(id);
 
-            ViewData["Contracts"] = await _contractRepo.Contracts().OrderBy(a => a.StartDate).ToListAsync();
+            ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderBy(a => a.StartDate).ToListAsync();
 
             return PartialView("~/Views/Admin/Edit/CustomerFactor.cshtml", item);
         }
@@ -5626,9 +5630,9 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteTurnover(string rowId)
+        public async Task<IActionResult> DeleteTurnover(long id)
         {
-            var item = await _turnoverRepository.Get(rowId);
+            var item = await _turnoverRepository.Get(id);
             if (item is not null)
             {
                 if (!string.IsNullOrEmpty(item.Attachments))
@@ -5666,7 +5670,8 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Bill(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _billRepository.Query().OrderByDescending(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, 50);
+            var onePageOfData = await _billRepository.Query().Include(a => a.Vehicle).Include(a => a.Customer).Include(a => a.Calendar)
+                .OrderByDescending(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, 50);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -5707,7 +5712,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Bill_Search(int? p, long customerId, long vehicleId, long calendarId, string name, string bankBranch, string billType, string description, string bankBillNo, string billNo, int realVehicle = -1)
         {
             var pageNumber = p ?? 1;
-            var query = _billRepository.Query();
+            var query = _billRepository.Query().Include(a => a.Vehicle).Include(a => a.Customer).Include(a => a.Calendar).AsQueryable();
 
             if (realVehicle == 0)
             {
@@ -5757,7 +5762,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetBillReceiverNames()
         {
-            return Json(await _billRepository.Query().AsNoTracking().Select(a => a.ReceiverName).Distinct().ToListAsync());
+            return Json(await _billRepository.Query().AsNoTracking().Select(a => a.ReceiverName.Replace("/", "")).Distinct().ToListAsync());
         }
 
         [HttpGet]

@@ -115,7 +115,8 @@ namespace EtehadBar.MVC.Controllers
             var calendar = await _calendarRepository.Get(id);
             var persianDate = new PersianDateTime(calendar.StartDate);
 
-            var bills = await _billRepository.Query().Where(a => a.CalendarId.Equals(id) && (a.VehicleId.HasValue &&
+            var bills = await _billRepository.Query().Include(a => a.Vehicle)
+                .Where(a => a.CalendarId.Equals(id) && (a.VehicleId.HasValue &&
             (_vehicleRepository.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).OrderBy(a => a.Date).ToListAsync();
             var distinctedBills = bills.DistinctBy(a => a.VehicleId.Value).ToList();
 
@@ -277,14 +278,14 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> OtherCost(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await db.OtherCost.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await db.OtherCost.Include(a => a.Calendar).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             return View();
         }
 
         public async Task<IActionResult> OtherCost_Search(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await db.OtherCost.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await db.OtherCost.Include(a => a.Calendar).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             return PartialView();
         }
 

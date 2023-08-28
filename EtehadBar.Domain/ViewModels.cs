@@ -1116,4 +1116,77 @@ namespace EtehadBar.Domain
         public int Quantity { get; set; }
         public string Vehicle { get; set; }
     }
+
+    public class CreateCustomerPeriodicBalanceSummaryVM
+    {
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndDay { get; set; }
+
+        [Display(Name = "ماه پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndMonth { get; set; }
+
+        [Display(Name = "سال پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndYear { get; set; }
+
+        [Display(Name = "مانده دوره قبل")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double BalanceAmount { get; set; }
+
+        [Display(Name = "مشتری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CustomerId { get; set; }
+    }
+
+    public class EditCustomerPeriodicBalanceSummaryVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndDay { get; set; }
+
+        [Display(Name = "ماه پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndMonth { get; set; }
+
+        [Display(Name = "سال پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndYear { get; set; }
+
+        [Display(Name = "مانده دوره قبل")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double BalanceAmount { get; set; }
+
+        [Display(Name = "مشتری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [ForeignKey(nameof(Customer))]
+        public long CustomerId { get; set; }
+    }
 }

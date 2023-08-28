@@ -72,6 +72,26 @@
                     <span asp-validation-for="BankBillNo" class="uk-text-danger"></span>
                 </div>
                 <div class="uk-width-1-2">
+                    <label asp-for="BankBranch" class="uk-form-label"></label>
+                    <select asp-for="BankBranch" class="uk-select uk-border-rounded">
+                        @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BankBranch))
+                        {
+                            <!option value="@item.Title" @if(Model.BankBranch.Equals(item.Title)) { <text>selected="selected"</text> }>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="BankBranch" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-2">
+                    <label asp-for="BillType" class="uk-form-label"></label>
+                    <select asp-for="BillType" class="uk-select uk-border-rounded">
+                        @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BillType))
+                        {
+                            <!option value="@item.Title" @if(item.Title == Model.BillType) { <text>selected="selected"</text> }>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="BillType" class="uk-text-danger"></span>
+                </div>
+                 <div class="uk-width-1-2">
                     <label asp-for="VehicleId" class="uk-form-label"></label>
                     <select asp-for="VehicleId" class="uk-select uk-border-rounded" onchange="vehicleSelectChangeHandler(this)">
                         <option value="">ثبت هزینه بدون پلاک</option>
@@ -98,26 +118,6 @@
                         <input asp-for="ReceiverName" class="uk-input uk-border-rounded uk-form-small" />
                     </div>
                     <span asp-validation-for="ReceiverName" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-width-1-2">
-                    <label asp-for="BankBranch" class="uk-form-label"></label>
-                    <select asp-for="BankBranch" class="uk-select uk-border-rounded">
-                        @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BankBranch))
-                        {
-                            <!option value="@item.Title" @if(Model.BankBranch.Equals(item.Title)) { <text>selected="selected"</text> }>@item.Title</!option>
-                        }
-                    </select>
-                    <span asp-validation-for="BankBranch" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-width-1-2">
-                    <label asp-for="BillType" class="uk-form-label"></label>
-                    <select asp-for="BillType" class="uk-select uk-border-rounded">
-                        @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BillType))
-                        {
-                            <!option value="@item.Title" @if(item.Title == Model.BillType) { <text>selected="selected"</text> }>@item.Title</!option>
-                        }
-                    </select>
-                    <span asp-validation-for="BillType" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Amount" class="uk-form-label"></label>

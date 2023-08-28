@@ -93,6 +93,12 @@ function submitSlashedLoadFactor() {
     $('#slashed-load-factor-modal form').submit();
 }
 
+function getHasCapacityUnrealVehicles() {
+    let calendarId = $('#slashed-load-factor-modal select[name=calendarId]').val();
+
+    window.open(`/report/get-has-capacity-unreal-vehicles?calendarId=${calendarId}`, '_blank');
+}
+
 $(document).ready(function () {
     $(`#slashed-load-factor-modal select[name=calendarId]`).select2({ width: '100%' });
     new StickySidebar('#sidebar', {
