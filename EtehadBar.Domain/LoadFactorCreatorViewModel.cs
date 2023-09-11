@@ -22,9 +22,12 @@ namespace EtehadBar.Domain
     public class LoadFactorModel
     {
         public long VehicleId { get; set; }
+        public string VehicleLeftNumber { get; set; }
+        public string VehicleRightNumber { get; set; }
         public string DriverName { get; set; }
         public string VehicleNumber { get; set; }
         public double Amount { get; set; }
+        public string CustomerName { get; set; }
         public List<LoadFactorDetailModel> Details { get; set; } = new List<LoadFactorDetailModel>();
     }
 

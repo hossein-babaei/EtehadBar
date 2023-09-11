@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EtehadBar.Domain.Models.LoadFactorCreator;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -42,6 +43,7 @@ namespace EtehadBar.Domain.Models
 
         public virtual ICollection<AccountBook> AccountBooks { get; set; }
         public virtual ICollection<Contract> Contracts { get; set; }
+        public virtual ICollection<OtherCost> OtherCosts { get; set; }
         public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }
         public virtual ICollection<CustomerPeriodicBalanceSummary> CustomerPeriodicBalanceSummaries { get; set; }
 

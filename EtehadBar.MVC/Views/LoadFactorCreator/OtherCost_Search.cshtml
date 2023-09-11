@@ -19,6 +19,7 @@
                 <th>پلاک</th>
                 <th>@Html.DisplayNameFor(model => model.Amount)</th>
                 <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
+                <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                 <th width="50">ویرایش</th>
                 <th width="50">حذف</th>
             </tr>
@@ -29,9 +30,10 @@
                 <tr class="uk-text-center">
                     <td>@i</td>
                     <td>@Html.DisplayFor(modelItem => item.DriverName)</td>
-                    <td class="uk-text-bold">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</td>
+                    <td class="uk-text-bold">ایران @item.Vehicle.IranStateNumber - @item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
                     <td>@item.Amount.ToString("N0")</td>
                     <td>@item.Calendar.Title</td>
+                    <td>@item.Customer.Name</td>
                     <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                     <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                 </tr>

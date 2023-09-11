@@ -22,6 +22,7 @@
                     <th>شماره خودرو</th>
                     <th>@Html.DisplayNameFor(model => model.VehicleOwnerFullname)</th>
                     <th>@Html.DisplayNameFor(model => model.NationalNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.Phonenumber)</th>
                     <th>@Html.DisplayNameFor(model => model.AccountBankName)</th>
                     <th>@Html.DisplayNameFor(model => model.BankAccountNumber)</th>
                     <th>@Html.DisplayNameFor(model => model.Status)</th>
@@ -40,6 +41,7 @@
                         <td class="uk-text-bold">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</td>
                         <td>@Html.DisplayFor(modelItem => item.VehicleOwnerFullname)</td>
                         <td>@(string.IsNullOrWhiteSpace(item.NationalNumber) ? "---" : item.NationalNumber)</td>
+                        <td>@(string.IsNullOrWhiteSpace(item.Phonenumber) ? "---" : item.Phonenumber)</td>
                         <td>@(string.IsNullOrWhiteSpace(item.AccountBankName) ? "---" : item.AccountBankName)</td>
                         <td>@(string.IsNullOrWhiteSpace(item.BankAccountNumber) ? "---" : item.BankAccountNumber)</td>
                         @if (item.Status)

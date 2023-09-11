@@ -2,6 +2,8 @@
 
 @{
     var calendars = (List<Calendar>)ViewData["Calendars"];
+    var vehicles = (List<Vehicle>)ViewData["Vehicles"];
+    var customers = (List<Customer>)ViewData["Customers"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -12,6 +14,16 @@
             <input asp-for="Id" type="hidden" />
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-flex-bottom uk-child-width-1-1" uk-grid>
+                 <div>
+                    <label asp-for="CustomerId" class="uk-form-label"></label>
+                    <select asp-for="CustomerId" class="uk-select uk-border-rounded uk-form-small">
+                        @foreach (var item in customers)
+                        {
+                            <!option @if(Model.CustomerId.Equals(item.Id)) { <text>selected="selected"</text>} value="@item.Id">@item.Name</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="uk-text-danger"></span>
+                </div>
                 <div>
                     <label asp-for="CalendarId" class="uk-form-label"></label>
                     <select asp-for="CalendarId" class="uk-select uk-border-rounded">
@@ -22,29 +34,25 @@
                     </select>
                     <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-4">
-                    <label asp-for="IranStateNumber" class="uk-form-label"></label>
-                    <input asp-for="IranStateNumber" dir="ltr" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="IranStateNumber" class="uk-text-danger"></span>
+                <div class="uk-width-1-2">
+                    <label asp-for="VehicleId" class="uk-form-label"></label>
+                    <select asp-for="VehicleId" class="uk-select uk-border-rounded" onchange="vehicleSelectChangeHandler(this)">
+                        <option value="">ثبت هزینه بدون پلاک</option>
+                        @foreach (var item in vehicles)
+                        {
+                            <!option value="@item.Id" data-owner="@item.VehicleOwnerFullname" @if (item.Id.Equals(Model.VehicleId))
+                            {
+                                <text>selected="selected"</text>
+                            }>ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="VehicleId" class="uk-text-danger"></span>
                 </div>
-                <div class="uk-width-1-4">
-                    <label asp-for="RightNumber" class="uk-form-label"></label>
-                    <input asp-for="RightNumber" dir="ltr" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="RightNumber" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-width-1-4">
-                    <label asp-for="NumberWord" class="uk-form-label"></label>
-                    <input asp-for="NumberWord" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="NumberWord" class="uk-text-danger"></span>
-                </div>
-                <div class="uk-width-1-4">
-                    <label asp-for="LeftNumber" class="uk-form-label"></label>
-                    <input asp-for="LeftNumber" dir="ltr" class="uk-input uk-border-rounded" />
-                    <span asp-validation-for="LeftNumber" class="uk-text-danger"></span>
-                </div>
-                <div>
+                <div class="uk-width-1-2">
                     <label asp-for="DriverName" class="uk-form-label"></label>
-                    <input asp-for="DriverName" class="uk-input uk-border-rounded" />
+                    <div class="autocomplete">
+                        <input asp-for="DriverName" class="uk-input uk-border-rounded uk-form-small" />
+                    </div>
                     <span asp-validation-for="DriverName" class="uk-text-danger"></span>
                 </div>
                 <div>

@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EtehadBar.Domain.Models.LoadFactorCreator;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -57,6 +58,10 @@ namespace EtehadBar.Domain.Models
         [StringLength(10, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string NationalNumber { get; set; }
 
+        [Display(Name = "شماره تلفن همراه")]
+        [StringLength(12, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Phonenumber { get; set; }
+
         [Display(Name = "حقیقی")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool RealStatus { get; set; }
@@ -67,6 +72,7 @@ namespace EtehadBar.Domain.Models
         public string EditorId { get; set; }
 
         public virtual ICollection<Bill> Bills { get; set; }
+        public virtual ICollection<OtherCost> OtherCosts { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
         public virtual ICollection<VehicleBalance> VehicleBalances { get; set; }
 

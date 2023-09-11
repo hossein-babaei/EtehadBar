@@ -13,12 +13,46 @@
         i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
 }
 
+@section Links{
+    <link href="~/css/autocomplete.css" rel="stylesheet" asp-asp-append-version="true" />
+}
+
 @section Scripts {
+    <script src="~/js/autocomplete.js"></script>
     <script>
-        function create() {
+        let autoCompleteData = [];
+        let select2Config = {
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        };
+        let isSearchLoaded = false;
+
+        function vehicleSelectChangeHandler(select) {
+            let ownerName = $(select).find('option:selected').data('owner');
+            $(select).parent().next().find('input').val(ownerName);
+        }
+
+        async function create() {
             preloader();
-            $.get('@Url.Action("CreateOtherCost")', {}, function (r) {
+            if (autoCompleteData.length == 0) {
+                await $.get('@Url.Action("GetOtherCostDriverNames")', {}, function (r) {
+                    $.each(r, (i, v) => {
+                        autoCompleteData.push(v);
+                    });
+                }, 'json');
+            }
+            await $.get('@Url.Action("CreateOtherCost")', {}, function (r) {
                 $('#create-modal').html(r);
+
+                $('#create-modal #CalendarId').select2(select2Config);
+                $('#create-modal #VehicleId').select2(select2Config);
+
+                $('#create-modal form').submit(function (e) {
+                    e.preventDefault();
+                    submitCreateForm();
+                });
+
+                autocomplete($('#create-form #DriverName').get(0), autoCompleteData);
             }, 'html').then(function () {
                 parseValidator('#create-form');
                 preloader();
@@ -54,8 +88,13 @@
             preloader();
             $.get('@Url.Action("EditOtherCost")', { 'id': id }, function (r) {
                 $('#edit-modal').html(r);
+
+                $('#edit-modal #CalendarId').select2(select2Config);
+                $('#edit-modal #VehicleId').select2(select2Config);
+
+                autocomplete($('#edit-form #DriverName').get(0), autoCompleteData);
             }, 'html').then(function () {
-                parseValidator('#edit-form');
+                parseValidator('#edit-modal form');
                 preloader();
                 UIkit.modal('#edit-modal').show();
             });
@@ -89,6 +128,7 @@
                     <th>پلاک</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
+                    <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -99,9 +139,10 @@
                     <tr class="uk-text-center">
                         <td>@i</td>
                         <td>@Html.DisplayFor(modelItem => item.DriverName)</td>
-                        <td class="uk-text-bold">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</td>
+                        <td class="uk-text-bold">ایران @item.Vehicle.IranStateNumber - @item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
                         <td>@item.Amount.ToString("N0")</td>
                         <td>@item.Calendar.Title</td>
+                        <td>@item.Customer.Name</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

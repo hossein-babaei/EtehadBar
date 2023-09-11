@@ -31,14 +31,16 @@ namespace EtehadBar.MVC.Controllers
         private readonly ICalendarRepository _calendarRepository;
         private readonly IBillRepository _billRepository;
         private readonly IVehicleRepository _vehicleRepository;
+        private readonly ICustomerRepository _customerRepository;
 
-        public LoadFactorCreatorController(ICalendarRepository calendarRepository, IBillRepository billRepository, IVehicleRepository vehicleRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public LoadFactorCreatorController(ICalendarRepository calendarRepository, IBillRepository billRepository, IVehicleRepository vehicleRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager, ICustomerRepository customerRepository)
         {
             _calendarRepository = calendarRepository;
             _billRepository = billRepository;
             _vehicleRepository = vehicleRepository;
             db = context;
             _userManager = userManager;
+            _customerRepository = customerRepository;
         }
 
         public async Task<IActionResult> Index(int? p)
@@ -115,9 +117,9 @@ namespace EtehadBar.MVC.Controllers
             var calendar = await _calendarRepository.Get(id);
             var persianDate = new PersianDateTime(calendar.StartDate);
 
-            var bills = await _billRepository.Query().Include(a => a.Vehicle)
+            var bills = await _billRepository.Query().Include(a => a.Vehicle).Include(a => a.Customer)
                 .Where(a => a.CalendarId.Equals(id) && (a.VehicleId.HasValue &&
-            (_vehicleRepository.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).OrderBy(a => a.Date).ToListAsync();
+            (_vehicleRepository.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).ToListAsync();
             var distinctedBills = bills.DistinctBy(a => a.VehicleId.Value).ToList();
 
             foreach (var item in distinctedBills)
@@ -125,29 +127,44 @@ namespace EtehadBar.MVC.Controllers
                 data.Add(new LoadFactorModel
                 {
                     DriverName = item.ReceiverName,
+                    CustomerName = item.Customer.Name,
                     VehicleId = item.VehicleId.Value,
+                    VehicleLeftNumber = item.Vehicle.LeftNumber,
+                    VehicleRightNumber = item.Vehicle.RightNumber,
                     VehicleNumber = $"ایران {item.Vehicle.IranStateNumber} - {item.Vehicle.RightNumber} {item.Vehicle.NumberWord} {item.Vehicle.LeftNumber}",
                     Amount = bills.Where(a => a.VehicleId.Value.Equals(item.VehicleId.Value)).Sum(a => a.Amount)
                 });
             }
 
-            var otherCosts = await db.OtherCost.AsNoTracking().Where(a => a.CalendarId.Equals(calendar.Id)).Select(a => new
+            var otherCosts = await db.OtherCost.Include(a => a.Vehicle).Include(a => a.Customer).AsNoTracking().Where(a => a.CalendarId.Equals(calendar.Id)).Select(a => new
             {
                 a.Amount,
                 a.DriverName,
-                VehicleNumber = $"ایران {a.IranStateNumber} - {a.RightNumber} {a.NumberWord} {a.LeftNumber}"
+                CustomerName = a.Customer.Name,
+                a.VehicleId,
+                VehicleLeftNumber = a.Vehicle.LeftNumber,
+                VehicleRightNumber = a.Vehicle.RightNumber,
+                VehicleNumber = $"ایران {a.Vehicle.IranStateNumber} - {a.Vehicle.RightNumber} {a.Vehicle.NumberWord} {a.Vehicle.LeftNumber}"
             }).ToListAsync();
             var distinctedOtherCosts = otherCosts.DistinctBy(a => a.VehicleNumber).ToList();
 
             foreach (var item in distinctedOtherCosts)
             {
-                data.Add(new LoadFactorModel
+                //removing duplicate vehicles in bills and other costs
+                if (data.Any(a => a.VehicleId.Equals(item.VehicleId) && a.CustomerName.Equals(item.CustomerName)))
                 {
-                    DriverName = item.DriverName,
-                    VehicleId = 0,
-                    VehicleNumber = item.VehicleNumber,
-                    Amount = otherCosts.Where(a => a.VehicleNumber.Equals(item.VehicleNumber)).Sum(a => a.Amount)
-                });
+                    var dataItem = data.Single(a => a.VehicleId.Equals(item.VehicleId));
+                    dataItem.Amount += item.Amount;
+                }
+                else
+                    data.Add(new LoadFactorModel
+                    {
+                        DriverName = item.DriverName,
+                        VehicleId = item.VehicleId,
+                        VehicleNumber = item.VehicleNumber,
+                        CustomerName = item.CustomerName,
+                        Amount = otherCosts.Where(a => a.VehicleNumber.Equals(item.VehicleNumber)).Sum(a => a.Amount)
+                    });
             }
 
             var rnd = new Random();
@@ -201,15 +218,15 @@ namespace EtehadBar.MVC.Controllers
             using var workbook = new XLWorkbook();
             var docTitle = $"عملکرد در {calendar.Title}";
 
-            foreach (var item in data)
+            foreach (var item in data.OrderBy(a => a.VehicleLeftNumber).ThenBy(a => a.VehicleRightNumber))
             {
-                var ws = workbook.Worksheets.Add(item.VehicleNumber);
+                var ws = workbook.Worksheets.Add($"{item.VehicleNumber}");
                 ws.RightToLeft = true;
                 ws.Style.Font.FontName = "B Titr";
                 ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
                 ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
-                ws.Cell(1, 1).Value = $"عملکرد {item.VehicleNumber} در {calendar.Title}";
+                ws.Cell(1, 1).Value = $"عملکرد {item.VehicleNumber} در {calendar.Title} در شرکت {item.CustomerName}";
                 ws.Cell(2, 1).Value = "#";
                 ws.Cell(2, 2).Value = "تاریخ";
                 ws.Cell(2, 3).Value = "راننده";
@@ -278,21 +295,28 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> OtherCost(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await db.OtherCost.Include(a => a.Calendar).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await db.OtherCost.Include(a => a.Calendar).Include(a => a.Vehicle).Include(a => a.Customer).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             return View();
         }
 
         public async Task<IActionResult> OtherCost_Search(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await db.OtherCost.Include(a => a.Calendar).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await db.OtherCost.Include(a => a.Calendar).Include(a => a.Vehicle).Include(a => a.Customer).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             return PartialView();
+        }
+
+        public async Task<IActionResult> GetOtherCostDriverNames()
+        {
+            return Json(await db.OtherCost.AsNoTracking().Select(a => a.DriverName.Replace("/", "")).Distinct().ToListAsync());
         }
 
         [HttpGet]
         public async Task<IActionResult> CreateOtherCost()
         {
+            ViewData["Customers"] = await _customerRepository.Customers().AsNoTracking().OrderByDescending(a => a.Name).ToListAsync();
             ViewData["Calendars"] = await _calendarRepository.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["Vehicles"] = await _vehicleRepository.Vehicles().AsNoTracking().OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
             return PartialView("~/Views/LoadFactorCreator/Create/OtherCost.cshtml");
         }
 
@@ -307,10 +331,8 @@ namespace EtehadBar.MVC.Controllers
                 {
                     Amount= c.Amount,
                     DriverName= c.DriverName,
-                    IranStateNumber= c.IranStateNumber,
-                    LeftNumber= c.LeftNumber,
-                    RightNumber= c.RightNumber,
-                    NumberWord= c.NumberWord,
+                    VehicleId= c.VehicleId,
+                    CustomerId = c.CustomerId,
                     CalendarId = c.CalendarId,
                     AdminId = _userManager.GetUserId(User)
                 });
@@ -335,7 +357,9 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<PartialViewResult> EditOtherCost(long id)
         {
+            ViewData["Customers"] = await _customerRepository.Customers().AsNoTracking().OrderByDescending(a => a.Name).ToListAsync();
             ViewData["Calendars"] = await _calendarRepository.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["Vehicles"] = await _vehicleRepository.Vehicles().AsNoTracking().OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
 
             return PartialView("~/Views/LoadFactorCreator/Edit/OtherCost.cshtml", await db.OtherCost.FindAsync(id));
         }
@@ -349,10 +373,8 @@ namespace EtehadBar.MVC.Controllers
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDateTime = DateTime.Now;
                 item.CalendarId = c.CalendarId;
-                item.LeftNumber = c.LeftNumber;
-                item.RightNumber = c.RightNumber;
-                item.NumberWord = c.NumberWord;
-                item.IranStateNumber = c.IranStateNumber;
+                item.CustomerId = c.CustomerId;
+                item.VehicleId = c.VehicleId;
                 item.Amount = c.Amount;
                 item.DriverName = c.DriverName;
 

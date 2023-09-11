@@ -1039,6 +1039,7 @@ namespace EtehadBar.MVC.Controllers
                 item.NationalNumber = v.NationalNumber;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
+                item.Phonenumber = v.Phonenumber;
 
                 _vehicleRepo.Update(item);
                 try
@@ -2754,7 +2755,12 @@ namespace EtehadBar.MVC.Controllers
                 if (!vehicle.Type.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0].Equals(fee.Vehicle.Split(" ", StringSplitOptions.RemoveEmptyEntries)[0]))
                     return NotFound("نوع خودرو نرخ انتخابی با خودرو انتخابی متفاوت است.");
 
-                if (await _loadFactorRepo.LoadFactors().AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPlascoLoadFactor != null))
+                int.TryParse(input.ExitNumber, out int exitNumber);
+                if (exitNumber > 0)
+                    if (await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPlascoLoadFactor).AsNoTracking().AnyAsync(a => a.ExitNumber.Equals(exitNumber.ToString()) && a.SaipaPlascoLoadFactor != null))
+                        return NotFound("شماره خروج درج شده تکراری است.");
+
+                if (await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPlascoLoadFactor).AsNoTracking().AnyAsync(a => a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPlascoLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov))
@@ -3393,6 +3399,11 @@ namespace EtehadBar.MVC.Controllers
 
                 var item = await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPlascoLoadFactor).Include(a => a.Contract).FirstAsync(a => a.Id.Equals(input.Id));
                 if (item == null) return NotFound();
+
+                int.TryParse(input.ExitNumber, out int exitNumber);
+                if (exitNumber > 0)
+                    if (await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPlascoLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.ExitNumber.Equals(exitNumber.ToString()) && a.SaipaPlascoLoadFactor != null))
+                        return NotFound("شماره خروج درج شده تکراری است.");
 
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (item.AccountBookId != input.AccountBookId && await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)

@@ -868,7 +868,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> GetHasCapacityUnrealVehicles(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);

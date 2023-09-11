@@ -261,12 +261,13 @@ namespace EtehadBar.Infra.Data.Repository
                                   c.AccountBankName,
                                   c.BankAccountNumber,
                                   c.LeftNumber,
+                                  c.RightNumber,
                                   VehicleNumber = $"ایران {c.IranStateNumber} - {c.RightNumber} {c.NumberWord} {c.LeftNumber}",
                                   a.WeighbridgePrice,
                                   a.DriverLoadSleepPrice,
                                   a.VehicleId,
                                   c.VehicleOwnerFullname
-                              }).AsNoTracking().OrderBy(a => a.LeftNumber).ToListAsync();
+                              }).AsNoTracking().OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
 
             var vehicleIdList = query.Select(a => a.VehicleId).Distinct().ToList();
             var thisCalendarSequence = await db.Calendar.AsNoTracking().Where(a => a.Id.Equals(calendarId)).Select(a => a.Sequence).SingleAsync();
