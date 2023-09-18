@@ -1147,6 +1147,10 @@ namespace EtehadBar.Domain
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double BalanceAmount { get; set; }
 
+        [Display(Name = "مانده سپرده بیمه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double InsuranceBalanceAmount { get; set; }
+
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerId { get; set; }
@@ -1183,6 +1187,10 @@ namespace EtehadBar.Domain
         [Display(Name = "مانده دوره قبل")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double BalanceAmount { get; set; }
+
+        [Display(Name = "مانده سپرده بیمه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double InsuranceBalanceAmount { get; set; }
 
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]

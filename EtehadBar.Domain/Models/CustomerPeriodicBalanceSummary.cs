@@ -23,6 +23,10 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double BalanceAmount { get; set; }
 
+        [Display(Name = "مانده سپرده بیمه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double InsuranceBalanceAmount { get; set; } = 0;
+
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [ForeignKey(nameof(Customer))]

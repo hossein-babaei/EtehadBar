@@ -467,7 +467,8 @@ namespace EtehadBar.MVC.Controllers
                     BalanceAmount = c.BalanceAmount,
                     CustomerId = c.CustomerId,
                     StartDate = startDate,
-                    EndDate = endDate
+                    EndDate = endDate,
+                    InsuranceBalanceAmount = c.InsuranceBalanceAmount
                 });
                 try
                 {
@@ -504,6 +505,7 @@ namespace EtehadBar.MVC.Controllers
                 StartMonth = persianStartDate.Month,
                 StartYear = persianStartDate.Year,
                 BalanceAmount = item.BalanceAmount,
+                InsuranceBalanceAmount = item.InsuranceBalanceAmount,
                 CustomerId = item.CustomerId
             });
         }
@@ -526,8 +528,9 @@ namespace EtehadBar.MVC.Controllers
                 var item = await _customerPeriodicBalanceSummaryRepository.Get(c.Id);
                 item.StartDate = startDate;
                 item.EndDate = endDate;
-                item.CustomerId = c.Id;
+                item.CustomerId = c.CustomerId;
                 item.BalanceAmount = c.BalanceAmount;
+                item.InsuranceBalanceAmount = c.InsuranceBalanceAmount;
 
                 _customerPeriodicBalanceSummaryRepository.Update(item);
                 try
@@ -574,6 +577,7 @@ namespace EtehadBar.MVC.Controllers
             if (periodItem == null) return NotFound();
 
             ViewData["BalanceAmount"] = periodItem.BalanceAmount;
+            ViewData["InsuranceBalanceAmount"] = periodItem.InsuranceBalanceAmount;
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.Sequence).ToListAsync();
 
             var startDate = periodItem.StartDate;
