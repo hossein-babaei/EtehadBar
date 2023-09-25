@@ -61,6 +61,7 @@
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.FactorNumber)</th>
                     <th>@Html.DisplayNameFor(model => model.ContractId)</th>
+                    <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
                     <th width="50">ویرایش</th>
@@ -71,15 +72,16 @@
                 @foreach (var item in data)
                 {
                     var pd = new PersianDateTime(item.Date);
-                        <tr class="uk-text-center sm">
-                            <td>@i</td>
-                            <td>@item.FactorNumber</td>
-                            <td>@item.Contract.Number - @item.Contract.Customer.Name</td>
-                            <td>@pd.ToString("yyyy/MM/dd")</td>
-                            <td>@item.Amount.ToString("N0")</td>
-                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
-                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.RowId')"><i class="fas fa-trash-alt"></i></a></td>
-                        </tr>
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@item.FactorNumber</td>
+                        <td>@item.Contract.Number - @item.Contract.Customer.Name</td>
+                        <td>@item.Calendar.Title</td>
+                        <td>@pd.ToString("yyyy/MM/dd")</td>
+                        <td>@item.Amount.ToString("N0")</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.RowId')"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
                     i++;
                 }
             </tbody>

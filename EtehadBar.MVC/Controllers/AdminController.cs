@@ -243,7 +243,6 @@ namespace EtehadBar.MVC.Controllers
 
             //await _vehicleBalanceRepository.Save();
 
-
             ViewData["DayLimit"] = dayLimit;
 
             if (User.IsInRole("Admin"))
@@ -4446,7 +4445,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CustomerFactor(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await _customerFactorRepository.Query().Include(a => a.Contract).ThenInclude(a => a.Customer).OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await _customerFactorRepository.Query().Include(a => a.Calendar).Include(a => a.Contract).ThenInclude(a => a.Customer).OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNumber, 20);
             return View();
         }
 
@@ -4468,6 +4467,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<IActionResult> CreateCustomerFactor()
         {
+            ViewData["Calendars"] = await _calendarRepo.Calendars().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderBy(a => a.StartDate).ToListAsync();
             return PartialView("~/Views/Admin/Create/CustomerFactor.cshtml");
         }
@@ -4509,6 +4509,7 @@ namespace EtehadBar.MVC.Controllers
         {
             var item = await _customerFactorRepository.Get(id);
 
+            ViewData["Calendars"] = await _calendarRepo.Calendars().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderBy(a => a.StartDate).ToListAsync();
 
             return PartialView("~/Views/Admin/Edit/CustomerFactor.cshtml", item);
@@ -4531,6 +4532,7 @@ namespace EtehadBar.MVC.Controllers
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
                 item.ContractId = c.ContractId;
+                item.CalendarId = c.CalendarId;
                 item.CustomerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(c.ContractId)).Select(a => a.CustomerId).FirstAsync();
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
 

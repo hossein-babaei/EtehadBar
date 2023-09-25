@@ -610,7 +610,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     CalendarId = calendar.Id,
                     CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
-                    CustomerFactors = customerFactors.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList()
+                    CustomerFactors = customerFactors.Where(a => a.CalendarId.Equals(calendar.Id)).ToList()
                 });
             }
 
@@ -690,7 +690,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     CalendarId = calendar.Id,
                     CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
-                    CustomerFactors = customerFactors.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList()
+                    CustomerFactors = customerFactors.Where(a => a.CalendarId.Equals(calendar.Id)).ToList()
                 });
             }
 
@@ -774,7 +774,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     CalendarId = calendar.Id,
                     CustomerIncomes = customerIncomes.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList(),
-                    CustomerFactors = customerFactors.Where(a => a.Date >= calendar.StartDate && a.Date < calendar.EndDate).ToList()
+                    CustomerFactors = customerFactors.Where(a => a.CalendarId.Equals(calendar.Id)).ToList()
                 });
             }
 

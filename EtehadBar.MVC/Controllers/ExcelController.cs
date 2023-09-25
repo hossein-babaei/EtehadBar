@@ -2257,7 +2257,57 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> FullActivityList(long customerId, long calendarId, int type)
         {
+            var finalData = new List<VehicleFullActivityVM>();
             var data = await _vehicleRepo.FullActivityList(customerId, calendarId, type);
+            foreach (var item in data)
+            {
+                var activity = item.ActivityAmount.Value < 0 ? 0 : item.ActivityAmount.Value;
+                var amount = item.Amount < 0 ? 0 : item.Amount;
+
+                finalData.Add(new VehicleFullActivityVM
+                {
+                    Activity = activity,
+                    Amount = amount,
+                    VehicleNumber = item.VehicleNumber,
+                    VehicleId = item.VehicleId,
+                    VehicleOwnerName = item.VehicleOwnerName
+                });
+            }
+
+            var bills = await _billRepository.Query().Include(a => a.Vehicle).Include(a => a.Customer)
+              .Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Value.Equals(customerId) && (a.VehicleId.HasValue &&
+          (_vehicleRepo.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).OrderBy(a => a.Vehicle.LeftNumber).ThenBy(a => a.Vehicle.RightNumber).ToListAsync();
+            //var slashedLoadFactors = bills.DistinctBy(a => a.VehicleId.Value).ToList();
+
+            foreach (var item in bills)
+            {
+                finalData.Add(new VehicleFullActivityVM
+                {
+                    Activity = item.Amount,
+                    Amount = item.Amount,
+                    VehicleNumber = $"ایران {item.Vehicle.IranStateNumber} - {item.Vehicle.RightNumber} {item.Vehicle.NumberWord} {item.Vehicle.LeftNumber}",
+                    VehicleId = item.VehicleId.Value,
+                    VehicleOwnerName = item.Vehicle.VehicleOwnerFullname
+                });
+            }
+
+
+            var otherCosts = await db.OtherCost.Include(a => a.Vehicle).AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Equals(customerId)).OrderBy(a => a.Vehicle.LeftNumber).ThenBy(a => a.Vehicle.RightNumber).ToListAsync();
+
+            foreach (var item in otherCosts)
+            {
+                finalData.Add(new VehicleFullActivityVM
+                {
+                    Activity = item.Amount,
+                    Amount = item.Amount,
+                    VehicleNumber = $"ایران {item.Vehicle.IranStateNumber} - {item.Vehicle.RightNumber} {item.Vehicle.NumberWord} {item.Vehicle.LeftNumber}",
+                    VehicleId = item.VehicleId,
+                    VehicleOwnerName = item.Vehicle.VehicleOwnerFullname
+                });
+            }
+
+            var distinctedData = finalData.DistinctBy(a => a.VehicleId).ToList();
+
             var calendar = await _calendarRepo.Get(calendarId);
             var customer = await _customerRepo.Get(customerId);
 
@@ -2279,7 +2329,7 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 6).Value = "پرداخت شده";
             ws.Cell(2, 7).Value = "توضیحات";
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 7));
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(distinctedData.Count + 2, 7));
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
@@ -2293,57 +2343,71 @@ namespace EtehadBar.MVC.Controllers
             rngHeaders.Style.Font.Bold = true;
             rngHeaders.Style.Font.FontColor = XLColor.Black;
 
-            for (int i = 0; i < data.Count; i++)
+            for (int i = 0; i < distinctedData.Count; i++)
             {
-                var activity = data[i].ActivityAmount.Value < 0 ? 0 : data[i].ActivityAmount.Value;
-                var amount = data[i].Amount < 0 ? 0 : data[i].Amount;
+                var amount = finalData.Where(a => a.VehicleId.Equals(distinctedData[i].VehicleId)).Sum(a => a.Amount);
+                var activity = finalData.Where(a => a.VehicleId.Equals(distinctedData[i].VehicleId)).Sum(a => a.Activity.Value);
 
                 ws.Cell(i + 3, 1).Value = i + 1;
-                ws.Cell(i + 3, 2).Value = data[i].VehicleOwnerName;
-                ws.Cell(i + 3, 3).Value = data[i].VehicleNumber;
+                ws.Cell(i + 3, 2).Value = distinctedData[i].VehicleOwnerName.Replace("/", "");
+                ws.Cell(i + 3, 3).Value = distinctedData[i].VehicleNumber;
                 ws.Cell(i + 3, 4).Value = activity.ToString("N0");
                 ws.Cell(i + 3, 5).Value = (amount - activity).ToString("N0");
                 ws.Cell(i + 3, 6).Value = amount.ToString("N0");
                 ws.Cell(i + 3, 7).Value = "";
             }
 
-            var bills = await _billRepository.Query().Include(a => a.Vehicle).Include(a => a.Customer)
-               .Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Value.Equals(customerId) && (a.VehicleId.HasValue && 
-           (_vehicleRepo.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).OrderBy(a => a.Vehicle.LeftNumber).ThenBy(a => a.Vehicle.RightNumber).ToListAsync();
-            var slashedLoadFactors = bills.DistinctBy(a => a.VehicleId.Value).ToList();
-            for (int i = 0; i < slashedLoadFactors.Count; i++)
-            {
-                var amount = bills.Where(a => a.VehicleId.Value.Equals(slashedLoadFactors[i].VehicleId.Value)).Sum(a => a.Amount).ToString("N0");
-                var vehicleNumber = $"ایران {slashedLoadFactors[i].Vehicle.IranStateNumber} - {slashedLoadFactors[i].Vehicle.RightNumber} {slashedLoadFactors[i].Vehicle.NumberWord} {slashedLoadFactors[i].Vehicle.LeftNumber}";
-                ws.Cell(i + data.Count + 3, 1).Value = i + data.Count + 1;
-                ws.Cell(i + data.Count + 3, 2).Value = slashedLoadFactors[i].ReceiverName;
-                ws.Cell(i + data.Count + 3, 3).Value = vehicleNumber;
-                ws.Cell(i + data.Count + 3, 4).Value = amount;
-                ws.Cell(i + data.Count + 3, 5).Value = "0";
-                ws.Cell(i + data.Count + 3, 6).Value = amount;
-                ws.Cell(i + data.Count + 3, 7).Value = "";
-            }
+           // for (int i = 0; i < data.Count; i++)
+           // {
+           //     var activity = data[i].ActivityAmount.Value < 0 ? 0 : data[i].ActivityAmount.Value;
+           //     var amount = data[i].Amount < 0 ? 0 : data[i].Amount;
 
-            var otherCosts = await db.OtherCost.Include(a => a.Vehicle).AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Equals(customerId)).OrderBy(a => a.Vehicle.LeftNumber).ThenBy(a => a.Vehicle.RightNumber).ToListAsync();
-            if (otherCosts.Any())
-            {
-                for (int i = 0; i < otherCosts.Count; i++)
-                {
-                    var vehicleNumber = $"ایران {otherCosts[i].Vehicle.IranStateNumber} - {otherCosts[i].Vehicle.RightNumber} {otherCosts[i].Vehicle.NumberWord} {otherCosts[i].Vehicle.LeftNumber}";
-                    ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 1).Value = i + slashedLoadFactors.Count + data.Count + 1;
-                    ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 2).Value = otherCosts[i].DriverName;
-                    ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 3).Value = vehicleNumber;
-                    ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 4).Value = otherCosts[i].Amount.ToString("N0");
-                    ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 5).Value = "0";
-                    ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 6).Value = otherCosts[i].Amount.ToString("N0");
-                    ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 7).Value = "";
-                }
-            }
+           //     ws.Cell(i + 3, 1).Value = i + 1;
+           //     ws.Cell(i + 3, 2).Value = data[i].VehicleOwnerName;
+           //     ws.Cell(i + 3, 3).Value = data[i].VehicleNumber;
+           //     ws.Cell(i + 3, 4).Value = activity.ToString("N0");
+           //     ws.Cell(i + 3, 5).Value = (amount - activity).ToString("N0");
+           //     ws.Cell(i + 3, 6).Value = amount.ToString("N0");
+           //     ws.Cell(i + 3, 7).Value = "";
+           // }
 
-            ws.Cell(otherCosts.Count + slashedLoadFactors.Count + data.Count + 3, 1).Value = "جمع";
-            ws.Range(otherCosts.Count + slashedLoadFactors.Count + data.Count + 3, 1, otherCosts.Count + slashedLoadFactors.Count + data.Count + 3, 3).Merge();
-            ws.Cell(otherCosts.Count + slashedLoadFactors.Count + data.Count + 3, 4).Value = (data.Sum(a => a.ActivityAmount.Value) + bills.Sum(a => a.Amount) + otherCosts.Sum(a => a.Amount)).ToString("N0");
-            ws.Cell(otherCosts.Count + slashedLoadFactors.Count + data.Count + 3, 6).Value = (data.Sum(a => a.Amount < 0 ? 0 : a.Amount) + bills.Sum(a => a.Amount) + otherCosts.Sum(a => a.Amount)).ToString("N0");
+           // var bills = await _billRepository.Query().Include(a => a.Vehicle).Include(a => a.Customer)
+           //    .Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Value.Equals(customerId) && (a.VehicleId.HasValue && 
+           //(_vehicleRepo.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).OrderBy(a => a.Vehicle.LeftNumber).ThenBy(a => a.Vehicle.RightNumber).ToListAsync();
+           // var slashedLoadFactors = bills.DistinctBy(a => a.VehicleId.Value).ToList();
+           // for (int i = 0; i < slashedLoadFactors.Count; i++)
+           // {
+           //     var amount = bills.Where(a => a.VehicleId.Value.Equals(slashedLoadFactors[i].VehicleId.Value)).Sum(a => a.Amount).ToString("N0");
+           //     var vehicleNumber = $"ایران {slashedLoadFactors[i].Vehicle.IranStateNumber} - {slashedLoadFactors[i].Vehicle.RightNumber} {slashedLoadFactors[i].Vehicle.NumberWord} {slashedLoadFactors[i].Vehicle.LeftNumber}";
+           //     ws.Cell(i + data.Count + 3, 1).Value = i + data.Count + 1;
+           //     ws.Cell(i + data.Count + 3, 2).Value = slashedLoadFactors[i].ReceiverName;
+           //     ws.Cell(i + data.Count + 3, 3).Value = vehicleNumber;
+           //     ws.Cell(i + data.Count + 3, 4).Value = amount;
+           //     ws.Cell(i + data.Count + 3, 5).Value = "0";
+           //     ws.Cell(i + data.Count + 3, 6).Value = amount;
+           //     ws.Cell(i + data.Count + 3, 7).Value = "";
+           // }
+
+           // var otherCosts = await db.OtherCost.Include(a => a.Vehicle).AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Equals(customerId)).OrderBy(a => a.Vehicle.LeftNumber).ThenBy(a => a.Vehicle.RightNumber).ToListAsync();
+           // if (otherCosts.Any())
+           // {
+           //     for (int i = 0; i < otherCosts.Count; i++)
+           //     {
+           //         var vehicleNumber = $"ایران {otherCosts[i].Vehicle.IranStateNumber} - {otherCosts[i].Vehicle.RightNumber} {otherCosts[i].Vehicle.NumberWord} {otherCosts[i].Vehicle.LeftNumber}";
+           //         ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 1).Value = i + slashedLoadFactors.Count + data.Count + 1;
+           //         ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 2).Value = otherCosts[i].DriverName;
+           //         ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 3).Value = vehicleNumber;
+           //         ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 4).Value = otherCosts[i].Amount.ToString("N0");
+           //         ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 5).Value = "0";
+           //         ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 6).Value = otherCosts[i].Amount.ToString("N0");
+           //         ws.Cell(i + slashedLoadFactors.Count + data.Count + 3, 7).Value = "";
+           //     }
+           // }
+
+            ws.Cell(/*otherCosts.Count + slashedLoadFactors.Count + */distinctedData.Count + 3, 1).Value = "جمع";
+            ws.Range(/*otherCosts.Count + slashedLoadFactors.Count + */distinctedData.Count + 3, 1, /*otherCosts.Count + slashedLoadFactors.Count + */distinctedData.Count + 3, 3).Merge();
+            ws.Cell(/*otherCosts.Count + slashedLoadFactors.Count + */distinctedData.Count + 3, 4).Value = (distinctedData.Sum(a => a.Activity.Value) /*+ bills.Sum(a => a.Amount) + otherCosts.Sum(a => a.Amount)*/).ToString("N0");
+            ws.Cell(/*otherCosts.Count + slashedLoadFactors.Count + */distinctedData.Count + 3, 6).Value = (distinctedData.Sum(a => a.Amount < 0 ? 0 : a.Amount) /*+ bills.Sum(a => a.Amount) + otherCosts.Sum(a => a.Amount)*/).ToString("N0");
 
             ws.Column("A").Width = 5;
             ws.Column("B").Width = 18;
@@ -2355,7 +2419,7 @@ namespace EtehadBar.MVC.Controllers
 
             ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var table = ws.Range(2, 1, otherCosts.Count + slashedLoadFactors.Count + data.Count + 2, 7).CreateTable();
+            var table = ws.Range(2, 1, /*otherCosts.Count + slashedLoadFactors.Count +*/ distinctedData.Count + 2, 7).CreateTable();
             table.Theme = XLTableTheme.None;
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);

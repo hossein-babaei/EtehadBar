@@ -1197,4 +1197,13 @@ namespace EtehadBar.Domain
         [ForeignKey(nameof(Customer))]
         public long CustomerId { get; set; }
     }
+
+    public class VehicleFullActivityVM
+    {
+        public long VehicleId { get; set; }
+        public string VehicleNumber { get; set; }
+        public string VehicleOwnerName { get; set; }
+        public double Amount { get; set; }
+        public double? Activity { get; set; }
+    }
 }

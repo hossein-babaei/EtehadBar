@@ -32,6 +32,11 @@ namespace EtehadBar.Domain.Models
         public virtual Contract Contract { get; set; }
 
         [Required]
+        [Display(Name = "تقویم کاری")]
+        public long CalendarId { get; set; }
+        public virtual Calendar Calendar { get; set; }
+
+        [Required]
         public DateTime CreateDatetime { get; set; } = DateTime.Now;
 
         [StringLength(450)]
