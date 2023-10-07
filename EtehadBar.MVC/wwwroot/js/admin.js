@@ -99,8 +99,28 @@ function getHasCapacityUnrealVehicles() {
     window.open(`/report/get-has-capacity-unreal-vehicles?calendarId=${calendarId}`, '_blank');
 }
 
+function getDriversPeriodicActivity() {
+    const modalId = '#drivers-periodic-activity-modal';
+    $.post('/admin/get-calendars-json', {}, function (r) {
+        let options = '';
+        $.each(r, (i, v) => {
+            options += `<option value="${v.id}">${v.title}</options>`;
+        });
+        $(`${modalId} select`).html(options);
+    }, 'json');
+    UIkit.modal(modalId).show();
+}
+
+function submitDriversPeriodicActivity() {
+    let fromCalendarId = $('#drivers-periodic-activity-modal select[name=fromCalendarId]').val(),
+        toCalendarId = $('#drivers-periodic-activity-modal select[name=toCalendarId]').val();
+
+    window.open(`/excel/drivers-periodic-activity?fromCalendarId=${fromCalendarId}&toCalendarId=${toCalendarId}`, '_blank');
+}
+
 $(document).ready(function () {
     $(`#slashed-load-factor-modal select[name=calendarId]`).select2({ width: '100%' });
+    $(`#drivers-periodic-activity-modal select`).select2({ width: '100%' });
     new StickySidebar('#sidebar', {
         containerSelector: '#main-content',
         innerWrapperSelector: '#sidebar-inner',

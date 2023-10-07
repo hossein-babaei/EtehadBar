@@ -142,6 +142,31 @@
             </div>
         </div>
     </div>
+    <div id="drivers-periodic-activity-modal" uk-modal>
+        <div class="uk-modal-dialog">
+            <div class="uk-modal-header uk-light">
+                <h2 class="uk-modal-title">عملکرد دوره ای رانندگان</h2>
+            </div>
+            <div class="uk-modal-body">
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <label class="uk-form-label">از</label>
+                        <select name="fromCalendarId">
+                        </select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">تا</label>
+                        <select name="toCalendarId">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="uk-modal-footer uk-text-center">
+                <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitDriversPeriodicActivity()">دانلود فایل</a>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            </div>
+        </div>
+    </div>
     <div id="vehicle-report-modal" class="uk-flex-top" uk-modal>
         <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
             <h3>گزارش لیست خودرو ها</h3>

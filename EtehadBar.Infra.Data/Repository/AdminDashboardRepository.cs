@@ -22,7 +22,12 @@ namespace EtehadBar.Infra.Data.Repository
         {
             var now = DateTime.Now;
             var limit = dayLimit.HasValue ? DateTime.Now.AddDays(-dayLimit.Value) : new DateTime(now.Year, now.Month, now.Day, 0, 0, 0);
-            var loadFactors = await db.LoadFactor.Where(a => a.CreateDateTime >= limit).ToListAsync();
+            var loadFactors = await db.LoadFactor
+                .Include(a => a.SaipaPlascoLoadFactor)
+                .Include(a => a.SaipaPressLoadFactor)
+                .Include(a => a.SazehGostarLoadFactor)
+                .Include(a => a.MehrcomParsLoadFactor)
+                .Where(a => a.CreateDateTime >= limit).ToListAsync();
 
             foreach (var item in loadFactors.Where(a => a.Tonnage.HasValue))
             {

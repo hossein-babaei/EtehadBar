@@ -18,6 +18,13 @@
             form.find('input[name=isFreeDriverFee]').val(isFreeDriverFee);
             form.submit();
         }
+        function getGlobalDetailedReport(submitButton) {
+            let form = $(submitButton).parent().parent().parent().parent().find('form');
+            let customerId = form.find('input[name=customerId]').val(),
+                calendarId = form.find('select').val();
+
+            window.open(`/excel/global-detailed-report?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
+        }
         function showFormByCalendar(id, type) {
             //if (vehicleList.length == 0) {
             //    $.ajax({
@@ -269,6 +276,9 @@
         </div>
         <div class="uk-modal-footer uk-text-center">
             <div class="uk-grid-small uk-child-width-auto uk-flex-center" uk-grid>
+                <div>
+                    <a class="uk-button uk-button-primary" onclick="getGlobalDetailedReport(this)">یکپارچه</a>
+                </div>
                 <div>
                     <a class="uk-button uk-button-primary" onclick="submitActivityByCustomerForm(this, 'False')">قراردادی</a>
                 </div>

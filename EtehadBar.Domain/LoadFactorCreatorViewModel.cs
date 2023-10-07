@@ -39,5 +39,7 @@ namespace EtehadBar.Domain
         public string Destination { get; set; }
         public string LoadFactorNumber { get; set; }
         public double Amount { get; set; }
+        public string DriverName { get; set; }
+        public bool IsFreeDriverPrice { get; set; } = true;
     }
 }

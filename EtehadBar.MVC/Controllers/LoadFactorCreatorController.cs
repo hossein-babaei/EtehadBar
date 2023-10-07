@@ -159,6 +159,8 @@ namespace EtehadBar.MVC.Controllers
                 else
                     data.Add(new LoadFactorModel
                     {
+                        VehicleRightNumber = item.VehicleRightNumber,
+                        VehicleLeftNumber = item.VehicleLeftNumber,
                         DriverName = item.DriverName,
                         VehicleId = item.VehicleId,
                         VehicleNumber = item.VehicleNumber,
@@ -173,6 +175,8 @@ namespace EtehadBar.MVC.Controllers
             foreach (var item in data)
             {
                 var itemAmount = item.Amount;
+                var bestRouteAmount = itemAmount / 30;
+
                 List<int> takenDays = new();
                 while (itemAmount > 0)
                 {
@@ -183,7 +187,13 @@ namespace EtehadBar.MVC.Controllers
                         day = rnd.Next(1, 30);
                     takenDays.Add(day);
 
-                    var possibleRoutes = routes.Where(a => a.Amount <= itemAmount).ToList();
+                    var possibleRoutes = new List<StaticRouteFee>();
+
+                    if (itemAmount >= bestRouteAmount)
+                        possibleRoutes = routes.Where(a => a.Amount <= itemAmount && a.Amount >= bestRouteAmount).ToList();
+                    else
+                        possibleRoutes = routes.Where(a => a.Amount <= itemAmount).ToList();
+
                     if (possibleRoutes.Any())
                     {
                         var route = possibleRoutes.ElementAt(rnd.Next(0, possibleRoutes.Count - 1));

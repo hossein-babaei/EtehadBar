@@ -1339,7 +1339,7 @@ namespace EtehadBar.MVC.Controllers
 
                 string fileNames = "";
                 var files = Request.Form.Files;
-                if (files != null)
+                if (files != null && files.Count > 0)
                 {
                     foreach (var pic in files)
                     {
@@ -1375,9 +1375,9 @@ namespace EtehadBar.MVC.Controllers
                             }
                         }
                     }
-                }
 
-                item.Picture = fileNames;
+                    item.Picture = fileNames;
+                }
 
                 _costRepo.Update(item);
                 try
@@ -3832,6 +3832,7 @@ namespace EtehadBar.MVC.Controllers
                 item.AccountBookId = input.AccountBookId;
                 item.Tonnage = (input.TonnagePrice.HasValue && input.DriverTonnagePrice.HasValue) ? 1 : null;
                 item.TonnagePrice = input.TonnagePrice;
+                item.DriverTonnagePrice = input.DriverTonnagePrice;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
 
                 item.MehrcomParsLoadFactor.LoadNumberGovReturn = input.LoadNumberGovReturn;
