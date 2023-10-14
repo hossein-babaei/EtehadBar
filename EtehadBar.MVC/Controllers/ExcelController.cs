@@ -3206,7 +3206,7 @@ namespace EtehadBar.MVC.Controllers
                     for (int i = 0; i < vehicle.Count(); i++)
                     {
                         var item = vehicle.ElementAt(i);
-                        
+
                         if (item.Tonnage.HasValue)
                             otherFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
 
@@ -3411,9 +3411,23 @@ namespace EtehadBar.MVC.Controllers
 
             calendarIdList = calendarIdList.Distinct().ToList();
 
-            var data = await _billRepository.Query().AsNoTracking().Where(a => calendarIdList.Contains(a.CalendarId) && a.VehicleId.HasValue).Select(a => new { VehicleId = a.VehicleId.Value, a.Amount }).ToListAsync();
-            var vehicleIdList = data.Select(a => a.VehicleId).Distinct().ToList();
+            var bills = await _billRepository.Query().AsNoTracking().Where(a => calendarIdList.Contains(a.CalendarId) && a.VehicleId.HasValue).Select(a => new { VehicleId = a.VehicleId.Value, a.Amount }).ToListAsync();
+            var vehicleIdList = bills.Select(a => a.VehicleId).Distinct().ToList();
+
+            var loadFactors = await _loadFactorRepo.LoadFactors().AsNoTracking().Where(a => calendarIdList.Contains(a.CalendarId)).Select(a => new
+            {
+                a.VehicleId,
+                Amount = a.DriverFee +
+                (a.Tonnage.HasValue ? a.Tonnage.Value * a.DriverTonnagePrice.Value : 0) +
+                (a.WeighbridgePrice.HasValue ? a.WeighbridgePrice.Value : 0) +
+                (a.DriverLoadSleepPrice.HasValue ? a.DriverLoadSleepPrice.Value : 0)
+            }).ToListAsync();
+
+            vehicleIdList.AddRange(loadFactors.Select(a => a.VehicleId).Distinct());
+            vehicleIdList = vehicleIdList.Distinct().ToList();
+
             var vehicles = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => vehicleIdList.Contains(a.Id)).OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
+
 
             string docTitle = $"لیست عملکرد دوره ای خودرو ها";
             using var workbook = new XLWorkbook();
@@ -3430,6 +3444,7 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 3).Value = "شماره خودرو";
             ws.Cell(2, 4).Value = "کد ملی";
             ws.Cell(2, 5).Value = "مبلغ عملکرد";
+            ws.Cell(2, 6).Value = "مبلغ پرداختی";
 
             for (int i = 0; i < vehicles.Count; i++)
             {
@@ -3438,7 +3453,10 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 2).Value = vehicles[i].VehicleOwnerFullname;
                 ws.Cell(i + 3, 3).Value = vehicleNumber;
                 ws.Cell(i + 3, 4).SetValue<string>(vehicles[i].NationalNumber);
-                ws.Cell(i + 3, 5).SetValue<string>(data.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount).ToString("N0"));
+                ws.Cell(i + 3, 5).SetValue<string>(loadFactors.Any(a => a.VehicleId.Equals(vehicles[i].Id)) ?
+                    loadFactors.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount).ToString("N0") :
+                    bills.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount).ToString("N0"));
+                ws.Cell(i + 3, 6).SetValue<string>(bills.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount).ToString("N0"));
 
                 if (string.IsNullOrWhiteSpace(vehicles[i].BankAccountNumber))
                     ws.Cell(i + 3, 2).Style.Fill.SetBackgroundColor(XLColor.LightGray);
@@ -3447,29 +3465,30 @@ namespace EtehadBar.MVC.Controllers
                     ws.Cell(i + 3, 2).Style.Fill.SetBackgroundColor(XLColor.LightSkyBlue);
             }
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(vehicles.Count + 2, 5));
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(vehicles.Count + 2, 6));
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
                 .Font.SetBold()
-                .Font.SetFontSize(14)
+                .Font.SetFontSize(13)
                     .Fill.SetBackgroundColor(XLColor.LightGray)
                         .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 5)); // The address is relative to rngTable (NOT the worksheet)
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 6)); // The address is relative to rngTable (NOT the worksheet)
             rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             rngHeaders.Style.Font.Bold = true;
             rngHeaders.Style.Font.FontColor = XLColor.Black;
 
             ws.Column("A").Width = 5;
-            ws.Column("B").Width = 25;
-            ws.Column("C").Width = 20;
-            ws.Column("D").Width = 18;
-            ws.Column("E").Width = 20;
+            ws.Column("B").Width = 20;
+            ws.Column("C").Width = 18;
+            ws.Column("D").Width = 15;
+            ws.Column("E").Width = 17;
+            ws.Column("F").Width = 17;
 
             ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var table = ws.Range(2, 1, vehicles.Count + 2, 5).CreateTable();
+            var table = ws.Range(2, 1, vehicles.Count + 2, 6).CreateTable();
             table.Theme = XLTableTheme.None;
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);

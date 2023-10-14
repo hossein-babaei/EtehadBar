@@ -4084,6 +4084,18 @@ namespace EtehadBar.MVC.Controllers
             }
             return Json(new { msg, status, fee = Fee.ToString("N0") });
         }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> ShippongFeeLoadFactors(long id)
+        {
+            var shippingFee = await _shippingFeeRepo.ShippingFees().Include(a => a.Contract).Include(a => a.Origin).Include(a => a.Destination).SingleOrDefaultAsync(a => a.Id.Equals(id));
+            ViewData["ShippingFee"] = shippingFee;
+
+            return View(await _loadFactorRepo.LoadFactors().Where(a => a.ShippingFeeId.Equals(id))
+                .Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Vehicle).Include(a => a.Contract).ThenInclude(a => a.Customer)
+                .OrderBy(a => a.Vehicle.Type).ThenBy(a => a.Date).ThenBy(a => a.LoadNumber).ToListAsync());
+        }
         #endregion
 
         #region AccountBookLoadFactor

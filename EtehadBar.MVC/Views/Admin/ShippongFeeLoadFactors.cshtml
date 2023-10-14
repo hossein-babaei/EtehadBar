@@ -1,0 +1,112 @@
+﻿@model IEnumerable<LoadFactor>
+
+@{
+    var shippingFee = (ShippingFee)ViewData["ShippingFee"];
+    ViewData["pageId"] = 7;
+    ViewData["Title"] = $"بارنامه های {shippingFee.Origin.Title} به {shippingFee.Destination.Title} - {shippingFee.Vehicle}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+}
+@section Scripts{
+    <script>
+        function viewDetail(id) {
+            preloader();
+            $.get('@Url.Action("LoadFactorDetail")', { 'id': id }, function (r) {
+                $('#create-modal').html(r);
+            }, 'html').then(function () {
+                preloader();
+                UIkit.modal('#create-modal').show();
+            });
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="Contract" asp-controller="Admin">قرارداد ها</a></li>
+            <li><a asp-action="ShippingFee" asp-controller="Admin" asp-route-contractId="@shippingFee.Contract.RowId">کرایه حمل و نقل قرارداد به شماره @shippingFee.Contract.Number</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
+                    <th>مسیر</th>
+                    <th>خودرو</th>
+                    <th>راننده</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th>مشتری</th>
+                        <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                    }
+                    else if (User.IsInRole("User"))
+                    {
+                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                    }
+                    else
+                    {
+                        <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    }
+                    <th width="50">جزئیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="uk-text-center sm" data-id="@item.Id">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
+                        <td>@item.Origin.Title<br />@item.Destination.Title</td>
+                        <td>@item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
+                        <td>@item.Driver.Fullname</td>
+                        <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td>@item.Contract.Customer.Name</td>
+                            <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                            <td class="uk-text-bold md pointer" onclick="editDriverFee(this)" data-val="@item.DriverFee">@item.DriverFee.ToString("N0")</td>
+                        }
+                        else if (User.IsInRole("User"))
+                        {
+                            <td class="uk-text-bold md">@item.DriverFee.ToString("N0")</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="create-modal" class="uk-modal-container" uk-modal="bg-close: false"></div>
+<div id="edit-driver-fee-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="edit-driver-fee-form" method="post" asp-action="EditLoadFactorDriverFee" asp-controller="Admin" autocomplete="off">
+            <h3>ویرایش کرایه راننده</h3>
+            <input type="hidden" name="Id" />
+            <input dir="ltr" class="uk-input uk-border-rounded format-number" name="Fee" id="Fee" />
+            <div class="uk-margin uk-grid-small uk-child-width-auto uk-grid">
+                <label>بارنامه آزاد</label>
+                <label><input class="uk-radio" type="radio" name="IsFree" value="true" checked> بلی</label>
+                <label><input class="uk-radio" type="radio" name="IsFree" value="false"> خیر</label>
+            </div>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#edit-driver-fee-form').submit()" type="button">ثبت</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+            </div>
+        </form>
+    </div>
+</div>
