@@ -4,7 +4,8 @@
     {
         Car,
         BillType,
-        BankBranch
+        BankBranch,
+        CostAccount
     }
 
     public enum ApplicationRoleType

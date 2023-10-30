@@ -42,6 +42,7 @@
             formData.append('CalendarId', data.find(a => a.name == 'CalendarId').value);
             formData.append('Amount', data.find(a => a.name == 'Amount').value);
             formData.append('Description', data.find(a => a.name == 'Description').value);
+            formData.append('CostAccountId', data.find(a => a.name == 'CostAccountId').value);
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("Cost")',
@@ -95,6 +96,7 @@
             formData.append('CalendarId', data.find(a => a.name == 'CalendarId').value);
             formData.append('Amount', data.find(a => a.name == 'Amount').value);
             formData.append('Description', data.find(a => a.name == 'Description').value);
+            formData.append('CostAccountId', data.find(a => a.name == 'CostAccountId').value);
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("EditCost")',
@@ -167,6 +169,7 @@
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
                     <th>@Html.DisplayNameFor(model => model.UserId)</th>
+                    <th>@Html.DisplayNameFor(model => model.CostAccountId)</th>
                     <th>تصویر</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
@@ -183,6 +186,7 @@
                         <td><pre>@item.Description</pre></td>
                         <td>@item.Amount.ToString("N0")</td>
                         <td>@item.ApplicationUser.Firstname @item.ApplicationUser.Lastname</td>
+                        <td>@item.Definition.Title</td>
                         @if (string.IsNullOrEmpty(item.Picture))
                         {
                             <td>---</td>

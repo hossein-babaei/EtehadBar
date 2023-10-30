@@ -8,6 +8,14 @@
     if (Model.Customer.CustomerType == CustomerType.SaipaPlasco)
         days = 60;
 
+    string percent = "5";
+    double percentMultiple = 0.05;
+    if (Model.Customer.CustomerType == CustomerType.SazehGostar)
+    {
+        percent = "7.8";
+        percentMultiple = 0.078;
+    }
+
     var balanceAmount = (double)ViewData["BalanceAmount"];
     var insuranceBalanceAmount = (double)ViewData["InsuranceBalanceAmount"];
     var calendars = (List<Calendar>)ViewData["Calendars"];
@@ -16,6 +24,12 @@
 @section Links {
     <link href="~/css/report-print.css" rel="stylesheet" asp-append-version="true" />
     <style>
+        .amount-container {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px
+        }
+
         .underline {
             text-decoration: underline;
         }
@@ -186,7 +200,7 @@
                                 </div>
                                 <div></div>
                                 <div>
-                                    <b>جمع فاکتور با کسر 5%: @((item.CustomerFactors.Sum(a => a.Amount) - item.CustomerFactors.Sum(a => a.Amount) * 0.05).ToString("N0")) ریال</b>
+                                    <b>جمع فاکتور با کسر @percent%: @((item.CustomerFactors.Sum(a => a.Amount) - item.CustomerFactors.Sum(a => a.Amount) * percentMultiple).ToString("N0")) ریال</b>
                                 </div>
                             </div>
                         </div>
@@ -198,51 +212,61 @@
             <div class="box" style="padding:15px 30px">
                 <h3 class="uk-text-center">خلاصه گزارش مالی @Model.Customer.Name در <span class="underline uk-text-left" dir="ltr">@(new PersianDateTime(DateTime.Now).ToString("yyyy/MM/dd"))</span></h3>
                 <hr />
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">مانده دوره قبل</div>
-                    <div>@balanceAmount.ToString("N0") ریال</div>
-                </div>
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">مانده سپرده بیمه دوره قبل</div>
-                    <div>@insuranceBalanceAmount.ToString("N0") ریال</div>
-                </div>
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">جمع کل مانده دوره قبل</div>
-                    <div>@((balanceAmount + insuranceBalanceAmount).ToString("N0")) ریال</div>
-                </div>
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ دریافتی</div>
-                    <div>@Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount)).ToString("N0") ریال</div>
-                </div>
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ فاکتور ها (صفر روزه)</div>
-                    <div>@((Model.Details.Sum(a => a.CustomerFactors.Sum(a => a.Amount))).ToString("N0")) ریال</div>
-                </div>
-                @{
-                    var factorsAmount = Model.Details.Sum(a => a.CustomerFactors.Sum(a => a.Amount));
-                }
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">مانده (صفر روزه)</div>
-                    <div>@(((factorsAmount + balanceAmount + insuranceBalanceAmount) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0")) ریال</div>
-                </div>
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">مانده با کسر 5% سپرده بیمه (صفر روزه)</div>
-                    <div>@((((factorsAmount - factorsAmount * 0.05) + balanceAmount) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0")) ریال</div>
-                </div>
-                @{
-                    var daysSum = Model.Details.Sum(a => a.CustomerFactors.Where(a => a.Date <= DateTime.Now.AddDays(-days)).Sum(a => a.Amount));
-                }
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ فاکتور ها (@days روزه)</div>
-                    <div>@daysSum.ToString("N0") ریال</div>
-                </div>
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">مانده (@days روزه)</div>
-                    <div>@(((daysSum + balanceAmount + insuranceBalanceAmount) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0")) ریال</div>
-                </div>
-                <div class="uk-grid-small" uk-grid>
-                    <div class="uk-width-expand" uk-leader="fill: .">مانده با کسر 5% سپرده بیمه (@days روزه)</div>
-                    <div>@((((daysSum - daysSum * 0.05) + balanceAmount) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0")) ریال</div>
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div class="amount-container">
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">مانده دوره قبل</div>
+                            <div><span dir="ltr">@balanceAmount.ToString("N0")</span> ریال</div>
+                        </div>
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">مانده سپرده بیمه دوره قبل</div>
+                            <div><span dir="ltr">@insuranceBalanceAmount.ToString("N0")</span> ریال</div>
+                        </div>
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">جمع کل مانده دوره قبل</div>
+                            <div><span dir="ltr">@((balanceAmount + insuranceBalanceAmount).ToString("N0"))</span> ریال</div>
+                        </div>
+                    </div>
+                    <div class="amount-container">
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ دریافتی</div>
+                            <div><span dir="ltr">@Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount)).ToString("N0")</span> ریال</div>
+                        </div>
+                    </div>
+                    <div class="amount-container">
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ فاکتور ها (صفر روزه)</div>
+                            <div><span dir="ltr">@((Model.Details.Sum(a => a.CustomerFactors.Sum(a => a.Amount))).ToString("N0"))</span> ریال</div>
+                        </div>
+                        @{
+                            var factorsAmount = Model.Details.Sum(a => a.CustomerFactors.Sum(a => a.Amount));
+                        }
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">مانده (صفر روزه)</div>
+                            <div><span dir="ltr">@(((factorsAmount + balanceAmount + insuranceBalanceAmount) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0"))</span> ریال</div>
+                        </div>
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">مانده با کسر @percent% سپرده بیمه (صفر روزه)</div>
+                            <div><span dir="ltr">@((((factorsAmount - factorsAmount * percentMultiple) + balanceAmount) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0"))</span> ریال</div>
+                        </div>
+                    </div>
+                    @{
+                        var daysSum = Model.Details.Sum(a => a.CustomerFactors.Where(a => a.Date <= DateTime.Now.AddDays(-days)).Sum(a => a.Amount));
+                    }
+                    <div class="amount-container">
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">جمع مبلغ فاکتور ها (@days روزه)</div>
+                            <div><span dir="ltr">@daysSum.ToString("N0")</span> ریال</div>
+                        </div>
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">مانده (@days روزه)</div>
+                            <div><span dir="ltr">@(((daysSum + balanceAmount + insuranceBalanceAmount) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0"))</span> ریال</div>
+                        </div>
+                        <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">مانده با کسر @percent% سپرده بیمه (@days روزه)</div>
+                            <div><span dir="ltr">@((((daysSum - daysSum * percentMultiple) + balanceAmount) - Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount))).ToString("N0"))</span> ریال</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

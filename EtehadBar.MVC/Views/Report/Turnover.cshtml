@@ -5,6 +5,8 @@
     ViewData["Title"] = "سرمایه گذاران و شرکا";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
+    var turnoverProfiles = (List<TurnoverProfile>)ViewData["TurnoverProfiles"];
+
     int i = 1;
 }
 
@@ -41,6 +43,7 @@
         $(document).ready(function () {
             $('.startDate').persianDatepicker(datePickerConfig);
             $('.endDate').persianDatepicker(datePickerConfig);
+            $('#search-modal select[name=profileId]').select2({ width: '100%' });
         });
         $('#search-modal form').submit(function (e) {
             e.preventDefault();
@@ -189,6 +192,17 @@
                     <select name="turnoverType" class="uk-select uk-border-rounded">
                         <option value="@((int)TurnoverType.Partner)">شریک</option>
                         <option value="@((int)TurnoverType.Investor)">سرمایه گذار</option>
+                    </select>
+                </div>
+
+                <div class="uk-margin-top">
+                    <label class="uk-form-label">نام ذینفع</label>
+                    <select name="profileId">
+                        <option value="0" selected="selected">بدون فیلتر نام ذینفع</option>
+                        @foreach (var item in turnoverProfiles)
+                        {
+                            <option value="@item.Id">@item.FullName</option>
+                        }
                     </select>
                 </div>
             </form>

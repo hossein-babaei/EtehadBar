@@ -30,6 +30,12 @@ namespace EtehadBar.Domain.Models
         public virtual Calendar Calendar { get; set; }
 
         [Required]
+        [Display(Name = "حساب هزینه")]
+        [ForeignKey("Definition")]
+        public long CostAccountId { get; set; }
+        public virtual Definition Definition { get; set; }
+
+        [Required]
         [StringLength(450)]
         [Display(Name = "کاربر سیستم")]
         [ForeignKey("ApplicationUser")]

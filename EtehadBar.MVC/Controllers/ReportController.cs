@@ -401,13 +401,14 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Turnover()
         {
+            ViewData["TurnoverProfiles"] = await _turnoverProfileRepository.Query().AsNoTracking().OrderBy(a => a.FullName).ToListAsync();
             var startOfPersianYear = new PersianDateTime(new PersianDateTime(DateTime.Now).Year, 1, 1).ToDateTime();
             return View(await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startOfPersianYear).OrderBy(a => a.Date).ToListAsync());
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Turnover(string startDate, string endDate, TurnoverType turnoverType)
+        public async Task<IActionResult> Turnover(string startDate, string endDate, long profileId, TurnoverType turnoverType)
         {
             startDate = startDate.PersianToEnglish();
             endDate = endDate.PersianToEnglish();
@@ -425,8 +426,15 @@ namespace EtehadBar.MVC.Controllers
             }
             else
             {
-                var turnoverProfiles = await _turnoverProfileRepository.Query().AsNoTracking().Where(a => a.TurnoverType == turnoverType).Select(a => a.Id).ToListAsync();
-                return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startD && a.Date <= endD && turnoverProfiles.Contains(a.TurnoverProfileId)).OrderBy(a => a.Date).ToListAsync());
+                if (profileId == 0)
+                {
+                    var turnoverProfiles = await _turnoverProfileRepository.Query().AsNoTracking().Where(a => a.TurnoverType == turnoverType).Select(a => a.Id).ToListAsync();
+                    return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startD && a.Date <= endD && turnoverProfiles.Contains(a.TurnoverProfileId)).OrderBy(a => a.Date).ToListAsync());
+                }
+                else
+                {
+                    return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startD && a.Date <= endD && a.TurnoverProfileId.Equals(profileId)).OrderBy(a => a.Date).ToListAsync());
+                }
             }
         }
 

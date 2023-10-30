@@ -3414,6 +3414,9 @@ namespace EtehadBar.MVC.Controllers
             var bills = await _billRepository.Query().AsNoTracking().Where(a => calendarIdList.Contains(a.CalendarId) && a.VehicleId.HasValue).Select(a => new { VehicleId = a.VehicleId.Value, a.Amount }).ToListAsync();
             var vehicleIdList = bills.Select(a => a.VehicleId).Distinct().ToList();
 
+            var otherCosts = await db.OtherCost.AsNoTracking().Where(a => calendarIdList.Contains(a.CalendarId)).Select(a => new { VehicleId = a.VehicleId, a.Amount }).ToListAsync();
+            vehicleIdList.AddRange(otherCosts.Select(a => a.VehicleId).Distinct());
+
             var loadFactors = await _loadFactorRepo.LoadFactors().AsNoTracking().Where(a => calendarIdList.Contains(a.CalendarId)).Select(a => new
             {
                 a.VehicleId,
@@ -3455,7 +3458,9 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 4).SetValue<string>(vehicles[i].NationalNumber);
                 ws.Cell(i + 3, 5).SetValue<string>(loadFactors.Any(a => a.VehicleId.Equals(vehicles[i].Id)) ?
                     loadFactors.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount).ToString("N0") :
-                    bills.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount).ToString("N0"));
+                    (bills.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount) +
+                    otherCosts.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount)).ToString("N0"));
+
                 ws.Cell(i + 3, 6).SetValue<string>(bills.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount).ToString("N0"));
 
                 if (string.IsNullOrWhiteSpace(vehicles[i].BankAccountNumber))

@@ -1231,8 +1231,9 @@ namespace EtehadBar.MVC.Controllers
             ViewData["UserId"] = _userManager.GetUserId(User);
             ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["CostAccount"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType == DefinitionType.CostAccount).ToListAsync();
 
-            var query = _costRepo.Costs().Include(a => a.Calendar).Include(a => a.ApplicationUser).AsQueryable();
+            var query = _costRepo.Costs().Include(a => a.Calendar).Include(a => a.ApplicationUser).Include(a => a.Definition).AsQueryable();
             if (!User.IsInRole("Admin"))
                 query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
 
@@ -1246,7 +1247,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin, User, Milad")]
         public async Task<IActionResult> Cost_Search(int? p)
         {
-            var query = _costRepo.Costs().Include(a => a.Calendar).Include(a => a.ApplicationUser).AsQueryable();
+            var query = _costRepo.Costs().Include(a => a.Calendar).Include(a => a.ApplicationUser).Include(a => a.Definition).AsQueryable();
             if (!User.IsInRole("Admin"))
                 query = query.Where(a => a.UserId.Equals(_userManager.GetUserId(User)));
 
@@ -1319,6 +1320,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<PartialViewResult> EditCost(int id)
         {
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["CostAccount"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType == DefinitionType.CostAccount).ToListAsync();
             return PartialView("~/Views/Admin/Edit/Cost.cshtml", await _costRepo.Get(id));
         }
 
@@ -1334,6 +1336,7 @@ namespace EtehadBar.MVC.Controllers
                 item.Description = c.Description;
                 item.Amount = c.Amount;
                 item.CalendarId = c.CalendarId;
+                item.CostAccountId = c.CostAccountId;
 
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
 

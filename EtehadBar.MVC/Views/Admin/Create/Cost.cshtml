@@ -1,6 +1,7 @@
 ﻿@model Cost
 @{
     var calendar = (List<Calendar>)ViewData["Calendar"];
+    var costAccounts = (List<Definition>)ViewData["CostAccount"];
 }
 <div id="create-modal" uk-modal="bg-close: false">
     <div class="uk-modal-dialog">
@@ -21,6 +22,16 @@
                             }
                         </select>
                         <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="CostAccountId" class="uk-form-label"></label>
+                        <select asp-for="CostAccountId" class="uk-select uk-border-rounded">
+                            @foreach (var item in costAccounts)
+                            {
+                                <option value="@item.Id">@item.Title</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CostAccountId" class="uk-text-danger"></span>
                     </div>
                     @{
                         var now = PersianDateTime.Now;
