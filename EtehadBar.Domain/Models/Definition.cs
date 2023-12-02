@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain.Models
@@ -18,6 +19,9 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "نوع")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public DefinitionType DefinitionType { get; set; } //DefinitionTypeEnum
+
+        public ICollection<Customer> Customers { get; set; }
+        public ICollection<VehicleBankAccount> VehicleBankAccounts { get; set; }
 
         [Required]
         [StringLength(36)]

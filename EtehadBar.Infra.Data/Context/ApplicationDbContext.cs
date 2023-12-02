@@ -36,6 +36,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<Driver> Driver { get; set; }
         public DbSet<FreeLoadFactor> FreeLoadFactor { get; set; }
         public DbSet<LoadFactor> LoadFactor { get; set; }
+        public DbSet<LoadFactorNovin> LoadFactorNovin { get; set; }
         public DbSet<LoadRoutes> LoadRoute { get; set; }
         public DbSet<SaipaPlascoLoadFactor> SaipaPlascoLoadFactor { get; set; }
         public DbSet<SaipaPressLoadFactor> SaipaPressLoadFactor { get; set; }
@@ -50,6 +51,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<Turnover> Turnover { get; set; }
         public DbSet<TurnoverProfile> TurnoverProfile { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
+        public DbSet<VehicleBankAccount> VehicleBankAccount { get; set; }
         public DbSet<VehicleBalance> VehicleBalance { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -75,10 +77,10 @@ namespace EtehadBar.Infra.Data.Context
             modelBuilder.Entity<LoadFactor>().HasOne(lf => lf.Destination).WithMany().HasForeignKey(lf => lf.DestinationId).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<Customer>().HasData(
-                new { Id = 1L, Name = "پلاسکو کار سایپا", CustomerType = Domain.CustomerType.SaipaPlasco, LoadFactorDeductions = 5d, HasLoadType = false, HasAddonTonnage = false, HasLoadSleep = false, Status = true, RowId = "29f78114-f72a-427a-a3f1-8864e6eeb13c" },
-                new { Id = 2L, Name = "سایپا پرس", CustomerType = Domain.CustomerType.SaipaPress, LoadFactorDeductions = 5d, HasLoadType = true, HasAddonTonnage = true, HasLoadSleep = false, Status = true, RowId = "e1cbee6e-f7a1-4a84-a1c5-e740fb84fa7d" },
-                new { Id = 3L, Name = "سازه گستر", CustomerType = Domain.CustomerType.SazehGostar, LoadFactorDeductions = 7.8d, HasLoadType = false, HasAddonTonnage = false, HasLoadSleep = false, Status = true, RowId = "df204398-5c7c-4caf-98c0-0c9b9be54a6f" },
-                new { Id = 4L, Name = "مهرکام پارس", CustomerType = Domain.CustomerType.MehrcomPars, LoadFactorDeductions = 5d, HasLoadType = true, HasAddonTonnage = true, HasLoadSleep = true, Status = true, RowId = "e70bffab-fa42-4c66-8af8-d7090a6ccbea" });
+                new { Id = 1L, Name = "پلاسکو کار سایپا", CustomerType = Domain.CustomerType.SaipaPlasco, LoadFactorDeductions = 5d, HasLoadType = false, HasAddonTonnage = false, HasLoadSleep = false, Status = true, ActiveBank = 43L, RowId = "29f78114-f72a-427a-a3f1-8864e6eeb13c" },
+                new { Id = 2L, Name = "سایپا پرس", CustomerType = Domain.CustomerType.SaipaPress, LoadFactorDeductions = 5d, HasLoadType = true, HasAddonTonnage = true, HasLoadSleep = false, Status = true, ActiveBank = 43L, RowId = "e1cbee6e-f7a1-4a84-a1c5-e740fb84fa7d" },
+                new { Id = 3L, Name = "سازه گستر", CustomerType = Domain.CustomerType.SazehGostar, LoadFactorDeductions = 7.8d, HasLoadType = false, HasAddonTonnage = false, HasLoadSleep = false, Status = true, ActiveBank = 43L, RowId = "df204398-5c7c-4caf-98c0-0c9b9be54a6f" },
+                new { Id = 4L, Name = "مهرکام پارس", CustomerType = Domain.CustomerType.MehrcomPars, LoadFactorDeductions = 5d, HasLoadType = true, HasAddonTonnage = true, HasLoadSleep = true, Status = true, ActiveBank = 45L, RowId = "e70bffab-fa42-4c66-8af8-d7090a6ccbea" });
 
             modelBuilder.Entity<ShippingFeeLoadType>().HasData(
                 new ShippingFeeLoadType() { Id = -1L, Name = "کالا", RowId = "e015d881-cf4f-40b2-bf83-0a115bae3179" });

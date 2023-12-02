@@ -1,0 +1,96 @@
+﻿@model LoadFactorNovin
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var data = ViewBag.data as IPagedList<LoadFactorNovin>;
+
+    int i = 1;
+
+    if (data.PageNumber > 1)
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+}
+
+@if (data.Count > 0)
+{
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle uk-text-small">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
+                    <th>مسیر</th>
+                    <th>خودرو</th>
+                    <th>راننده</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>مشتری</th>
+                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                    <th>@Html.DisplayNameFor(model => model.IsPaied)</th>
+                    <th>@Html.DisplayNameFor(model => model.IsReceived)</th>
+                    <th width="50">جزئیات</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center sm" data-id="@item.Id">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
+                        <td>@(string.IsNullOrWhiteSpace(item.LoadNumberGov) ? "---" : item.LoadNumberGov)</td>
+                        <td>@item.Origin<br />@item.Destination</td>
+                        <td>@item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
+                        <td>@item.Driver.Fullname</td>
+                        <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                        <td>@item.Customer.Name</td>
+                        <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                        <td class="uk-text-bold md driver-fee pointer" onclick="editDriverFee(this)"
+                            data-val="@item.DriverFee" data-tonnage-val="@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value : 0)">
+                            @item.DriverFee.ToString("N0")
+                        </td>
+                        @if (item.IsPaied)
+                        {
+                            <td class="uk-text-success" uk-tooltip="@(item.PaymentDate.HasValue ? new PersianDateTime(item.PaymentDate.Value).ToString("yyyy/MM/dd") : "---")">پرداخت شده</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-danger">پرداخت نشده</td>
+                        }
+                        @if (item.IsReceived)
+                        {
+                            <td class="uk-text-success" uk-tooltip="@(item.ReceiveDate.HasValue ? new PersianDateTime(item.ReceiveDate.Value).ToString("yyyy/MM/dd") : "---")">دریافت شده</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-danger">دریافت نشده</td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="getEditForm('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("LoadFactorNovin_Search", new { p = page, loadNumber = ViewBag.loadNumber, vehicleNumber = ViewBag.vehicleNumber, calendar = ViewBag.calendar }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+        </div>
+    }
+}
+else
+{
+    <div class="uk-margin-medium-top uk-margin-medium-bottom">
+        <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+            <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+            <div>
+                <h2>نتیجه ای یافت نشد.</h2>
+            </div>
+        </div>
+    </div>
+}

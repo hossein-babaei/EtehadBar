@@ -55,8 +55,6 @@ namespace EtehadBar.Infra.Data.Repository
                                    a.Tonnage,
                                    a.DriverTonnagePrice,
                                    a.DriverFee,
-                                   c.AccountBankName,
-                                   c.BankAccountNumber,
                                    c.LeftNumber,
                                    VehicleNumber = $"ایران {c.IranStateNumber} - {c.RightNumber} {c.NumberWord} {c.LeftNumber}",
                                    a.WeighbridgePrice,
@@ -66,9 +64,14 @@ namespace EtehadBar.Infra.Data.Repository
                                }).AsNoTracking().OrderBy(a => a.LeftNumber).ToListAsync();
 
             var vehicleBalances = new List<ActivityListPaymentVM>();
+
+            var vehicleIdList = query.Select(a => a.VehicleId).Distinct().ToList();
+
+            var vehicleBankAccountList = await db.VehicleBankAccount.Include(a => a.Definition).Where(a => vehicleIdList.Contains(a.VehicleId)).ToListAsync();
+            var customerBank = await db.Customer.AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.ActiveBank).FirstAsync();
+
             if (hasPayment)
             {
-                var vehicleIdList = query.Select(a => a.VehicleId).Distinct().ToList();
                 var thisCalendarSequence = await db.Calendar.AsNoTracking().Where(a => a.Id.Equals(calendarId)).Select(a => a.Sequence).SingleAsync();
                 var calendars = await db.Calendar.AsNoTracking().Where(a => a.Sequence <= thisCalendarSequence).Select(a => a.Id).ToListAsync();
                 vehicleBalances = await db.VehicleBalance
@@ -80,16 +83,18 @@ namespace EtehadBar.Infra.Data.Repository
             var data = new List<ActivityListVM>();
             foreach (var vehicle in query.DistinctBy(a => a.VehicleId))
             {
+                var thisVehicleBankItem = vehicleBankAccountList.FirstOrDefault(a => a.VehicleId.Equals(vehicle.VehicleId) && a.BankId.Equals(customerBank));
+                thisVehicleBankItem ??= vehicleBankAccountList.FirstOrDefault(a => a.VehicleId.Equals(vehicle.VehicleId));
+
                 if (hasPayment)
                 {
                     var thisVehicleBalance = vehicleBalances.Where(a => a.VehicleId.Equals(vehicle.VehicleId)).Sum(a => a.Amount);
-
                     data.Add(new ActivityListVM
                     {
                         VehicleId = vehicle.VehicleId,
-                        BankAccountNumber = vehicle.BankAccountNumber,
+                        BankAccountNumber = thisVehicleBankItem == null ? "---" : string.IsNullOrWhiteSpace(thisVehicleBankItem.AccountNumber) ? "---" : thisVehicleBankItem.BankId.Equals(customerBank) ? thisVehicleBankItem.AccountNumber : $"{thisVehicleBankItem.AccountNumber} ({thisVehicleBankItem.Definition.Title})",
                         VehicleNumber = vehicle.VehicleNumber,
-                        VehicleOwnerName = vehicle.VehicleOwnerFullname,
+                        VehicleOwnerName = thisVehicleBankItem == null ? vehicle.VehicleOwnerFullname : thisVehicleBankItem.Fullname,
                         Amount = thisVehicleBalance < 0 ? 0 : thisVehicleBalance,
                     });
                 }
@@ -113,9 +118,9 @@ namespace EtehadBar.Infra.Data.Repository
                     data.Add(new ActivityListVM
                     {
                         VehicleId = vehicle.VehicleId,
-                        BankAccountNumber = vehicle.BankAccountNumber,
+                        BankAccountNumber = thisVehicleBankItem == null ? "---" : string.IsNullOrWhiteSpace(thisVehicleBankItem.AccountNumber) ? "---" : !thisVehicleBankItem.BankId.Equals(customerBank) ? thisVehicleBankItem.AccountNumber : $"{thisVehicleBankItem.AccountNumber} ({thisVehicleBankItem.Definition.Title})",
                         VehicleNumber = vehicle.VehicleNumber,
-                        VehicleOwnerName = vehicle.VehicleOwnerFullname,
+                        VehicleOwnerName = thisVehicleBankItem == null ? vehicle.VehicleOwnerFullname : thisVehicleBankItem.Fullname,
                         Amount = driverFee
                     });
                 }
@@ -258,8 +263,6 @@ namespace EtehadBar.Infra.Data.Repository
                                   a.Tonnage,
                                   a.DriverTonnagePrice,
                                   a.DriverFee,
-                                  c.AccountBankName,
-                                  c.BankAccountNumber,
                                   c.LeftNumber,
                                   c.RightNumber,
                                   VehicleNumber = $"ایران {c.IranStateNumber} - {c.RightNumber} {c.NumberWord} {c.LeftNumber}",
@@ -270,6 +273,8 @@ namespace EtehadBar.Infra.Data.Repository
                               }).AsNoTracking().OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
 
             var vehicleIdList = query.Select(a => a.VehicleId).Distinct().ToList();
+            var vehicleBankAccountList = await db.VehicleBankAccount.Include(a => a.Definition).Where(a => vehicleIdList.Contains(a.VehicleId)).ToListAsync();
+            var customerBank = await db.Customer.AsNoTracking().Where(a => a.Id.Equals(customerId)).Select(a => a.ActiveBank).FirstAsync();
             var thisCalendarSequence = await db.Calendar.AsNoTracking().Where(a => a.Id.Equals(calendarId)).Select(a => a.Sequence).SingleAsync();
             var calendars = await db.Calendar.AsNoTracking().Where(a => a.Sequence <= thisCalendarSequence).Select(a => a.Id).ToListAsync();
             var vehicleBalances = await db.VehicleBalance
@@ -280,6 +285,9 @@ namespace EtehadBar.Infra.Data.Repository
             var data = new List<ActivityListVM>();
             foreach (var vehicle in query.DistinctBy(a => a.VehicleId))
             {
+                var thisVehicleBankItem = vehicleBankAccountList.FirstOrDefault(a => a.VehicleId.Equals(vehicle.VehicleId) && a.BankId.Equals(customerBank));
+                thisVehicleBankItem ??= vehicleBankAccountList.FirstOrDefault(a => a.VehicleId.Equals(vehicle.VehicleId));
+
                 var thisVehicleBalance = vehicleBalances.Where(a => a.VehicleId.Equals(vehicle.VehicleId)).Sum(a => a.Amount);
 
                 var thisVehicleActivity = query.Where(a => a.VehicleId.Equals(vehicle.VehicleId)).ToList();
@@ -300,9 +308,11 @@ namespace EtehadBar.Infra.Data.Repository
                 data.Add(new ActivityListVM
                 {
                     VehicleId = vehicle.VehicleId,
-                    BankAccountNumber = vehicle.BankAccountNumber,
+                    BankAccountNumber = thisVehicleBankItem == null ? "---" : string.IsNullOrWhiteSpace(thisVehicleBankItem.AccountNumber) ? "---" : thisVehicleBankItem.BankId.Equals(customerBank) ? thisVehicleBankItem.AccountNumber : $"{thisVehicleBankItem.AccountNumber} ({thisVehicleBankItem.Definition.Title})",
                     VehicleNumber = vehicle.VehicleNumber,
-                    VehicleOwnerName = vehicle.VehicleOwnerFullname,
+                    VehicleOwnerName = thisVehicleBankItem == null ? vehicle.VehicleOwnerFullname : thisVehicleBankItem.Fullname,
+                    VehicleLeftNumber = vehicle.LeftNumber,
+                    VehicleRightNumber = vehicle.RightNumber,
                     Amount = -thisVehicleBalance,
                     ActivityAmount = driverFee
                 });

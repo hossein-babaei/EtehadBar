@@ -37,6 +37,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IFreeLoadFactorRepository _freeLoadFactorRepository;
         private readonly IVehicleBalanceRepository _vehicleBalanceRepository;
         private readonly IBillRepository _billRepository;
+        private readonly ILoadFactorNovinRepository _loadFactorNovinRepository;
         private readonly ApplicationDbContext db;
 
         public ExcelController(
@@ -50,7 +51,8 @@ namespace EtehadBar.MVC.Controllers
             IFreeLoadFactorRepository freeLoadFactorRepository,
             IVehicleBalanceRepository vehicleBalanceRepository,
             IBillRepository billRepository,
-            ApplicationDbContext dbContext)
+            ApplicationDbContext dbContext,
+            ILoadFactorNovinRepository loadFactorNovinRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -63,6 +65,7 @@ namespace EtehadBar.MVC.Controllers
             _vehicleBalanceRepository = vehicleBalanceRepository;
             _billRepository = billRepository;
             db = dbContext;
+            _loadFactorNovinRepository = loadFactorNovinRepository;
         }
 
         [Authorize(Roles = "Admin")]
@@ -1795,9 +1798,11 @@ namespace EtehadBar.MVC.Controllers
 
                                     if (loadFactors[i].Tonnage.HasValue)
                                     {
-                                        loadFactors[i].DriverFee = loadFactors[i].DriverFee + loadFactors[i].Tonnage.Value * loadFactors[i].DriverTonnagePrice.Value;
+                                        if (loadFactors[i].DriverTonnagePrice.HasValue)
+                                            loadFactors[i].DriverFee = loadFactors[i].DriverFee + loadFactors[i].Tonnage.Value * loadFactors[i].DriverTonnagePrice.Value;
 
-                                        loadFactors[i].Amount = loadFactors[i].Amount + loadFactors[i].Tonnage.Value * loadFactors[i].TonnagePrice.Value;
+                                        if (loadFactors[i].TonnagePrice.HasValue)
+                                            loadFactors[i].Amount = loadFactors[i].Amount + loadFactors[i].Tonnage.Value * loadFactors[i].TonnagePrice.Value;
                                     }
                                     #endregion
 
@@ -2222,7 +2227,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 4).Value = data[i].Amount < 0 ? 0 : data[i].Amount.ToString("N0");
                 if (hasPayment)
                 {
-                    ws.Cell(i + 3, 5).Value = string.IsNullOrWhiteSpace(data[i].BankAccountNumber) ? "---" : data[i].BankAccountNumber.Replace('-', '.');
+                    ws.Cell(i + 3, 5).SetValue<string>(string.IsNullOrWhiteSpace(data[i].BankAccountNumber) ? "---" : data[i].BankAccountNumber.Replace('-', '.'));
                     ws.Cell(i + 3, 6).Value = data[i].Amount < 0 ? $"مبغ {(-(data[i].Amount)).ToString("N0")} ریال بدهکار" : "";
                 }
             }
@@ -2275,7 +2280,9 @@ namespace EtehadBar.MVC.Controllers
                     Amount = amount,
                     VehicleNumber = item.VehicleNumber,
                     VehicleId = item.VehicleId,
-                    VehicleOwnerName = item.VehicleOwnerName
+                    VehicleOwnerName = item.VehicleOwnerName,
+                    RightNumber = item.VehicleRightNumber,
+                    LeftNumber = item.VehicleLeftNumber
                 });
             }
 
@@ -2292,7 +2299,9 @@ namespace EtehadBar.MVC.Controllers
                     Amount = item.Amount,
                     VehicleNumber = $"ایران {item.Vehicle.IranStateNumber} - {item.Vehicle.RightNumber} {item.Vehicle.NumberWord} {item.Vehicle.LeftNumber}",
                     VehicleId = item.VehicleId.Value,
-                    VehicleOwnerName = item.Vehicle.VehicleOwnerFullname
+                    VehicleOwnerName = item.Vehicle.VehicleOwnerFullname,
+                    RightNumber = item.Vehicle.RightNumber,
+                    LeftNumber = item.Vehicle.LeftNumber
                 });
             }
 
@@ -2307,11 +2316,31 @@ namespace EtehadBar.MVC.Controllers
                     Amount = item.Amount,
                     VehicleNumber = $"ایران {item.Vehicle.IranStateNumber} - {item.Vehicle.RightNumber} {item.Vehicle.NumberWord} {item.Vehicle.LeftNumber}",
                     VehicleId = item.VehicleId,
-                    VehicleOwnerName = item.Vehicle.VehicleOwnerFullname
+                    VehicleOwnerName = item.Vehicle.VehicleOwnerFullname,
+                    RightNumber = item.Vehicle.RightNumber,
+                    LeftNumber = item.Vehicle.LeftNumber
                 });
             }
 
-            var distinctedData = finalData.DistinctBy(a => a.VehicleId).ToList();
+            var loadFactorNovins = await db.LoadFactorNovin.Include(a => a.Vehicle).AsNoTracking()
+                .Where(a => a.CalendarId.Equals(calendarId) && a.CustomerId.Equals(customerId))
+                .OrderBy(a => a.Vehicle.LeftNumber).ThenBy(a => a.Vehicle.RightNumber).ToListAsync();
+
+            foreach (var item in loadFactorNovins)
+            {
+                finalData.Add(new VehicleFullActivityVM
+                {
+                    Activity = item.DriverFee,
+                    Amount = item.DriverFee,
+                    VehicleNumber = $"ایران {item.Vehicle.IranStateNumber} - {item.Vehicle.RightNumber} {item.Vehicle.NumberWord} {item.Vehicle.LeftNumber}",
+                    VehicleId = item.VehicleId,
+                    VehicleOwnerName = item.Vehicle.VehicleOwnerFullname,
+                    RightNumber = item.Vehicle.RightNumber,
+                    LeftNumber = item.Vehicle.LeftNumber
+                });
+            }
+
+            var distinctedData = finalData.OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).DistinctBy(a => a.VehicleId).ToList();
 
             var calendar = await _calendarRepo.Get(calendarId);
             var customer = await _customerRepo.Get(customerId);
@@ -2917,7 +2946,7 @@ namespace EtehadBar.MVC.Controllers
             if (type == "all")
                 query = query.Where(a => a.RealStatus);
 
-            var vehicles = await query.AsNoTracking().OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
+            var vehicles = await query.AsNoTracking().Include(a => a.VehicleBankAccounts).OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
 
 
             for (int i = 0; i < vehicles.Count; i++)
@@ -2928,7 +2957,7 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 3).Value = vehicleNumber;
                 ws.Cell(i + 3, 4).SetValue<string>(vehicles[i].NationalNumber);
 
-                if (string.IsNullOrWhiteSpace(vehicles[i].BankAccountNumber))
+                if (!vehicles[i].VehicleBankAccounts.Any())
                     ws.Cell(i + 3, 2).Style.Fill.SetBackgroundColor(XLColor.LightGray);
 
                 if (!vehicles[i].RealStatus)
@@ -3162,6 +3191,136 @@ namespace EtehadBar.MVC.Controllers
             }
 
             #endregion
+
+            var loadFactorNovin = await (from a in db.LoadFactorNovin
+                                         join b in db.Vehicles on a.VehicleId equals b.Id
+                                         join c in db.Driver on a.DriverId equals c.Id
+                                         where a.CalendarId.Equals(calendarId) && a.CustomerId.Equals(customerId)
+                                         select new
+                                         {
+                                             VehicleId = b.Id,
+                                             b.LeftNumber,
+                                             b.RightNumber,
+                                             a.Date,
+                                             DriverName = c.Fullname,
+                                             a.Origin,
+                                             a.Destination,
+                                             a.Tonnage,
+                                             a.DriverTonnagePrice,
+                                             a.DriverFee,
+                                             VehicleNumber = $"ایران {b.IranStateNumber} - {b.RightNumber} {b.NumberWord} {b.LeftNumber}",
+                                             a.LoadNumber,
+                                             a.LoadNumberGov,
+                                         }).AsNoTracking().OrderBy(a => a.LeftNumber).ToListAsync();
+
+            var vehicleDataNovin = loadFactorNovin.GroupBy(a => a.VehicleNumber).ToList();
+
+            var vehicleIdsNovin = loadFactorNovin.Select(a => a.VehicleId).Distinct().ToList();
+            var vehicleDetailsNovin = await _vehicleRepo.Vehicles().Where(a => vehicleIdsNovin.Contains(a.Id)).AsNoTracking().ToArrayAsync();
+
+            foreach (var vehicle in vehicleDataNovin)
+            {
+                var vehicleId = vehicle.ElementAt(0).VehicleId;
+
+                if (data.Any(a => a.VehicleId.Equals(vehicleId)))
+                {
+                    var dataItem = data.Single(a => a.VehicleId.Equals(vehicleId));
+
+                    var otherFee = 0D;
+                    for (int i = 0; i < vehicle.Count(); i++)
+                    {
+                        var item = vehicle.ElementAt(i);
+
+                        if (item.Tonnage.HasValue)
+                            otherFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
+
+                        dataItem.Details.Add(new LoadFactorDetailModel
+                        {
+                            Day = 0,
+                            IsFreeDriverPrice = true,
+                            DriverName = item.DriverName,
+                            Amount = item.DriverFee,
+                            Date = new PersianDateTime(item.Date).ToString("yyyy/MM/dd"),
+                            Origin = item.Origin,
+                            Destination = item.Destination,
+                            LoadFactorNumber = string.IsNullOrWhiteSpace(item.LoadNumberGov) ? $"{persianDate.Year}/{rnd.Next(11111111, 59999999)}" : item.LoadNumberGov,
+                        });
+                    }
+
+                    if (otherFee > 0)
+                    {
+                        if (dataItem.Details.Any(a => a.Day == 32))
+                        {
+                            var detailItem = dataItem.Details.Single(a => a.Day == 32);
+                            detailItem.Amount += otherFee;
+                        }
+                        else
+                        {
+                            dataItem.Details.Add(new LoadFactorDetailModel
+                            {
+                                Day = 32,
+                                Amount = otherFee,
+                                Date = "---",
+                                Origin = "---",
+                                Destination = "---",
+                                LoadFactorNumber = "سایر / تناژ"
+                            });
+                        }
+                    }
+                }
+                else
+                {
+                    var vehicleItem = vehicleDetailsNovin.Single(a => a.Id.Equals(vehicleId));
+
+                    var loadFactorModelItem = new LoadFactorModel
+                    {
+                        DriverName = vehicleItem.VehicleOwnerFullname,
+                        CustomerName = customer.Name,
+                        VehicleId = vehicleId,
+                        VehicleLeftNumber = vehicleItem.LeftNumber,
+                        VehicleRightNumber = vehicleItem.RightNumber,
+                        VehicleNumber = $"ایران {vehicleItem.IranStateNumber} - {vehicleItem.RightNumber} {vehicleItem.NumberWord} {vehicleItem.LeftNumber}",
+                        Amount = 0
+                    };
+
+                    var otherFee = 0D;
+                    for (int i = 0; i < vehicle.Count(); i++)
+                    {
+                        var item = vehicle.ElementAt(i);
+
+                        if (item.Tonnage.HasValue)
+                            otherFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
+
+                        loadFactorModelItem.Details.Add(new LoadFactorDetailModel
+                        {
+                            Day = 0,
+                            Amount = item.DriverFee,
+                            DriverName = item.DriverName,
+                            IsFreeDriverPrice = true,
+                            Date = new PersianDateTime(item.Date).ToString("yyyy/MM/dd"),
+                            Origin = item.Origin,
+                            Destination = item.Destination,
+                            LoadFactorNumber = string.IsNullOrWhiteSpace(item.LoadNumberGov) ? $"{persianDate.Year}/{rnd.Next(11111111, 59999999)}" : item.LoadNumberGov,
+                        });
+                    }
+
+                    if (otherFee > 0)
+                    {
+                        loadFactorModelItem.Details.Add(new LoadFactorDetailModel
+                        {
+                            Day = 32,
+                            Amount = otherFee,
+                            Date = "---",
+                            Origin = "---",
+                            Destination = "---",
+                            LoadFactorNumber = "سایر / تناژ"
+                        });
+                    }
+
+                    data.Add(loadFactorModelItem);
+                }
+            }
+
 
             var query = await (from a in db.LoadFactor
                                join b in db.Contract on a.ContractId equals b.Id
@@ -3429,7 +3588,7 @@ namespace EtehadBar.MVC.Controllers
             vehicleIdList.AddRange(loadFactors.Select(a => a.VehicleId).Distinct());
             vehicleIdList = vehicleIdList.Distinct().ToList();
 
-            var vehicles = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => vehicleIdList.Contains(a.Id)).OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
+            var vehicles = await _vehicleRepo.Vehicles().Include(a => a.VehicleBankAccounts).AsNoTracking().Where(a => vehicleIdList.Contains(a.Id)).OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
 
 
             string docTitle = $"لیست عملکرد دوره ای خودرو ها";
@@ -3463,7 +3622,7 @@ namespace EtehadBar.MVC.Controllers
 
                 ws.Cell(i + 3, 6).SetValue<string>(bills.Where(a => a.VehicleId.Equals(vehicles[i].Id)).Sum(a => a.Amount).ToString("N0"));
 
-                if (string.IsNullOrWhiteSpace(vehicles[i].BankAccountNumber))
+                if (!vehicles[i].VehicleBankAccounts.Any())
                     ws.Cell(i + 3, 2).Style.Fill.SetBackgroundColor(XLColor.LightGray);
 
                 if (!vehicles[i].RealStatus)

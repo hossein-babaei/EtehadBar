@@ -1,0 +1,79 @@
+﻿@model IEnumerable<VehicleBankAccount>
+
+@{
+    var vehicle = (Vehicle)ViewData["Vehicle"];
+    ViewData["pageId"] = 6;
+    ViewData["Title"] = $"حساب های بانکی {vehicle.IranStateNumber} - {vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+}
+@section Scripts{
+    <script>
+        function create() {
+            preloader();
+            $.get('@Url.Action("CreateVehicleBankAccount")', { 'vehicleId': @vehicle.Id }, function (r) {
+                $('#create-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#create-modal form');
+                preloader();
+                UIkit.modal('#create-modal').show();
+            });
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditVehicleBankAccount")', { 'id': id }, function (r) {
+                $('#edit-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#edit-modal form');
+                preloader();
+                UIkit.modal('#edit-modal').show();
+            });
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="Vehicle" asp-controller="Admin">خودرو ها</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Fullname)</th>
+                    <th>@Html.DisplayNameFor(model => model.AccountNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.BankId)</th>
+                    <th width="50">ویرایش</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.Fullname)</td>
+                        <td>@Html.DisplayFor(modelItem => item.AccountNumber)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Definition.Title)</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="edit-modal" uk-modal="bg-close: false"></div>
+<div id="create-modal" uk-modal="bg-close: false"></div>

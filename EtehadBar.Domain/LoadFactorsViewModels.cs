@@ -695,4 +695,205 @@ namespace EtehadBar.Domain
         [Display(Name = "بارنامه آزاد")]
         public bool IsFreeDriverPrice { get; set; }
     }
+
+    public class CreateLoadFactorNovinVM
+    {
+        [Display(Name = "وضعیت پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsPaied { get; set; } = false;
+
+        [Display(Name = "وضعیت دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsReceived { get; set; } = false;
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+
+        [Display(Name = "روز پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int PDay { get; set; }
+
+        [Display(Name = "ماه پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int PMonth { get; set; }
+
+        [Display(Name = "سال پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int PYear { get; set; }
+
+
+        [Display(Name = "روز دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int RDay { get; set; }
+
+        [Display(Name = "ماه دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int RMonth { get; set; }
+
+        [Display(Name = "سال دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int RYear { get; set; }
+
+
+        [Display(Name = "مبدا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Origin { get; set; }
+
+        [Display(Name = "مقصد")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Destination { get; set; }
+
+        [Display(Name = "نام متقاضی")]
+        public string ApplicantName { get; set; }
+
+        [Display(Name = "بارنامه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string LoadNumber { get; set; }
+
+        [Display(Name = "شماره بارنامه دولتی")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string LoadNumberGov { get; set; }
+
+        [Display(Name = "مشتری")]
+        public long? CustomerId { get; set; }
+
+        [Required]
+        [Display(Name = "تقویم کاری")]
+        public long CalendarId { get; set; }
+
+        [Required]
+        [Display(Name = "راننده")]
+        public long DriverId { get; set; }
+
+        [Required]
+        [Display(Name = "خودرو")]
+        public long VehicleId { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+    }
+
+    public class EditLoadFactorNovinVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "وضعیت پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsPaied { get; set; } = false;
+
+        [Display(Name = "وضعیت دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsReceived { get; set; } = false;
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+
+        [Display(Name = "روز پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int PDay { get; set; }
+
+        [Display(Name = "ماه پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int PMonth { get; set; }
+
+        [Display(Name = "سال پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int PYear { get; set; }
+
+
+        [Display(Name = "روز دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int RDay { get; set; }
+
+        [Display(Name = "ماه دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int RMonth { get; set; }
+
+        [Display(Name = "سال دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int RYear { get; set; }
+
+        [Display(Name = "مبدا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Origin { get; set; }
+
+        [Display(Name = "مقصد")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Destination { get; set; }
+
+        [Display(Name = "نام متقاضی")]
+        public string ApplicantName { get; set; }
+
+        [Display(Name = "بارنامه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string LoadNumber { get; set; }
+
+        [Display(Name = "شماره بارنامه دولتی")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string LoadNumberGov { get; set; }
+
+        [Display(Name = "مشتری")]
+        public long? CustomerId { get; set; }
+
+        [Required]
+        [Display(Name = "تقویم کاری")]
+        public long CalendarId { get; set; }
+
+        [Required]
+        [Display(Name = "راننده")]
+        public long DriverId { get; set; }
+
+        [Required]
+        [Display(Name = "خودرو")]
+        public long VehicleId { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
+
+        [Display(Name = "تناژ اضافه")]
+        public double? Tonnage { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+    }
 }

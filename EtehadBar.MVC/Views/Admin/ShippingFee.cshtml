@@ -62,7 +62,7 @@
         $('#tonnageDriverAmountDate').persianDatepicker(datePickerConfig);
 
         function submitChange() {
-            var form = $('#change-form');
+            var form = $('#change-modal form');
 
             preloader();
             $.post('@Url.Action("ChangeShippingFee")', form.serialize(), function (r) {

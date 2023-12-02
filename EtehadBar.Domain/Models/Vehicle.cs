@@ -46,14 +46,6 @@ namespace EtehadBar.Domain.Models
         [StringLength(128)]
         public string VehicleOwnerFullname { get; set; }
 
-        [Display(Name = "نام بانک")]
-        [StringLength(64)]
-        public string AccountBankName { get; set; }
-
-        [Display(Name = "شماره حساب بانکی")]
-        [StringLength(64)]
-        public string BankAccountNumber { get; set; }
-
         [Display(Name = "کد ملی")]
         [StringLength(10, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string NationalNumber { get; set; }
@@ -71,10 +63,12 @@ namespace EtehadBar.Domain.Models
         public DateTime? EditDatetime { get; set; }
         public string EditorId { get; set; }
 
-        public virtual ICollection<Bill> Bills { get; set; }
-        public virtual ICollection<OtherCost> OtherCosts { get; set; }
-        public virtual ICollection<LoadFactor> LoadFactors { get; set; }
-        public virtual ICollection<VehicleBalance> VehicleBalances { get; set; }
+        public ICollection<Bill> Bills { get; set; }
+        public ICollection<OtherCost> OtherCosts { get; set; }
+        public ICollection<LoadFactor> LoadFactors { get; set; }
+        public ICollection<VehicleBalance> VehicleBalances { get; set; }
+        public ICollection<LoadFactorNovin> LoadFactorNovins { get; set; }
+        public ICollection<VehicleBankAccount> VehicleBankAccounts { get; set; }
 
         [Required]
         [StringLength(36)]

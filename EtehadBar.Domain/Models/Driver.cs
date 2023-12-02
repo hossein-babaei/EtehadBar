@@ -41,7 +41,8 @@ namespace EtehadBar.Domain.Models
         public DateTime? EditDatetime { get; set; }
         public string EditorId { get; set; }
 
-        public virtual ICollection<LoadFactor> LoadFactors { get; set; }
+        public ICollection<LoadFactor> LoadFactors { get; set; }
+        public ICollection<LoadFactorNovin> LoadFactorNovins { get; set; }
 
         [Required]
         [StringLength(36)]

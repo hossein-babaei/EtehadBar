@@ -1,0 +1,45 @@
+﻿@model VehicleBankAccount
+
+@{
+    var banks = (List<Definition>)ViewData["Definition"];
+}
+
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">ویرایش</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="edit-form" asp-action="EditVehicleBankAccount" method="post" autocomplete="off">
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="VehicleId" type="hidden" />
+            <input autocomplete="false" name="hidden" type="text" style="display:none;">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="Fullname" class="uk-form-label"></label>
+                    <input asp-for="Fullname" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Fullname" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="AccountNumber" class="uk-form-label"></label>
+                    <input asp-for="AccountNumber" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="AccountNumber" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="BankId" class="uk-form-label"></label>
+                    <select asp-for="BankId" class="uk-select uk-form-small uk-border-rounded">
+                        @foreach (var item in banks)
+                        {
+                            <!option value="@item.Id" @if (Model.BankId.Equals(item.Id)) { <text>selected="selected"</text> }>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="BankId" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="$('#edit-form').submit()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

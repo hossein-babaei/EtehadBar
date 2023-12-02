@@ -4,6 +4,7 @@ using EtehadBar.Infra.Data.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EtehadBar.Infra.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231121061305_LoadFactorNovin")]
+    partial class LoadFactorNovin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -665,9 +667,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
-                    b.Property<long>("ActiveBank")
-                        .HasColumnType("bigint");
-
                     b.Property<int>("CustomerType")
                         .HasColumnType("int");
 
@@ -698,8 +697,6 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ActiveBank");
-
                     b.HasIndex("RowId")
                         .IsUnique();
 
@@ -709,7 +706,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         new
                         {
                             Id = 1L,
-                            ActiveBank = 43L,
                             CustomerType = 0,
                             HasAddonTonnage = false,
                             HasLoadSleep = false,
@@ -722,7 +718,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         new
                         {
                             Id = 2L,
-                            ActiveBank = 43L,
                             CustomerType = 1,
                             HasAddonTonnage = true,
                             HasLoadSleep = false,
@@ -735,7 +730,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         new
                         {
                             Id = 3L,
-                            ActiveBank = 43L,
                             CustomerType = 2,
                             HasAddonTonnage = false,
                             HasLoadSleep = false,
@@ -748,7 +742,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         new
                         {
                             Id = 4L,
-                            ActiveBank = 45L,
                             CustomerType = 3,
                             HasAddonTonnage = true,
                             HasLoadSleep = true,
@@ -1406,12 +1399,6 @@ namespace EtehadBar.Infra.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ReceiveDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<string>("RowId")
                         .IsRequired()
                         .HasMaxLength(36)
@@ -1930,6 +1917,14 @@ namespace EtehadBar.Infra.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
 
+                    b.Property<string>("AccountBankName")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("BankAccountNumber")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<DateTime>("CreateDatetime")
                         .HasColumnType("datetime2");
 
@@ -2049,47 +2044,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.HasIndex("VehicleId");
 
                     b.ToTable("VehicleBalance", "dbo");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.VehicleBankAccount", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"), 1L, 1);
-
-                    b.Property<string>("AccountNumber")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<long>("BankId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Fullname")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<string>("RowId")
-                        .IsRequired()
-                        .HasMaxLength(36)
-                        .HasColumnType("nvarchar(36)");
-
-                    b.Property<long>("VehicleId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BankId");
-
-                    b.HasIndex("RowId")
-                        .IsUnique();
-
-                    b.HasIndex("VehicleId");
-
-                    b.ToTable("VehicleBankAccount", "dbo");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -2327,17 +2281,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("Calendar");
-
-                    b.Navigation("Definition");
-                });
-
-            modelBuilder.Entity("EtehadBar.Domain.Models.Customer", b =>
-                {
-                    b.HasOne("EtehadBar.Domain.Models.Definition", "Definition")
-                        .WithMany("Customers")
-                        .HasForeignKey("ActiveBank")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
 
                     b.Navigation("Definition");
                 });
@@ -2638,25 +2581,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("Vehicle");
                 });
 
-            modelBuilder.Entity("EtehadBar.Domain.Models.VehicleBankAccount", b =>
-                {
-                    b.HasOne("EtehadBar.Domain.Models.Definition", "Definition")
-                        .WithMany("VehicleBankAccounts")
-                        .HasForeignKey("BankId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("EtehadBar.Domain.Models.Vehicle", "Vehicle")
-                        .WithMany("VehicleBankAccounts")
-                        .HasForeignKey("VehicleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Definition");
-
-                    b.Navigation("Vehicle");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -2776,13 +2700,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("OtherCosts");
                 });
 
-            modelBuilder.Entity("EtehadBar.Domain.Models.Definition", b =>
-                {
-                    b.Navigation("Customers");
-
-                    b.Navigation("VehicleBankAccounts");
-                });
-
             modelBuilder.Entity("EtehadBar.Domain.Models.Driver", b =>
                 {
                     b.Navigation("LoadFactorNovins");
@@ -2822,8 +2739,6 @@ namespace EtehadBar.Infra.Data.Migrations
                     b.Navigation("OtherCosts");
 
                     b.Navigation("VehicleBalances");
-
-                    b.Navigation("VehicleBankAccounts");
                 });
 #pragma warning restore 612, 618
         }

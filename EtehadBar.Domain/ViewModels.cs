@@ -112,6 +112,8 @@ namespace EtehadBar.Domain
         public double Amount { get; set; }
         public double? ActivityAmount { get; set; }
         public string BankAccountNumber { get; set; }
+        public string VehicleRightNumber { get; set; }
+        public string VehicleLeftNumber { get; set; }
     }
 
     public class ActivityListPaymentVM
@@ -1205,5 +1207,7 @@ namespace EtehadBar.Domain
         public string VehicleOwnerName { get; set; }
         public double Amount { get; set; }
         public double? Activity { get; set; }
+        public string RightNumber { get; set; }
+        public string LeftNumber { get; set; }
     }
 }

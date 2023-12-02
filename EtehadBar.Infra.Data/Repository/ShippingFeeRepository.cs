@@ -49,7 +49,7 @@ namespace EtehadBar.Infra.Data.Repository
 
         public async Task<List<LoadFactor>> GetLoadFactorsByContractId(long contractId, DateTime date)
         {
-            return await db.LoadFactor.Where(a => a.ContractId.Equals(contractId) && a.Date >= date).ToListAsync();
+            return await db.LoadFactor.Include(a => a.MehrcomParsLoadFactor).Where(a => a.ContractId.Equals(contractId) && a.Date >= date).ToListAsync();
         }
 
         public void UpdateRange(List<ShippingFee> list)

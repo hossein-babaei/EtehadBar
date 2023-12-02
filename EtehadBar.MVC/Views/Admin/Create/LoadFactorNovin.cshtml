@@ -1,0 +1,229 @@
+﻿@model CreateLoadFactorNovinVM
+
+@{
+    var customers = (List<Customer>)ViewData["Customers"];
+    var drivers = (List<Driver>)ViewData["Drivers"];
+    var vehicles = (List<Vehicle>)ViewData["Vehicles"];
+    var calendars = (List<Calendar>)ViewData["Calendars"];
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">افزودن نوین بار</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="create-form">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
+                <div class="uk-width-2-5@m">
+                    <label asp-for="ApplicantName" class="uk-form-label"></label>
+                    <input asp-for="ApplicantName" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="ApplicantName" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-3-5@m">
+                    <label asp-for="CustomerId" class="uk-form-label"></label>
+                    <select asp-for="CustomerId" class="uk-select uk-border-rounded">
+                        @foreach (var item in customers)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="VehicleId" class="uk-form-label"></label>
+                    <select asp-for="VehicleId" class="uk-select uk-border-rounded">
+                        @foreach (var item in vehicles)
+                        {
+                            <option value="@item.Id" data-vehicle-type="@item.Type">@item.Type | ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</option>
+                        }
+                    </select>
+                    <span asp-validation-for="VehicleId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="DriverId" class="uk-form-label"></label>
+                    <select asp-for="DriverId" class="uk-select uk-border-rounded">
+                        @foreach (var item in drivers)
+                        {
+                            <option value="@item.Id">@item.Fullname (@item.NationalNumber)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="DriverId" class="uk-text-danger"></span>
+                </div>
+                @{
+                    var now = PersianDateTime.Now;
+                }
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">روز</label>
+                    <select asp-for="Day" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                        @for (int i = 1; i < 32; i++)
+                        {
+                            <!option value="@i" @if (now.Day == i)
+                            {
+                                <text> selected="selected" </text>
+                            }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">ماه</label>
+                    <select asp-for="Month" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                        @for (int i = 1; i < 13; i++)
+                        {
+                            <!option value="@i" @if (now.Month == i)
+                            {
+                                <text> selected="selected" </text>
+                            }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">سال</label>
+                    <input class="uk-input uk-border-rounded uk-form-small" asp-for="Year" value="@(new PersianDateTime(DateTime.Now).Year)" dir="ltr" />
+                </div>
+                <div class="uk-width-1-1">
+                    <label asp-for="CalendarId" class="uk-form-label"></label>
+                    <select asp-for="CalendarId" class="uk-select uk-border-rounded uk-form-small">
+                        @foreach (var item in calendars)
+                        {
+                            <option value="@item.Id">@item.Title - (@(new PersianDateTime(item.StartDate).ToString("yyyy/MM/dd")) الی @(new PersianDateTime(item.EndDate).ToString("yyyy/MM/dd")))</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Amount" class="uk-form-label"></label>
+                    <input asp-for="Amount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="DriverFee" class="uk-form-label"></label>
+                    <input asp-for="DriverFee" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="DriverFee" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="LoadNumber" class="uk-form-label"></label>
+                    <input asp-for="LoadNumber" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="LoadNumber" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="LoadNumberGov" class="uk-form-label"></label>
+                    <input asp-for="LoadNumberGov" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="LoadNumberGov" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Origin" class="uk-form-label"></label>
+                    <input asp-for="Origin" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Origin" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Destination" class="uk-form-label"></label>
+                    <input asp-for="Destination" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Destination" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label asp-for="Tonnage" class="uk-form-label"></label>
+                    <input asp-for="Tonnage" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Tonnage" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label asp-for="TonnagePrice" class="uk-form-label"></label>
+                    <input asp-for="TonnagePrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="TonnagePrice" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label asp-for="DriverTonnagePrice" class="uk-form-label"></label>
+                    <input asp-for="DriverTonnagePrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="DriverTonnagePrice" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <div class="uk-grid-small uk-child-width-1-1 uk-grid">
+                        <div>
+                            <label asp-for="IsReceived"></label>
+                        </div>
+                        <div>
+                            <label><input class="uk-radio" type="radio" asp-for="IsReceived" value="true"> دریافت شده</label>
+                            <label><input class="uk-radio" type="radio" asp-for="IsReceived" value="false" checked> دریافت نشده</label>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-grid-small uk-child-width-1-1 uk-grid">
+                        <div><label asp-for="IsPaied"></label></div>
+                        <div>
+                            <label><input class="uk-radio" type="radio" asp-for="IsPaied" value="true"> پرداخت شده</label>
+                            <label><input class="uk-radio" type="radio" asp-for="IsPaied" value="false" checked> پرداخت نشده</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="uk-width-1-2@m">
+                    <div class="uk-grid-small" uk-grid>
+                        <div class="uk-width-1-3@m">
+                            <label class="uk-form-label">روز</label>
+                            <select asp-for="RDay" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                                @for (int i = 0; i < 32; i++)
+                                {
+                                    <!option value="@i" @if (i == 0)
+                                    {
+                                        <text> selected="selected" </text>
+                                    }>@i</!option>
+                                }
+                            </select>
+                        </div>
+                        <div class="uk-width-1-3@m">
+                            <label class="uk-form-label">ماه</label>
+                            <select asp-for="RMonth" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                                @for (int i = 0; i < 13; i++)
+                                {
+                                    <!option value="@i" @if (i == 0)
+                                    {
+                                        <text> selected="selected" </text>
+                                    }>@i</!option>
+                                }
+                            </select>
+                        </div>
+                        <div class="uk-width-1-3@m">
+                            <label class="uk-form-label">سال</label>
+                            <input class="uk-input uk-border-rounded uk-form-small" asp-for="RYear" value="0" dir="ltr" />
+                        </div>
+                    </div>
+                </div>
+                <div class="uk-width-1-2@m">
+                    <div class="uk-grid-small" uk-grid>
+                        <div class="uk-width-1-3@m">
+                            <label class="uk-form-label">روز</label>
+                            <select asp-for="PDay" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                                @for (int i = 0; i < 32; i++)
+                                {
+                                    <!option value="@i" @if (i == 0)
+                                    {
+                                        <text> selected="selected" </text>
+                                    }>@i</!option>
+                                }
+                            </select>
+                        </div>
+                        <div class="uk-width-1-3@m">
+                            <label class="uk-form-label">ماه</label>
+                            <select asp-for="PMonth" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                                @for (int i = 0; i < 13; i++)
+                                {
+                                    <!option value="@i" @if (i == 0)
+                                    {
+                                        <text> selected="selected" </text>
+                                    }>@i</!option>
+                                }
+                            </select>
+                        </div>
+                        <div class="uk-width-1-3@m">
+                            <label class="uk-form-label">سال</label>
+                            <input class="uk-input uk-border-rounded uk-form-small" asp-for="PYear" value="0" dir="ltr" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitCreate()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

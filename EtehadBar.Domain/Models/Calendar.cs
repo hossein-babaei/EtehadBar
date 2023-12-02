@@ -33,15 +33,16 @@ namespace EtehadBar.Domain.Models
         public string EditorId { get; set; }
         public DateTime? EditDate { get; set; }
 
-        public virtual ICollection<Bill> Bills { get; set; }
-        public virtual ICollection<Cost> Costs { get; set; }
-        public virtual ICollection<OtherCost> OtherCosts { get; set; }
-        public virtual ICollection<LoadFactor> LoadFactors { get; set; }
-        public virtual ICollection<AccountBook> AccountBooks { get; set; }
-        public virtual ICollection<CustomerFactor> CustomerFactors { get; set; }
-        public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }
-        public virtual ICollection<FreeLoadFactor> FreeLoadFactors { get; set; }
-        public virtual ICollection<VehicleBalance> VehicleBalances { get; set; }
+        public ICollection<Bill> Bills { get; set; }
+        public ICollection<Cost> Costs { get; set; }
+        public ICollection<OtherCost> OtherCosts { get; set; }
+        public ICollection<LoadFactor> LoadFactors { get; set; }
+        public ICollection<AccountBook> AccountBooks { get; set; }
+        public ICollection<CustomerFactor> CustomerFactors { get; set; }
+        public ICollection<CustomerIncome> CustomerIncomes { get; set; }
+        public ICollection<FreeLoadFactor> FreeLoadFactors { get; set; }
+        public ICollection<VehicleBalance> VehicleBalances { get; set; }
+        public ICollection<LoadFactorNovin> LoadFactorNovins { get; set; }
 
         [Required]
         [StringLength(36)]

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain.Models
 {
@@ -41,11 +42,18 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double LoadFactorDeductions { get; set; }
 
-        public virtual ICollection<AccountBook> AccountBooks { get; set; }
-        public virtual ICollection<Contract> Contracts { get; set; }
-        public virtual ICollection<OtherCost> OtherCosts { get; set; }
-        public virtual ICollection<CustomerIncome> CustomerIncomes { get; set; }
-        public virtual ICollection<CustomerPeriodicBalanceSummary> CustomerPeriodicBalanceSummaries { get; set; }
+        [Display(Name = "بانک فعال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [ForeignKey(nameof(Definition))]
+        public long ActiveBank { get; set; }
+        public Definition Definition { get; set; }
+
+        public ICollection<AccountBook> AccountBooks { get; set; }
+        public ICollection<Contract> Contracts { get; set; }
+        public ICollection<OtherCost> OtherCosts { get; set; }
+        public ICollection<CustomerIncome> CustomerIncomes { get; set; }
+        public ICollection<CustomerPeriodicBalanceSummary> CustomerPeriodicBalanceSummaries { get; set; }
+        public ICollection<LoadFactorNovin> LoadFactorNovins { get; set; }
 
         [Required]
         [StringLength(36)]

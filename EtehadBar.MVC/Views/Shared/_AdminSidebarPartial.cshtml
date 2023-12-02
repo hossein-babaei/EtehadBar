@@ -64,6 +64,7 @@
             <a><i class="uk-margin-left fas fa-clipboard-check"></i>بارنامه ها</a>
             <ul class="uk-nav-sub">
                 <li @if (param == 24) { <text> class="active" </text> }><a asp-action="FreeLoadFactor" asp-controller="Admin">آزاد</a></li>
+                <li @if (param == 40) { <text> class="active" </text> }><a asp-action="LoadFactorNovin" asp-controller="Admin">نوین</a></li>
                 <li @if (param == 8) { <text> class="active" </text> }><a asp-action="LoadFactor" asp-controller="Admin">قراردادی</a></li>
             </ul>
         </li>

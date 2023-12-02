@@ -19,6 +19,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using X.PagedList;
 using static MongoDB.Driver.WriteConcern;
@@ -57,6 +58,9 @@ namespace EtehadBar.MVC.Controllers
         private readonly IVehicleBalanceRepository _vehicleBalanceRepository;
         private readonly ICustomerFactorRepository _customerFactorRepository;
         private readonly ITurnoverProfileRepository _turnoverProfileRepository;
+        private readonly ILoadFactorNovinRepository _loadFactorNovinRepository;
+        private readonly IVehicleBankAccountRepository _vehicleBankAccountRepository;
+        private readonly ApplicationDbContext _context;
 
         public AdminController(
             IAccountBookRepository accountBookRepository,
@@ -86,7 +90,10 @@ namespace EtehadBar.MVC.Controllers
             IBillRepository billRepository,
             IVehicleBalanceRepository vehicleBalanceRepository,
             ICustomerFactorRepository customerFactorRepository,
-            ITurnoverProfileRepository turnoverProfileRepository)
+            ITurnoverProfileRepository turnoverProfileRepository,
+            ILoadFactorNovinRepository loadFactorNovinRepository,
+            IVehicleBankAccountRepository vehicleBankAccountRepository,
+            ApplicationDbContext context)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -116,6 +123,9 @@ namespace EtehadBar.MVC.Controllers
             _vehicleBalanceRepository = vehicleBalanceRepository;
             _customerFactorRepository = customerFactorRepository;
             _turnoverProfileRepository = turnoverProfileRepository;
+            _loadFactorNovinRepository = loadFactorNovinRepository;
+            _vehicleBankAccountRepository = vehicleBankAccountRepository;
+            _context = context;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -127,6 +137,7 @@ namespace EtehadBar.MVC.Controllers
 
         public async Task<IActionResult> Index(int? dayLimit)
         {
+
             //#region edit fee by price
             //var date = new DateTime(2023, 05, 22);
             //var contractId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.RowId == "62153ffa-328f-48f0-aaed-dc497d058402")
@@ -1031,8 +1042,6 @@ namespace EtehadBar.MVC.Controllers
                 item.RightNumber = v.RightNumber;
                 item.Status = v.Status;
                 item.Type = v.Type;
-                item.AccountBankName = v.AccountBankName;
-                item.BankAccountNumber = v.BankAccountNumber;
                 item.VehicleOwnerFullname = v.VehicleOwnerFullname;
                 item.RealStatus = v.RealStatus;
                 item.NationalNumber = v.NationalNumber;
@@ -1044,6 +1053,111 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _vehicleRepo.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region VehicleBankAccount
+
+        [HttpGet]
+        public async Task<IActionResult> VehicleBankAccount(int? id)
+        {
+            if (!id.HasValue)
+                return NotFound();
+
+            ViewData["Vehicle"] = await _vehicleRepo.Get(id.Value);
+            return View(await _vehicleBankAccountRepository.Query().Include(a => a.Definition).AsNoTracking().Where(a => a.VehicleId.Equals(id.Value)).OrderBy(a => a.Id).ToListAsync());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> CreateVehicleBankAccount(long vehicleId)
+        {
+            ViewData["VehicleId"] = vehicleId;
+            ViewData["Definition"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType.Equals(DefinitionType.BankName)).OrderBy(a => a.Title).ToListAsync();
+            return PartialView("~/Views/Admin/Create/VehicleBankAccount.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateVehicleBankAccount(VehicleBankAccount v)
+        {
+            if (ModelState.IsValid)
+            {
+
+                if (await _vehicleBankAccountRepository.Query().AnyAsync(a => a.VehicleId.Equals(v.VehicleId) && a.BankId.Equals(v.BankId)))
+                {
+                    TempData["msg"] = "برای بانک انتخابی، قبلا یک حساب درج شده است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                if (await _vehicleBankAccountRepository.Query().AnyAsync(a => a.VehicleId.Equals(v.VehicleId) && a.AccountNumber.Equals(v.AccountNumber)))
+                {
+                    TempData["msg"] = "شماره حساب وارد شده قبلا ثبت شده است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                await _vehicleBankAccountRepository.Create(v);
+                try
+                {
+                    await _vehicleBankAccountRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<PartialViewResult> EditVehicleBankAccount(int id)
+        {
+            ViewData["Definition"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType.Equals(DefinitionType.BankName)).OrderBy(a => a.Title).ToListAsync();
+            return PartialView("~/Views/Admin/Edit/VehicleBankAccount.cshtml", await _vehicleBankAccountRepository.Get(id));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditVehicleBankAccount(VehicleBankAccount v)
+        {
+            if (ModelState.IsValid)
+            {
+
+                if (await _vehicleBankAccountRepository.Query().AnyAsync(a => !a.Id.Equals(v.Id) && a.VehicleId.Equals(v.VehicleId) && a.BankId.Equals(v.BankId)))
+                {
+                    TempData["msg"] = "برای بانک انتخابی، قبلا یک حساب درج شده است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                if (await _vehicleBankAccountRepository.Query().AnyAsync(a => !a.Id.Equals(v.Id) && a.VehicleId.Equals(v.VehicleId) && a.AccountNumber.Equals(v.AccountNumber)))
+                {
+                    TempData["msg"] = "شماره حساب وارد شده قبلا ثبت شده است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = await _vehicleBankAccountRepository.Get(v.Id);
+                item.AccountNumber = v.AccountNumber;
+                item.BankId = v.BankId;
+                item.Fullname = v.Fullname;
+
+                _vehicleBankAccountRepository.Update(item);
+                try
+                {
+                    await _vehicleBankAccountRepository.Save();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                 }
                 catch (Exception e)
@@ -2269,7 +2383,8 @@ namespace EtehadBar.MVC.Controllers
             if (latestContractAddon == null)
                 latestContractAddon = await _contractRepo.Get(contractId);
 
-            var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
+            //var exludedRoutes = new List<long> { 44, 45, 47, 30301 };
+            var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId) /*&& !exludedRoutes.Contains(a.OriginId) && !exludedRoutes.Contains(a.DestinationId)*/).ToListAsync();
             var loadFactors = await _shippingFeeRepo.GetLoadFactorsByContractId(contractId, latestContractAddon.StartDate);
             var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(b => b.Id).ToList().Contains(a.LoadFactorId.Value)).ToListAsync();
 
@@ -2331,6 +2446,9 @@ namespace EtehadBar.MVC.Controllers
                         {
                             isEdited = true;
                             loadFactor.DriverFee = fee.DriverPrice;
+
+                            //if (loadFactor.MehrcomParsLoadFactor is not null && loadFactor.MehrcomParsLoadFactor.HasAddonMessage)
+                            //    loadFactor.DriverFee += (loadFactor.DriverFee * 0.3);
                         }
 
                         if (loadFactor.Date >= tonnageAmountDatetime && loadFactor.TonnagePrice.HasValue)
@@ -4101,6 +4219,290 @@ namespace EtehadBar.MVC.Controllers
         }
         #endregion
 
+        #region LoadFactorNovin
+        [HttpGet]
+        public async Task<IActionResult> LoadFactorNovin(int? p)
+        {
+            var pageNumber = p ?? 1;
+            if (pageNumber == 1)
+            {
+                if (!await _vehicleRepo.Vehicles().AnyAsync())
+                {
+                    TempData["msg"] = "برای ثبت بارنامه، باید حداقل یک خودرو ثبت نمائید. |danger";
+                    return RedirectToAction("Vehicle");
+                }
+
+                if (!await _driverRepository.Drivers().AnyAsync())
+                {
+                    TempData["msg"] = "برای ثبت بارنامه، باید حداقل یک راننده ثبت نمائید. |danger";
+                    return RedirectToAction("Driver");
+                }
+            }
+            ViewData["Customer"] = await _customerRepo.GetAllActive();
+
+            var query = _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Include(a => a.Driver).Include(a => a.Customer).AsQueryable();
+
+            ViewBag.data = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 15);
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> LoadFactorNovin_Search(int? p, string loadNumber, string vehicleNumber, long? calendar)
+        {
+            var pageNumber = p ?? 1;
+
+            var query = _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Include(a => a.Driver).Include(a => a.Customer).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(loadNumber))
+                query = query.Where(a => a.LoadNumber.Contains(loadNumber) || a.LoadNumberGov.Contains(loadNumber));
+            if (!string.IsNullOrWhiteSpace(vehicleNumber))
+                query = query.Where(a => vehicleNumber == (a.Vehicle.LeftNumber + " " + a.Vehicle.NumberWord + " " + a.Vehicle.RightNumber));
+            if (calendar.HasValue && calendar.Value > 0)
+                query = query.Where(a => a.CalendarId.Equals(calendar.Value));
+
+            ViewBag.page = p;
+            ViewBag.loadNumber = loadNumber;
+            ViewBag.vehicleNumber = vehicleNumber;
+            ViewBag.calendar = calendar;
+
+
+            ViewBag.data = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 15);
+            return PartialView();
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateLoadFactorNovin()
+        {
+            ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Fullname).ToListAsync();
+            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["Customers"] = await _customerRepo.GetAllActive();
+
+            return PartialView("~/Views/Admin/Create/LoadFactorNovin.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateLoadFactorNovin(CreateLoadFactorNovinVM v)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                string fileNames = "";
+                var files = Request.Form.Files;
+                if (files != null)
+                {
+                    foreach (var pic in files)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            if (!Directory.Exists(Path.Combine(_environment.WebRootPath, "img\\novin")))
+                                Directory.CreateDirectory(Path.Combine(_environment.WebRootPath, "img\\novin"));
+
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\novin", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            fileNames += (files.Count == 1 || pic == files.Last()) ? fileName : $"{fileName};;";
+                        }
+                        else
+                        {
+                            msg = "لطفا از فرمت jpg  یا png استفاده کنید |danger";
+                            return Json(new { msg, status });
+                        }
+                    }
+                }
+
+                var item = new LoadFactorNovin
+                {
+                    Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime(),
+                    PaymentDate = (v.PYear > 0 && v.PMonth > 0 && v.PDay > 0) ? new PersianDateTime(v.PYear, v.PMonth, v.PDay).ToDateTime() : null,
+                    ReceiveDate = (v.RYear > 0 && v.RMonth > 0 && v.RDay > 0) ? new PersianDateTime(v.RYear, v.RMonth, v.RDay).ToDateTime() : null,
+                    IsPaied = v.IsPaied,
+                    IsReceived = v.IsReceived,
+                    CreateDateTime = DateTime.Now,
+                    CreatorId = _userManager.GetUserId(User),
+                    CustomerId = v.CustomerId,
+                    Amount = v.Amount,
+                    ApplicantName = v.ApplicantName,
+                    CalendarId = v.CalendarId,
+                    Destination = v.Destination,
+                    DriverId = v.DriverId,
+                    DriverFee = v.DriverFee,
+                    DriverTonnagePrice = v.DriverTonnagePrice,
+                    LoadNumber = v.LoadNumber,
+                    LoadNumberGov = v.LoadNumberGov,
+                    Origin = v.Origin,
+                    Tonnage = v.Tonnage,
+                    TonnagePrice = v.TonnagePrice,
+                    VehicleId = v.VehicleId,
+                    Attachments = fileNames
+                };
+
+                _loadFactorNovinRepository.Create(item);
+                try
+                {
+                    await _loadFactorNovinRepository.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+
+            return Json(new { msg, status });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> EditLoadFactorNovin(long id)
+        {
+            ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Fullname).ToListAsync();
+            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
+            ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["Customers"] = await _customerRepo.GetAllActive();
+
+            var data = await _loadFactorNovinRepository.GetEditData(id);
+
+            return PartialView("~/Views/Admin/Edit/LoadFactorNovin.cshtml", data);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditLoadFactorNovin(EditLoadFactorNovinVM v)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _loadFactorNovinRepository.Get(v.Id);
+                item.Amount = v.Amount;
+                item.LoadNumber = v.LoadNumber;
+                item.ApplicantName = v.ApplicantName;
+                item.TonnagePrice = v.TonnagePrice;
+                item.DriverTonnagePrice = v.DriverTonnagePrice;
+                item.DriverId = v.DriverId;
+                item.CalendarId = v.CalendarId;
+                item.CustomerId = v.CustomerId;
+                item.Destination = v.Destination;
+                item.DriverFee = v.DriverFee;
+                item.EditDateTime = DateTime.Now;
+                item.EditorId = _userManager.GetUserId(User);
+                item.LoadNumberGov = v.LoadNumberGov;
+                item.Origin = v.Origin;
+                item.Tonnage = v.Tonnage;
+                item.VehicleId = v.VehicleId;
+                item.IsReceived = v.IsReceived;
+                item.IsPaied = v.IsPaied;
+
+                item.Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
+
+                item.PaymentDate = (v.PYear > 0 && v.PMonth > 0 && v.PDay > 0) ? new PersianDateTime(v.PYear, v.PMonth, v.PDay).ToDateTime() : null;
+                item.ReceiveDate = (v.RYear > 0 && v.RMonth > 0 && v.RDay > 0) ? new PersianDateTime(v.RYear, v.RMonth, v.RDay).ToDateTime() : null;
+
+                string fileNames = "";
+                var files = Request.Form.Files;
+                if (files != null)
+                {
+                    foreach (var pic in files)
+                    {
+                        if (pic.ContentType == "image/jpeg" || pic.ContentType == "image/png")
+                        {
+                            var fileName = Path.GetRandomFileName() + Path.GetExtension(pic.FileName).ToLower();
+                            var path = Path.Combine(_environment.WebRootPath, "img\\novin", fileName);
+                            using (var stream = new FileStream(path, FileMode.Create))
+                            {
+                                await pic.CopyToAsync(stream);
+                            }
+
+                            fileNames += (files.Count == 1 || pic == files.Last()) ? fileName : $"{fileName};;";
+                        }
+                        else
+                        {
+                            TempData["msg"] = "لطفا از فرمت jpg  یا png استفاده کنید |success";
+                            return Redirect(Request.Headers["Referer"].ToString());
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(item.Attachments))
+                    {
+                        foreach (var pic in item.Attachments.Split(";;", StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\novin", pic));
+                            }
+                            catch (Exception)
+                            {
+                                throw;
+                            }
+                        }
+                    }
+                }
+
+                _loadFactorNovinRepository.Update(item);
+                try
+                {
+                    await _loadFactorNovinRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |success";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteLoadFactorNovin(long id)
+        {
+            var item = await _loadFactorNovinRepository.Get(id);
+            if (item is not null)
+            {
+                if (!string.IsNullOrEmpty(item.Attachments))
+                {
+                    foreach (var pic in item.Attachments.Split(";;", StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        try
+                        {
+                            System.IO.File.Delete(Path.Combine(_environment.WebRootPath, "img\\novin", pic));
+                        }
+                        catch (Exception)
+                        {
+                            throw;
+                        }
+                    }
+                }
+                _loadFactorNovinRepository.Delete(item);
+                try
+                {
+                    await _loadFactorNovinRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
         #region AccountBookLoadFactor
         public async Task<IActionResult> AccountBookLoadFactor(string id)
         {
@@ -5824,7 +6226,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _billRepository.Save();
 
-                    if (b.VehicleId.HasValue)
+                    if (b.VehicleId.HasValue && b.BillType != "نوین بار")
                     {
                         await _vehicleBalanceRepository.Create(new VehicleBalance
                         {
@@ -5905,13 +6307,13 @@ namespace EtehadBar.MVC.Controllers
 
                     var balanceItem = await _vehicleBalanceRepository.Query().Where(a => a.BillId.HasValue && a.BillId.Value.Equals(item.Id)).FirstOrDefaultAsync();
 
-                    if (isVehicleChanged)
+                    if (isVehicleChanged && b.BillType == "نوین بار")
                     {
                         _vehicleBalanceRepository.Delete(balanceItem);
                         await _vehicleBalanceRepository.Save();
                     }
 
-                    if (b.VehicleId.HasValue)
+                    if (b.VehicleId.HasValue && b.BillType != "نوین بار")
                     {
                         if (balanceItem != null)
                         {

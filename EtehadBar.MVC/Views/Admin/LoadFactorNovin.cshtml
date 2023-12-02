@@ -1,0 +1,310 @@
+﻿@model LoadFactorNovin
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    var customers = (List<Customer>)ViewData["Customer"];
+    ViewData["pageId"] = 40;
+    var data = ViewBag.data as IPagedList<LoadFactorNovin>;
+    ViewData["Title"] = "بارنامه های نوین بار";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+
+    if (data.PageNumber > 1)
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+}
+@section Scripts{
+    <script>
+        let calendars = [];
+        $('#search-modal form').submit(function (e) {
+            e.preventDefault();
+            filter();
+        });
+        async function getSearchModal() {
+            if (calendars.length == 0) {
+                await $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("GetCalendarsJson")',
+                    data: {},
+                    dataType: 'json',
+                    beforeSend: function () {
+                        preloader();
+                    },
+                    success: function (r) {
+                        calendars = r;
+                        let options = '<option value="0" selected="selected">همه</option>';
+                        $.each(calendars, (i, v) => {
+                            options += `<option value="${v.id}">${v.title}</option>`;
+                        });
+                        $('#search-modal #calendar').html(options);
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger');
+                    },
+                    complete: function () {
+                        preloader();
+                    }
+                });
+            }
+            UIkit.modal('#search-modal').show();
+        }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("LoadFactorNovin_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+        function viewDetail(id) {
+            preloader();
+            $.get('@Url.Action("LoadFactorDetail")', { 'id': id }, function (r) {
+                $('#create-modal').html(r);
+            }, 'html').then(function () {
+                preloader();
+                UIkit.modal('#create-modal').show();
+            });
+        }
+        function getCreateForm() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CreateLoadFactorNovin")',
+                data: { },
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#create-modal').html(r);
+                    $('#create-modal #CustomerId').select2({ width: '100%' });
+                    $('#create-modal #VehicleId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#create-modal #DriverId').select2({ width: '100%' });
+                    $('#create-modal #CalendarId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    parseValidator('#create-modal form');
+                    UIkit.modal('#create-modal').show();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function submitCreate() {
+            if ($('#create-modal form').valid() == true) {
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("CreateLoadFactorNovin")',
+                    data: $('#create-modal form').serialize(),
+                    dataType: 'json',
+                    beforeSend: function () {
+                        preloader();
+                    },
+                    success: function (r) {
+                        uiAlert(r.msg, r.status);
+                        if (r.status == 'success') {
+                            $.post('@Url.Action("LoadFactorNovin_Search")', {}, function (r) {
+                                $('#append').html(r);
+                            }, 'html');
+                        }
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger');
+                    },
+                    complete: function () {
+                        preloader();
+                    }
+                });
+            }
+        }
+        function getEditForm(id) {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("EditLoadFactorNovin")',
+                data: { 'id': id },
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#edit-modal').html(r);
+                    $('#edit-modal #CustomerId').select2({ width: '100%' });
+                    $('#edit-modal #VehicleId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#edit-modal #DriverId').select2({ width: '100%' });
+                    $('#edit-modal #CalendarId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    parseValidator('#edit-modal form');
+                    UIkit.modal('#edit-modal').show();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"] <span id="total-count">(@data.TotalItemCount)</span></span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <button onclick="getCreateForm()" class="uk-button uk-button-primary">افزودن</button>
+        <button onclick="getSearchModal()" class="uk-button uk-button-secondary uk-margin-small-right">جستجو</button>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle uk-text-small">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
+                    <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
+                    <th>مسیر</th>
+                    <th>خودرو</th>
+                    <th>راننده</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>مشتری</th>
+                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                    <th>@Html.DisplayNameFor(model => model.IsPaied)</th>
+                    <th>@Html.DisplayNameFor(model => model.IsReceived)</th>
+                    <th width="50">جزئیات</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center sm" data-id="@item.Id">
+                        <td>@i</td>
+                        <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
+                        <td>@(string.IsNullOrWhiteSpace(item.LoadNumberGov) ? "---" : item.LoadNumberGov)</td>
+                        <td>@item.Origin<br />@item.Destination</td>
+                        <td>@item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
+                        <td>@item.Driver.Fullname</td>
+                        <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
+                        <td>@item.Customer.Name</td>
+                        <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                        <td class="uk-text-bold md driver-fee pointer" onclick="editDriverFee(this)"
+                            data-val="@item.DriverFee" data-tonnage-val="@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value : 0)">
+                            @item.DriverFee.ToString("N0")
+                        </td>
+                        @if (item.IsPaied)
+                        {
+                            <td class="uk-text-success" uk-tooltip="@(item.PaymentDate.HasValue ? new PersianDateTime(item.PaymentDate.Value).ToString("yyyy/MM/dd") : "---")">پرداخت شده</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-danger">پرداخت نشده</td>
+                        }
+                        @if (item.IsReceived)
+                        {
+                            <td class="uk-text-success" uk-tooltip="@(item.ReceiveDate.HasValue ? new PersianDateTime(item.ReceiveDate.Value).ToString("yyyy/MM/dd") : "---")">دریافت شده</td>
+                        }
+                        else
+                        {
+                            <td class="uk-text-danger">دریافت نشده</td>
+                        }
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="getEditForm('@item.Id')"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("LoadFactorNovin", new { p = page }))
+        </div>
+    }
+</div>
+<div id="edit-modal" class="uk-modal-container" uk-modal="bg-close: false"></div>
+<div id="create-modal" class="uk-modal-container" uk-modal="bg-close: false"></div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجوی بارنامه</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div>
+                    <label class="uk-form-label">شماره خروج</label>
+                    <input dir="ltr" class="uk-input uk-border-rounded uk-text-left" id="exitNumber" name="exitNumber" autocomplete="off" placeholder="شماره خروج را در این قسمت تایپ نمائید..." />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">شماره بارنامه</label>
+                    <input dir="ltr" class="uk-input uk-border-rounded uk-text-left" id="loadNumber" name="loadNumber" autocomplete="off" placeholder="شماره بارنامه را در این قسمت تایپ نمائید..." />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">شماره خودرو</label>
+                    <input class="uk-input uk-border-rounded uk-text-left" id="vehicleNumber" name="vehicleNumber" autocomplete="off" placeholder="شماره خودرو را به صورت کامل همراه با فاصله ها وارد کنید..." />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">تقویم کاری</label>
+                    <select class="uk-select uk-border-rounded" id="calendar" name="calendar"></select>
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="LoadFactor" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteLoadFactor" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>

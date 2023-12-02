@@ -43,6 +43,7 @@
             formData.append('Amount', data.find(a => a.name == 'Amount').value);
             formData.append('Description', data.find(a => a.name == 'Description').value);
             formData.append('CostAccountId', data.find(a => a.name == 'CostAccountId').value);
+
             $.ajax({
                 type: 'POST',
                 url: '@Url.Action("Cost")',
@@ -60,6 +61,9 @@
                         $.post('@Url.Action("Cost_Search")', { }, function (r) {
                             $('#append').html(r);
                         }, 'html');
+
+                        $('#create-modal form')[0].reset();
+                        $('.format-append').html('');
                     }
                 },
                 error: function (e) {

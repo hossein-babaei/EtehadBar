@@ -1,30 +1,42 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain.Models
 {
     [Index(nameof(RowId), IsUnique = true)]
-    public class LoadFactor
+    public class LoadFactorNovin
     {
         [Key]
         public long Id { get; set; }
 
+        [Display(Name = "وضعیت پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsPaied { get; set; } = false;
+
+        [Display(Name = "تاریخ پرداخت")]
+        public DateTime? PaymentDate { get; set; }
+
+        [Display(Name = "وضعیت دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsReceived { get; set; } = false;
+
+        [Display(Name = "تاریخ دریافت")]
+        public DateTime? ReceiveDate { get; set; }
+
         [Display(Name = "تاریخ")]
         public DateTime Date { get; set; } = DateTime.Now;
 
-        [Display(Name = "مبدأ")]
+        [Display(Name = "مبدا")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [ForeignKey(nameof(Origin))]
-        public long OriginId { get; set; }
-        public LoadRoutes Origin { get; set; }
+        public string Origin { get; set; }
 
         [Display(Name = "مقصد")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [ForeignKey(nameof(Destination))]
-        public long DestinationId { get; set; }
-        public LoadRoutes Destination { get; set; }
+        public string Destination { get; set; }
+
+        [Display(Name = "نام متقاضی")]
+        public string ApplicantName { get; set; }
 
         [Display(Name = "مبلغ (ریال)")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -51,51 +63,15 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "شماره بارنامه دولتی")]
         public string LoadNumberGov { get; set; }
 
-        [Display(Name = "شماره خروج")]
-        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
-        public string ExitNumber { get; set; }
-
-        [Display(Name = "مالیات ارزش افزوده (%)")]
-        public double VAT { get; set; }
-
-        [Display(Name = "سپرده بیمه (%)")]
-        public double LoadFactorDeductions { get; set; }
-
-        [Display(Name = "مالیات تکلیفی (%)")]
-        public double WithholdingTax { get; set; }
-
         [StringLength(450)]
-        public string AdminId { get; set; }
+        public string CreatorId { get; set; }
         public DateTime CreateDateTime { get; set; } = DateTime.Now;
 
         [StringLength(450)]
         public string EditorId { get; set; }
         public DateTime? EditDateTime { get; set; }
 
-        [Display(Name = "نرخ باسکول")]
-        public double? WeighbridgePrice { get; set; }
-
-        [Display(Name = "میزان خواب (دقیقه)")]
-        public double? LoadSleepTime { get; set; }
-
-        [Display(Name = "مبلغ دریافتی خواب")]
-        public double? LoadSleepPrice { get; set; }
-
-        [Display(Name = "مبلغ پرداختی خواب")]
-        public double? DriverLoadSleepPrice { get; set; }
-
-        [Required]
-        public long ShippingFeeId { get; set; }
-
-        //used for custom load factors
-        public bool IsDriverFeeEditedByAdmin { get; set; } = false;
-
-        public bool IsFreeDriverPrice { get; set; } = false;
-
-        [Required]
-        [Display(Name = "مشتری")]
-        public long ContractId { get; set; }
-        public Contract Contract { get; set; }
+        public string Attachments { get; set; }
 
         [Required]
         [Display(Name = "تقویم کاری")]
@@ -113,15 +89,9 @@ namespace EtehadBar.Domain.Models
         public Vehicle Vehicle { get; set; }
 
         [Required]
-        [Display(Name = "صورت وضعیت")]
-        [ForeignKey(nameof(AccountBook))]
-        public long AccountBookId { get; set; }
-        public AccountBook AccountBook { get; set; }
-
-        public MehrcomParsLoadFactor MehrcomParsLoadFactor { get; set; }
-        public SaipaPlascoLoadFactor SaipaPlascoLoadFactor { get; set; }
-        public SaipaPressLoadFactor SaipaPressLoadFactor { get; set; }
-        public SazehGostarLoadFactor SazehGostarLoadFactor { get; set; }
+        [Display(Name = "شرکت متقاضی")]
+        public long? CustomerId { get; set; }
+        public Customer Customer { get; set; }
 
         [Required]
         [StringLength(36)]
