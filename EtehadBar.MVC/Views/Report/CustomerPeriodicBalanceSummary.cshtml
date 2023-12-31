@@ -58,6 +58,7 @@
                     <th>@Html.DisplayNameFor(model => model.StartDate)</th>
                     <th>@Html.DisplayNameFor(model => model.EndDate)</th>
                     <th width="50">گزارش</th>
+                    <th width="50">کسر/اضافه</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -75,6 +76,7 @@
                         <td>@startDate</td>
                         <td>@endDate</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerBalanceByPeriod" asp-route-id="@item.Id"><i class="fas fa-clipboard-list"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerPeriodicBalanceAddon" asp-route-id="@item.Id"><i class="fas fa-clipboard-list"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

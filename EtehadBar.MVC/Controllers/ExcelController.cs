@@ -258,27 +258,32 @@ namespace EtehadBar.MVC.Controllers
         {
             var calendar = await _calendarRepo.Get(calendarId);
 
-            var query = _costRepo.Costs().Include(a => a.ApplicationUser).Where(a => a.CalendarId.Equals(calendarId));
+            var query = _costRepo.Costs().Include(a => a.ApplicationUser).Include(a => a.Definition).Where(a => a.CalendarId.Equals(calendarId));
             if (userId != "all")
                 query = query.Where(a => a.UserId.Equals(userId));
 
             var costs = await query.OrderBy(a => a.Date).ToListAsync();
 
-            string docTitle = $"گزارش هزینه های جاری در {calendar.Title}";
+            string docTitle = $"صورت هزینه های تنخواه گردان شرکت اتحاد بار آسیا در {calendar.Title}";
 
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("گزارش هزینه های جاری");
+
             ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
             ws.Cell(1, 1).Value = docTitle;
 
-            ws.Cell(2, 1).Value = "#";
+            ws.Cell(2, 1).Value = "ردیف";
             ws.Cell(2, 2).Value = "تاریخ";
-            ws.Cell(2, 3).Value = "توضیحات";
+            ws.Cell(2, 3).Value = "شرح";
             ws.Cell(2, 4).Value = "مبلغ";
             ws.Cell(2, 5).Value = "کاربر سیستم";
+            ws.Cell(2, 6).Value = "حساب";
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(costs.Count + 2, 5));
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(costs.Count + 2, 6));
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
@@ -287,7 +292,7 @@ namespace EtehadBar.MVC.Controllers
                     .Fill.SetBackgroundColor(XLColor.LightGray)
                         .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 5)); // The address is relative to rngTable (NOT the worksheet)
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 6)); // The address is relative to rngTable (NOT the worksheet)
             rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             rngHeaders.Style.Font.Bold = true;
             rngHeaders.Style.Font.FontColor = XLColor.Black;
@@ -299,23 +304,28 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 2, 3).Value = costs[index - 1].Description;
                 ws.Cell(index + 2, 4).Value = costs[index - 1].Amount.ToString("N0");
                 ws.Cell(index + 2, 5).Value = $"{costs[index - 1].ApplicationUser.Firstname} {costs[index - 1].ApplicationUser.Lastname}";
+                ws.Cell(index + 2, 6).Value = costs[index - 1].Definition.Title;
             }
 
-            ws.Cell($"B{costs.Count + 3}").Value = "تعداد کل";
-            ws.Range($"B{costs.Count + 3}:D{costs.Count + 3}").Row(1).Merge();
-            ws.Cell(costs.Count + 3, 5).Value = costs.Count;
+            ws.Cell($"B{costs.Count + 3}").Value = "جمع کل";
+            ws.Cell($"D{costs.Count + 3}").Value = costs.Sum(a => a.Amount).ToString("N0");
+            ws.Range($"B{costs.Count + 3}:C{costs.Count + 3}").Row(1).Merge();
+            ws.Range($"D{costs.Count + 3}:F{costs.Count + 3}").Row(1).Merge();
 
-            ws.Cell($"B{costs.Count + 4}").Value = "جمع کل";
-            ws.Range($"B{costs.Count + 4}:D{costs.Count + 4}").Row(1).Merge();
-            ws.Cell(costs.Count + 4, 5).Value = costs.Sum(a => a.Amount).ToString("N0");
-
-            var rngTable2 = ws.Range($"B{costs.Count + 3}:E{costs.Count + 4}");
+            var rngTable2 = ws.Range($"B{costs.Count + 3}:F{costs.Count + 3}");
             rngTable2.RangeUsed().Style
                 .Font.SetBold()
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
                 .Font.SetFontSize(12);
 
             ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
+            ws.RangeUsed().Style.Border.SetInsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetInsideBorderColor(XLColor.Black);
+
             ws.Columns().AdjustToContents();
+
+            ws.PageSetup.SetPageOrientation(XLPageOrientation.Landscape)
+                .SetPaperSize(XLPaperSize.A4Paper);
 
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);

@@ -31,6 +31,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<Customer> Customer { get; set; }
         public DbSet<CustomerFactor> CustomerFactor { get; set; }
         public DbSet<CustomerIncome> CustomerIncome { get; set; }
+        public DbSet<CustomerPeriodicBalanceAddon> CustomerPeriodicBalanceAddon { get; set; }
         public DbSet<CustomerPeriodicBalanceSummary> CustomerPeriodicBalanceSummary { get; set; }
         public DbSet<Definition> Definition { get; set; }
         public DbSet<Driver> Driver { get; set; }

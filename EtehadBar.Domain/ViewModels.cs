@@ -1200,6 +1200,73 @@ namespace EtehadBar.Domain
         public long CustomerId { get; set; }
     }
 
+    public class CreateCustomerPeriodicBalanceAddonVM
+    {
+        [Display(Name = "عنوان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+        [Display(Name = "مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کسر/اضافه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsPositive { get; set; }
+
+        [Display(Name = "دوره مربوطه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CustomerPeriodicBalanceSummaryId { get; set; }
+    }
+
+    public class EditCustomerPeriodicBalanceAddonVM
+    {
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long Id { get; set; }
+
+        [Display(Name = "عنوان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+        [Display(Name = "مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کسر/اضافه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public bool IsPositive { get; set; }
+
+        [Display(Name = "دوره مربوطه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CustomerPeriodicBalanceSummaryId { get; set; }
+    }
+
     public class VehicleFullActivityVM
     {
         public long VehicleId { get; set; }

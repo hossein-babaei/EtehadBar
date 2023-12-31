@@ -1,6 +1,4 @@
-﻿using Castle.Core.Resource;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using EtehadBar.Domain;
+﻿using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.MVC.Filters;
@@ -39,6 +37,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ILoadRoutesRepository _loadRoutesRepository;
         private readonly IShippingFeeRepository _shippingFeeRepository;
         private readonly ICustomerPeriodicBalanceSummaryRepository _customerPeriodicBalanceSummaryRepository;
+        private readonly ICustomerPeriodicBalanceAddonRepository _customerPeriodicBalanceAddonRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -57,7 +56,8 @@ namespace EtehadBar.MVC.Controllers
             ITurnoverProfileRepository turnoverProfileRepository,
             ILoadRoutesRepository loadRoutesRepository,
             IShippingFeeRepository shippingFeeRepository,
-            ICustomerPeriodicBalanceSummaryRepository customerPeriodicBalanceSummaryRepository)
+            ICustomerPeriodicBalanceSummaryRepository customerPeriodicBalanceSummaryRepository,
+            ICustomerPeriodicBalanceAddonRepository customerPeriodicBalanceAddonRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -76,6 +76,7 @@ namespace EtehadBar.MVC.Controllers
             _loadRoutesRepository = loadRoutesRepository;
             _shippingFeeRepository = shippingFeeRepository;
             _customerPeriodicBalanceSummaryRepository = customerPeriodicBalanceSummaryRepository;
+            _customerPeriodicBalanceAddonRepository = customerPeriodicBalanceAddonRepository;
         }
 
         [HttpPost]
@@ -577,13 +578,139 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CustomerPeriodicBalanceAddon(long? id)
+        {
+            if (id == null) return NotFound();
+
+            ViewData["Id"] = id;
+
+            return View(await _customerPeriodicBalanceAddonRepository.Query().AsNoTracking()
+                .Where(a => a.CustomerPeriodicBalanceSummaryId.Equals(id.Value)).OrderBy(a => a.Date).ToListAsync());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult CreateCustomerPeriodicBalanceAddon(long id)
+        {
+            ViewData["Id"] = id;
+            return PartialView("~/Views/Report/Create/CustomerPeriodicBalanceAddon.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateCustomerPeriodicBalanceAddon(CreateCustomerPeriodicBalanceAddonVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                DateTime date = new PersianDateTime(c.Year, c.Month, c.Day).ToDateTime();
+
+                _customerPeriodicBalanceAddonRepository.Create(new CustomerPeriodicBalanceAddon
+                {
+                    Amount = c.Amount,
+                    Title = c.Title,
+                    CustomerPeriodicBalanceSummaryId = c.CustomerPeriodicBalanceSummaryId,
+                    Date = date,
+                    IsPositive = c.IsPositive
+                });
+                try
+                {
+                    await _customerPeriodicBalanceAddonRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> EditCustomerPeriodicBalanceAddon(int id)
+        {
+            var item = await _customerPeriodicBalanceAddonRepository.Get(id);
+            var persianDate = new PersianDateTime(item.Date);
+
+            return PartialView("~/Views/Report/Edit/CustomerPeriodicBalanceAddon.cshtml", new EditCustomerPeriodicBalanceAddonVM
+            {
+                Day = persianDate.Day,
+                Month = persianDate.Month,
+                Year = persianDate.Year,
+                Id = item.Id,
+                Amount = item.Amount,
+                Title = item.Title,
+                IsPositive = item.IsPositive,
+                CustomerPeriodicBalanceSummaryId = item.CustomerPeriodicBalanceSummaryId
+            });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditCustomerPeriodicBalanceAddon(EditCustomerPeriodicBalanceAddonVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _customerPeriodicBalanceAddonRepository.Get(c.Id);
+                item.Date = new PersianDateTime(c.Year, c.Month, c.Day).ToDateTime();
+                item.Title = c.Title;
+                item.IsPositive = c.IsPositive;
+                item.CustomerPeriodicBalanceSummaryId = c.CustomerPeriodicBalanceSummaryId;
+                item.Amount = c.Amount;
+
+                _customerPeriodicBalanceAddonRepository.Update(item);
+                try
+                {
+                    await _customerPeriodicBalanceAddonRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteCustomerPeriodicBalanceAddon(int id)
+        {
+            var item = await _customerPeriodicBalanceAddonRepository.Get(id);
+            if (item == null) return NotFound();
+
+            _customerPeriodicBalanceAddonRepository.Delete(item);
+            try
+            {
+                await _customerPeriodicBalanceAddonRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
         #endregion
 
         public async Task<IActionResult> CustomerBalanceByPeriod(long id)
         {
-            var periodItem = await _customerPeriodicBalanceSummaryRepository.Query().Include(a => a.Customer).AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(id));
+            var periodItem = await _customerPeriodicBalanceSummaryRepository.Query().Include(a => a.Customer).Include(a => a.CustomerPeriodicBalanceAddons).AsNoTracking().SingleOrDefaultAsync(a => a.Id.Equals(id));
             if (periodItem == null) return NotFound();
 
+            ViewData["CustomerPeriodicBalanceAddon"] = periodItem.CustomerPeriodicBalanceAddons.ToList();
             ViewData["BalanceAmount"] = periodItem.BalanceAmount;
             ViewData["InsuranceBalanceAmount"] = periodItem.InsuranceBalanceAmount;
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.Sequence).ToListAsync();

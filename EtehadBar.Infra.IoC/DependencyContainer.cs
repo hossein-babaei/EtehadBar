@@ -18,6 +18,7 @@ namespace EtehadBar.Infra.IoC
             services.AddScoped<IContractRepository, ContractRepository>();
             services.AddScoped<ICostRepository, CostRepository>();
             services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<ICustomerPeriodicBalanceAddonRepository, CustomerPeriodicBalanceAddonRepository>();
             services.AddScoped<ICustomerPeriodicBalanceSummaryRepository, CustomerPeriodicBalanceSummaryRepository>();
             services.AddScoped<IDefinitionRepository, DefinitionRepository>();
             services.AddScoped<ILoadFactorRepository, LoadFactorRepository>();

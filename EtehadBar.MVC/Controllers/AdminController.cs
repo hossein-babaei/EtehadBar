@@ -1,5 +1,4 @@
-﻿using Castle.Core.Resource;
-using EtehadBar.Domain;
+﻿using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
@@ -16,13 +15,10 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using X.PagedList;
-using static MongoDB.Driver.WriteConcern;
 
 namespace EtehadBar.MVC.Controllers
 {
@@ -992,7 +988,7 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (await _vehicleRepo.Vehicles().AnyAsync(a => a.IranStateNumber.Equals(v.IranStateNumber) && a.RightNumber.Equals(v.RightNumber) && a.NumberWord.Equals(v.NumberWord) && a.LeftNumber.Equals(v.LeftNumber)))
+                if (await _vehicleRepo.Vehicles().AnyAsync(a => a.Type.Equals(v.Type) && a.IranStateNumber.Equals(v.IranStateNumber) && a.RightNumber.Equals(v.RightNumber) && a.NumberWord.Equals(v.NumberWord) && a.LeftNumber.Equals(v.LeftNumber)))
                 {
                     TempData["msg"] = "شماره خودرو وارد شده قبلا ثبت شده است. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
@@ -1028,8 +1024,10 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> EditVehicle(Vehicle v)
         {
             if (ModelState.IsValid)
+
+
             {
-                if (await _vehicleRepo.Vehicles().AnyAsync(a => !a.Id.Equals(v.Id) && a.IranStateNumber.Equals(v.IranStateNumber) && a.RightNumber.Equals(v.RightNumber) && a.NumberWord.Equals(v.NumberWord) && a.LeftNumber.Equals(v.LeftNumber)))
+                if (await _vehicleRepo.Vehicles().AnyAsync(a => !a.Id.Equals(v.Id) && a.Type.Equals(v.Type) && a.IranStateNumber.Equals(v.IranStateNumber) && a.RightNumber.Equals(v.RightNumber) && a.NumberWord.Equals(v.NumberWord) && a.LeftNumber.Equals(v.LeftNumber)))
                 {
                     TempData["msg"] = "شماره خودرو وارد شده قبلا ثبت شده است. |danger";
                     return Redirect(Request.Headers["Referer"].ToString());
