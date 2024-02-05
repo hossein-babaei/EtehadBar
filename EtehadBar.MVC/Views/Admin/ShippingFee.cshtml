@@ -359,6 +359,25 @@
             preloader();
             form.submit();
         }
+        function deleteGroup() {
+            $('#append table thead tr').append('<th class="appended" width="50">انتخاب</th>');
+            $.each($('#append table tbody tr'), function (i, v) {
+                $(v).append(`<td class="appended"><div class="uk-flex uk-flex-middle uk-flex-center"><input value="${$(v).data('id')}" name="idList[]" class="uk-checkbox uk-border-rounded" type="checkbox" /></div></td>`);
+            });
+            $('#shipping-fee-head').html('<button onclick="cancelDelete()" class="uk-button uk-button-danger">انصراف</button><button onclick="selectAllItem()" class="uk-button uk-button-secondary select-btn uk-margin-small-right">انتخاب همه</button><button uk-toggle="#submit-modal" class="uk-button uk-button-primary uk-margin-small-right">ثبت</button>')
+        }
+        function cancelDelete() {
+            $('#shipping-fee-head').html('');
+            $('.appended').remove();
+        }
+        function selectAllItem() {
+            $('.select-btn').attr('onclick', 'deselectAllItems()');
+            $('td.appended input').attr('checked', true);
+        }
+        function deselectAllItems() {
+            $('.select-btn').attr('onclick', 'selectAllItem()');
+            $('td.appended input').attr('checked', false);
+        }
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -373,6 +392,7 @@
         <a onclick="moveLoadfactor()" class="uk-button uk-button-danger uk-margin-small-left">انتقال</a>
         @if (Model.Any())
         {
+            <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="deleteGroup()">حذف</a>
             <a uk-toggle="#change-fee-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ</a>
         }
         else
@@ -465,75 +485,78 @@
     </div>
 </div>
 <div id="append" class="box">
-    <div class="uk-overflow-auto">
-        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
-            <thead>
-                <tr>
-                    <th>ردیف</th>
-                    <th>@Html.DisplayNameFor(model => model.Title)</th>
-                    <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
-                    <th>@Html.DisplayNameFor(model => model.OriginId)</th>
-                    <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
-                    <th>@Html.DisplayNameFor(model => model.ShippingFeeType)</th>
-                    @if (contractInfo.Customer.HasLoadType)
-                    {
-                        <th>@Html.DisplayNameFor(model => model.ShippingFeeLoadTypeId)</th>
-                    }
-                    <th>@Html.DisplayNameFor(model => model.Price)</th>
-                    <th>@Html.DisplayNameFor(model => model.DriverPrice)</th>
-                    @if (contractInfo.Customer.HasAddonTonnage)
-                    {
-                        <th>@Html.DisplayNameFor(model => model.TonnagePrice)</th>
-                        <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
-                    }
-                    <th width="50">بارنامه ها</th>
-                    <th width="50">نرخ آزاد</th>
-                    <th width="50">ویرایش</th>
-                    <th width="50">حذف</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
-                {
-                    string type = "نرخ ثابت";
-                    if (item.ShippingFeeType == ShippingFeeType.Custom)
-                        type = "نرخ آزاد";
-
-                    <tr class="uk-text-center sm">
-                        <td>@i</td>
-                        <td>@(string.IsNullOrWhiteSpace(item.Title) ? "---" : item.Title)</td>
-                        <td>@item.Vehicle</td>
-                        <td>@item.Origin.Title</td>
-                        <td>@item.Destination.Title</td>
-                        <td>@type</td>
+    <div id="shipping-fee-head" class="uk-flex uk-flex-left"></div>
+    <form id="main-form" asp-action="DeleteGroupShippingFee" method="post">
+        <div class="uk-overflow-auto">
+            <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                <thead>
+                    <tr>
+                        <th>ردیف</th>
+                        <th>@Html.DisplayNameFor(model => model.Title)</th>
+                        <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
+                        <th>@Html.DisplayNameFor(model => model.OriginId)</th>
+                        <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
+                        <th>@Html.DisplayNameFor(model => model.ShippingFeeType)</th>
                         @if (contractInfo.Customer.HasLoadType)
                         {
-                            <td>@item.ShippingFeeLoadType.Name</td>
+                            <th>@Html.DisplayNameFor(model => model.ShippingFeeLoadTypeId)</th>
                         }
-                        <td>@item.Price.ToString("N0")</td>
-                        <td>@item.DriverPrice.ToString("N0")</td>
+                        <th>@Html.DisplayNameFor(model => model.Price)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverPrice)</th>
                         @if (contractInfo.Customer.HasAddonTonnage)
                         {
-                            <td>@(item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : "---")</td>
-                            <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
+                            <th>@Html.DisplayNameFor(model => model.TonnagePrice)</th>
+                            <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
                         }
-                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="ShippongFeeLoadFactors" asp-route-id="@item.Id"><i class="fas fa-clipboard-check"></i></a></td>
-                        @if (item.ShippingFeeType == ShippingFeeType.Normal)
-                        {
-                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="createFreeFee('@item.Id')"><i class="fas fa-sync-alt"></i></a></td>
-                        }
-                        else
-                        {
-                            <td><a class="uk-button uk-button-default uk-button-small"><i class="fas fa-sync-alt"></i></a></td>
-                        }
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                        <th width="50">بارنامه ها</th>
+                        <th width="50">نرخ آزاد</th>
+                        <th width="50">ویرایش</th>
+                        <th width="50">حذف</th>
                     </tr>
-                    i++;
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        string type = "نرخ ثابت";
+                        if (item.ShippingFeeType == ShippingFeeType.Custom)
+                            type = "نرخ آزاد";
+
+                        <tr class="uk-text-center sm" data-id="@item.Id">
+                            <td>@i</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Title) ? "---" : item.Title)</td>
+                            <td>@item.Vehicle</td>
+                            <td>@item.Origin.Title</td>
+                            <td>@item.Destination.Title</td>
+                            <td>@type</td>
+                            @if (contractInfo.Customer.HasLoadType)
+                            {
+                                <td>@item.ShippingFeeLoadType.Name</td>
+                            }
+                            <td>@item.Price.ToString("N0")</td>
+                            <td>@item.DriverPrice.ToString("N0")</td>
+                            @if (contractInfo.Customer.HasAddonTonnage)
+                            {
+                                <td>@(item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : "---")</td>
+                                <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
+                            }
+                            <td><a class="uk-button uk-button-primary uk-button-small" asp-action="ShippongFeeLoadFactors" asp-route-id="@item.Id"><i class="fas fa-clipboard-check"></i></a></td>
+                            @if (item.ShippingFeeType == ShippingFeeType.Normal)
+                            {
+                                <td><a class="uk-button uk-button-primary uk-button-small" onclick="createFreeFee('@item.Id')"><i class="fas fa-sync-alt"></i></a></td>
+                            }
+                            else
+                            {
+                                <td><a class="uk-button uk-button-default uk-button-small"><i class="fas fa-sync-alt"></i></a></td>
+                            }
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </form>
 </div>
 <div id="append-modal" uk-modal="bg-close: false"></div>
 <div id="delete-modal" class="uk-flex-top" uk-modal>
@@ -792,6 +815,16 @@
         <div class="uk-modal-footer uk-text-center">
             <button class="uk-button uk-button-primary" onclick="submitChangeAmount('driver')" type="button">ثبت تغییرات</button>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="submit-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>آیا از حذف نرخ های انتخابی اطمینان دارید؟</h3>
+        <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="$('#main-form').submit()" type="button">بلی</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
         </div>
     </div>
 </div>

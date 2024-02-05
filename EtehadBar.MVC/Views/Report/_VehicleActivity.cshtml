@@ -54,6 +54,7 @@
 </div>
 <div class="box uk-margin-small-bottom" style="padding:15px 30px">
     <h3 class="uk-text-center">گزارش بارنامه های @vehicle.Type به شماره (ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber) در <span class="underline">@calendar.Title</span></h3>
+    <h5 class="uk-text-center uk-margin-remove">مالک خودرو: @vehicle.VehicleOwnerFullname</h5>
 </div>
 <div class="box uk-margin-small-bottom">
     @if (Model.Any())
@@ -100,7 +101,7 @@
     }
 </div>
 <div class="box" style="padding:15px 30px">
-    <h3 class="uk-heading-divider uk-text-center">گزارش بارنامه های @vehicle.Type به شماره (ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber) در <span class="underline">@calendar.Title</span></h3>
+    <h3 class="uk-heading-divider uk-text-center">خلاصه عملکرد</h3>
     <div class="uk-grid-small" uk-grid>
         <div class="uk-width-expand" uk-leader="fill: .">تعداد کل بارنامه ها</div>
         <div>@Model.Count() عدد</div>

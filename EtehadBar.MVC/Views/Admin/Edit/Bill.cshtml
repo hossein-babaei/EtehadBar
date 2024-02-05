@@ -99,14 +99,14 @@
                         {
                             foreach (var item in vehicles)
                             {
-                                <!option value="@item.Id" data-owner="@item.VehicleOwnerFullname" @if(item.Id.Equals(Model.VehicleId.Value)){<text>selected="selected"</text>}>ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</!option>
+                                <!option value="@item.Id" data-owner="@item.VehicleOwnerFullname" @if(item.Id.Equals(Model.VehicleId.Value)){<text>selected="selected"</text>}>ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber (@item.Type)</!option>
                             }
                         }
                         else
                         {
                             foreach (var item in vehicles)
                             {
-                                <option value="@item.Id" data-owner="@item.VehicleOwnerFullname">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber</option>
+                                <option value="@item.Id" data-owner="@item.VehicleOwnerFullname">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber (@item.Type)</option>
                             }
                         }
                     </select>

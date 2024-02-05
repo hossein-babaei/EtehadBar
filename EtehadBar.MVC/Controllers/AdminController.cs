@@ -1812,7 +1812,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Contract(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _contractRepo.Contracts().Include(a => a.ContractAddons)
+            var onePageOfData = await _contractRepo.Contracts().Include(a => a.ContractAddons).Include(a => a.Customer)
                 .Where(a => !a.ParentContractId.HasValue).OrderByDescending(a => a.StartDate).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             return View();
@@ -2620,6 +2620,38 @@ namespace EtehadBar.MVC.Controllers
                 TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
             }
 
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteGroupShippingFee(long[] idList)
+        {
+            if (idList.Length > 0)
+            {
+                if (await _loadFactorRepo.LoadFactors().AnyAsync(a => idList.Contains(a.ShippingFeeId)))
+                {
+                    TempData["msg"] = $"نرخ های انتخابی دارای بارنامه هستند و قابلیت حذف ندارند. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var shippingFees = await _shippingFeeRepo.ShippingFees().Where(a => idList.Contains(a.Id)).ToListAsync();
+                foreach (var item in shippingFees)
+                {
+                    _shippingFeeRepo.Delete(item);
+                }
+
+                try
+                {
+                    await _shippingFeeRepo.Save();
+
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
             return Redirect(Request.Headers["Referer"].ToString());
         }
         #endregion
@@ -4176,6 +4208,9 @@ namespace EtehadBar.MVC.Controllers
             item.DriverTonnagePrice = TonnageFee > 0 ? TonnageFee : item.DriverTonnagePrice;
             item.IsFreeDriverPrice = IsFree;
             item.IsDriverFeeEditedByAdmin = true;
+            item.EditDateTime = DateTime.Now;
+            item.EditorId = _userManager.GetUserId(User);
+
             _loadFactorRepo.Update(item);
             try
             {
@@ -4202,6 +4237,33 @@ namespace EtehadBar.MVC.Controllers
                 msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
             }
             return Json(new { msg, status, fee = Fee.ToString("N0") });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditLoadFactorAmount(long Id, double Amount)
+        {
+            string msg;
+            string status = "danger";
+
+            var item = await _loadFactorRepo.Get(Id);
+            item.Amount = Amount;
+            item.IsDriverFeeEditedByAdmin = true;
+            item.EditDateTime = DateTime.Now;
+            item.EditorId = _userManager.GetUserId(User);
+            _loadFactorRepo.Update(item);
+            try
+            {
+                await _loadFactorRepo.Save();
+
+                msg = "عملیات موفقیت آمیز بود.";
+                status = "success";
+            }
+            catch (Exception e)
+            {
+                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+            }
+            return Json(new { msg, status, amount = Amount.ToString("N0") });
         }
 
         [HttpGet]
@@ -4884,7 +4946,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CreateCustomerFactor()
         {
             ViewData["Calendars"] = await _calendarRepo.Calendars().OrderByDescending(a => a.StartDate).ToListAsync();
-            ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderBy(a => a.StartDate).ToListAsync();
+            ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderByDescending(a => a.StartDate).ToListAsync();
             return PartialView("~/Views/Admin/Create/CustomerFactor.cshtml");
         }
 
@@ -4926,7 +4988,7 @@ namespace EtehadBar.MVC.Controllers
             var item = await _customerFactorRepository.Get(id);
 
             ViewData["Calendars"] = await _calendarRepo.Calendars().OrderByDescending(a => a.StartDate).ToListAsync();
-            ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderBy(a => a.StartDate).ToListAsync();
+            ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderByDescending(a => a.StartDate).ToListAsync();
 
             return PartialView("~/Views/Admin/Edit/CustomerFactor.cshtml", item);
         }

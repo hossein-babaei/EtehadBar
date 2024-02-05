@@ -110,6 +110,41 @@
                 }
             });
         }
+        function editAmount(td) {
+            let modalId = '#edit-amount-modal',
+                value = $(td).data('val'),
+                itemId = $(td).parent().data('id');
+
+            $(modalId).find('input[name=Id]').val(itemId);
+            $(modalId).find('input[name=Amount]').val(value);
+            $('.uk-modal-footer .uk-button-primary').attr('onclick', `submitEditAmount(${itemId})`);
+            UIkit.modal(modalId).show();
+        }
+        function submitEditAmount(itemId) {
+            var data = $('#edit-amount-form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EditLoadFactorAmount")',
+                data: data,
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    if (r.status == 'success') {
+                        $(`tr[data-id="${itemId}"] .amount`).text(r.amount);
+                        UIkit.modal('#edit-amount-modal').hide();
+                    }
+                    uiAlert(r.msg, r.status);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
         function viewDetail(id) {
             preloader();
             $.get('@Url.Action("LoadFactorDetail")', { 'id': id }, function (r) {
@@ -348,7 +383,7 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <td>@item.Contract.Customer.Name</td>
-                            <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                            <td class="uk-text-bold md amount pointer" onclick="editAmount(this)" data-val="@item.Amount">@item.Amount.ToString("N0")</td>
                             <td class="uk-text-bold md driver-fee pointer" onclick="editDriverFee(this)" 
                                 data-val="@item.DriverFee" data-tonnage-val="@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value : 0)">@item.DriverFee.ToString("N0")</td>
                             
@@ -463,6 +498,24 @@
             </div>
             <div class="uk-modal-footer uk-text-center">
                 <button class="uk-button uk-button-primary" onclick="submitEditDriverFee()" type="button">ثبت</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="edit-amount-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="edit-amount-form" method="post" asp-action="EditLoadFactorAmount" asp-controller="Admin" autocomplete="off">
+            <h3>ویرایش کرایه دریافتی</h3>
+            <input type="hidden" name="Id" />
+            <div class="uk-grid uk-grid-medium uk-child-width-1-1" uk-grid>
+                <div>
+                    <label class="uk-form-label">کرایه</label>
+                    <input dir="ltr" class="uk-input uk-border-rounded format-number" name="Amount" id="Fee" />
+                </div>
+            </div>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="submitEditAmount()" type="button">ثبت</button>
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
             </div>
         </form>

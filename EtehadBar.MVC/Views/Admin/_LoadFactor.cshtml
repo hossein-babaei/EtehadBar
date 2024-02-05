@@ -65,7 +65,7 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <td>@item.Contract.Customer.Name</td>
-                            <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
+                            <td class="uk-text-bold md amount pointer" onclick="editAmount(this)" data-val="@item.Amount">@item.Amount.ToString("N0")</td>
                             <td class="uk-text-bold md pointer driver-fee" onclick="editDriverFee(this)"
                     data-val="@item.DriverFee" data-tonnage-val="@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value : 0)">
                                 @item.DriverFee.ToString("N0")
