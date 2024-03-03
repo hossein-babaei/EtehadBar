@@ -38,6 +38,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IShippingFeeRepository _shippingFeeRepository;
         private readonly ICustomerPeriodicBalanceSummaryRepository _customerPeriodicBalanceSummaryRepository;
         private readonly ICustomerPeriodicBalanceAddonRepository _customerPeriodicBalanceAddonRepository;
+        private readonly ILoadFactorNovinRepository _loadFactorNovinRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -57,7 +58,8 @@ namespace EtehadBar.MVC.Controllers
             ILoadRoutesRepository loadRoutesRepository,
             IShippingFeeRepository shippingFeeRepository,
             ICustomerPeriodicBalanceSummaryRepository customerPeriodicBalanceSummaryRepository,
-            ICustomerPeriodicBalanceAddonRepository customerPeriodicBalanceAddonRepository)
+            ICustomerPeriodicBalanceAddonRepository customerPeriodicBalanceAddonRepository,
+            ILoadFactorNovinRepository loadFactorNovinRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -77,6 +79,7 @@ namespace EtehadBar.MVC.Controllers
             _shippingFeeRepository = shippingFeeRepository;
             _customerPeriodicBalanceSummaryRepository = customerPeriodicBalanceSummaryRepository;
             _customerPeriodicBalanceAddonRepository = customerPeriodicBalanceAddonRepository;
+            _loadFactorNovinRepository = loadFactorNovinRepository;
         }
 
         [HttpPost]
@@ -394,6 +397,49 @@ namespace EtehadBar.MVC.Controllers
                 else
                 {
                     return PartialView("_FreeLoadFactor", await _freeLoadFactorRepository.Query().Where(a => a.Date >= startD && a.Date <= endD).OrderBy(a => a.Date).ToListAsync());
+                }
+            }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> NovinLoadFactor()
+        {
+            var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["calendars"] = calendars;
+            var latestCal = calendars.First();
+            return View(await _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Where(a => a.CalendarId.Equals(latestCal.Id)).OrderBy(a => a.Date).ToListAsync());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> NovinLoadFactor(long calendarId, string startDate, string endDate)
+        {
+            startDate = startDate.PersianToEnglish();
+            endDate = endDate.PersianToEnglish();
+            ViewData["Calendar"] = new Calendar();
+            ViewData["StartDate"] = startDate;
+            ViewData["EndDate"] = endDate;
+            if (calendarId > 0)
+            {
+                ViewData["Calendar"] = await _calendarRepo.Get(calendarId);
+                return PartialView("_NovinLoadFactor", await _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync());
+            }
+            else
+            {
+                var startArr = startDate.Split('/');
+                var startD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 0, 0, 0).ToDateTime();
+                var endArr = endDate.Split('/');
+                var endD = new PersianDateTime(Convert.ToInt32(endArr[0]), Convert.ToInt32(endArr[1]), Convert.ToInt32(endArr[2]), 23, 59, 59).ToDateTime();
+                if (startD > endD)
+                {
+                    var calendar = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).FirstAsync();
+                    ViewData["Calendar"] = calendar;
+                    return PartialView("_NovinLoadFactor", await _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Where(a => a.CalendarId.Equals(calendar.Id)).OrderBy(a => a.Date).ToListAsync());
+                }
+                else
+                {
+                    return PartialView("_NovinLoadFactor", await _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Where(a => a.Date >= startD && a.Date <= endD).OrderBy(a => a.Date).ToListAsync());
                 }
             }
         }

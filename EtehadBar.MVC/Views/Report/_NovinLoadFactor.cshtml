@@ -1,0 +1,168 @@
+﻿@model IEnumerable<LoadFactorNovin>
+
+@{
+    int i = 1;
+
+    var calendar = (Calendar)ViewData["Calendar"];
+
+    var amountSum = 0D;
+    var driverFeeSum = 0D;
+    var receivedSum = 0D;
+    var paiedSum = 0D;
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        @if (Model.Count() > 0)
+        {
+            <a asp-action="NovinLoadFactor" asp-controller="Excel" asp-route-calendarId="@calendar.Id" asp-route-start-date="@ViewData["StartDate"].ToString()" asp-route-end-date="@ViewData["EndDate"].ToString()" class="uk-button uk-button-secondary uk-margin-small-left"><span class="fas fa-file-excel"></span></a>
+        }
+        else
+        {
+            <button class="uk-button uk-button-default uk-margin-small-left" disabled><span class="fas fa-file-excel"></span></button>
+        }
+        <a class="uk-button uk-button-primary" href="#search-modal" uk-toggle uk-icon="search"></a>
+    </div>
+</div>
+<div class="box uk-margin-small-bottom" style="padding:15px 30px">
+    @if (calendar is null)
+    {
+        <h3 class="uk-text-center">گزارش بارنامه های نوین از <span class="underline">@ViewData["StartDate"].ToString()</span> الی <span class="underline">@ViewData["EndDate"].ToString()</span></h3>
+    }
+    else
+    {
+        <h3 class="uk-text-center">گزارش بارنامه های نوین در <span class="underline">@calendar.Title</span></h3>
+    }
+</div>
+<div class="box uk-margin-small-bottom">
+    @if (Model.Any())
+    {
+        <div class="uk-overflow-auto">
+            <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                <thead>
+                    <tr>
+                        <th width="50">ردیف</th>
+                        <th>@Html.DisplayNameFor(model => model.Date)</th>
+                        <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
+                        <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
+                        <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                        <th>@Html.DisplayNameFor(model => model.ApplicantName)</th>
+                        <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                        <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                        <th>نوع خودرو</th>
+                        <th>پلاک</th>
+                        <th>@Html.DisplayNameFor(model => model.Tonnage)</th>
+                        <th>@Html.DisplayNameFor(model => model.TonnagePrice)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
+                        <th>جمع کل قابل پرداخت</th>
+                        <th>جمع کل قابل دریافت</th>
+                        <th>@Html.DisplayNameFor(model => model.IsPaied)</th>
+                        <th>@Html.DisplayNameFor(model => model.IsReceived)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var pd = new PersianDateTime(item.Date);
+
+                        var payment = item.DriverFee;
+                        if (item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue)
+                            payment = item.DriverFee + (item.Tonnage.Value * item.DriverTonnagePrice.Value);
+
+                        var received = item.Amount;
+                        if (item.Tonnage.HasValue && item.TonnagePrice.HasValue)
+                            received = item.Amount + (item.Tonnage.Value * item.TonnagePrice.Value);
+
+                        amountSum += received;
+                        paiedSum += payment;
+
+                        if (item.IsReceived)
+                            receivedSum += received;
+
+                        if (item.IsPaied)
+                            paiedSum += payment;
+
+                        <tr class="uk-text-center xs">
+                            <td>
+                                @i
+                            </td>
+                            <td>@pd.ToString("yyyy/MM/dd")</td>
+                            <td>@item.LoadNumber</td>
+                            <td>@item.LoadNumberGov</td>
+                            <td>@item.Amount.ToString("N0")</td>
+                            <td>@item.DriverFee.ToString("N0")</td>
+                            <td>@item.ApplicantName</td>
+                            <td>@item.Origin</td>
+                            <td>@item.Destination</td>
+                            <td>@item.Vehicle.Type</td>
+                            <td>@item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
+                            <td>@(item.Tonnage.HasValue ? item.Tonnage.Value : 0)</td>
+                            <td>@(item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : 0)</td>
+                            <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : 0)</td>
+                            <td>@payment.ToString("N0")</td>
+                            <td>@received.ToString("N0")</td>
+                            @if (item.IsPaied)
+                            {
+                                <td>بلی</td>
+                            }
+                            else
+                            {
+                                <td>خیر</td>
+                            }
+                            @if (item.IsReceived)
+                            {
+                                <td>بلی</td>
+                            }
+                            else
+                            {
+                                <td>خیر</td>
+                            }
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="uk-margin-medium-top uk-margin-medium-bottom">
+            <div class="uk-grid-large uk-text-center uk-child-width-1-1" uk-grid>
+                <div><i class="fas fa-4x fa-exclamation-triangle uk-text-danger"></i></div>
+                <div>
+                    <h2>نتیجه ای یافت نشد.</h2>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div class="box" style="padding:15px 30px">
+    <h3 class="uk-heading-divider uk-text-center">گزارش بارنامه های نوین در <span class="underline">@calendar.Title</span></h3>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">تعداد کل بارنامه ها</div>
+        <div>@Model.Count() عدد</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">قابل دریافت</div>
+        <div>@amountSum.ToString("N0")</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">دریافت شده</div>
+        <div>@receivedSum.ToString("N0")</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">قابل پرداخت</div>
+        <div>@driverFeeSum.ToString("N0")</div>
+    </div>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand" uk-leader="fill: .">پرداخت شده</div>
+        <div>@paiedSum.ToString("N0")</div>
+    </div>
+</div>

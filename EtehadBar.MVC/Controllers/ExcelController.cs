@@ -2818,6 +2818,175 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> NovinLoadFactor(long calendarId, string startDate, string endDate)
+        {
+            string docTitle = "";
+
+            var amountSum = 0D;
+            var driverFeeSum = 0D;
+            var receivedSum = 0D;
+            var paiedSum = 0D;
+            var loadFactors = new List<LoadFactorNovin>();
+
+            if (calendarId > 0)
+            {
+                var calendar = await _calendarRepo.Get(calendarId);
+
+                docTitle = $"گزارش بارنامه های نوین در {calendar.Title}";
+                loadFactors = await _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync();
+            }
+            else
+            {
+                var startArr = startDate.Split('/');
+                var startD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 0, 0, 0).ToDateTime();
+                var endArr = endDate.Split('/');
+                var endD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 23, 59, 59).ToDateTime();
+                if (startD > endD)
+                {
+                    var calendar = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).FirstAsync();
+                    docTitle = $"گزارش بارنامه های نوین در {calendar.Title}";
+                    loadFactors = await _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Where(a => a.CalendarId.Equals(calendar.Id)).OrderBy(a => a.Date).ToListAsync();
+                }
+                else
+                {
+                    docTitle = $"گزارش بارنامه های نوین از {startDate} الی {endDate}";
+                    loadFactors = await _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Where(a => a.Date >= startD && a.Date <= endD).OrderBy(a => a.Date).ToListAsync();
+                }
+            }
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("گزارش");
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+
+            ws.Cell(2, 1).Value = "#";
+            ws.Cell(2, 2).Value = "تاریخ";
+            ws.Cell(2, 3).Value = "شماره بارنامه";
+            ws.Cell(2, 4).Value = "شماره بارنامه دولتی";
+            ws.Cell(2, 5).Value = "مبلغ";
+            ws.Cell(2, 6).Value = "کرایه راننده";
+            ws.Cell(2, 7).Value = "نام متقاضی";
+            ws.Cell(2, 8).Value = "مبدا";
+            ws.Cell(2, 9).Value = "مقصد";
+            ws.Cell(2, 10).Value = "نام راننده";
+            ws.Cell(2, 11).Value = "کد ملی";
+            ws.Cell(2, 12).Value = "نوع خودرو";
+            ws.Cell(2, 13).Value = "پلاک";
+            ws.Cell(2, 14).Value = "تناژ اضافه";
+            ws.Cell(2, 15).Value = "نرخ تناژ اضافه (ریال)";
+            ws.Cell(2, 16).Value = "نرخ تناژ اضافه راننده (ریال)";
+            ws.Cell(2, 17).Value = "جمع کل قابل پرداخت";
+            ws.Cell(2, 18).Value = "جمع کل قابل دریافت";
+            ws.Cell(2, 19).Value = "وضعیت پرداخت";
+            ws.Cell(2, 20).Value = "وضعیت دریافت";
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(loadFactors.Count + 2, 20));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetBold()
+                .Font.SetFontSize(15)
+                    .Fill.SetBackgroundColor(XLColor.LightGray)
+                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 20)); // The address is relative to rngTable (NOT the worksheet)
+            rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            rngHeaders.Style.Font.Bold = true;
+            rngHeaders.Style.Font.FontColor = XLColor.Black;
+
+            for (int index = 1; index <= loadFactors.Count; index++)
+            {
+                var item = loadFactors[index - 1];
+                var payment = item.DriverFee;
+                if (item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue)
+                    payment = item.DriverFee + (item.Tonnage.Value * item.DriverTonnagePrice.Value);
+
+                var received = item.Amount;
+                if (item.Tonnage.HasValue && item.TonnagePrice.HasValue)
+                    received = item.Amount + (item.Tonnage.Value * item.TonnagePrice.Value);
+
+                amountSum += received;
+                driverFeeSum += payment;
+
+                if (item.IsReceived)
+                    receivedSum += received;
+
+                if (item.IsPaied)
+                    paiedSum += payment;
+
+                ws.Cell(index + 2, 1).Value = index;
+                ws.Cell(index + 2, 2).Value = new PersianDateTime(item.Date).ToString("yyyy/MM/dd");
+                ws.Cell(index + 2, 3).SetValue(item.LoadNumber);
+
+                if (string.IsNullOrWhiteSpace(item.LoadNumberGov))
+                    ws.Cell(index + 2, 4).Value = "---";
+                else
+                    ws.Cell(index + 2, 4).Value = item.LoadNumberGov;
+
+                ws.Cell(index + 2, 5).Value = item.Amount.ToString("N0");
+                ws.Cell(index + 2, 6).Value = item.DriverFee.ToString("N0");
+                ws.Cell(index + 2, 7).Value = item.ApplicantName;
+                ws.Cell(index + 2, 8).Value = item.Origin;
+                ws.Cell(index + 2, 9).Value = item.Destination;
+                ws.Cell(index + 2, 10).Value = item.Vehicle.VehicleOwnerFullname;
+                ws.Cell(index + 2, 11).SetValue(item.Vehicle.NationalNumber);
+                ws.Cell(index + 2, 12).Value = item.Vehicle.Type;
+                ws.Cell(index + 2, 13).Value = item.Vehicle.RightNumber + " " + item.Vehicle.NumberWord + " " + item.Vehicle.LeftNumber + " - " + item.Vehicle.IranStateNumber;
+                ws.Cell(index + 2, 14).Value = item.Tonnage.HasValue ? item.Tonnage.Value : 0;
+                ws.Cell(index + 2, 15).Value = item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : 0;
+                ws.Cell(index + 2, 16).Value = item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : 0;
+                ws.Cell(index + 2, 17).Value = payment.ToString("N0");
+                ws.Cell(index + 2, 18).Value = received.ToString("N0");
+                ws.Cell(index + 2, 19).Value = item.IsPaied ? "بلی" : "خیر";
+                ws.Cell(index + 2, 20).Value = item.IsReceived ? "بلی" : "خیر";
+            }
+
+            ws.Cell($"B{loadFactors.Count + 3}").Value = "تعداد کل بارنامه ها";
+            ws.Range($"B{loadFactors.Count + 3}:R{loadFactors.Count + 3}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 3, 20).Value = loadFactors.Count;
+
+            ws.Cell($"B{loadFactors.Count + 4}").Value = "قابل دریافت";
+            ws.Range($"B{loadFactors.Count + 4}:R{loadFactors.Count + 4}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 4, 20).Value = amountSum.ToString("N0");
+
+            ws.Cell($"B{loadFactors.Count + 5}").Value = "دریافت شده";
+            ws.Range($"B{loadFactors.Count + 5}:R{loadFactors.Count + 5}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 5, 20).Value = receivedSum.ToString("N0");
+
+            ws.Cell($"B{loadFactors.Count + 6}").Value = "قابل پرداخت";
+            ws.Range($"B{loadFactors.Count + 6}:R{loadFactors.Count + 6}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 6, 20).Value = driverFeeSum.ToString("N0");
+
+            ws.Cell($"B{loadFactors.Count + 7}").Value = "قابل پرداخت";
+            ws.Range($"B{loadFactors.Count + 7}:R{loadFactors.Count + 7}").Row(1).Merge();
+            ws.Cell(loadFactors.Count + 7, 20).Value = paiedSum.ToString("N0");
+
+            ws.RangeUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:S{loadFactors.Count + 20}");
+            rngTable2.RangeUsed().Style
+                .Font.SetBold()
+                .Font.SetFontSize(12)
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
+            ws.Columns().AdjustToContents();
+
+            ws.PageSetup.SetPageOrientation(XLPageOrientation.Landscape)
+                .SetPaperSize(XLPaperSize.A4Paper);
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
+        }
+
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> SlashedLoadFactor(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);

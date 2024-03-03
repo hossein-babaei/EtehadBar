@@ -4331,7 +4331,6 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateLoadFactorNovin()
         {
             ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Fullname).ToListAsync();
@@ -4343,7 +4342,6 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateLoadFactorNovin(CreateLoadFactorNovinVM v)
         {
             string msg;
@@ -4425,21 +4423,19 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
         public async Task<PartialViewResult> EditLoadFactorNovin(long id)
         {
+            var data = await _loadFactorNovinRepository.GetEditData(id);
+
             ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Fullname).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Customers"] = await _customerRepo.GetAllActive();
 
-            var data = await _loadFactorNovinRepository.GetEditData(id);
-
             return PartialView("~/Views/Admin/Edit/LoadFactorNovin.cshtml", data);
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditLoadFactorNovin(EditLoadFactorNovinVM v)
         {
             if (ModelState.IsValid)

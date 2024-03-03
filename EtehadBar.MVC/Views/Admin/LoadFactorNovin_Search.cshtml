@@ -26,12 +26,18 @@
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>مشتری</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
-                    <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
-                    <th>@Html.DisplayNameFor(model => model.IsPaied)</th>
-                    <th>@Html.DisplayNameFor(model => model.IsReceived)</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th>@Html.DisplayNameFor(model => model.DriverFee)</th>
+                        <th>@Html.DisplayNameFor(model => model.IsPaied)</th>
+                        <th>@Html.DisplayNameFor(model => model.IsReceived)</th>
+                    }
                     <th width="50">جزئیات</th>
                     <th width="50">ویرایش</th>
-                    <th width="50">حذف</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th width="50">حذف</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -47,29 +53,35 @@
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
                         <td>@item.Customer.Name</td>
                         <td class="uk-text-bold md">@item.Amount.ToString("N0")</td>
-                        <td class="uk-text-bold md driver-fee pointer" onclick="editDriverFee(this)"
-                            data-val="@item.DriverFee" data-tonnage-val="@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value : 0)">
-                            @item.DriverFee.ToString("N0")
-                        </td>
-                        @if (item.IsPaied)
+                        @if (User.IsInRole("Admin"))
                         {
-                            <td class="uk-text-success" uk-tooltip="@(item.PaymentDate.HasValue ? new PersianDateTime(item.PaymentDate.Value).ToString("yyyy/MM/dd") : "---")">پرداخت شده</td>
-                        }
-                        else
-                        {
-                            <td class="uk-text-danger">پرداخت نشده</td>
-                        }
-                        @if (item.IsReceived)
-                        {
-                            <td class="uk-text-success" uk-tooltip="@(item.ReceiveDate.HasValue ? new PersianDateTime(item.ReceiveDate.Value).ToString("yyyy/MM/dd") : "---")">دریافت شده</td>
-                        }
-                        else
-                        {
-                            <td class="uk-text-danger">دریافت نشده</td>
+                            <td class="uk-text-bold md driver-fee pointer" onclick="editDriverFee(this)"
+                                data-val="@item.DriverFee" data-tonnage-val="@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value : 0)">
+                                @item.DriverFee.ToString("N0")
+                            </td>
+                            @if (item.IsPaied)
+                            {
+                                <td class="uk-text-success" uk-tooltip="@(item.PaymentDate.HasValue ? new PersianDateTime(item.PaymentDate.Value).ToString("yyyy/MM/dd") : "---")">پرداخت شده</td>
+                            }
+                            else
+                            {
+                                <td class="uk-text-danger">پرداخت نشده</td>
+                            }
+                            @if (item.IsReceived)
+                            {
+                                <td class="uk-text-success" uk-tooltip="@(item.ReceiveDate.HasValue ? new PersianDateTime(item.ReceiveDate.Value).ToString("yyyy/MM/dd") : "---")">دریافت شده</td>
+                            }
+                            else
+                            {
+                                <td class="uk-text-danger">دریافت نشده</td>
+                            }
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="getEditForm('@item.Id')"><i class="far fa-edit"></i></a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                        }
                     </tr>
                     i++;
                 }
