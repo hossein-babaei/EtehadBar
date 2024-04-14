@@ -59,11 +59,10 @@ for (const element of monthLetter) {
 	element.onclick = function (e) {
 		const thisElement = e.target;
 		if (thisElement.classList.contains("active-season-cr")) return;
-		
+
 		const monthDataNumber = thisElement.getAttribute("data-num");
 		activeMonthElement('dynamic-element', `dynamic-element-${monthDataNumber}`, 'active-element');
 		activeMonthElement('month-letter', `month-letter-${monthDataNumber}`, 'active-season-cr');
-
 	}
 }
 
@@ -97,10 +96,10 @@ for (const month of calendarObject) {
 	});
 
 	for (const day of month) {
-		
-		const currentMonth = monthLabel[monthCounter-1];
-	
-		
+
+		const currentMonth = monthLabel[monthCounter - 1];
+
+
 		if (day[5])
 			oneStarted = false;
 		else {
@@ -127,11 +126,10 @@ for (const month of calendarObject) {
 		}
 		let liClass = "day-element ";
 
-
 		if (!oneStarted)
 			liClass += "disable-one ";
 		else if (oneStarted)
-			liClass += `date-${monthCounter}-${day[0]} `;
+			liClass += `date-${monthCounter}-${day[0].convertDigits("en")} `;
 
 		if (day[3] === true)
 			liClass += "holiday ";
@@ -174,6 +172,8 @@ for (const month of calendarObject) {
 
 	monthCounter++;
 }
+
+
 
 activeMonthElement('dynamic-element', `dynamic-element-${todayFa.month}`, 'active-element');
 activeMonthElement('month-letter', `month-letter-${todayFa.month}`, 'active-season-cr');
@@ -302,4 +302,40 @@ function getBaseConversionNumber(label) {
 	}
 
 	return whichDigit;
+}
+
+window.onkeyup = function (e) {
+	const keyName = e.code;
+	let action = null;
+
+	if (keyName == "ArrowLeft") {
+		action = "DECREASE";
+	} else if (keyName == "ArrowRight") {
+		action = "INCREASE";
+	} else {
+		return;
+	}
+
+	const activeMonthDOM = document.getElementsByClassName("active-season-cr")[0];
+	const numberMonth = activeMonthDOM.getAttribute("data-num");
+
+	let numberMonthFinal = 0;
+
+	if (action == "INCREASE") {
+		numberMonthFinal = parseInt(numberMonth) + 1;
+	} else if (action == "DECREASE") {
+		numberMonthFinal = parseInt(numberMonth) - 1;
+	}
+
+	if (numberMonthFinal == 0 || numberMonthFinal == 13) {
+		numberMonthFinal = 1;
+	}
+
+	console.log(numberMonthFinal)
+
+	const newMonthDOM = document.getElementsByClassName("month-letter")[(numberMonthFinal - 1)];
+
+	const eventClick = new Event("click");
+
+	newMonthDOM.dispatchEvent(eventClick);
 }

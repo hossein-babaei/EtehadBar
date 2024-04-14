@@ -2,6 +2,7 @@
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
+using EtehadBar.Infra.Data.Repository;
 using EtehadBar.MVC.Filters;
 using Helpers;
 using MD.PersianDateTime.Standard;
@@ -56,6 +57,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ITurnoverProfileRepository _turnoverProfileRepository;
         private readonly ILoadFactorNovinRepository _loadFactorNovinRepository;
         private readonly IVehicleBankAccountRepository _vehicleBankAccountRepository;
+        private readonly ITurnoverProfilePeriodRepository _turnoverProfilePeriodRepository;
         private readonly ApplicationDbContext _context;
 
         public AdminController(
@@ -89,7 +91,8 @@ namespace EtehadBar.MVC.Controllers
             ITurnoverProfileRepository turnoverProfileRepository,
             ILoadFactorNovinRepository loadFactorNovinRepository,
             IVehicleBankAccountRepository vehicleBankAccountRepository,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            ITurnoverProfilePeriodRepository turnoverProfilePeriodRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -122,6 +125,7 @@ namespace EtehadBar.MVC.Controllers
             _loadFactorNovinRepository = loadFactorNovinRepository;
             _vehicleBankAccountRepository = vehicleBankAccountRepository;
             _context = context;
+            _turnoverProfilePeriodRepository = turnoverProfilePeriodRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -133,7 +137,6 @@ namespace EtehadBar.MVC.Controllers
 
         public async Task<IActionResult> Index(int? dayLimit)
         {
-
             //#region edit fee by price
             //var date = new DateTime(2023, 05, 22);
             //var contractId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.RowId == "62153ffa-328f-48f0-aaed-dc497d058402")
@@ -1341,7 +1344,6 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Cost(int? p)
         {
             ViewData["UserId"] = _userManager.GetUserId(User);
-            ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["CostAccount"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType == DefinitionType.CostAccount).ToListAsync();
 
@@ -1625,7 +1627,6 @@ namespace EtehadBar.MVC.Controllers
                 return BadRequest();
             }
             ViewData["CustomerInfo"] = customer;
-            ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Contracts"] = await _contractRepo.Contracts().Where(a => a.CustomerId.Equals(id) && !a.ParentContractId.HasValue).OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["BankBranches"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderByDescending(a => a.Title).ToListAsync();
             var pageNumber = p ?? 1;
@@ -2855,9 +2856,8 @@ namespace EtehadBar.MVC.Controllers
                 return NotFound($"صورت وضعیت باز در سیستم وجود ندارد.");
             ViewData["AccountBooks"] = accountBooks;
 
-            ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Fullname).ToListAsync();
-            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
+            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status && a.RealStatus).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
 
             long sequence;
@@ -3501,7 +3501,7 @@ namespace EtehadBar.MVC.Controllers
 
             ViewData["Contracts"] = contracts;
             ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().OrderBy(a => a.Fullname).ToListAsync();
-            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status).ToListAsync();
+            ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status && a.RealStatus).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             if (User.IsInRole("Admin"))
                 ViewData["Fees"] = await _shippingFeeRepo.ShippingFees().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(loadFactor.ContractId)).OrderBy(a => a.Origin).ToListAsync();
@@ -4142,9 +4142,9 @@ namespace EtehadBar.MVC.Controllers
             var dateArr = dateString.PersianToEnglish().Split("/");
             var date = new PersianDateTime(Convert.ToInt32(dateArr[0]), Convert.ToInt32(dateArr[1]), Convert.ToInt32(dateArr[2])).ToDateTime();
 
-            var newContract = await _contractRepo.Get(newContractRowId);
+            var newContract = await _contractRepo.Contracts().Include(a => a.ShippingFees).FirstOrDefaultAsync(a => a.RowId.Equals(newContractRowId));
             var newShippingFees = newContract.ShippingFees;
-            var contract = await _contractRepo.Get(contractRowId);
+            var contract = await _contractRepo.Contracts().Include(a => a.ShippingFees).FirstOrDefaultAsync(a => a.RowId.Equals(contractRowId));
             var shippingFees = contract.ShippingFees;
 
             var loadFactors = await _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(contract.Id) && a.Date >= date).ToListAsync();
@@ -5328,7 +5328,6 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<PartialViewResult> CreateFreeLoadFactor()
         {
-            ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["VehicleTypes"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType.Equals(DefinitionType.Car)).OrderBy(a => a.Title).ToListAsync();
             return PartialView("~/Views/Admin/Create/FreeLoadFactor.cshtml");
@@ -5904,6 +5903,7 @@ namespace EtehadBar.MVC.Controllers
 
                 item.TurnoverType = v.TurnoverType;
                 item.FullName = v.FullName;
+                item.ProfitPercent = v.ProfitPercent;
 
                 _turnoverProfileRepository.Update(item);
                 try
@@ -6151,6 +6151,143 @@ namespace EtehadBar.MVC.Controllers
         }
         #endregion
 
+        #region TurnoverProfilePeriod
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> TurnoverProfilePeriod(long id)
+        {
+            ViewData["TurnoverProfileInfo"] = await _turnoverProfileRepository.Get(id);
+            return View(await _turnoverProfilePeriodRepository.Query().AsNoTracking().Where(a => a.TurnoverProfileId.Equals(id)).OrderByDescending(a => a.EndDate).ToListAsync());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public IActionResult CreateTurnoverProfilePeriod(long id)
+        {
+            ViewData["TurnoverProfileId"] = id;
+            return PartialView("~/Views/Admin/Create/TurnoverProfilePeriod.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateTurnoverProfilePeriod(CreateTurnoverProfilePeriodVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                DateTime startDate = new PersianDateTime(c.StartYear, c.StartMonth, c.StartDay, 0, 0, 0).ToDateTime();
+                DateTime endDate = new PersianDateTime(c.EndYear, c.EndMonth, c.EndDay, 23, 59, 59).ToDateTime();
+
+                if (startDate >= endDate)
+                {
+                    TempData["msg"] = "تاریخ شروع وارد شده از تاریخ پایان بزرگ تر است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                _turnoverProfilePeriodRepository.Create(new TurnoverProfilePeriod
+                {
+                    Title = c.Title,
+                    TurnoverProfileId = c.TurnoverProfileId,
+                    StartDate = startDate,
+                    EndDate = endDate
+                });
+                try
+                {
+                    await _turnoverProfilePeriodRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<PartialViewResult> EditTurnoverProfilePeriod(int id)
+        {
+            var item = await _turnoverProfilePeriodRepository.Get(id);
+            var persianStartDate = new PersianDateTime(item.StartDate);
+            var persianEndDate = new PersianDateTime(item.EndDate);
+
+            return PartialView("~/Views/Admin/Edit/TurnoverProfilePeriod.cshtml", new EditTurnoverProfilePeriodVM
+            {
+                EndDay = persianEndDate.Day,
+                EndMonth = persianEndDate.Month,
+                EndYear = persianEndDate.Year,
+                Id = item.Id,
+                StartDay = persianStartDate.Day,
+                StartMonth = persianStartDate.Month,
+                StartYear = persianStartDate.Year,
+                Title = item.Title,
+                TurnoverProfileId = item.TurnoverProfileId
+            });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditTurnoverProfilePeriod(EditTurnoverProfilePeriodVM c)
+        {
+            if (ModelState.IsValid)
+            {
+                DateTime startDate = new PersianDateTime(c.StartYear, c.StartMonth, c.StartDay, 0, 0, 0).ToDateTime();
+                DateTime endDate = new PersianDateTime(c.EndYear, c.EndMonth, c.EndDay, 23, 59, 59).ToDateTime();
+
+                if (startDate >= endDate)
+                {
+                    TempData["msg"] = "تاریخ شروع وارد شده از تاریخ پایان بزرگ تر است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = await _turnoverProfilePeriodRepository.Get(c.Id);
+                item.StartDate = startDate;
+                item.EndDate = endDate;
+                item.Title = c.Title;
+
+                _turnoverProfilePeriodRepository.Update(item);
+                try
+                {
+                    await _turnoverProfilePeriodRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteTurnoverProfilePeriod(int id)
+        {
+            var item = await _turnoverProfilePeriodRepository.Get(id);
+            if (item == null) return NotFound();
+
+            _turnoverProfilePeriodRepository.Delete(item);
+            try
+            {
+                await _turnoverProfilePeriodRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
         #region Bill
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -6256,7 +6393,6 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<PartialViewResult> CreateBill()
         {
-            ViewData["Year"] = await _configRepo.CurrentYear();
             ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderByDescending(a => a.Name).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().OrderByDescending(a => a.LeftNumber).ToListAsync();

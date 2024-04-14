@@ -15,6 +15,11 @@
                     <span asp-validation-for="FullName" class="uk-text-danger"></span>
                 </div>
                 <div>
+                    <label asp-for="ProfitPercent" class="uk-form-label"></label>
+                    <input asp-for="ProfitPercent" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="ProfitPercent" class="uk-text-danger"></span>
+                </div>
+                <div>
                     <label asp-for="TurnoverType" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
                         <label><input class="uk-radio" type="radio" name="TurnoverType" value="@((int)TurnoverType.Partner)" @if(Model.TurnoverType.Equals(TurnoverType.Partner)){<text>checked</text>} /> شریک</label>

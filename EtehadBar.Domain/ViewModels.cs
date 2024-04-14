@@ -1119,6 +1119,76 @@ namespace EtehadBar.Domain
         public string Vehicle { get; set; }
     }
 
+    public class CreateTurnoverProfilePeriodVM
+    {
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndDay { get; set; }
+
+        [Display(Name = "ماه پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndMonth { get; set; }
+
+        [Display(Name = "سال پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndYear { get; set; }
+
+        [Display(Name = "عنوان دوره")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+
+        public long TurnoverProfileId { get; set; }
+    }
+
+    public class EditTurnoverProfilePeriodVM
+    {
+        public long Id { get; set; }
+
+        public long TurnoverProfileId { get; set; }
+
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndDay { get; set; }
+
+        [Display(Name = "ماه پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndMonth { get; set; }
+
+        [Display(Name = "سال پایان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int EndYear { get; set; }
+
+        [Display(Name = "عنوان دوره")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+    }
+
     public class CreateCustomerPeriodicBalanceSummaryVM
     {
         [Display(Name = "روز شروع")]

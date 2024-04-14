@@ -51,6 +51,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<UploadedFiles> UploadedFiles { get; set; }
         public DbSet<Turnover> Turnover { get; set; }
         public DbSet<TurnoverProfile> TurnoverProfile { get; set; }
+        public DbSet<TurnoverProfilePeriod> TurnoverProfilePeriod { get; set; }
         public DbSet<Vehicle> Vehicles { get; set; }
         public DbSet<VehicleBankAccount> VehicleBankAccount { get; set; }
         public DbSet<VehicleBalance> VehicleBalance { get; set; }

@@ -1,31 +1,33 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain.Models
 {
     [Index(nameof(RowId), IsUnique = true)]
-    public class TurnoverProfile
+    public class TurnoverProfilePeriod
     {
         [Key]
         public long Id { get; set; }
 
-        [Display(Name = "نام و نام خانوادگی")]
+        [Display(Name = "عنوان دوره")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
-        public string FullName { get; set; }
+        public string Title { get; set; }
 
-        [Display(Name = "نوع")]
+        [Display(Name = "از تاریخ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public TurnoverType TurnoverType { get; set; }
+        public DateTime StartDate { get; set; }
 
-        [Display(Name = "درصد سود")]
+        [Display(Name = "تا تاریخ")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public int ProfitPercent { get; set; } = 0;
+        public DateTime EndDate { get; set; }
 
-        public ICollection<Turnover> Turnovers { get; set; }
-        public ICollection<TurnoverProfilePeriod> TurnoverProfilePeriods { get; set; }
+        [Required]
+        [ForeignKey(nameof(TurnoverProfile))]
+        public long TurnoverProfileId { get; set; }
+        public TurnoverProfile TurnoverProfile { get; set; }
 
         [Required]
         [StringLength(36)]

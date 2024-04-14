@@ -1,0 +1,93 @@
+﻿@model CreateTurnoverProfilePeriodVM
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">افزودن جدید</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="create-form" asp-action="CreateTurnoverProfilePeriod" method="post">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <input asp-for="TurnoverProfileId" type="hidden" value="@((long)ViewData["TurnoverProfileId"])" />
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="Title" class="uk-form-label"></label>
+                    <input asp-for="Title" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Title" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <h5 class="uk-text-bold">تاریخ شروع</h5>
+                    <div class="uk-grid-small uk-child-width-1-3" uk-grid>
+                        <div>
+                            <label asp-for="StartDay" class="uk-form-label"></label>
+                            <select asp-for="StartDay" class="uk-select uk-border-rounded">
+                                @for (int i = 1; i < 32; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                            <span asp-validation-for="StartDay" class="uk-text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="StartMonth" class="uk-form-label"></label>
+                            <select asp-for="StartMonth" class="uk-select uk-border-rounded">
+                                @for (int i = 1; i < 13; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                            <span asp-validation-for="StartMonth" class="uk-text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="StartYear" class="uk-form-label"></label>
+                            <select asp-for="StartYear" class="uk-select uk-border-rounded">
+                                @for (int i = 1398; i < 1411; i++)
+                                {
+                                    <!option value="@i" @if (new PersianDateTime(DateTime.Now).Year == i) { <text> selected</text> }>@i</!option>
+                                }
+                            </select>
+                            <span asp-validation-for="StartYear" class="uk-text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <h5 class="uk-text-bold">تاریخ پایان</h5>
+                    <div class="uk-grid-small uk-child-width-1-3" uk-grid>
+                        <div>
+                            <label asp-for="EndDay" class="uk-form-label"></label>
+                            <select asp-for="EndDay" class="uk-select uk-border-rounded">
+                                @for (int i = 1; i < 32; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                            <span asp-validation-for="EndDay" class="uk-text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="EndMonth" class="uk-form-label"></label>
+                            <select asp-for="EndMonth" class="uk-select uk-border-rounded">
+                                @for (int i = 1; i < 13; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                            <span asp-validation-for="EndMonth" class="uk-text-danger"></span>
+                        </div>
+                        <div>
+                            <label asp-for="EndYear" class="uk-form-label"></label>
+                            <select asp-for="EndYear" class="uk-select uk-border-rounded">
+                                @for (int i = 1398; i < 1411; i++)
+                                {
+                                    <!option value="@i" @if (new PersianDateTime(DateTime.Now).Year == i) { <text> selected</text> }>@i</!option>
+                                }
+                            </select>
+                            <span asp-validation-for="EndYear" class="uk-text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitForm('#create-form')">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>
