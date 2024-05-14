@@ -11,7 +11,8 @@
         <h2 class="uk-modal-title">افزودن نوین بار</h2>
     </div>
     <div class="uk-modal-body">
-        <form id="create-form">
+        <form id="create-form" autocomplete="off">
+            <input type="submit" style="display: none" />
             <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
             <div class="uk-grid-small uk-child-width-1-1 uk-child-width-1-2@m" uk-grid>
                 <div class="uk-width-2-5@m">

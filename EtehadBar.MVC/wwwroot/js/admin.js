@@ -77,6 +77,22 @@ function ignoreSpecialCharAndWhitespaceInSelect2(params, data) {
         return null;
 }
 
+function getGeneralModal() {
+    const modalId = '#general-report-modal';
+    $.post('/admin/get-calendars-json', {}, function (r) {
+        let options = '';
+        $.each(r, (i, v) => {
+            options += `<option value="${v.id}">${v.title}</options>`;
+        });
+        $(`${modalId} select`).html(options);
+    }, 'json');
+    UIkit.modal(modalId).show();
+}
+
+function submitGeneralModal() {
+    $('#general-report-modal form').submit();
+}
+
 function getSlashedLoadFactor() {
     const modalId = '#slashed-load-factor-modal';
     $.post('/admin/get-calendars-json', {}, function (r) {
@@ -119,6 +135,7 @@ function submitDriversPeriodicActivity() {
 }
 
 $(document).ready(function () {
+    $(`#general-report-modal select[name=calendarId]`).select2({ width: '100%' });
     $(`#slashed-load-factor-modal select[name=calendarId]`).select2({ width: '100%' });
     $(`#drivers-periodic-activity-modal select`).select2({ width: '100%' });
     new StickySidebar('#sidebar', {

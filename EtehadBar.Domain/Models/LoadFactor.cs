@@ -92,6 +92,14 @@ namespace EtehadBar.Domain.Models
 
         public bool IsFreeDriverPrice { get; set; } = false;
 
+        [Display(Name = "کرایه بارنامه دولتی")]
+        public double? LoadFactorGovAmount { get; set; }
+
+        [Display(Name = "صادر کننده بارنامه")]
+        [ForeignKey(nameof(LoadFactorGovRegistor))]
+        public long? LoadFactorGovRegistorId { get; set; }
+        public Definition LoadFactorGovRegistor { get; set; }
+
         [Required]
         [Display(Name = "مشتری")]
         public long ContractId { get; set; }

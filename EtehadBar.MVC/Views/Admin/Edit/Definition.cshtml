@@ -17,6 +17,7 @@
                         <!option value="@((int)DefinitionType.BankName)" @if (Model.DefinitionType.Equals(DefinitionType.BankName)) { <text> selected="selected" </text> }>نام بانک</!option>
                         <!option value="@((int)DefinitionType.BankBranch)" @if (Model.DefinitionType.Equals(DefinitionType.BankBranch)) { <text> selected="selected" </text> }>شعبه بانک</!option>
                         <!option value="@((int)DefinitionType.CostAccount)" @if (Model.DefinitionType.Equals(DefinitionType.CostAccount)) { <text> selected="selected" </text> }>حساب هزینه</!option>
+                        <!option value="@((int)DefinitionType.LoadFactorOrigin)" @if (Model.DefinitionType.Equals(DefinitionType.LoadFactorOrigin)) { <text> selected="selected" </text> }>صادر کننده بارنامه</!option>
                     </select>
                     <span asp-validation-for="DefinitionType" class="uk-text-danger"></span>
                 </div>

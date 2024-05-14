@@ -9,8 +9,41 @@
     var calendars = (List<Calendar>)ViewData["calendars"];
     var latestCal = calendars.First();
 }
+@section Links{
+    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+}
 @section Scripts{
+    <script src="~/lib/persian-date/persian-date.min.js"></script>
+    <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
     <script>
+        let datePickerConfig = {
+            initialValue: true,
+            autoClose: true,
+            timePicker: {
+                enabled: false
+            },
+            format: 'YYYY/MM/DD',
+            navigator: {
+                enabled: true,
+                scroll: {
+                    "enabled": true
+                },
+                text: {
+                    btnNextText: '>',
+                    btnPrevText: '<'
+                }
+            },
+            toolbox: {
+                calendarSwitch: {
+                    enabled: false
+                }
+            }
+        };
+
+        $(document).ready(function () {
+            $('.startDate').persianDatepicker(datePickerConfig);
+            $('.endDate').persianDatepicker(datePickerConfig);
+        });
         let vehicleList = [],
             contractList = [];
         function submitActivityByCustomerForm(submitButton, isFreeDriverFee) {
@@ -120,6 +153,12 @@
             $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
             UIkit.modal(modalId).show();
         }
+        function showLoadFactorGov(id) {
+            const modalId = '#load-factor-gov-modal';
+            $(`${modalId} input[name=customerId]`).val(id);
+
+            UIkit.modal(modalId).show();
+        }
         function submitFullActivity(type) {
             const modalId = '#full-activity-list-modal';
             $(`${modalId} input[name=type]`).val(type);
@@ -164,6 +203,10 @@
             $(`${modalId} select[name=contractId]`).html(options);
 
             UIkit.modal(modalId).show();
+        }
+        function filterLoadFactorGov() {
+            let modalId = '#load-factor-gov-modal';
+            $(`${modalId} form`).submit();
         }
     </script>
 }
@@ -231,6 +274,9 @@
                                         </li>
                                         <li>
                                             <a onclick="showFullActivity(@item.Id)">عملکرد تکمیلی</a>
+                                        </li>
+                                        <li>
+                                            <a onclick="showLoadFactorGov(@item.Id)">بارنامه دولتی</a>
                                         </li>
                                     }
                                     <li class="uk-nav-divider"></li>
@@ -492,6 +538,32 @@
         <div class="uk-modal-footer uk-text-center">
             <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="$('#contract-modal form').submit()">مشاهده</a>
             <button class="uk-button uk-button-danger uk-modal-close uk-margin-small-top" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="load-factor-gov-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو بارنامه های دولتی</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form asp-action="LoadFactorGov" asp-controller="Excel" method="get">
+
+                <input type="hidden" name="customerId" value="" />
+                <div class="uk-margin-top">
+                    <label class="uk-form-label">از تاریخ</label>
+                    <input name="startDate" class="startDate uk-input uk-border-rounded" dir="ltr" />
+                </div>
+
+                <div class="uk-margin-top">
+                    <label class="uk-form-label">تا تاریخ</label>
+                    <input name="endDate" class="endDate uk-input uk-border-rounded" dir="ltr" />
+                </div>
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filterLoadFactorGov()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
         </div>
     </div>
 </div>

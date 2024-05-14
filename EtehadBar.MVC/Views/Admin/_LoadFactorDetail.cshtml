@@ -128,6 +128,17 @@
                     <span class="sm">@Model.Amount.ToString("N0")</span>
                 </div>
             }
+            @if (Model.LoadFactorGovAmount.HasValue)
+            {
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.LoadFactorGovAmount)</p>
+                    <span class="sm">@Model.LoadFactorGovAmount</span>
+                </div>
+                <div>
+                    <p class="uk-text-bold uk-text-secondary uk-display-inline-block xs">@Html.DisplayNameFor(a => a.LoadFactorGovRegistorId)</p>
+                    <span class="sm">@Model.LoadFactorGovRegistor.Title</span>
+                </div>
+            }
         </div>
     </div>
     <div class="uk-modal-footer uk-text-center">

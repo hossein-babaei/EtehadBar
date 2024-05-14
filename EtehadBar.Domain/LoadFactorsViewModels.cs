@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using EtehadBar.Domain.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace EtehadBar.Domain
 {
@@ -66,6 +68,12 @@ namespace EtehadBar.Domain
 
         [Display(Name = "بارنامه آزاد")]
         public bool IsFreeDriverPrice { get; set; }
+
+        [Display(Name = "کرایه بارنامه دولتی")]
+        public double? LoadFactorGovAmount { get; set; }
+
+        [Display(Name = "صادر کننده بارنامه")]
+        public long? LoadFactorGovRegistorId { get; set; }
     }
 
     public class ESaipaPlascoLoadFactorVM
@@ -134,6 +142,12 @@ namespace EtehadBar.Domain
 
         [Display(Name = "بارنامه آزاد")]
         public bool IsFreeDriverPrice { get; set; }
+
+        [Display(Name = "کرایه بارنامه دولتی")]
+        public double? LoadFactorGovAmount { get; set; }
+
+        [Display(Name = "صادر کننده بارنامه")]
+        public long? LoadFactorGovRegistorId { get; set; }
     }
 
     public class CSaipaPressLoadFactorVM
@@ -354,6 +368,9 @@ namespace EtehadBar.Domain
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string LoadNumber { get; set; }
 
+        [Display(Name = "شماره بارنامه دولتی")]
+        public string LoadNumberGov { get; set; }
+
         [Display(Name = "شماره درخواست")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
@@ -395,6 +412,12 @@ namespace EtehadBar.Domain
 
         [Display(Name = "بارنامه آزاد")]
         public bool IsFreeDriverPrice { get; set; }
+
+        [Display(Name = "کرایه بارنامه دولتی")]
+        public double? LoadFactorGovAmount { get; set; }
+
+        [Display(Name = "صادر کننده بارنامه")]
+        public long? LoadFactorGovRegistorId { get; set; }
     }
 
     public class ESazehGostarLoadFactorVM
@@ -452,6 +475,9 @@ namespace EtehadBar.Domain
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string LoadNumber { get; set; }
 
+        [Display(Name = "شماره بارنامه دولتی")]
+        public string LoadNumberGov { get; set; }
+
         [Display(Name = "شماره درخواست")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
@@ -493,6 +519,12 @@ namespace EtehadBar.Domain
 
         [Display(Name = "بارنامه آزاد")]
         public bool IsFreeDriverPrice { get; set; }
+
+        [Display(Name = "کرایه بارنامه دولتی")]
+        public double? LoadFactorGovAmount { get; set; }
+
+        [Display(Name = "صادر کننده بارنامه")]
+        public long? LoadFactorGovRegistorId { get; set; }
     }
 
     public class CMehrcomParsLoadFactorVM
@@ -593,6 +625,12 @@ namespace EtehadBar.Domain
 
         [Display(Name = "بارنامه آزاد")]
         public bool IsFreeDriverPrice { get; set; }
+
+        [Display(Name = "کرایه بارنامه دولتی")]
+        public double? LoadFactorGovAmount { get; set; }
+
+        [Display(Name = "صادر کننده بارنامه")]
+        public long? LoadFactorGovRegistorId { get; set; }
     }
 
     public class EMehrcomParsLoadFactorVM
@@ -694,6 +732,12 @@ namespace EtehadBar.Domain
 
         [Display(Name = "بارنامه آزاد")]
         public bool IsFreeDriverPrice { get; set; }
+
+        [Display(Name = "کرایه بارنامه دولتی")]
+        public double? LoadFactorGovAmount { get; set; }
+
+        [Display(Name = "صادر کننده بارنامه")]
+        public long? LoadFactorGovRegistorId { get; set; }
     }
 
     public class CreateLoadFactorNovinVM

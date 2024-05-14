@@ -142,6 +142,28 @@
             </div>
         </div>
     </div>
+    <div id="general-report-modal" uk-modal>
+        <div class="uk-modal-dialog">
+            <div class="uk-modal-header uk-light">
+                <h2 class="uk-modal-title">گزارش کلی</h2>
+            </div>
+            <div class="uk-modal-body">
+                <form method="get" action="@Url.Action("General", "Excel")" autocomplete="off">
+                    <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                        <div>
+                            <label class="uk-form-label">تاریخ</label>
+                            <select name="calendarId">
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="uk-modal-footer uk-text-center">
+                <a class="uk-button uk-button-primary uk-margin-small-left" onclick="submitGeneralModal()">دانلود گزارش</a>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            </div>
+        </div>
+    </div>
     <div id="drivers-periodic-activity-modal" uk-modal>
         <div class="uk-modal-dialog">
             <div class="uk-modal-header uk-light">

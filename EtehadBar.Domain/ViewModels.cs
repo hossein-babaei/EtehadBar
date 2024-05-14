@@ -1347,4 +1347,19 @@ namespace EtehadBar.Domain
         public string RightNumber { get; set; }
         public string LeftNumber { get; set; }
     }
+
+    public class GeneralReportVM
+    {
+        public long CustomerId { get; set; }
+        public string CustomerName { get; set; }
+        public double FactorsSum { get; set; }
+        public double DriversAmountSum { get; set; }
+        public double CostSum { get; set; }
+    }
+
+    public class GeneralReportDriverFeeVM
+    {
+        public long ContractId { get; set; }
+        public double Amount { get; set; }
+    }
 }

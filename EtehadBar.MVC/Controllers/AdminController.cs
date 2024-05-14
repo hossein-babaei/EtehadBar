@@ -2792,7 +2792,7 @@ namespace EtehadBar.MVC.Controllers
         [HttpGet]
         public async Task<PartialViewResult> LoadFactorDetail(int id)
         {
-            var item = await _loadFactorRepo.LoadFactors().Include(a => a.Driver).Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Vehicle).Include(a => a.Calendar).Include(a => a.Contract).Where(a => a.Id.Equals(id)).SingleOrDefaultAsync();
+            var item = await _loadFactorRepo.LoadFactors().Include(a => a.Driver).Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Vehicle).Include(a => a.Calendar).Include(a => a.Contract).Include(a => a.LoadFactorGovRegistor).Where(a => a.Id.Equals(id)).SingleOrDefaultAsync();
             ViewData["Admin"] = await _userManager.FindByIdAsync(item.AdminId);
             return PartialView("_LoadFactorDetail", item);
         }
@@ -2859,6 +2859,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Drivers"] = await _driverRepository.Drivers().AsNoTracking().Where(a => a.IsActive).OrderBy(a => a.Fullname).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => a.Status && a.RealStatus).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["LoadFactorRegistors"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType == DefinitionType.LoadFactorOrigin).ToListAsync();
 
             long sequence;
             switch (customerType)
@@ -2891,6 +2892,9 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null) 
+                    return NotFound("کرایه بارنامه دولتی را وارد کنید.");
+
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
                     return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
@@ -2937,8 +2941,10 @@ namespace EtehadBar.MVC.Controllers
                     LoadFactorDeductions = customerLoadFactorDeduction,
                     AccountBookId = input.AccountBookId,
                     IsDriverFeeEditedByAdmin = false,
-                    IsFreeDriverPrice = input.IsFreeDriverPrice
-                };
+                    IsFreeDriverPrice = input.IsFreeDriverPrice,
+                    LoadFactorGovAmount = input.LoadFactorGovAmount,
+                    LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value
+            };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
@@ -3207,6 +3213,9 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
+                    return NotFound("کرایه بارنامه دولتی را وارد کنید.");
+
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
                     return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
@@ -3243,6 +3252,7 @@ namespace EtehadBar.MVC.Controllers
                     DriverId = input.DriverId,
                     ExitNumber = input.ExitNumber,
                     LoadNumber = input.LoadNumber,
+                    LoadNumberGov = input.LoadNumberGov,
                     VehicleId = input.VehicleId,
                     ShippingFeeId = input.ShippingFeeId,
                     WithholdingTax = config.WithholdingTax,
@@ -3250,7 +3260,9 @@ namespace EtehadBar.MVC.Controllers
                     LoadFactorDeductions = customerLoadFactorDeduction,
                     AccountBookId = input.AccountBookId,
                     IsDriverFeeEditedByAdmin = false,
-                    IsFreeDriverPrice = input.IsFreeDriverPrice
+                    IsFreeDriverPrice = input.IsFreeDriverPrice,
+                    LoadFactorGovAmount = input.LoadFactorGovAmount,
+                    LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -3360,6 +3372,9 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
+                    return NotFound("کرایه بارنامه دولتی را وارد کنید.");
+
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
                     return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
@@ -3423,7 +3438,9 @@ namespace EtehadBar.MVC.Controllers
                     LoadSleepPrice = input.LoadSleepPrice,
                     DriverLoadSleepPrice = input.DriverLoadSleepPrice,
                     IsDriverFeeEditedByAdmin = false,
-                    IsFreeDriverPrice = input.IsFreeDriverPrice
+                    IsFreeDriverPrice = input.IsFreeDriverPrice,
+                    LoadFactorGovAmount = input.LoadFactorGovAmount,
+                    LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -3518,6 +3535,8 @@ namespace EtehadBar.MVC.Controllers
                 return NotFound($"صورت وضعیت باز در سیستم برای {customer.Name} وجود ندارد.");
             ViewData["AccountBooks"] = accountBooks;
 
+            ViewData["LoadFactorRegistors"] = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType == DefinitionType.LoadFactorOrigin).ToListAsync();
+
             return customer.CustomerType switch
             {
                 CustomerType.SaipaPlasco => PartialView("~/Views/Admin/Edit/LoadFactor/SaipaPlasco.cshtml", await _loadFactorRepo.GetSaipaPlascoLoadFactor(loadFactorId)),
@@ -3533,6 +3552,9 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
+                    return NotFound("کرایه بارنامه دولتی را وارد کنید.");
+
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPlascoLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPlascoLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
@@ -3580,6 +3602,8 @@ namespace EtehadBar.MVC.Controllers
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.AccountBookId = input.AccountBookId;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
+                item.LoadFactorGovAmount = input.LoadFactorGovAmount;
+                item.LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value;
 
                 //item.SaipaPlascoLoadFactor.Sequence = input.Sequence;
 
@@ -3805,6 +3829,9 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
+                    return NotFound("کرایه بارنامه دولتی را وارد کنید.");
+
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.SazehGostarLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SazehGostarLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
@@ -3844,10 +3871,13 @@ namespace EtehadBar.MVC.Controllers
                 item.DriverId = input.DriverId;
                 item.ExitNumber = input.ExitNumber;
                 item.LoadNumber = input.LoadNumber;
+                item.LoadNumberGov = input.LoadNumberGov;
                 item.VehicleId = input.VehicleId;
                 item.ShippingFeeId = input.ShippingFeeId;
                 item.AccountBookId = input.AccountBookId;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
+                item.LoadFactorGovAmount = input.LoadFactorGovAmount;
+                item.LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value;
 
                 //item.SazehGostarLoadFactor.Sequence = input.Sequence;
                 item.SazehGostarLoadFactor.Certain = input.Certain;
@@ -3933,6 +3963,9 @@ namespace EtehadBar.MVC.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
+                    return NotFound("کرایه بارنامه دولتی را وارد کنید.");
+
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
@@ -3985,6 +4018,8 @@ namespace EtehadBar.MVC.Controllers
                 item.TonnagePrice = input.TonnagePrice;
                 item.DriverTonnagePrice = input.DriverTonnagePrice;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
+                item.LoadFactorGovAmount = input.LoadFactorGovAmount;
+                item.LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value;
 
                 item.MehrcomParsLoadFactor.LoadNumberGovReturn = input.LoadNumberGovReturn;
                 item.MehrcomParsLoadFactor.Return = input.Return;

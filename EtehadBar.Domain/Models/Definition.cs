@@ -22,6 +22,7 @@ namespace EtehadBar.Domain.Models
 
         public ICollection<Customer> Customers { get; set; }
         public ICollection<VehicleBankAccount> VehicleBankAccounts { get; set; }
+        public ICollection<LoadFactor> loadFactors { get; set; }
 
         [Required]
         [StringLength(36)]

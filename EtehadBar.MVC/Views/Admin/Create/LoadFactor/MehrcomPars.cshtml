@@ -7,6 +7,7 @@
     var calendars = (List<Calendar>)ViewData["Calendars"];
     var accountBooks = (List<AccountBook>)ViewData["AccountBooks"];
     var categories = (List<MehrcomParsCategory>)ViewData["Categories"];
+    var loadFactorRegistors = (List<Definition>)ViewData["LoadFactorRegistors"];
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -138,6 +139,22 @@
                     <label asp-for="LoadNumberGovReturn" class="uk-form-label"></label>
                     <input asp-for="LoadNumberGovReturn" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
                     <span asp-validation-for="LoadNumberGovReturn" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="LoadFactorGovAmount" class="uk-form-label"></label>
+                    <input asp-for="LoadFactorGovAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="LoadFactorGovAmount" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="LoadFactorGovRegistorId" class="uk-form-label"></label>
+                    <select class="uk-select uk-border-rounded uk-form-small" asp-for="LoadFactorGovRegistorId">
+                        <option value="0">فاقد بارنامه دولتی</option>
+                        @foreach (var item in loadFactorRegistors)
+                        {
+                            <option value="@item.Id">@item.Title</option>
+                        }
+                    </select>
+                    <span asp-validation-for="LoadFactorGovRegistorId" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="TonnagePrice" class="uk-form-label"></label>

@@ -39,6 +39,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ICustomerPeriodicBalanceSummaryRepository _customerPeriodicBalanceSummaryRepository;
         private readonly ICustomerPeriodicBalanceAddonRepository _customerPeriodicBalanceAddonRepository;
         private readonly ILoadFactorNovinRepository _loadFactorNovinRepository;
+        private readonly ITurnoverProfilePeriodRepository _turnoverProfilePeriodRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -59,7 +60,8 @@ namespace EtehadBar.MVC.Controllers
             IShippingFeeRepository shippingFeeRepository,
             ICustomerPeriodicBalanceSummaryRepository customerPeriodicBalanceSummaryRepository,
             ICustomerPeriodicBalanceAddonRepository customerPeriodicBalanceAddonRepository,
-            ILoadFactorNovinRepository loadFactorNovinRepository)
+            ILoadFactorNovinRepository loadFactorNovinRepository,
+            ITurnoverProfilePeriodRepository turnoverProfilePeriodRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -80,6 +82,7 @@ namespace EtehadBar.MVC.Controllers
             _customerPeriodicBalanceSummaryRepository = customerPeriodicBalanceSummaryRepository;
             _customerPeriodicBalanceAddonRepository = customerPeriodicBalanceAddonRepository;
             _loadFactorNovinRepository = loadFactorNovinRepository;
+            _turnoverProfilePeriodRepository = turnoverProfilePeriodRepository;
         }
 
         [HttpPost]
@@ -455,32 +458,52 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Turnover(string startDate, string endDate, long profileId, TurnoverType turnoverType)
+        public async Task<IActionResult> Turnover(string startDate, string endDate, long profileId, TurnoverType turnoverType, long? turnoverProfilePeriodId)
         {
-            startDate = startDate.PersianToEnglish();
-            endDate = endDate.PersianToEnglish();
-            ViewData["StartDate"] = startDate;
-            ViewData["EndDate"] = endDate;
+            if (turnoverProfilePeriodId.HasValue)
+            {
+                var turnoverProfilePeriod = await _turnoverProfilePeriodRepository.Get(turnoverProfilePeriodId.Value);
 
-            var startArr = startDate.Split('/');
-            var startD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 0, 0, 0).ToDateTime();
-            var endArr = endDate.Split('/');
-            var endD = new PersianDateTime(Convert.ToInt32(endArr[0]), Convert.ToInt32(endArr[1]), Convert.ToInt32(endArr[2]), 23, 59, 59).ToDateTime();
-            if (startD > endD)
-            {
-                TempData["msg"] = "عملیات با خطا مواجه شد. تاریخ شروع از تاریخ پایان بزرگتر است. |danger";
-                return Redirect(Request.Headers["Referer"].ToString());
-            }
-            else
-            {
+                ViewData["StartDate"] = new PersianDateTime(turnoverProfilePeriod.StartDate);
+                ViewData["EndDate"] = new PersianDateTime(turnoverProfilePeriod.EndDate);
+
                 if (profileId == 0)
                 {
                     var turnoverProfiles = await _turnoverProfileRepository.Query().AsNoTracking().Where(a => a.TurnoverType == turnoverType).Select(a => a.Id).ToListAsync();
-                    return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startD && a.Date <= endD && turnoverProfiles.Contains(a.TurnoverProfileId)).OrderBy(a => a.Date).ToListAsync());
+                    return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= turnoverProfilePeriod.StartDate && a.Date <= turnoverProfilePeriod.EndDate && turnoverProfiles.Contains(a.TurnoverProfileId)).OrderBy(a => a.Date).ToListAsync());
                 }
                 else
                 {
-                    return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startD && a.Date <= endD && a.TurnoverProfileId.Equals(profileId)).OrderBy(a => a.Date).ToListAsync());
+                    return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= turnoverProfilePeriod.StartDate && a.Date <= turnoverProfilePeriod.EndDate && a.TurnoverProfileId.Equals(profileId)).OrderBy(a => a.Date).ToListAsync());
+                }
+            }
+            else
+            {
+                startDate = startDate.PersianToEnglish();
+                endDate = endDate.PersianToEnglish();
+                ViewData["StartDate"] = startDate;
+                ViewData["EndDate"] = endDate;
+
+                var startArr = startDate.Split('/');
+                var startD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 0, 0, 0).ToDateTime();
+                var endArr = endDate.Split('/');
+                var endD = new PersianDateTime(Convert.ToInt32(endArr[0]), Convert.ToInt32(endArr[1]), Convert.ToInt32(endArr[2]), 23, 59, 59).ToDateTime();
+                if (startD > endD)
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. تاریخ شروع از تاریخ پایان بزرگتر است. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+                else
+                {
+                    if (profileId == 0)
+                    {
+                        var turnoverProfiles = await _turnoverProfileRepository.Query().AsNoTracking().Where(a => a.TurnoverType == turnoverType).Select(a => a.Id).ToListAsync();
+                        return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startD && a.Date <= endD && turnoverProfiles.Contains(a.TurnoverProfileId)).OrderBy(a => a.Date).ToListAsync());
+                    }
+                    else
+                    {
+                        return PartialView("_Turnover", await _turnoverRepository.Query().Include(a => a.TurnoverProfile).Where(a => a.Date >= startD && a.Date <= endD && a.TurnoverProfileId.Equals(profileId)).OrderBy(a => a.Date).ToListAsync());
+                    }
                 }
             }
         }

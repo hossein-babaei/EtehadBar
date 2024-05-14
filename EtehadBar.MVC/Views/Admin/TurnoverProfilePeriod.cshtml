@@ -80,7 +80,13 @@
                         <td>@item.Title</td>
                         <td>@startDate</td>
                         <td>@endDate</td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerBalanceByPeriod" asp-route-id="@item.Id"><i class="fas fa-clipboard-list"></i></a></td>
+                        <td>
+                            <form asp-controller="Report" asp-action="Turnover" method="post">
+                                <input type="hidden" name="turnoverProfilePeriodId" value="@item.Id" />
+                                <input type="hidden" name="profileId" value="@turnoverProfileInfo.Id" />
+                                <input type="hidden" name="turnoverType" value="@turnoverProfileInfo.TurnoverType" />
+                            </form>
+                            <a class="uk-button uk-button-primary uk-button-small" onclick="$(this).prev().submit()"><i class="fas fa-clipboard-list"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

@@ -6,7 +6,8 @@
         BillType,
         BankBranch,
         CostAccount,
-        BankName
+        BankName,
+        LoadFactorOrigin
     }
 
     public enum ApplicationRoleType

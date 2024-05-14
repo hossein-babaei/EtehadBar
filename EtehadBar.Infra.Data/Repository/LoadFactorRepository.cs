@@ -108,6 +108,8 @@ namespace EtehadBar.Infra.Data.Repository
                 DriverFee = loadFactor.DriverFee,
                 AccountBookId = loadFactor.AccountBookId,
                 IsFreeDriverPrice = loadFactor.IsFreeDriverPrice,
+                LoadFactorGovAmount = loadFactor.LoadFactorGovAmount,
+                LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId
             };
         }
 
@@ -176,7 +178,10 @@ namespace EtehadBar.Infra.Data.Repository
                 DriverFee = loadFactor.DriverFee,
                 AccountBookId = loadFactor.AccountBookId,
                 SazehLoadType = loadFactor.SazehGostarLoadFactor.SazehLoadType,
-                IsFreeDriverPrice = loadFactor.IsFreeDriverPrice
+                IsFreeDriverPrice = loadFactor.IsFreeDriverPrice,
+                LoadNumberGov = loadFactor.LoadNumberGov,
+                LoadFactorGovAmount = loadFactor.LoadFactorGovAmount,
+                LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId
             };
         }
 
@@ -391,7 +396,9 @@ namespace EtehadBar.Infra.Data.Repository
                 LoadSleepPrice = loadFactor.LoadSleepPrice,
                 LoadSleepTime = loadFactor.LoadSleepTime,
                 HasAddonMessage = loadFactor.MehrcomParsLoadFactor.HasAddonMessage,
-                IsFreeDriverPrice = loadFactor.IsFreeDriverPrice
+                IsFreeDriverPrice = loadFactor.IsFreeDriverPrice,
+                LoadFactorGovAmount = loadFactor.LoadFactorGovAmount,
+                LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId
             };
         }
 

@@ -1,4 +1,5 @@
-﻿using ClosedXML.Excel;
+﻿using Castle.Core.Resource;
+using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Bibliography;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Office2010.Excel;
@@ -10,6 +11,7 @@ using EtehadBar.Domain.Models.LoadFactorCreator;
 using EtehadBar.Infra.Data.Context;
 using EtehadBar.Infra.Data.Repository;
 using EtehadBar.MVC.Filters;
+using Helpers;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -318,7 +320,7 @@ namespace EtehadBar.MVC.Controllers
                 .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
                 .Font.SetFontSize(12);
 
-            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
+            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             ws.RangeUsed().Style.Border.SetInsideBorder(XLBorderStyleValues.Thin)
                 .Border.SetInsideBorderColor(XLColor.Black);
 
@@ -2840,7 +2842,7 @@ namespace EtehadBar.MVC.Controllers
                 var startArr = startDate.Split('/');
                 var startD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 0, 0, 0).ToDateTime();
                 var endArr = endDate.Split('/');
-                var endD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 23, 59, 59).ToDateTime();
+                var endD = new PersianDateTime(Convert.ToInt32(endArr[0]), Convert.ToInt32(endArr[1]), Convert.ToInt32(endArr[2]), 23, 59, 59).ToDateTime();
                 if (startD > endD)
                 {
                     var calendar = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).FirstAsync();
@@ -2973,7 +2975,8 @@ namespace EtehadBar.MVC.Controllers
                 .Font.SetFontSize(12)
                 .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Medium;
+            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.RangeUsed().Style.Border.InsideBorder = XLBorderStyleValues.Thin;
             ws.Columns().AdjustToContents();
 
             ws.PageSetup.SetPageOrientation(XLPageOrientation.Landscape)
@@ -3842,6 +3845,238 @@ namespace EtehadBar.MVC.Controllers
 
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
 
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> LoadFactorGov(long customerId, string startDate, string endDate)
+        {
+            var startArr = startDate.PersianToEnglish().Split('/');
+            var startD = new PersianDateTime(Convert.ToInt32(startArr[0]), Convert.ToInt32(startArr[1]), Convert.ToInt32(startArr[2]), 0, 0, 0).ToDateTime();
+            var endArr = endDate.PersianToEnglish().Split('/');
+            var endD = new PersianDateTime(Convert.ToInt32(endArr[0]), Convert.ToInt32(endArr[1]), Convert.ToInt32(endArr[2]), 23, 59, 59).ToDateTime();
+            if (startD > endD)
+            {
+                TempData["msg"] = $"تاریخ شروع از تاریخ پایان بزرگتر است! |danger";
+                return Redirect(Request.Headers["Referer"].ToString());
+            }
+
+            var thisCustomerContractIdList = await db.Contract.AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).Select(a => a.Id).ToListAsync();
+            var data = await _loadFactorRepo.LoadFactors().AsNoTracking()
+                .Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Vehicle).Include(a => a.LoadFactorGovRegistor)
+                .Where(a => (!string.IsNullOrWhiteSpace(a.LoadNumberGov) && a.LoadFactorGovAmount.HasValue) && a.Date >= startD && a.Date <= endD && thisCustomerContractIdList.Contains(a.ContractId))
+                .OrderBy(a => a.Date).ToListAsync();
+
+            string docTitle = $"گزارش بارنامه های دولتی از {startDate} الی {endDate}";
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("گزارش");
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+
+            ws.Cell(2, 1).Value = "#";
+            ws.Cell(2, 2).Value = "تاریخ";
+            ws.Cell(2, 3).Value = "شماره بارنامه";
+            ws.Cell(2, 4).Value = "مبلغ";
+            ws.Cell(2, 5).Value = "شرکت صادر کننده";
+            ws.Cell(2, 6).Value = "مبدا";
+            ws.Cell(2, 7).Value = "مقصد";
+            ws.Cell(2, 8).Value = "نام راننده";
+            ws.Cell(2, 9).Value = "نوع خودرو";
+            ws.Cell(2, 10).Value = "پلاک";
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 10));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetBold()
+                .Font.SetFontSize(15)
+                    .Fill.SetBackgroundColor(XLColor.LightGray)
+                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 10)); // The address is relative to rngTable (NOT the worksheet)
+            rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            rngHeaders.Style.Font.Bold = true;
+            rngHeaders.Style.Font.FontColor = XLColor.Black;
+
+            var amountSum = 0d;
+            for (int index = 1; index <= data.Count; index++)
+            {
+                var item = data[index - 1];
+                var amount = item.LoadFactorGovAmount ?? 0;
+                amountSum += amount;
+
+                ws.Cell(index + 2, 1).Value = index;
+                ws.Cell(index + 2, 2).Value = new PersianDateTime(item.Date).ToString("yyyy/MM/dd");
+                ws.Cell(index + 2, 3).SetValue(item.LoadNumberGov);
+                ws.Cell(index + 2, 4).Value = amount.ToString("N0");
+                ws.Cell(index + 2, 5).Value = item.LoadFactorGovRegistorId.HasValue ? item.LoadFactorGovRegistor.Title : "---";
+                ws.Cell(index + 2, 6).Value = item.Origin.Title;
+                ws.Cell(index + 2, 7).Value = item.Destination.Title;
+                ws.Cell(index + 2, 8).Value = item.Vehicle.VehicleOwnerFullname;
+                ws.Cell(index + 2, 9).Value = item.Vehicle.Type;
+                ws.Cell(index + 2, 10).Value = item.Vehicle.RightNumber + " " + item.Vehicle.NumberWord + " " + item.Vehicle.LeftNumber + " - " + item.Vehicle.IranStateNumber;
+            }
+
+            ws.Cell($"B{data.Count + 3}").Value = "تعداد کل بارنامه ها";
+            ws.Range($"B{data.Count + 3}:I{data.Count + 3}").Row(1).Merge();
+            ws.Cell(data.Count + 3, 10).Value = data.Count;
+
+            ws.Cell($"B{data.Count + 4}").Value = "جمع کل مبلغ";
+            ws.Range($"B{data.Count + 4}:I{data.Count + 4}").Row(1).Merge();
+            ws.Cell(data.Count + 4, 10).Value = amountSum.ToString("N0");
+
+            ws.RangeUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngTable2 = ws.Range($"B{data.Count + 3}:J{data.Count + 10}");
+            rngTable2.RangeUsed().Style
+                .Font.SetBold()
+                .Font.SetFontSize(12)
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.RangeUsed().Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            ws.Columns().AdjustToContents();
+
+            ws.PageSetup.SetPaperSize(XLPaperSize.A4Paper);
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> General(long calendarId)
+        {
+            var customers = await _customerRepo.Customers().AsNoTracking().Where(a => a.Status).Select(a => new { a.Id, a.Name }).ToListAsync();
+            var contracts = await db.Contract.AsNoTracking().Where(a => customers.Select(a => a.Id).Contains(a.CustomerId)).Select(a => new { a.Id, a.CustomerId }).ToListAsync();
+            var calendar = await _calendarRepo.Get(calendarId);
+            var customerFactors = await db.CustomerFactor.AsNoTracking().Where(a => a.CalendarId.Equals(calendarId)).ToListAsync();
+            var loadFactors = await db.LoadFactor.AsNoTracking().Where(a => a.CalendarId.Equals(calendarId)).Select(a => new
+            {
+                a.ContractId,
+                a.DriverFee,
+                a.Tonnage,
+                a.DriverTonnagePrice,
+                a.DriverLoadSleepPrice,
+                a.WeighbridgePrice,
+                a.LoadSleepTime
+            }).ToListAsync();
+
+            var driverData = new List<GeneralReportDriverFeeVM>();
+            foreach (var item in loadFactors)
+            {
+                var amount = item.DriverFee;
+
+                if (item.Tonnage.HasValue)
+                    amount += item.Tonnage.Value * (item.DriverTonnagePrice ?? 0);
+
+                if (item.LoadSleepTime.HasValue)
+                    amount += item.DriverLoadSleepPrice ?? 0;
+
+                if (item.WeighbridgePrice.HasValue)
+                    amount += item.WeighbridgePrice.Value;
+                driverData.Add(new GeneralReportDriverFeeVM
+                {
+                    Amount = amount,
+                    ContractId = item.ContractId
+                });
+            }
+            var cost = await _costRepo.Costs().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            var otherCosts = await _billRepository.Query().AsNoTracking().Where(a => a.Date >= calendar.StartDate && a.Date <= calendar.EndDate && a.BillType.Equals("جاری")).SumAsync(a => a.Amount);
+            cost += otherCosts;
+
+            var data = new List<GeneralReportVM>();
+            foreach (var customer in customers)
+            {
+                data.Add(new GeneralReportVM
+                {
+                    CustomerId = customer.Id,
+                    CustomerName = customer.Name,
+                    CostSum = cost / 4,
+                    DriversAmountSum = driverData.Where(a => contracts.Where(a => a.CustomerId.Equals(customer.Id)).Select(a => a.Id).ToList().Contains(a.ContractId)).Sum(a => a.Amount),
+                    FactorsSum = customerFactors.Where(a => a.CustomerId.Equals(customer.Id)).Sum(a => a.Amount)
+                });
+            }
+
+            string docTitle = $"گزارش کلی عملکرد از {calendar.Title}";
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("گزارش");
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+
+            ws.Cell(2, 1).Value = "نام";
+            ws.Cell(2, 2).Value = "جمع دریافتی";
+            ws.Cell(2, 3).Value = "جمع پرداختی";
+            ws.Cell(2, 4).Value = "جمع هزینه های جاری";
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 2, 4));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetBold()
+                .Font.SetFontSize(15)
+                    .Fill.SetBackgroundColor(XLColor.LightGray)
+                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 4)); // The address is relative to rngTable (NOT the worksheet)
+            rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            rngHeaders.Style.Font.Bold = true;
+            rngHeaders.Style.Font.FontColor = XLColor.Black;
+
+            for (int index = 1; index <= data.Count; index++)
+            {
+                var item = data[index - 1];
+
+                ws.Cell(index + 2, 1).Value = item.CustomerName;
+                ws.Cell(index + 2, 2).Value = item.FactorsSum.ToString("N0");
+                ws.Cell(index + 2, 3).Value = item.DriversAmountSum.ToString("N0");
+                ws.Cell(index + 2, 4).Value = item.CostSum.ToString("N0");
+            }
+
+            ws.Cell($"B{data.Count + 3}").Value = "جمع کل دریافتی";
+            ws.Range($"B{data.Count + 3}:C{data.Count + 3}").Row(1).Merge();
+            ws.Cell(data.Count + 3, 4).Value = customerFactors.Sum(a => a.Amount).ToString("N0");
+
+            ws.Cell($"B{data.Count + 4}").Value = "جمع کل پرداختی";
+            ws.Range($"B{data.Count + 4}:C{data.Count + 4}").Row(1).Merge();
+            ws.Cell(data.Count + 4, 4).Value = driverData.Sum(a => a.Amount).ToString("N0");
+
+            ws.Cell($"B{data.Count + 5}").Value = "جمع کل هزینه ها";
+            ws.Range($"B{data.Count + 5}:C{data.Count + 5}").Row(1).Merge();
+            ws.Cell(data.Count + 5, 4).Value = cost.ToString("N0");
+
+            ws.RangeUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            var rngTable2 = ws.Range($"B{data.Count + 3}:D{data.Count + 5}");
+            rngTable2.RangeUsed().Style
+                .Font.SetBold()
+                .Font.SetFontSize(12)
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.RangeUsed().Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            ws.Columns().AdjustToContents();
+
+            ws.PageSetup.SetPaperSize(XLPaperSize.A4Paper);
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
     }
 }
