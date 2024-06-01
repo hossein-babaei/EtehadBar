@@ -3413,7 +3413,7 @@ namespace EtehadBar.MVC.Controllers
                     {
                         var item = vehicle.ElementAt(i);
 
-                        if (item.Tonnage.HasValue)
+                        if (item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue)
                             otherFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
 
                         dataItem.Details.Add(new LoadFactorDetailModel
@@ -3470,7 +3470,7 @@ namespace EtehadBar.MVC.Controllers
                     {
                         var item = vehicle.ElementAt(i);
 
-                        if (item.Tonnage.HasValue)
+                        if (item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue)
                             otherFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
 
                         loadFactorModelItem.Details.Add(new LoadFactorDetailModel
@@ -3548,7 +3548,7 @@ namespace EtehadBar.MVC.Controllers
                     {
                         var item = vehicle.ElementAt(i);
 
-                        if (item.Tonnage.HasValue)
+                        if (item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue)
                             otherFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
 
                         if (item.WeighbridgePrice.HasValue)
@@ -3611,7 +3611,7 @@ namespace EtehadBar.MVC.Controllers
                     {
                         var item = vehicle.ElementAt(i);
 
-                        if (item.Tonnage.HasValue)
+                        if (item.Tonnage.HasValue && item.DriverTonnagePrice.HasValue)
                             otherFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
 
                         if (item.WeighbridgePrice.HasValue)

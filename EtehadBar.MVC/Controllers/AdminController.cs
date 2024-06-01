@@ -1805,6 +1805,12 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
+
+        [HttpPost]
+        public async Task<IActionResult> GetCustomersJson()
+        {
+            return Json(await _customerRepo.Customers().AsNoTracking().OrderByDescending(a => a.Name).Select(a => new { a.Id, a.Name }).ToListAsync());
+        }
         #endregion
 
         #region Contract
@@ -4342,7 +4348,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> LoadFactorNovin_Search(int? p, string loadNumber, string vehicleNumber, long? calendar)
+        public async Task<IActionResult> LoadFactorNovin_Search(int? p, string loadNumber, string vehicleNumber, long? calendar, long? customer, long? isReceived, long? isPaied)
         {
             var pageNumber = p ?? 1;
 
@@ -4354,11 +4360,28 @@ namespace EtehadBar.MVC.Controllers
                 query = query.Where(a => vehicleNumber == (a.Vehicle.LeftNumber + " " + a.Vehicle.NumberWord + " " + a.Vehicle.RightNumber));
             if (calendar.HasValue && calendar.Value > 0)
                 query = query.Where(a => a.CalendarId.Equals(calendar.Value));
+            if (customer.HasValue && customer.Value > 0)
+                query = query.Where(a => a.CustomerId.Equals(customer.Value));
+            if (isReceived.HasValue && isReceived.Value > 0)
+            {
+                bool flag = false;
+                if (isReceived.Value == 1) flag = true;
+                    query = query.Where(a => a.IsReceived.Equals(flag));
+            }
+            if (isPaied.HasValue && isPaied.Value > 0)
+            {
+                bool flag = false;
+                if (isPaied.Value == 1) flag = true;
+                query = query.Where(a => a.IsPaied.Equals(flag));
+            }
 
             ViewBag.page = p;
             ViewBag.loadNumber = loadNumber;
             ViewBag.vehicleNumber = vehicleNumber;
             ViewBag.calendar = calendar;
+            ViewBag.customer = customer;
+            ViewBag.isReceived = isReceived;
+            ViewBag.isPaied = isPaied;
 
 
             ViewBag.data = await query.OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 15);
@@ -6405,7 +6428,7 @@ namespace EtehadBar.MVC.Controllers
                 ViewBag.data = await query.OrderBy(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, queryCount == 0 ? 1 : queryCount);
             }
             else
-                ViewBag.data = await query.OrderByDescending(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, 50);
+                ViewBag.data = await query.OrderByDescending(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, 100);
 
             ViewBag.Name = name;
             ViewBag.BillType = billType;

@@ -15,7 +15,8 @@
 }
 @section Scripts{
     <script>
-        let calendars = [];
+        let calendars = [],
+            customers = [];
         $('#search-modal form').submit(function (e) {
             e.preventDefault();
             filter();
@@ -43,6 +44,29 @@
                     },
                     complete: function () {
                         preloader();
+                    }
+                });
+            }
+            if (customers.length == 0) {
+                await $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("GetCustomersJson")',
+                    data: {},
+                    dataType: 'json',
+                    beforeSend: function () {
+                    },
+                    success: function (r) {
+                        customers = r;
+                        let options = '<option value="0" selected="selected">همه</option>';
+                        $.each(customers, (i, v) => {
+                            options += `<option value="${v.id}">${v.name}</option>`;
+                        });
+                        $('#search-modal #customer').html(options);
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger');
+                    },
+                    complete: function () {
                     }
                 });
             }
@@ -280,22 +304,45 @@
         </div>
         <div class="uk-modal-body">
             <form>
-                <div>
-                    <label class="uk-form-label">شماره خروج</label>
-                    <input dir="ltr" class="uk-input uk-border-rounded uk-text-left" id="exitNumber" name="exitNumber" autocomplete="off" placeholder="شماره خروج را در این قسمت تایپ نمائید..." />
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label class="uk-form-label">شماره خروج</label>
+                        <input dir="ltr" class="uk-input uk-border-rounded uk-text-left" id="exitNumber" name="exitNumber" autocomplete="off" placeholder="شماره خروج را در این قسمت تایپ نمائید..." />
+                    </div>
+                    <div>
+                        <label class="uk-form-label">شماره بارنامه</label>
+                        <input dir="ltr" class="uk-input uk-border-rounded uk-text-left" id="loadNumber" name="loadNumber" autocomplete="off" placeholder="شماره بارنامه را در این قسمت تایپ نمائید..." />
+                    </div>
+                    <div>
+                        <label class="uk-form-label">شماره خودرو</label>
+                        <input class="uk-input uk-border-rounded uk-text-left" id="vehicleNumber" name="vehicleNumber" autocomplete="off" placeholder="شماره خودرو را به صورت کامل همراه با فاصله ها وارد کنید..." />
+                    </div>
+                    <div>
+                        <label class="uk-form-label">تقویم کاری</label>
+                        <select class="uk-select uk-border-rounded" id="calendar" name="calendar"></select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">طرف حساب</label>
+                        <select class="uk-select uk-border-rounded" id="customer" name="customer"></select>
+                    </div>
+                    <div class="uk-width-1-2">
+                        <label class="uk-form-label">وضعیت دریافت</label>
+                        <select class="uk-select uk-border-rounded" id="isReceived" name="isReceived">
+                            <option value="0" selected>همه</option>
+                            <option value="1">دریافت شده</option>
+                            <option value="2">دریافت نشده</option>
+                        </select>
+                    </div>
+                    <div class="uk-width-1-2">
+                        <label class="uk-form-label">وضعیت پرداخت</label>
+                        <select class="uk-select uk-border-rounded" id="isPaied" name="isPaied">
+                            <option value="0" selected>همه</option>
+                            <option value="1">پرداخت شده</option>
+                            <option value="2">پرداخت نشده</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">شماره بارنامه</label>
-                    <input dir="ltr" class="uk-input uk-border-rounded uk-text-left" id="loadNumber" name="loadNumber" autocomplete="off" placeholder="شماره بارنامه را در این قسمت تایپ نمائید..." />
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">شماره خودرو</label>
-                    <input class="uk-input uk-border-rounded uk-text-left" id="vehicleNumber" name="vehicleNumber" autocomplete="off" placeholder="شماره خودرو را به صورت کامل همراه با فاصله ها وارد کنید..." />
-                </div>
-                <div class="uk-margin-small-top">
-                    <label class="uk-form-label">تقویم کاری</label>
-                    <select class="uk-select uk-border-rounded" id="calendar" name="calendar"></select>
-                </div>
+                
             </form>
             <div class="uk-margin-top uk-text-center">
                 <a asp-action="LoadFactor" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
@@ -309,7 +356,7 @@
 </div>
 <div id="delete-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
-        <form id="delete-form" method="post" asp-action="DeleteLoadFactor" asp-controller="Admin">
+        <form id="delete-form" method="post" asp-action="DeleteLoadFactorNovin" asp-controller="Admin">
             <input type="hidden" name="id" />
             <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
             <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>

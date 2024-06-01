@@ -91,7 +91,7 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("LoadFactorNovin_Search", new { p = page, loadNumber = ViewBag.loadNumber, vehicleNumber = ViewBag.vehicleNumber, calendar = ViewBag.calendar }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+            @Html.PagedListPager(data, page => Url.Action("LoadFactorNovin_Search", new { p = page, loadNumber = ViewBag.loadNumber, vehicleNumber = ViewBag.vehicleNumber, calendar = ViewBag.calendar, customer = ViewBag.customer, isReceived= ViewBag.isReceived, isPaied = ViewBag.isPaied }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
         </div>
     }
 }

@@ -1,6 +1,7 @@
 ﻿using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
+using EtehadBar.Infra.Data.Context;
 using EtehadBar.MVC.Filters;
 using Helpers;
 using MD.PersianDateTime.Standard;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Packaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1084,6 +1086,12 @@ namespace EtehadBar.MVC.Controllers
 
             var unrealVehicles = await _vehicleRepo.Vehicles().AsNoTracking().Where(a => !a.RealStatus && a.Status).OrderBy(a => a.LeftNumber).ThenBy(a => a.RightNumber).ToListAsync();
             var usedVehicles = await _billRepository.Query().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && a.VehicleId.HasValue && unrealVehicles.Select(a => a.Id).Contains(a.VehicleId.Value)).Select(a => a.VehicleId.Value).Distinct().ToListAsync();
+            using (var db = new ApplicationDbContext())
+            {
+                var otherCosts = await db.OtherCost.AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && unrealVehicles.Select(a => a.Id).Contains(a.VehicleId)).Select(a => a.VehicleId).Distinct().ToListAsync();
+
+                usedVehicles.AddRange(otherCosts);
+            }
 
             ViewData["Calendar"] = calendar;
 
