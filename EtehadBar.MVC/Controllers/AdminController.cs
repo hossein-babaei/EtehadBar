@@ -6642,6 +6642,21 @@ namespace EtehadBar.MVC.Controllers
             var sum = await _billRepository.Query().Where(a => a.BillNo.Equals(billNo)).SumAsync(a => a.Amount);
             return Json(sum.ToString("N0"));
         }
+
+        public async Task<JsonResult> GetSelectedVehicleBalanceInBillForm (long customerId, long calendarId, long vehicleId)
+        {
+            var thisCalendarSequence = await _calendarRepo.Calendars().AsNoTracking().Where(a => a.Id.Equals(calendarId)).Select(a => a.Sequence).SingleAsync();
+            var calendars = await _calendarRepo.Calendars().AsNoTracking().Where(a => a.Sequence <= thisCalendarSequence).Select(a => a.Id).ToListAsync();
+            var vehicleBalance = await _vehicleBalanceRepository.Query()
+                .Where(a => (a.CustomerId.HasValue ? a.CustomerId.Value.Equals(customerId) : true) &&
+                a.CalendarId.HasValue && calendars.Contains(a.CalendarId.Value) && a.VehicleId.Equals(vehicleId))
+                .Select(a => a.Amount).SumAsync();
+
+            //var bills = await _billRepository.Query().AsNoTracking().Where(a => a.CustomerId.HasValue && a.CustomerId.Value.Equals(customerId)
+            //    && a.VehicleId.HasValue && a.VehicleId.Value.Equals(vehicleId) && calendars.Contains(a.CalendarId)).Select(a => a.Amount).SumAsync();
+
+            return Json(vehicleBalance > 0 ? vehicleBalance : "");
+        }
         #endregion
 
         #region VehicleBalance

@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -402,6 +403,24 @@ namespace EtehadBar.MVC.Controllers
             else
             {
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteOtherCost(long id)
+        {
+            var item = await db.OtherCost.FindAsync(id);
+            
+            db.Remove(item);
+            try
+            {
+                await db.SaveChangesAsync();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }

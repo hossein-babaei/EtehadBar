@@ -17,7 +17,8 @@
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
                  <div>
                     <label asp-for="CustomerId" class="uk-form-label"></label>
-                    <select asp-for="CustomerId" class="uk-select uk-border-rounded uk-form-small">
+                    <select asp-for="CustomerId" class="uk-select uk-border-rounded uk-form-small"
+                        onchange="vehicleSelectChangeHandler($(this).parents('form').find('#VehicleId').get(0))">
                         <!option @if(!Model.CustomerId.HasValue) { <text>selected="selected"</text>} value="0">انتخاب مشتری</!option>
                         @foreach (var item in customers)
                         {
@@ -28,7 +29,8 @@
                 </div>
                 <div>
                     <label asp-for="CalendarId" class="uk-form-label"></label>
-                    <select asp-for="CalendarId" class="uk-select uk-border-rounded">
+                    <select asp-for="CalendarId" class="uk-select uk-border-rounded"
+                        onchange="vehicleSelectChangeHandler($(this).parents('form').find('#VehicleId').get(0))">
                         @foreach (var item in calendar)
                         {
                             <!option value="@item.Id" @if (Model.CalendarId.Equals(item.Id)) { <text>selected="selected"</text> }>@item.Title</!option>
@@ -94,19 +96,19 @@
                  <div class="uk-width-1-2">
                     <label asp-for="VehicleId" class="uk-form-label"></label>
                     <select asp-for="VehicleId" class="uk-select uk-border-rounded" onchange="vehicleSelectChangeHandler(this)">
-                        <option value="">ثبت هزینه بدون پلاک</option>
+                        <option value="" data-owner="" data-real-status="">ثبت هزینه بدون پلاک</option>
                         @if (Model.VehicleId.HasValue)
                         {
                             foreach (var item in vehicles)
                             {
-                                <!option value="@item.Id" data-owner="@item.VehicleOwnerFullname" @if(item.Id.Equals(Model.VehicleId.Value)){<text>selected="selected"</text>}>ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber (@item.Type)</!option>
+                                <!option value="@item.Id" data-owner="@item.VehicleOwnerFullname" data-real-status="@item.RealStatus" @if(item.Id.Equals(Model.VehicleId.Value)){<text>selected="selected"</text>}>ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber (@item.Type)</!option>
                             }
                         }
                         else
                         {
                             foreach (var item in vehicles)
                             {
-                                <option value="@item.Id" data-owner="@item.VehicleOwnerFullname">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber (@item.Type)</option>
+                                <option value="@item.Id" data-owner="@item.VehicleOwnerFullname" data-real-status="@item.RealStatus">ایران @item.IranStateNumber - @item.RightNumber @item.NumberWord @item.LeftNumber (@item.Type)</option>
                             }
                         }
                     </select>

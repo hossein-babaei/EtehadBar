@@ -226,9 +226,29 @@
                 }
             });
         }
-        function vehicleSelectChangeHandler(select) {
+        async function vehicleSelectChangeHandler(select) {
+
             let ownerName = $(select).find('option:selected').data('owner');
+            ownerName = ownerName.replace('/', '');
             $(select).parent().next().find('input').val(ownerName);
+
+            let realStatus = $(select).find('option:selected').data('real-status');
+            if (realStatus == 'True') {
+                let form = $(select).parents('form'),
+                    customerId = form.find('#CustomerId').val(),
+                    calendarId = form.find('#CalendarId').val(),
+                    vehicleId = $(select).val();
+
+                    if  (customerId > 0) {
+                        //implement activity amount
+                        await $.get('@Url.Action("GetSelectedVehicleBalanceInBillForm")',
+                        { 'customerId': customerId, 'calendarId': calendarId, 'vehicleId': vehicleId }
+                        , function (r) {
+                            form.find('#Amount').val(r).keyup();
+                        }
+                        , 'json');
+                    }
+            }
         }
         function remove(id) {
             $('#delete-modal input').val(id);
