@@ -535,6 +535,13 @@ body {
     box-shadow: 0 2px 15px rgba(63, 81, 181, 0.20)
 }
 
+.uk-modal .box {
+    background: #fff;
+    padding: 10px;
+    border: 1px solid #e5e5e5;
+    border-radius: 5px;
+}
+
 #currentTags ul {
     list-style: none;
     padding: 0

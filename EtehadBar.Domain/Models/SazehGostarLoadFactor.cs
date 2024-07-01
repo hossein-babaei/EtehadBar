@@ -35,6 +35,8 @@ namespace EtehadBar.Domain.Models
         [StringLength(50)]
         public string DetailedCostCenter { get; set; }
 
+        public double? InsuranceAmount { get; set; }
+
         [Required]
         public SazehGostarLoadType SazehLoadType { get; set; }
 

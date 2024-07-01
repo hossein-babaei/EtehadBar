@@ -936,6 +936,13 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, Milad")]
+        public async Task<IActionResult> GetLoadFactorCompany()
+        {
+            return Json(await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType == DefinitionType.LoadFactorOrigin).Select(a => new { a.Id, a.Title }).ToListAsync());
+        }
         #endregion
 
         #region Vehicle
@@ -2901,6 +2908,9 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null) 
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
+                if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
+                    return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
+
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
                     return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
@@ -2949,8 +2959,9 @@ namespace EtehadBar.MVC.Controllers
                     IsDriverFeeEditedByAdmin = false,
                     IsFreeDriverPrice = input.IsFreeDriverPrice,
                     LoadFactorGovAmount = input.LoadFactorGovAmount,
-                    LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value
-            };
+                    LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value,
+                    LoadFactorGovDate = input.LoadFactorGovRegistorId.Value > 0 ? new PersianDateTime(input.GovYear, input.GovMonth, input.GovDay, 0, 0, 0).ToDateTime() : null
+                };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
@@ -3222,6 +3233,9 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
+                if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
+                    return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
+
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
                     return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
@@ -3268,7 +3282,8 @@ namespace EtehadBar.MVC.Controllers
                     IsDriverFeeEditedByAdmin = false,
                     IsFreeDriverPrice = input.IsFreeDriverPrice,
                     LoadFactorGovAmount = input.LoadFactorGovAmount,
-                    LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value
+                    LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value,
+                    LoadFactorGovDate = input.LoadFactorGovRegistorId.Value > 0 ? new PersianDateTime(input.GovYear, input.GovMonth, input.GovDay, 0, 0, 0).ToDateTime() : null
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -3381,6 +3396,9 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
+                if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
+                    return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
+
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
                     return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
@@ -3446,7 +3464,8 @@ namespace EtehadBar.MVC.Controllers
                     IsDriverFeeEditedByAdmin = false,
                     IsFreeDriverPrice = input.IsFreeDriverPrice,
                     LoadFactorGovAmount = input.LoadFactorGovAmount,
-                    LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value
+                    LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value,
+                    LoadFactorGovDate = input.LoadFactorGovRegistorId.Value > 0 ? new PersianDateTime(input.GovYear, input.GovMonth, input.GovDay, 0, 0, 0).ToDateTime() : null
                 };
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
@@ -3561,6 +3580,9 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
+                if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
+                    return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
+
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPlascoLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPlascoLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
@@ -3609,7 +3631,11 @@ namespace EtehadBar.MVC.Controllers
                 item.AccountBookId = input.AccountBookId;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
                 item.LoadFactorGovAmount = input.LoadFactorGovAmount;
-                item.LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value;
+                if (input.LoadFactorGovRegistorId.Value > 0)
+                {
+                    item.LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value;
+                    item.LoadFactorGovDate = new PersianDateTime(input.GovYear, input.GovMonth, input.GovDay, 0, 0, 0).ToDateTime();
+                }
 
                 //item.SaipaPlascoLoadFactor.Sequence = input.Sequence;
 
@@ -3838,6 +3864,9 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
+                if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
+                    return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
+
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.SazehGostarLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SazehGostarLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
@@ -3883,7 +3912,11 @@ namespace EtehadBar.MVC.Controllers
                 item.AccountBookId = input.AccountBookId;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
                 item.LoadFactorGovAmount = input.LoadFactorGovAmount;
-                item.LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value;
+                if (input.LoadFactorGovRegistorId.Value > 0)
+                {
+                    item.LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value;
+                    item.LoadFactorGovDate = new PersianDateTime(input.GovYear, input.GovMonth, input.GovDay, 0, 0, 0).ToDateTime();
+                }
 
                 //item.SazehGostarLoadFactor.Sequence = input.Sequence;
                 item.SazehGostarLoadFactor.Certain = input.Certain;
@@ -3893,6 +3926,7 @@ namespace EtehadBar.MVC.Controllers
                 item.SazehGostarLoadFactor.Nature = input.Nature;
                 item.SazehGostarLoadFactor.RegisterCode = input.RegisterCode;
                 item.SazehGostarLoadFactor.SazehLoadType = input.SazehLoadType;
+                item.SazehGostarLoadFactor.InsuranceAmount = input.InsuranceAmount;
 
                 if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 {
@@ -3972,6 +4006,9 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
+                if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
+                    return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
+
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
@@ -4025,7 +4062,11 @@ namespace EtehadBar.MVC.Controllers
                 item.DriverTonnagePrice = input.DriverTonnagePrice;
                 item.IsFreeDriverPrice = input.IsFreeDriverPrice;
                 item.LoadFactorGovAmount = input.LoadFactorGovAmount;
-                item.LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value == 0 ? null : input.LoadFactorGovRegistorId.Value;
+                if (input.LoadFactorGovRegistorId.Value > 0)
+                {
+                    item.LoadFactorGovRegistorId = input.LoadFactorGovRegistorId.Value;
+                    item.LoadFactorGovDate = new PersianDateTime(input.GovYear, input.GovMonth, input.GovDay, 0, 0, 0).ToDateTime();
+                }
 
                 item.MehrcomParsLoadFactor.LoadNumberGovReturn = input.LoadNumberGovReturn;
                 item.MehrcomParsLoadFactor.Return = input.Return;

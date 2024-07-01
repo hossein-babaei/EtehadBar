@@ -120,7 +120,7 @@ function getDriversPeriodicActivity() {
     $.post('/admin/get-calendars-json', {}, function (r) {
         let options = '';
         $.each(r, (i, v) => {
-            options += `<option value="${v.id}">${v.title}</options>`;
+            options += `<option value="${v.id}">${v.title}</option>`;
         });
         $(`${modalId} select`).html(options);
     }, 'json');
@@ -132,6 +132,21 @@ function submitDriversPeriodicActivity() {
         toCalendarId = $('#drivers-periodic-activity-modal select[name=toCalendarId]').val();
 
     window.open(`/excel/drivers-periodic-activity?fromCalendarId=${fromCalendarId}&toCalendarId=${toCalendarId}`, '_blank');
+}
+
+async function getGovLoadFactor() {
+    const modalId = '#gov-load-factor-companies-modal';
+    preloader();
+    await $.post('/admin/get-load-factor-company', {}, function (r) {
+        let options = '';
+        $.each(r, (i, v) => {
+            options += `<option value="${v.id}">${v.title}</option>`;
+        });
+        $(`${modalId} select[name=companyId]`).html(options);
+    }, 'json').then(() => {
+        preloader();
+        UIkit.modal(modalId).show();
+    });
 }
 
 $(document).ready(function () {

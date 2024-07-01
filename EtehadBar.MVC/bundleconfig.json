@@ -4,5 +4,41 @@
     "inputFiles": [
       "wwwroot/js/admin.js"
     ]
+  },
+  {
+    "outputFileName": "wwwroot/css/admin.min.css",
+    "inputFiles": [
+      "wwwroot/css/admin.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/admin.green.min.css",
+    "inputFiles": [
+      "wwwroot/css/admin.green.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/admin.grey.min.css",
+    "inputFiles": [
+      "wwwroot/css/admin.grey.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/admin.purple.min.css",
+    "inputFiles": [
+      "wwwroot/css/admin.purple.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/admin.red.min.css",
+    "inputFiles": [
+      "wwwroot/css/admin.red.css"
+    ]
+  },
+  {
+    "outputFileName": "wwwroot/css/admin.yellow.min.css",
+    "inputFiles": [
+      "wwwroot/css/admin.yellow.css"
+    ]
   }
 ]

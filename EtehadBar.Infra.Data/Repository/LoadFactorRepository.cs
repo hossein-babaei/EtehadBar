@@ -89,6 +89,11 @@ namespace EtehadBar.Infra.Data.Repository
             if (loadFactor == null) return new ESaipaPlascoLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);
+
+            var govPd = new PersianDateTime();
+            if (loadFactor.LoadFactorGovRegistorId.HasValue && loadFactor.LoadFactorGovDate.HasValue)
+                govPd = new PersianDateTime(loadFactor.LoadFactorGovDate.Value);
+
             return new ESaipaPlascoLoadFactorVM
             {
                 //Sequence = loadFactor.SaipaPlascoLoadFactor.Sequence,
@@ -109,7 +114,10 @@ namespace EtehadBar.Infra.Data.Repository
                 AccountBookId = loadFactor.AccountBookId,
                 IsFreeDriverPrice = loadFactor.IsFreeDriverPrice,
                 LoadFactorGovAmount = loadFactor.LoadFactorGovAmount,
-                LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId
+                LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId,
+                GovYear = govPd.Year,
+                GovMonth = govPd.Month,
+                GovDay = govPd.Day
             };
         }
 
@@ -153,6 +161,11 @@ namespace EtehadBar.Infra.Data.Repository
             if (loadFactor == null) return new ESazehGostarLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);
+
+            var govPd = new PersianDateTime();
+            if (loadFactor.LoadFactorGovRegistorId.HasValue && loadFactor.LoadFactorGovDate.HasValue)
+                govPd = new PersianDateTime(loadFactor.LoadFactorGovDate.Value);
+
             return new ESazehGostarLoadFactorVM
             {
                 //Sequence = loadFactor.SazehGostarLoadFactor.Sequence,
@@ -181,7 +194,11 @@ namespace EtehadBar.Infra.Data.Repository
                 IsFreeDriverPrice = loadFactor.IsFreeDriverPrice,
                 LoadNumberGov = loadFactor.LoadNumberGov,
                 LoadFactorGovAmount = loadFactor.LoadFactorGovAmount,
-                LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId
+                LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId,
+                InsuranceAmount = loadFactor.SazehGostarLoadFactor.InsuranceAmount,
+                GovYear = govPd.Year,
+                GovMonth = govPd.Month,
+                GovDay = govPd.Day
             };
         }
 
@@ -368,6 +385,11 @@ namespace EtehadBar.Infra.Data.Repository
             if (loadFactor == null) return new EMehrcomParsLoadFactorVM();
 
             var pd = new PersianDateTime(loadFactor.Date);
+
+            var govPd = new PersianDateTime();
+            if (loadFactor.LoadFactorGovRegistorId.HasValue && loadFactor.LoadFactorGovDate.HasValue)
+                govPd = new PersianDateTime(loadFactor.LoadFactorGovDate.Value);
+
             return new EMehrcomParsLoadFactorVM
             {
                 Id = loadFactor.Id,
@@ -398,7 +420,10 @@ namespace EtehadBar.Infra.Data.Repository
                 HasAddonMessage = loadFactor.MehrcomParsLoadFactor.HasAddonMessage,
                 IsFreeDriverPrice = loadFactor.IsFreeDriverPrice,
                 LoadFactorGovAmount = loadFactor.LoadFactorGovAmount,
-                LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId
+                LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId,
+                GovYear = govPd.Year,
+                GovMonth = govPd.Month,
+                GovDay = govPd.Day
             };
         }
 

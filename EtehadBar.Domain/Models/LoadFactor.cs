@@ -51,6 +51,10 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "شماره بارنامه دولتی")]
         public string LoadNumberGov { get; set; }
 
+
+        [Display(Name = "تاریخ بارنامه دولتی")]
+        public DateTime? LoadFactorGovDate { get; set; }
+
         [Display(Name = "شماره خروج")]
         [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string ExitNumber { get; set; }

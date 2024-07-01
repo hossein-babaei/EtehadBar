@@ -988,7 +988,7 @@ namespace EtehadBar.MVC.Controllers
         }
          
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CustomerSeparateRoute(long customerId, long calendarId)
         {
             var routes = await _loadRoutesRepository.LoadRoutes().AsNoTracking().ToListAsync();
@@ -1033,7 +1033,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CustomerSeparateRouteIncome(long customerId, long calendarId)
         {
             var routes = await _loadRoutesRepository.LoadRoutes().AsNoTracking().ToListAsync();

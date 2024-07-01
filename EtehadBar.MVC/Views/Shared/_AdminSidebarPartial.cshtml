@@ -116,6 +116,7 @@
                 <li @if (param == 11) { <text> class="active" </text> }><a asp-action="Payment" asp-controller="Report">حقوق و مساعده پرداختی</a></li>
                 <li><a uk-toggle="#vehicle-report-modal">لیست خودرو ها</a></li>
                 <li @if (param == 35) { <text> class="active" </text> }><a asp-action="FreeLoadFactor" asp-controller="Report">بارنامه های آزاد</a></li>
+                <li @if (param == 42) { <text> class="active" </text> }><a onclick="getGovLoadFactor()">بارنامه های دولتی</a></li>
                 @if (User.IsInRole("Admin"))
                 {
                     <li @if (param == 41) { <text> class="active" </text> }><a asp-action="NovinLoadFactor" asp-controller="Report">بارنامه های نوین</a></li>

@@ -1,6 +1,4 @@
-﻿using EtehadBar.Domain.Models;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace EtehadBar.Domain
 {
@@ -21,6 +19,18 @@ namespace EtehadBar.Domain
         [Display(Name = "سال")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Year { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovDay { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovMonth { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovYear { get; set; }
 
         [Display(Name = "بارنامه اتحاد بار")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -96,6 +106,18 @@ namespace EtehadBar.Domain
         [Display(Name = "سال")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Year { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovDay { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovMonth { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovYear { get; set; }
 
         [Display(Name = "بارنامه اتحاد بار")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -340,6 +362,18 @@ namespace EtehadBar.Domain
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Year { get; set; }
 
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovDay { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovMonth { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovYear { get; set; }
+
         [Display(Name = "کد علت صدور")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
@@ -418,6 +452,9 @@ namespace EtehadBar.Domain
 
         [Display(Name = "صادر کننده بارنامه")]
         public long? LoadFactorGovRegistorId { get; set; }
+
+        [Display(Name = "مبلغ بیمه")]
+        public double? InsuranceAmount { get; set; }
     }
 
     public class ESazehGostarLoadFactorVM
@@ -443,6 +480,18 @@ namespace EtehadBar.Domain
         [Display(Name = "سال")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Year { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovDay { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovMonth { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovYear { get; set; }
 
         [Display(Name = "کد علت صدور")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -525,6 +574,9 @@ namespace EtehadBar.Domain
 
         [Display(Name = "صادر کننده بارنامه")]
         public long? LoadFactorGovRegistorId { get; set; }
+
+        [Display(Name = "مبلغ بیمه")]
+        public double? InsuranceAmount { get; set; }
     }
 
     public class CMehrcomParsLoadFactorVM
@@ -541,6 +593,18 @@ namespace EtehadBar.Domain
         [Display(Name = "سال")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Year { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovDay { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovMonth { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovYear { get; set; }
 
         [Display(Name = "بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -648,6 +712,18 @@ namespace EtehadBar.Domain
         [Display(Name = "سال")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public int Year { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovDay { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovMonth { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovYear { get; set; }
 
         [Display(Name = "بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]

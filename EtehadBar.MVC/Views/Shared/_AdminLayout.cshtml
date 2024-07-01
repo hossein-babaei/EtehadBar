@@ -199,6 +199,83 @@
             </div>
         </div>
     </div>
+    <div id="gov-load-factor-companies-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <h3>گزارش بارنامه های دولتی</h3>
+            <hr />
+            <form asp-action="LoadFactorGovReportByCompany" asp-controller="Excel" method="post">
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label class="uk-form-label">شرکت را انتخاب کنید</label>
+                        <select class="uk-select uk-border-rounded uk-form-small" name="companyId"></select>
+                    </div>
+                    @{
+                        var now = PersianDateTime.Now;
+                    }
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">روز شروع</label>
+                        <select name="sDay" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                            @for (int i = 1; i < 32; i++)
+                            {
+                                <!option value="@i" @if (now.Day == i)
+                                {
+                                    <text> selected="selected" </text>
+                                }>@i</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">ماه شروع</label>
+                        <select name="sMonth" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                            @for (int i = 1; i < 13; i++)
+                            {
+                                <!option value="@i" @if (now.Month == i)
+                                {
+                                    <text> selected="selected" </text>
+                                }>@i</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">سال شروع</label>
+                        <input class="uk-input uk-border-rounded uk-form-small" name="sYear" value="@now.Year" dir="ltr" />
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">روز پایان</label>
+                        <select name="eDay" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                            @for (int i = 1; i < 32; i++)
+                            {
+                                <!option value="@i" @if (now.Day == i)
+                                {
+                                    <text> selected="selected" </text>
+                                }>@i</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">ماه پایان</label>
+                        <select name="eMonth" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                            @for (int i = 1; i < 13; i++)
+                            {
+                                <!option value="@i" @if (now.Month == i)
+                                {
+                                    <text> selected="selected" </text>
+                                }>@i</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">سال پایان</label>
+                        <input class="uk-input uk-border-rounded uk-form-small" name="eYear" value="@now.Year" dir="ltr" />
+                    </div>
+                </div>
+            </form>
+            <div class="uk-modal-footer uk-text-center uk-margin-top">
+                <a class="uk-button uk-button-primary" onclick="$('#gov-load-factor-companies-modal form').submit()">مشاهده</a>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            </div>
+        </div>
+    </div>
     <form id="logout-form" asp-action="Logout" asp-controller="Home" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"></form>
     @if (TempData["msg"] != null)
     {
