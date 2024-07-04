@@ -18,6 +18,7 @@
             <thead>
                 <tr>
                     <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Code)</th>
                     <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
                     <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
                     <th>مسیر</th>
@@ -45,6 +46,7 @@
                 {
                     <tr class="uk-text-center sm" data-id="@item.Id">
                         <td>@i</td>
+                        <td>@(item.Code.HasValue ? item.Code.Value : "---")</td>
                         <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
                         <td>@(string.IsNullOrWhiteSpace(item.LoadNumberGov) ? "---" : item.LoadNumberGov)</td>
                         <td>@item.Origin<br />@item.Destination</td>
@@ -91,7 +93,7 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("LoadFactorNovin_Search", new { p = page, loadNumber = ViewBag.loadNumber, vehicleNumber = ViewBag.vehicleNumber, calendar = ViewBag.calendar, customer = ViewBag.customer, isReceived= ViewBag.isReceived, isPaied = ViewBag.isPaied }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+            @Html.PagedListPager(data, page => Url.Action("LoadFactorNovin_Search", new { p = page,code = ViewBag.code, loadNumber = ViewBag.loadNumber, vehicleNumber = ViewBag.vehicleNumber, calendar = ViewBag.calendar, customer = ViewBag.customer, isReceived= ViewBag.isReceived, isPaied = ViewBag.isPaied }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
         </div>
     }
 }

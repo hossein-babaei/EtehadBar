@@ -46,6 +46,7 @@ namespace EtehadBar.Infra.Data.Repository
             return new EditLoadFactorNovinVM
             {
                 Amount = item.Amount,
+                Code = item.Code,
                 Id = item.Id,
                 ApplicantName = item.ApplicantName,
                 CalendarId = item.CalendarId,

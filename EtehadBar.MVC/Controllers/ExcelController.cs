@@ -2885,8 +2885,9 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(2, 18).Value = "جمع کل قابل دریافت";
             ws.Cell(2, 19).Value = "وضعیت پرداخت";
             ws.Cell(2, 20).Value = "وضعیت دریافت";
+            ws.Cell(2, 21).Value = "کد";
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(loadFactors.Count + 2, 20));
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(loadFactors.Count + 2, 21));
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
@@ -2895,7 +2896,7 @@ namespace EtehadBar.MVC.Controllers
                     .Fill.SetBackgroundColor(XLColor.LightGray)
                         .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 20)); // The address is relative to rngTable (NOT the worksheet)
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 21)); // The address is relative to rngTable (NOT the worksheet)
             rngHeaders.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             rngHeaders.Style.Font.Bold = true;
             rngHeaders.Style.Font.FontColor = XLColor.Black;
@@ -2945,31 +2946,32 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 2, 18).Value = received.ToString("N0");
                 ws.Cell(index + 2, 19).Value = item.IsPaied ? "بلی" : "خیر";
                 ws.Cell(index + 2, 20).Value = item.IsReceived ? "بلی" : "خیر";
+                ws.Cell(index + 2, 21).Value = item.Code;
             }
 
             ws.Cell($"B{loadFactors.Count + 3}").Value = "تعداد کل بارنامه ها";
             ws.Range($"B{loadFactors.Count + 3}:R{loadFactors.Count + 3}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 3, 20).Value = loadFactors.Count;
+            ws.Cell(loadFactors.Count + 3, 21).Value = loadFactors.Count;
 
             ws.Cell($"B{loadFactors.Count + 4}").Value = "قابل دریافت";
             ws.Range($"B{loadFactors.Count + 4}:R{loadFactors.Count + 4}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 4, 20).Value = amountSum.ToString("N0");
+            ws.Cell(loadFactors.Count + 4, 21).Value = amountSum.ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 5}").Value = "دریافت شده";
             ws.Range($"B{loadFactors.Count + 5}:R{loadFactors.Count + 5}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 5, 20).Value = receivedSum.ToString("N0");
+            ws.Cell(loadFactors.Count + 5, 21).Value = receivedSum.ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 6}").Value = "قابل پرداخت";
             ws.Range($"B{loadFactors.Count + 6}:R{loadFactors.Count + 6}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 6, 20).Value = driverFeeSum.ToString("N0");
+            ws.Cell(loadFactors.Count + 6, 21).Value = driverFeeSum.ToString("N0");
 
             ws.Cell($"B{loadFactors.Count + 7}").Value = "قابل پرداخت";
             ws.Range($"B{loadFactors.Count + 7}:R{loadFactors.Count + 7}").Row(1).Merge();
-            ws.Cell(loadFactors.Count + 7, 20).Value = paiedSum.ToString("N0");
+            ws.Cell(loadFactors.Count + 7, 21).Value = paiedSum.ToString("N0");
 
             ws.RangeUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
 
-            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:S{loadFactors.Count + 20}");
+            var rngTable2 = ws.Range($"B{loadFactors.Count + 3}:S{loadFactors.Count + 21}");
             rngTable2.RangeUsed().Style
                 .Font.SetBold()
                 .Font.SetFontSize(12)

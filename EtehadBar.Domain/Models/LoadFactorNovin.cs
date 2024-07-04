@@ -10,6 +10,9 @@ namespace EtehadBar.Domain.Models
         [Key]
         public long Id { get; set; }
 
+        [Display(Name = "کد پرونده")]
+        public int? Code { get; set; }
+
         [Display(Name = "وضعیت پرداخت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool IsPaied { get; set; } = false;

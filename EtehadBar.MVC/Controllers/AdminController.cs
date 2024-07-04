@@ -4498,6 +4498,7 @@ namespace EtehadBar.MVC.Controllers
                     Tonnage = v.Tonnage,
                     TonnagePrice = v.TonnagePrice,
                     VehicleId = v.VehicleId,
+                    Code = v.Code,
                     Attachments = fileNames
                 };
 
@@ -4540,6 +4541,7 @@ namespace EtehadBar.MVC.Controllers
             if (ModelState.IsValid)
             {
                 var item = await _loadFactorNovinRepository.Get(v.Id);
+                item.Code = v.Code;
                 item.Amount = v.Amount;
                 item.LoadNumber = v.LoadNumber;
                 item.ApplicantName = v.ApplicantName;
