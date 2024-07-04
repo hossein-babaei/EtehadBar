@@ -3580,7 +3580,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
-                if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
+                if (input.LoadFactorGovRegistorId.HasValue && input.LoadFactorGovRegistorId.Value > 0 && input.GovYear < 1400)
                     return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
 
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPlascoLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SaipaPlascoLoadFactor != null))
@@ -3864,7 +3864,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
-                if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
+                if (input.LoadFactorGovRegistorId.HasValue && input.LoadFactorGovRegistorId.Value > 0 && input.GovYear < 1400)
                     return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
 
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.SazehGostarLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.SazehGostarLoadFactor != null))
@@ -4006,7 +4006,7 @@ namespace EtehadBar.MVC.Controllers
                 if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
-                if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
+                if (input.LoadFactorGovRegistorId.HasValue && input.LoadFactorGovRegistorId.Value > 0 && input.GovYear < 1400)
                     return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
 
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
