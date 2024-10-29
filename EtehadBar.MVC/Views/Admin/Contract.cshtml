@@ -141,7 +141,7 @@
                         }
                         @if (User.IsInRole("Admin"))
                         {
-                            <td><a asp-action="ShippingFee" asp-route-contractId="@item.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
+                            <td><a asp-action="ShippingFeeGroup" asp-route-contractId="@item.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         @if (User.IsInRole("Admin"))
@@ -183,7 +183,7 @@
                                                     <td>@Html.DisplayFor(modelItem => addon.Subject)</td>
                                                     <td>@startPersianDate.ToShortDateString()</td>
                                                     <td>@endPersianDate.ToShortDateString()</td>
-                                                    <td><a asp-action="ShippingFee" asp-route-contractId="@addon.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
+                                                    <td><a asp-action="ShippingFeeGroup" asp-route-contractId="@addon.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
                                                     <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@addon.Id)"><i class="far fa-edit"></i></a></td>
                                                     <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@addon.Id)"><i class="fas fa-trash-alt"></i></a></td>
                                                 </tr>

@@ -81,7 +81,7 @@
                     <select asp-for="BankBranch" class="uk-select uk-border-rounded">
                         @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BankBranch))
                         {
-                            <!option value="@item.Title"  @if(item.Title.Contains("سامان 840")) { <text>selected="selected"</text> }>@item.Title</!option>
+                            <!option value="@item.Title"  @if(item.Title.Contains("تجارت")) { <text>selected="selected"</text> }>@item.Title</!option>
                         }
                     </select>
                     <span asp-validation-for="BankBranch" class="uk-text-danger"></span>

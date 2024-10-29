@@ -1,21 +1,14 @@
-﻿using Castle.Core.Resource;
-using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Bibliography;
-using DocumentFormat.OpenXml.Drawing.Charts;
-using DocumentFormat.OpenXml.Office2010.Excel;
-using DocumentFormat.OpenXml.Spreadsheet;
+﻿using ClosedXML.Excel;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Domain.Models.LoadFactorCreator;
 using EtehadBar.Infra.Data.Context;
-using EtehadBar.Infra.Data.Repository;
 using EtehadBar.MVC.Filters;
 using Helpers;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -700,12 +693,13 @@ namespace EtehadBar.MVC.Controllers
                 ("O", 15),
                 ("P", 16),
                 ("Q", 17),
-                ("R", 18)
+                ("R", 18),
+                ("S", 19)
             };
 
             if (customer.CustomerType.Equals(CustomerType.SaipaPlasco))
             {
-                allLoadFactors = allLoadFactors.OrderBy(a => a.VehicleName).ThenBy(a => a.OriginName).ThenBy(a => a.DestinationName).ThenBy(a => a.Date).ToList();
+                allLoadFactors = allLoadFactors.OrderBy(a => a.VehicleName).ThenBy(a => a.OriginName).ThenBy(a => a.DestinationName).ThenBy(a => a.Date).ThenBy(a => a.LoadNumber).ToList();
                 using var workbook = new XLWorkbook();
 
                 #region first sheet list
@@ -767,6 +761,8 @@ namespace EtehadBar.MVC.Controllers
 
                 sCounter++;
                 list.Cell(2, sCounter).Value = "خودرو";
+                sCounter++;
+                list.Cell(2, sCounter).Value = "تقویم";
 
                 var rangeHeader = list.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(sCounter)).Letter}2");
                 rangeHeader.Style.Fill.SetBackgroundColor(XLColor.LightGray);
@@ -824,7 +820,8 @@ namespace EtehadBar.MVC.Controllers
                     else
                         list.Cell(index + 2, 10).Value = allLoadFactors[index - 1].Amount.ToString("N0");
 
-                    list.Cell(index + 2, sCounter).Value = allLoadFactors[index - 1].VehicleName;
+                    list.Cell(index + 2, sCounter - 1).Value = allLoadFactors[index - 1].VehicleName;
+                    list.Cell(index + 2, sCounter).Value = allLoadFactors[index - 1].CalendarTitle;
                 }
 
                 list.Columns().AdjustToContents();
@@ -906,6 +903,8 @@ namespace EtehadBar.MVC.Controllers
 
                     switchCounter++;
                     ws.Cell(2, switchCounter).Value = "خودرو";
+                    switchCounter++;
+                    ws.Cell(2, switchCounter).Value = "تقویم";
 
                     if (i != 1)
                     {
@@ -1006,7 +1005,8 @@ namespace EtehadBar.MVC.Controllers
                         else
                             ws.Cell(index + rowIndex, 10).Value = loadFactors[index - 1].Amount.ToString("N0");
 
-                        ws.Cell(index + rowIndex, switchCounter).Value = loadFactors[index - 1].VehicleName;
+                        ws.Cell(index + rowIndex, switchCounter - 1).Value = loadFactors[index - 1].VehicleName;
+                        ws.Cell(index + rowIndex, switchCounter).Value = loadFactors[index - 1].CalendarTitle;
                     }
 
                     totalAmount += loadFactors.Sum(a => a.Amount);
@@ -1174,6 +1174,8 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(2, switchCounter).Value = "راننده";
                 switchCounter++;
                 ws.Cell(2, switchCounter).Value = "پلاک";
+                switchCounter++;
+                ws.Cell(2, switchCounter).Value = "تقویم";
 
                 string headerText = "";
                 if (accountBookId.HasValue)
@@ -1224,9 +1226,10 @@ namespace EtehadBar.MVC.Controllers
                     else
                         ws.Cell(index + 2, 14).Value = allLoadFactors[index - 1].Amount.ToString("N0");
 
-                    ws.Cell(index + 2, switchCounter - 2).SetValue(allLoadFactors[index - 1].ExitNumber);
-                    ws.Cell(index + 2, switchCounter - 1).Value = allLoadFactors[index - 1].DriverName;
-                    ws.Cell(index + 2, switchCounter).Value = $"{allLoadFactors[index - 1].VehicleRightNumber} {allLoadFactors[index - 1].VehicleNumberWord} {allLoadFactors[index - 1].VehicleLeftNumber}";
+                    ws.Cell(index + 2, switchCounter - 3).SetValue(allLoadFactors[index - 1].ExitNumber);
+                    ws.Cell(index + 2, switchCounter - 2).Value = allLoadFactors[index - 1].DriverName;
+                    ws.Cell(index + 2, switchCounter - 1).Value = $"{allLoadFactors[index - 1].VehicleRightNumber} {allLoadFactors[index - 1].VehicleNumberWord} {allLoadFactors[index - 1].VehicleLeftNumber}";
+                    ws.Cell(index + 2, switchCounter).Value = allLoadFactors[index - 1].CalendarTitle;
                 }
 
                 ws.Cell($"A{allLoadFactors.Count + 3}").Value = "جمع کل بارنامه ها";
@@ -1477,6 +1480,7 @@ namespace EtehadBar.MVC.Controllers
                     }
                     ws.Cell(4, switchCounter + 1).Value = "ماه";
                     ws.Cell(4, switchCounter + 2).Value = "سال";
+                    ws.Cell(4, switchCounter + 3).Value = "تقویم";
 
                     var calendarPd = new PersianDateTime(allLoadFactors.First().CalendarStartDate);
 
@@ -1546,6 +1550,7 @@ namespace EtehadBar.MVC.Controllers
 
                         ws.Cell(i + 5, switchCounter + 1).Value = calendarPd.ToString("MMMM");
                         ws.Cell(i + 5, switchCounter + 2).Value = calendarPd.ToString("yyyy");
+                        ws.Cell(i + 5, switchCounter + 3).Value = allLoadFactors[i].CalendarTitle;
 
                         #region handling comment
                         string commentText = "";
@@ -1578,13 +1583,13 @@ namespace EtehadBar.MVC.Controllers
                     }
 
                     #region making header
-                    ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}1").Merge();
-                    ws.Range($"A2:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}2").Merge();
-                    ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}3").Merge();
+                    ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}1").Merge();
+                    ws.Range($"A2:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}2").Merge();
+                    ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}3").Merge();
                     ws.Cell("A1").Value = "اتحاد بار آسیا";
                     ws.Cell("A2").Value = $"اطلاعات زونکن شماره {accountBook.Number}";
-                    ws.Range($"A4:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}4").Style.Fill.SetBackgroundColor(XLColor.LightGray);
-                    ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}4").Style.Font.SetFontSize(12);
+                    ws.Range($"A4:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}4").Style.Fill.SetBackgroundColor(XLColor.LightGray);
+                    ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}4").Style.Font.SetFontSize(12);
                     #endregion
 
                     if (exportType.HasValue)
@@ -1773,6 +1778,7 @@ namespace EtehadBar.MVC.Controllers
                         }
                         ws.Cell(4, switchCounter + 1).Value = "ماه";
                         ws.Cell(4, switchCounter + 2).Value = "سال";
+                        ws.Cell(4, switchCounter + 3).Value = "تقویم";
 
                         int totalCounter = 5;
                         int take = 30;
@@ -1857,6 +1863,7 @@ namespace EtehadBar.MVC.Controllers
 
                                     ws.Cell(totalCounter, switchCounter + 1).Value = calendarPd.ToString("MMMM");
                                     ws.Cell(totalCounter, switchCounter + 2).Value = calendarPd.ToString("yyyy");
+                                    ws.Cell(totalCounter, switchCounter + 3).Value = loadFactors[i].CalendarTitle;
 
 
                                     #region handling comment
@@ -1918,16 +1925,16 @@ namespace EtehadBar.MVC.Controllers
                         }
 
                         //making header
-                        ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}1").Merge();
-                        ws.Range($"A2:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}2").Merge();
-                        ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}3").Merge();
+                        ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}1").Merge();
+                        ws.Range($"A2:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}2").Merge();
+                        ws.Range($"A3:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}3").Merge();
                         ws.Cell("A1").Value = "اتحاد بار آسیا";
                         ws.Cell("A2").Value = $"فرم ارسال صورت حساب";
                         ws.Cell("A3").Value = $"صورت حساب خدمات حمل {category.Title}";
-                        ws.Range($"A4:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}4").Style.Fill.SetBackgroundColor(XLColor.LightGray);
-                        ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}4").Style.Font.SetFontSize(12);
+                        ws.Range($"A4:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}4").Style.Fill.SetBackgroundColor(XLColor.LightGray);
+                        ws.Range($"A1:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}4").Style.Font.SetFontSize(12);
 
-                        var table = ws.Range($"A4:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 2)).Letter}{totalCounter - 1}").CreateTable();
+                        var table = ws.Range($"A4:{EnglishNumbers.Single(a => a.Num.Equals(switchCounter + 3)).Letter}{totalCounter - 1}").CreateTable();
                         table.Theme = XLTableTheme.None;
                         table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
                         table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
@@ -1979,7 +1986,9 @@ namespace EtehadBar.MVC.Controllers
                 ("N", 14),
                 ("O", 15),
                 ("P", 16),
-                ("Q", 17)
+                ("Q", 17),
+                ("R", 18),
+                ("S", 19)
             };
 
             ws.RightToLeft = true;
@@ -1998,13 +2007,14 @@ namespace EtehadBar.MVC.Controllers
             ws.Cell(1, 9).Value = "سند خروج";
             ws.Cell(1, 10).Value = "نوع خودرو";
             ws.Cell(1, 11).Value = "نوع بار";
+            ws.Cell(1, 12).Value = "تقویم";
 
-            int switchCounter = 11;
+            int switchCounter = 12;
             if (ws.Name.Contains("تناژ"))
             {
-                ws.Cell(1, 12).Value = "اضافه تناژ";
-                ws.Cell(1, 13).Value = "نرخ اضافه تناژ";
-                switchCounter = 13;
+                ws.Cell(1, 13).Value = "اضافه تناژ";
+                ws.Cell(1, 14).Value = "نرخ اضافه تناژ";
+                switchCounter = 14;
             }
 
             if (exportType.HasValue)
@@ -2054,15 +2064,16 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(index + 1, 9).SetValue(data[index - 1].ExitNumber);
                 ws.Cell(index + 1, 10).Value = data[index - 1].VehicleName;
                 ws.Cell(index + 1, 11).Value = data[index - 1].SaipaPressLoadFactor.LoadType;
+                ws.Cell(index + 1, 12).Value = data[index - 1].CalendarTitle;
                 if (ws.Name.Contains("تناژ"))
-                    ws.Cell(index + 1, 12).Value = data[index - 1].Tonnage.HasValue ? data[index - 1].Tonnage.Value : "0";
+                    ws.Cell(index + 1, 13).Value = data[index - 1].Tonnage.HasValue ? data[index - 1].Tonnage.Value : "0";
                 if (exportType.HasValue)
                 {
                     switch (exportType.Value)
                     {
                         case ExcelExportType.WithAllPrices:
                             if (ws.Name.Contains("تناژ"))
-                                ws.Cell(index + 1, 13).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].TonnagePrice.Value * data[index - 1].Tonnage.Value).ToString("N0") : "0";
+                                ws.Cell(index + 1, 14).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].TonnagePrice.Value * data[index - 1].Tonnage.Value).ToString("N0") : "0";
 
                             //ws.Cell(index + 1, 14).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].Amount + (data[index - 1].Tonnage.Value * data[index - 1].TonnagePrice.Value)).ToString("N0") : data[index - 1].Amount.ToString("N0");
                             //ws.Cell(index + 1, 15).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].DriverFee + (data[index - 1].Tonnage.Value * data[index - 1].DriverTonnagePrice.Value)).ToString("N0") : data[index - 1].DriverFee.ToString("N0");
@@ -2071,13 +2082,13 @@ namespace EtehadBar.MVC.Controllers
                             break;
                         case ExcelExportType.OnlyReceivingPrice:
                             if (ws.Name.Contains("تناژ"))
-                                ws.Cell(index + 1, 13).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].TonnagePrice.Value * data[index - 1].Tonnage.Value).ToString("N0") : "0";
+                                ws.Cell(index + 1, 14).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].TonnagePrice.Value * data[index - 1].Tonnage.Value).ToString("N0") : "0";
                             //ws.Cell(index + 1, 14).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].Amount + (data[index - 1].Tonnage.Value * data[index - 1].TonnagePrice.Value)).ToString("N0") : data[index - 1].Amount.ToString("N0");
                             ws.Cell(index + 1, switchCounter).Value = data[index - 1].Amount.ToString("N0");
                             break;
                         case ExcelExportType.OnlyDriverPrice:
                             if (ws.Name.Contains("تناژ"))
-                                ws.Cell(index + 1, 13).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].DriverTonnagePrice.Value * data[index - 1].Tonnage.Value).ToString("N0") : "0";
+                                ws.Cell(index + 1, 14).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].DriverTonnagePrice.Value * data[index - 1].Tonnage.Value).ToString("N0") : "0";
                             //ws.Cell(index + 1, 14).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].DriverFee + (data[index - 1].Tonnage.Value * data[index - 1].DriverTonnagePrice.Value)).ToString("N0") : data[index - 1].DriverFee.ToString("N0");
                             ws.Cell(index + 1, switchCounter).Value = data[index - 1].DriverFee.ToString("N0");
                             break;
@@ -2088,7 +2099,7 @@ namespace EtehadBar.MVC.Controllers
                 else
                 {
                     if (ws.Name.Contains("تناژ"))
-                        ws.Cell(index + 1, 13).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].DriverTonnagePrice.Value * data[index - 1].Tonnage.Value).ToString("N0") : "0";
+                        ws.Cell(index + 1, 14).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].DriverTonnagePrice.Value * data[index - 1].Tonnage.Value).ToString("N0") : "0";
                     //ws.Cell(index + 1, 14).Value = data[index - 1].Tonnage.HasValue ? (data[index - 1].DriverFee + (data[index - 1].Tonnage.Value * data[index - 1].DriverTonnagePrice.Value)).ToString("N0") : data[index - 1].DriverFee.ToString("N0");
                     ws.Cell(index + 1, switchCounter).Value = data[index - 1].DriverFee.ToString("N0");
                 }
@@ -2100,12 +2111,12 @@ namespace EtehadBar.MVC.Controllers
                 {
                     case ExcelExportType.WithAllPrices:
                         ws.Cell($"A{data.Count + 2}").Value = "جمع";
-                        ws.Range($"A{data.Count + 2}:K{data.Count + 2}").Row(1).Merge();
+                        ws.Range($"A{data.Count + 2}:L{data.Count + 2}").Row(1).Merge();
 
                         if (ws.Name.Contains("تناژ"))
                         {
-                            ws.Cell($"L{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value));
-                            ws.Cell($"M{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.TonnagePrice.Value).ToString("N0"));
+                            ws.Cell($"M{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value));
+                            ws.Cell($"N{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.TonnagePrice.Value).ToString("N0"));
                         }
 
                         ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter - 1)).Letter}{data.Count + 2}").Value = data.Sum(a => a.Amount).ToString("N0");
@@ -2121,12 +2132,12 @@ namespace EtehadBar.MVC.Controllers
                         break;
                     case ExcelExportType.OnlyReceivingPrice:
                         ws.Cell($"A{data.Count + 2}").Value = "جمع";
-                        ws.Range($"A{data.Count + 2}:K{data.Count + 2}").Row(1).Merge();
+                        ws.Range($"A{data.Count + 2}:L{data.Count + 2}").Row(1).Merge();
 
                         if (ws.Name.Contains("تناژ"))
                         {
-                            ws.Cell($"L{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value));
-                            ws.Cell($"M{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.TonnagePrice.Value).ToString("N0"));
+                            ws.Cell($"M{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value));
+                            ws.Cell($"N{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.TonnagePrice.Value).ToString("N0"));
                         }
 
                         ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{data.Count + 2}").Value = data.Sum(a => a.Amount).ToString("N0");
@@ -2138,12 +2149,12 @@ namespace EtehadBar.MVC.Controllers
                         break;
                     case ExcelExportType.OnlyDriverPrice:
                         ws.Cell($"A{data.Count + 2}").Value = "جمع";
-                        ws.Range($"A{data.Count + 2}:K{data.Count + 2}").Row(1).Merge();
+                        ws.Range($"A{data.Count + 2}:L{data.Count + 2}").Row(1).Merge();
 
                         if (ws.Name.Contains("تناژ"))
                         {
-                            ws.Cell($"L{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value));
-                            ws.Cell($"M{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.TonnagePrice.Value).ToString("N0"));
+                            ws.Cell($"M{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value));
+                            ws.Cell($"N{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.TonnagePrice.Value).ToString("N0"));
                         }
 
                         ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{data.Count + 2}").Value = data.Sum(a => a.DriverFee);
@@ -2160,12 +2171,12 @@ namespace EtehadBar.MVC.Controllers
             else
             {
                 ws.Cell($"A{data.Count + 2}").Value = "جمع";
-                ws.Range($"A{data.Count + 2}:K{data.Count + 2}").Row(1).Merge();
+                ws.Range($"A{data.Count + 2}:L{data.Count + 2}").Row(1).Merge();
 
                 if (ws.Name.Contains("تناژ"))
                 {
-                    ws.Cell($"L{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value));
-                    ws.Cell($"M{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.TonnagePrice.Value).ToString("N0"));
+                    ws.Cell($"M{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value));
+                    ws.Cell($"N{data.Count + 2}").SetValue(data.Where(a => a.Tonnage.HasValue).Sum(a => a.Tonnage.Value * a.TonnagePrice.Value).ToString("N0"));
                 }
 
                 ws.Cell($"{EnglishNumbers.Single(a => a.Num.Equals(switchCounter)).Letter}{data.Count + 2}").Value =

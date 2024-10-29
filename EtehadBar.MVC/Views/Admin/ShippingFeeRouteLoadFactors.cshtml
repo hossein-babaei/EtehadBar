@@ -1,9 +1,9 @@
 ﻿@model IEnumerable<LoadFactor>
 
 @{
-    var shippingFee = (ShippingFee)ViewData["ShippingFee"];
+    var shippingFeeRoute = (ShippingFeeRoute)ViewData["ShippingFeeRoute"];
     ViewData["pageId"] = 7;
-    ViewData["Title"] = $"بارنامه های {shippingFee.Origin.Title} به {shippingFee.Destination.Title} - {shippingFee.Vehicle}";
+    ViewData["Title"] = $"بارنامه های {shippingFeeRoute.Origin.Title} به {shippingFeeRoute.Destination.Title} - {shippingFeeRoute.ShippingFeeGroup.Vehicle}";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     int i = 1;
 }
@@ -25,7 +25,8 @@
         <ul class="uk-breadcrumb">
             <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
             <li><a asp-action="Contract" asp-controller="Admin">قرارداد ها</a></li>
-            <li><a asp-action="ShippingFee" asp-controller="Admin" asp-route-contractId="@shippingFee.Contract.RowId">کرایه حمل و نقل قرارداد به شماره @shippingFee.Contract.Number</a></li>
+            <li><a asp-action="ShippingFeeGroup" asp-controller="Admin" asp-route-contractId="@shippingFeeRoute.ShippingFeeGroup.Contract.RowId">نرخ قرارداد به شماره @shippingFeeRoute.ShippingFeeGroup.Contract.Number</a></li>
+            <li><a asp-action="ShippingFeeRoute" asp-controller="Admin" asp-route-id="@shippingFeeRoute.ShippingFeeGroupId">مسیر ها</a></li>
             <li><span>@ViewData["Title"]</span></li>
         </ul>
     </div>

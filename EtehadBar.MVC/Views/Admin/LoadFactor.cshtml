@@ -157,11 +157,11 @@
         function getShippingFees(t) {
             var form = $(t).parents('form');
             preloader();
-            $.post('@Url.Action("GetShippingFeeJson")', { 'contractId': $(t).val() }, function (r) {
+            $.post('@Url.Action("GetShippingFeeRouteJson")', { 'contractId': $(t).val() }, function (r) {
                 console.log(r);
-                form.find('#ShippingFeeId').html('');
+                form.find('#ShippingFeeRouteId').html('');
                 $.each(r, function (i, v) {
-                    form.find('#ShippingFeeId').append(`<option value="${v.id}">${v.title != '' ? v.title : ''} ${v.vehicle} (${v.origin} به ${v.destination} - ${v.loadType}) ${v.price}</option>`);
+                    form.find('#ShippingFeeRouteId').append(`<option value="${v.id}">${v.title != null ? v.title : ''} ${v.vehicle} (${v.origin} به ${v.destination} - ${v.shippingFeeLoadType}) ${numberWithCommas(v.price)} </option>`);
                 });
             }, 'json').then(function () {
                 parseValidator(form);
@@ -181,7 +181,11 @@
                     $('#create-modal').html(r);
                     $('#create-modal #AccountBookId').select2({ width: '100%' });
                     $('#create-modal #ContractId').select2({ width: '100%' });
-                    $('#create-modal #ShippingFeeId').select2({
+                    //$('#create-modal #ShippingFeeId').select2({
+                    //    width: '100%',
+                    //    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    //});
+                    $('#create-modal #ShippingFeeRouteId').select2({
                         width: '100%',
                         matcher: ignoreSpecialCharAndWhitespaceInSelect2
                     });
@@ -253,7 +257,11 @@
                     $('#edit-modal').html(r);
                     $('#edit-modal #AccountBookId').select2({ width: '100%' });
                     $('#edit-modal #ContractId').select2({ width: '100%' });
-                    $('#edit-modal #ShippingFeeId').select2({
+                    // $('#edit-modal #ShippingFeeId').select2({
+                    //     width: '100%',
+                    //     matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    // });
+                    $('#edit-modal #ShippingFeeRouteId').select2({
                         width: '100%',
                         matcher: ignoreSpecialCharAndWhitespaceInSelect2
                     });
@@ -277,45 +285,45 @@
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();
         }
-        function loadFactorFormShippingFeeChangeHandler(select, customerType) {
-            let lastType = $(select).data('last-type'),
-                type = $(select).find('option:selected').data('type');
-            if (type == '@ShippingFeeType.Normal' && lastType != '@ShippingFeeType.Normal') {
-                $(select).parent().next().remove();
-                $(select).parent().next().remove();
-                if (customerType == '@CustomerType.SaipaPress' || customerType == '@CustomerType.MehrcomPars') {
-                    $(select).parent().next().remove();
-                    $(select).parent().next().remove();
-                }
-            } else if (type == '@ShippingFeeType.Custom' && lastType != '@ShippingFeeType.Custom') {
-                $(`<div class="uk-grid-margin uk-first-column">
-                                                <label class="uk-form-label" for="Amount">مبلغ (دریافتی)</label>
-                                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="Amount" name="Amount" value="">
-                                                <span class="uk-text-danger field-validation-valid" data-valmsg-for="Amount" data-valmsg-replace="true"></span>
-                                            </div>
-                                            <div class="uk-grid-margin uk-first-column">
-                                                <label class="uk-form-label" for="DriverFee">کرایه راننده (ریال)</label>
-                                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="DriverFee" name="DriverFee" value="">
-                                                <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverFee" data-valmsg-replace="true"></span>
-                                            </div>
-                                            ${(customerType == '@CustomerType.SaipaPress' || customerType == '@CustomerType.MehrcomPars') ?
-                        `<div class="uk-grid-margin uk-first-column">
-                                                <label class="uk-form-label" for="TonnagePrice">نرخ تناژ اضافه (ریال)</label>
-                                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="TonnagePrice" name="TonnagePrice" value="">
-                                                <span class="uk-text-danger field-validation-valid" data-valmsg-for="TonnagePrice" data-valmsg-replace="true"></span>
-                                            </div>
-                                            <div class="uk-grid-margin uk-first-column">
-                                                <label class="uk-form-label" for="DriverTonnagePrice">نرخ تناژ اضافه راننده (ریال)</label>
-                                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="DriverTonnagePrice" name="DriverTonnagePrice" value="">
-                                                <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverTonnagePrice" data-valmsg-replace="true"></span>
-                                            </div>` : ''}`).insertAfter($(select).parent());
-            }
+        //function loadFactorFormShippingFeeChangeHandler(select, customerType) {
+        //    let lastType = $(select).data('last-type'),
+        //        type = $(select).find('option:selected').data('type');
+        //    if (type == '@ShippingFeeType.Normal' && lastType != '@ShippingFeeType.Normal') {
+        //        $(select).parent().next().remove();
+        //        $(select).parent().next().remove();
+        //        if (customerType == '@CustomerType.SaipaPress' || customerType == '@CustomerType.MehrcomPars') {
+        //            $(select).parent().next().remove();
+        //            $(select).parent().next().remove();
+        //        }
+        //    } else if (type == '@ShippingFeeType.Custom' && lastType != '@ShippingFeeType.Custom') {
+        //        $(`<div class="uk-grid-margin uk-first-column">
+        //                                        <label class="uk-form-label" for="Amount">مبلغ (دریافتی)</label>
+        //                                                <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="Amount" name="Amount" value="">
+        //                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="Amount" data-valmsg-replace="true"></span>
+        //                                    </div>
+        //                                    <div class="uk-grid-margin uk-first-column">
+        //                                        <label class="uk-form-label" for="DriverFee">کرایه راننده (ریال)</label>
+        //                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" data-val-required="پر کردن این فیلد الزامی است." id="DriverFee" name="DriverFee" value="">
+        //                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverFee" data-valmsg-replace="true"></span>
+        //                                    </div>
+        //                                    ${(customerType == '@CustomerType.SaipaPress' || customerType == '@CustomerType.MehrcomPars') ?
+        //                `<div class="uk-grid-margin uk-first-column">
+        //                                        <label class="uk-form-label" for="TonnagePrice">نرخ تناژ اضافه (ریال)</label>
+        //                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="TonnagePrice" name="TonnagePrice" value="">
+        //                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="TonnagePrice" data-valmsg-replace="true"></span>
+        //                                    </div>
+        //                                    <div class="uk-grid-margin uk-first-column">
+        //                                        <label class="uk-form-label" for="DriverTonnagePrice">نرخ تناژ اضافه راننده (ریال)</label>
+        //                                        <input dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" type="text" data-val="true" id="DriverTonnagePrice" name="DriverTonnagePrice" value="">
+        //                                        <span class="uk-text-danger field-validation-valid" data-valmsg-for="DriverTonnagePrice" data-valmsg-replace="true"></span>
+        //                                    </div>` : ''}`).insertAfter($(select).parent());
+        //    }
 
-            $(select).parents('form').data('validator', null);
-            $.validator.unobtrusive.parse($(select).parents('form'));
+        //    $(select).parents('form').data('validator', null);
+        //    $.validator.unobtrusive.parse($(select).parents('form'));
 
-            $(select).data('last-type', type);
-        }
+        //    $(select).data('last-type', type);
+        //}
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>

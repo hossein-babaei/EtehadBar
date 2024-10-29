@@ -88,8 +88,15 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "مبلغ پرداختی خواب")]
         public double? DriverLoadSleepPrice { get; set; }
 
-        [Required]
-        public long ShippingFeeId { get; set; }
+        public long? ShippingFeeId { get; set; }
+
+        public long? ShippingFeeGroupId { get; set; }
+
+        public long? ShippingFeeRouteId { get; set; }
+
+        [Display(Name = "نوع خودرو")]
+        [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string VehicleType { get; set; }
 
         //used for custom load factors
         public bool IsDriverFeeEditedByAdmin { get; set; } = false;

@@ -1,0 +1,759 @@
+﻿@model IEnumerable<ShippingFeeGroup>
+
+@{
+    ViewData["pageId"] = 7;
+
+    var contractInfo = (Contract)ViewData["Contract"];
+    var calendars = (List<Calendar>)ViewData["Calendars"];
+    var addons = contractInfo.ContractAddons;
+    var startPersianDate = new PersianDateTime(contractInfo.StartDate);
+    var endPersianDate = new PersianDateTime(contractInfo.EndDate);
+
+    ViewData["Title"] = $"نرخ قرارداد به شماره {contractInfo.Number}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+}
+
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+}
+@section Scripts{
+    <script src="~/lib/select2/select2.min.js"></script>
+    <script src="~/lib/persian-date/persian-date.min.js"></script>
+    <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
+    <script>
+        var contractId = '@contractInfo.RowId';
+        let select2Config = {
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        };
+        let isSearchLoaded = false;
+
+        let datePickerConfig = {
+            initialValue: true,
+            autoClose: true,
+            timePicker: {
+                enabled: false
+            },
+            format: 'YYYY/MM/DD',
+            navigator: {
+                enabled: true,
+                scroll: {
+                    "enabled": true
+                },
+                text: {
+                    btnNextText: '>',
+                    btnPrevText: '<'
+                }
+            },
+            toolbox: {
+                calendarSwitch: {
+                    enabled: false
+                }
+            }
+        };
+        $('#move-date').persianDatepicker(datePickerConfig);
+        $('#change-modal #amountDate').persianDatepicker(datePickerConfig);
+        $('#do-change-amount-modal #amountDate').persianDatepicker(datePickerConfig);
+        $('#do-change-driver-amount-modal #amountDate').persianDatepicker(datePickerConfig);
+        $('#driverAmountDate').persianDatepicker(datePickerConfig);
+        $('#tonnageAmountDate').persianDatepicker(datePickerConfig);
+        $('#tonnageDriverAmountDate').persianDatepicker(datePickerConfig);
+
+        function submitChange() {
+            var form = $('#change-modal form');
+
+            preloader();
+            $.post('@Url.Action("ChangeShippingFee")', form.serialize(), function (r) {
+                uiAlert(r.msg, r.status);
+                if (r.status == 'success') {
+                    setTimeout(function () {
+                        window.location.reload(true);
+                    }, 1000);
+                }
+            }, 'json').then(function () {
+                preloader();
+            });
+        }
+        function create() {
+            preloader();
+            $.get('@Url.Action("CreateShippingFeeGroup")', { 'contractId': contractId }, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                $('#create-form #ShippingFeeType').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#create-form #Vehicle').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                parseValidator('#append-modal form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function submitCreate() {
+            var form = $('#create-form');
+            if (form.valid() == true) {
+                preloader();
+                var data = form.serialize();
+                $.post('@Url.Action("CreateShippingFeeGroup")', data, function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.get('@Url.Action("ShippingFeeGroupPartial")', { 'contractId': contractId }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                }, 'json').then(function () {
+                    preloader();
+                });
+            }
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditShippingFeeGroup")', { 'id': id }, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                $('#edit-form #ShippingFeeType').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#edit-form #Vehicle').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                parseValidator('#append-modal form');
+                $('#edit-form #CalendarLimit').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#append-modal .datepicker').persianDatepicker({
+                    initialValue: false,
+                    autoClose: true,
+                    timePicker: {
+                        enabled: false
+                    },
+                    format: 'YYYY/MM/DD',
+                    navigator: {
+                        enabled: true,
+                        scroll: {
+                            "enabled": true
+                        },
+                        text: {
+                            btnNextText: '>',
+                            btnPrevText: '<'
+                        }
+                    },
+                    toolbox: {
+                        calendarSwitch: {
+                            enabled: false
+                        }
+                    }
+                });
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function submitEdit() {
+            var form = $('#edit-form');
+            if (form.valid() == true) {
+                preloader();
+                var data = form.serialize();
+                $.post('@Url.Action("EditShippingFeeGroup")', data, function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.get('@Url.Action("ShippingFeeGroupPartial")', { 'contractId': contractId }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                        UIkit.modal('#append-modal').hide();
+                    }
+                }, 'json').then(function () {
+                    preloader();
+                });
+            }
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+        function toggleAddons(t) {
+            event.stopPropagation();
+            $(t).find('i').toggleClass('fa-plus-circle').toggleClass('fa-minus-circle');
+            $(t).parents('tr').next('.detail-row').fadeToggle(200);
+        }
+        function shippingFeeTypeChangeHandler(select) {
+            let value = $(select).val(),
+                parent = $(select).parents('form');
+
+            parent.find('#Price').val(0);
+            parent.find('#DriverPrice').val(0);
+            if (value == 0) {
+                parent.find('#Price').parent().show();
+                parent.find('#DriverPrice').parent().show();
+                parent.find('#TonnagePrice').parent().show();
+                parent.find('#DriverTonnagePrice').parent().show();
+            } else {
+                parent.find('#Price').parent().hide();
+                parent.find('#DriverPrice').parent().hide();
+                parent.find('#TonnagePrice').parent().hide();
+                parent.find('#DriverTonnagePrice').parent().hide();
+            }
+        }
+        function copyFeeFromOldContract() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CreateShippingFeeGroupTypeFromNormal")',
+                data: { 'contractRowId': contractId, 'customerId': @contractInfo.CustomerId },
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    let options = '';
+                    $.each(r, function (i, v) {
+                        options += `<option value="${v.rowId}">${v.number}</option>`;
+                    });
+                    $('#copy-modal select[name=contractRowId]').html(options);
+
+                    UIkit.modal('#copy-modal').show();
+                },
+                error: function (e) {
+                    UIkit.notification({ message: e.responseText, status: 'danger', pos: 'bottom-center', timeout: 10000 });
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function moveLoadfactor() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CreateShippingFeeGroupTypeFromNormal")',
+                data: { 'contractRowId': contractId, 'customerId': @contractInfo.CustomerId },
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    let options = '';
+                    $.each(r, function (i, v) {
+                        options += `<option value="${v.rowId}">${v.number}</option>`;
+                    });
+                    $('#move-modal select[name=contractRowId]').html(options);
+
+                    UIkit.modal('#move-modal').show();
+                },
+                error: function (e) {
+                    UIkit.notification({ message: e.responseText, status: 'danger', pos: 'bottom-center', timeout: 10000 });
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function getSearch() {
+            if (!isSearchLoaded) {
+                preloader();
+                $.get('@Url.Action("ShippingFeeGroup_Search")', {}, function (r) {
+                    let vehicleTypeOptions = '<option value="all">همه</option>';
+
+                    $.each(r, (i, v) => {
+                        vehicleTypeOptions += `<option value="${v.title}">${v.title}</option>`;
+                    });
+                    $('#search-modal #vehicleType').html(vehicleTypeOptions);
+
+                    $('#search-modal #vehicleType').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                }, 'json').then(function () {
+                    preloader();
+                    UIkit.modal('#search-modal').show();
+                });
+            } else {
+                UIkit.modal('#search-modal').show();
+            }
+        }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("ShippingFeeGroup_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+        function submitChangeAmount(type) {
+            let form = type == 'driver' ? $('#do-change-driver-amount-modal form') : $('#do-change-amount-modal form');
+            preloader();
+            form.submit();
+        }
+        function deleteGroup() {
+            $('#append table thead tr').append('<th class="appended" width="50">انتخاب</th>');
+            $.each($('#append table tbody tr'), function (i, v) {
+                $(v).append(`<td class="appended"><div class="uk-flex uk-flex-middle uk-flex-center"><input value="${$(v).data('id')}" name="idList[]" class="uk-checkbox uk-border-rounded" type="checkbox" /></div></td>`);
+            });
+            $('#shipping-fee-head').html('<button onclick="cancelDelete()" class="uk-button uk-button-danger">انصراف</button><button onclick="selectAllItem()" class="uk-button uk-button-secondary select-btn uk-margin-small-right">انتخاب همه</button><button uk-toggle="#submit-modal" class="uk-button uk-button-primary uk-margin-small-right">ثبت</button>')
+        }
+        function cancelDelete() {
+            $('#shipping-fee-head').html('');
+            $('.appended').remove();
+        }
+        function selectAllItem() {
+            $('.select-btn').attr('onclick', 'deselectAllItems()');
+            $('td.appended input').attr('checked', true);
+        }
+        function deselectAllItems() {
+            $('.select-btn').attr('onclick', 'selectAllItem()');
+            $('td.appended input').attr('checked', false);
+        }
+    </script>
+}
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="Contract" asp-controller="Admin">قرارداد ها</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="moveLoadfactor()" class="uk-button uk-button-danger uk-margin-small-left">انتقال</a>
+        @if (Model.Any())
+        {
+            <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="deleteGroup()">حذف</a>
+            <a uk-toggle="#change-fee-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ</a>
+        }
+        else
+        {
+            <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="copyFeeFromOldContract()">کپی نرخ از قرارداد</a>
+        }
+        <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="getSearch()">جستجو</a>
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+    </div>
+</div>
+<div class="box uk-margin-medium-bottom">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <caption class="uk-text-center">اطلاعات قرارداد</caption>
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => contractInfo.Number)</th>
+                    <th>@Html.DisplayNameFor(model => contractInfo.CustomerId)</th>
+                    <th>@Html.DisplayNameFor(model => contractInfo.Subject)</th>
+                    <th>@Html.DisplayNameFor(model => contractInfo.StartDate)</th>
+                    <th>@Html.DisplayNameFor(model => contractInfo.EndDate)</th>
+                    @if (!contractInfo.ParentContractId.HasValue)
+                    {
+                        <th width="50">الحاقیه</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr class="uk-text-center">
+                    <td>@Html.DisplayFor(modelItem => contractInfo.Number)</td>
+                    <td>@Html.DisplayFor(modelItem => contractInfo.Customer.Name)</td>
+                    <td>@Html.DisplayFor(modelItem => contractInfo.Subject)</td>
+                    <td>@startPersianDate.ToShortDateString()</td>
+                    <td>@endPersianDate.ToShortDateString()</td>
+                    @if (!contractInfo.ParentContractId.HasValue)
+                    {
+                        if (addons.Any())
+                        {
+                            <td><button onclick="toggleAddons(this)" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
+                        }
+                        else
+                        {
+                            <td><button disabled class="uk-button uk-button-default uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
+                        }
+                    }
+                </tr>
+                @if (addons.Any())
+                {
+                    i = 1;
+                    <tr class="detail-row" style="display:none">
+                        <td colspan="6">
+                            <div class="uk-overflow-auto uk-border-rounded uk-box-shadow-medium">
+                                <table class="uk-table uk-table-small uk-table-striped uk-table-middle" style="background: #ccc">
+                                    <thead>
+                                        <tr>
+                                            <th>ردیف</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.Number)</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.CustomerId)</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.Subject)</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.StartDate)</th>
+                                            <th>@Html.DisplayNameFor(model => contractInfo.EndDate)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var addon in addons.OrderBy(a => a.StartDate))
+                                        {
+                                            startPersianDate = new PersianDateTime(addon.StartDate);
+                                            endPersianDate = new PersianDateTime(addon.EndDate);
+
+                                            <tr class="uk-text-center sm">
+                                                <td>@i</td>
+                                                <td>@Html.DisplayFor(modelItem => addon.Number)</td>
+                                                <td>@Html.DisplayFor(modelItem => addon.Customer.Name)</td>
+                                                <td>@Html.DisplayFor(modelItem => addon.Subject)</td>
+                                                <td>@startPersianDate.ToShortDateString()</td>
+                                                <td>@endPersianDate.ToShortDateString()</td>
+                                            </tr>
+                                            i++;
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+                    i = 1;
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div id="append" class="box">
+    <div id="shipping-fee-head" class="uk-flex uk-flex-left"></div>
+    <form id="main-form" asp-action="DeleteGroupShippingFeeGroup" method="post">
+        <div class="uk-overflow-auto">
+            <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                <thead>
+                    <tr>
+                        <th>ردیف</th>
+                        <th>@Html.DisplayNameFor(model => model.Title)</th>
+                        <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
+                        <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                        <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                        @if (contractInfo.Customer.HasLoadType)
+                        {
+                            <th>@Html.DisplayNameFor(model => model.ShippingFeeLoadTypeId)</th>
+                        }
+                        <th>@Html.DisplayNameFor(model => model.Price)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverPrice)</th>
+                        @if (contractInfo.Customer.HasAddonTonnage)
+                        {
+                            <th>@Html.DisplayNameFor(model => model.TonnagePrice)</th>
+                            <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
+                        }
+                        <th width="50">مسیر ها</th>
+                        <th width="50">ویرایش</th>
+                        <th width="50">حذف</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="uk-text-center sm" data-id="@item.Id">
+                            <td>@i</td>
+                            <td>@(string.IsNullOrWhiteSpace(item.Title) ? "---" : item.Title)</td>
+                            <td>@item.Vehicle</td>
+                            <td>@item.Origin</td>
+                            <td>@item.Destination</td>
+                            @if (contractInfo.Customer.HasLoadType)
+                            {
+                                <td>@item.ShippingFeeLoadType.Name</td>
+                            }
+                            <td>@item.Price.ToString("N0")</td>
+                            <td>@item.DriverPrice.ToString("N0")</td>
+                            @if (contractInfo.Customer.HasAddonTonnage)
+                            {
+                                <td>@(item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : "---")</td>
+                                <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
+                            }
+                            <td><a asp-action="ShippingFeeRoute" asp-route-id="@item.Id" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+    </form>
+</div>
+<div id="append-modal" uk-modal="bg-close: false"></div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteShippingFeeGroup" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="copy-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="copy-form" action="@Url.Action("DoCreateShippingFeeGroupTypeFromNormal")" method="post">
+            <input type="hidden" name="newContractRowId" value="@contractInfo.RowId" />
+            <h4 class="uk-text-light">تمامی نرخ ها از قرارداد انتخابی شما کپی خواهد شد.</h4>
+            <label class="uk-form-label">قراردادی که میخواهید نرخ ها از آن کپی شود</label>
+            <select name="contractRowId" class="uk-select uk-border-rounded"></select>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="$('#copy-form').submit()" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="move-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="move-form" action="@Url.Action("MoveLoadFactorsToNewContract")" method="post">
+            <input type="hidden" name="newContractRowId" value="@contractInfo.RowId" />
+            <h4 class="uk-text-light">تمامی بارنامه های ثبت شده در قرارداد انتخابی شما که از تاریخ مد نظر شما به بعد وجود داشته باشند، به این قرارداد منتقل می شوند.</h4>
+            <label class="uk-form-label">قراردادی که میخواهید بارنامه ها از آن کپی شود</label>
+            <select name="contractRowId" class="uk-select uk-border-rounded uk-form-small"></select>
+            <div class="uk-margin-top"></div>
+            <label class="uk-form-label">از تاریخ زیر به بعد</label>
+            <input id="move-date" name="dateString" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="$('#move-form').submit()" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="change-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="change-form">
+            <input type="hidden" name="contractId" value="@contractInfo.Id" />
+            <h4 class="uk-text-light">لطفا میزان تغییر قیمت بر مبنای درصد را در ورودی عدد زیر، وارد نمائید.</h4>
+            <ul class="uk-list uk-list-bullet uk-text-light sm">
+                <li>جهت کاهش نرخ عددی منفی وارد نمائید.</li>
+                <li>جهت افزایش نرخ عددی مثبت وارد نمائید.</li>
+                <li>تا پایان عملیات مرورگر خود را نبندید و از تازه سازی (رفرش) صفحه خودداری نمائید.</li>
+                <li>این عملیات ممکن است بر اساس تعداد نرخ ها و بارنامه هایی را که شامل می شود، طولانی و زمان بر باشد. لطفا از داشتن اتصال اینترنت مناسب و مطمئن اطمینان حاصل نمائید.</li>
+            </ul>
+            <label class="uk-form-label">تغییر نرخ بارنامه های مرتبط از تاریخ</label>
+            <input id="amountDate" name="amountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            <br />
+            <label class="uk-form-label">میزان تغییر نرخ کرایه</label>
+            <div>
+                <input name="amount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
+            <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                <label><input class="uk-radio" type="radio" name="type" value="amount" checked /> مبلغ ثابت</label>
+                <label><input class="uk-radio" type="radio" name="type" value="percent" /> درصد</label>
+            </div>
+            <hr />
+
+            <label class="uk-form-label">تغییر نرخ پرداختی بارنامه های مرتبط از تاریخ</label>
+            <input id="driverAmountDate" name="driverAmountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            <br />
+            <label class="uk-form-label">میزان تغییر نرخ کرایه راننده</label>
+            <div>
+                <input name="driverAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
+            <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                <label><input class="uk-radio" type="radio" name="driverType" value="amount" checked /> مبلغ ثابت</label>
+                <label><input class="uk-radio" type="radio" name="driverType" value="percent" /> درصد</label>
+            </div>
+            <hr />
+
+            <label class="uk-form-label">تغییر نرخ دریافتی اضافه تناژ بارنامه های مرتبط از تاریخ</label>
+            <input id="tonnageAmountDate" name="tonnageAmountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            <br />
+            <label class="uk-form-label">میزان تغییر نرخ اضافه تناژ</label>
+            <div>
+                <input name="tonnageAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
+            <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                <label><input class="uk-radio" type="radio" name="tonnageType" value="amount" checked /> مبلغ ثابت</label>
+                <label><input class="uk-radio" type="radio" name="tonnageType" value="percent" /> درصد</label>
+            </div>
+            <hr />
+
+            <label class="uk-form-label">تغییر نرخ پرداختی اضافه تناژ بارنامه های مرتبط از تاریخ</label>
+            <input id="tonnageDriverAmountDate" name="tonnageDriverAmountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            <br />
+            <label class="uk-form-label">میزان تغییر نرخ پرداختی اضافه تناژ</label>
+            <div>
+                <input name="tonnageDriverAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <label class="uk-form-label uk-margin-small-top">نوع تغییر قیمت را انتخاب کنید (عدد وارد شده در بالا مبلغ ثابت به ریال است یا درصد)</label>
+            <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                <label><input class="uk-radio" type="radio" name="driverTonnageType" value="amount" checked /> مبلغ ثابت</label>
+                <label><input class="uk-radio" type="radio" name="driverTonnageType" value="percent" /> درصد</label>
+            </div>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="submitChange()" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <input id="contractId" name="contractId" type="hidden" value="@contractInfo.Id" />
+                <div>
+                    <label class="uk-form-label">بر اساس نوع خودرو</label>
+                    <select class="uk-select uk-border-rounded" id="vehicleType" name="vehicleType"></select>
+                </div>
+                <div>
+                    <label class="uk-form-label">بر اساس مبدا</label>
+                    <input class="uk-input uk-border-rounded uk-form-small" id="origin" name="origin" autocomplete="off" />
+                </div>
+                <div>
+                    <label class="uk-form-label">بر اساس مقصد</label>
+                    <input class="uk-input uk-border-rounded uk-form-small" id="destination" name="destination" autocomplete="off" />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">عنوان</label>
+                    <input class="uk-input uk-border-rounded uk-form-small" id="title" name="title" autocomplete="off" />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">کرایه دریافتی</label>
+                    <input class="uk-input uk-border-rounded uk-form-small" id="amount" name="amount" autocomplete="off" />
+                </div>
+                <div class="uk-margin-small-top">
+                    <label class="uk-form-label">کرایه پرداختی به راننده</label>
+                    <input class="uk-input uk-border-rounded uk-form-small" id="driverFee" name="driverFee" autocomplete="off" />
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="ShippingFeeGroup" asp-controller="Admin" asp-route-contractId="@contractInfo.RowId" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="change-fee-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>تغییر قیمت بر اساس</h3>
+        <ul class="uk-list">
+            <li>
+                <button class="uk-button uk-button-primary uk-border-rounded" uk-toggle="#do-change-driver-amount-modal">نرخ پرداختی</button>
+            </li>
+            <li>
+                <button class="uk-button uk-button-primary uk-border-rounded" uk-toggle="#do-change-amount-modal">نرخ دریافتی</button>
+            </li>
+            <li>
+                <button class="uk-button uk-button-primary uk-border-rounded" uk-toggle="#change-modal">تغییر نرخ درصدی</button>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id="do-change-amount-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="change-form" asp-action="ChangeShippingFeeGroupByAmount">
+            <input type="hidden" name="contractId" value="@contractInfo.Id" />
+            <input type="hidden" name="type" value="amount" />
+            <h4 class="uk-text-light">تغییر نرخ دریافتی</h4>
+            <ul class="uk-list uk-list-bullet uk-text-light sm">
+                <li>تا پایان عملیات مرورگر خود را نبندید و از تازه سازی (رفرش) صفحه خودداری نمائید.</li>
+                <li>این عملیات ممکن است بر اساس تعداد نرخ ها و بارنامه هایی را که شامل می شود، طولانی و زمان بر باشد. لطفا از داشتن اتصال اینترنت مناسب و مطمئن اطمینان حاصل نمائید.</li>
+            </ul>
+            <label class="uk-form-label">تغییر نرخ بارنامه های مرتبط از تاریخ</label>
+            <div>
+                <input id="amountDate" name="amountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            </div>
+            <br />
+            <label class="uk-form-label">یا از تقویم کاری</label>
+            <div>
+                <select id="calendarId" name="calendarId" class="uk-select uk-border-rounded uk-form-small">
+                    <option value="0">انتخاب نمائید</option>
+                    @foreach (var item in calendars)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                </select>
+            </div>
+            <br />
+            <label class="uk-form-label">نرخ کرایه قدیم</label>
+            <div>
+                <input name="oldAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <br />
+            <label class="uk-form-label">نرخ کرایه جدید</label>
+            <div>
+                <input name="newAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="submitChangeAmount('amount')" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="do-change-driver-amount-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form id="change-form" asp-action="ChangeShippingFeeGroupByAmount">
+            <input type="hidden" name="contractId" value="@contractInfo.Id" />
+            <input type="hidden" name="type" value="driver" />
+            <h4 class="uk-text-light">تغییر نرخ پرداختی</h4>
+            <ul class="uk-list uk-list-bullet uk-text-light sm">
+                <li>تا پایان عملیات مرورگر خود را نبندید و از تازه سازی (رفرش) صفحه خودداری نمائید.</li>
+                <li>این عملیات ممکن است بر اساس تعداد نرخ ها و بارنامه هایی را که شامل می شود، طولانی و زمان بر باشد. لطفا از داشتن اتصال اینترنت مناسب و مطمئن اطمینان حاصل نمائید.</li>
+            </ul>
+            <label class="uk-form-label">تغییر نرخ بارنامه های مرتبط از تاریخ</label>
+            <div>
+                <input id="amountDate" name="amountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+            </div>
+            <br />
+            <label class="uk-form-label">یا از تقویم کاری</label>
+            <div>
+                <select id="calendarId" name="calendarId" class="uk-select uk-border-rounded uk-form-small">
+                    <option value="0">انتخاب نمائید</option>
+                    @foreach (var item in calendars)
+                    {
+                        <option value="@item.Id">@item.Title</option>
+                    }
+                </select>
+            </div>
+            <br />
+            <label class="uk-form-label">نرخ کرایه قدیم</label>
+            <div>
+                <input name="oldAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+            <br />
+            <label class="uk-form-label">نرخ کرایه جدید</label>
+            <div>
+                <input name="newAmount" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
+            </div>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="submitChangeAmount('driver')" type="button">ثبت تغییرات</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </div>
+</div>
+<div id="submit-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>آیا از حذف نرخ های انتخابی اطمینان دارید؟</h3>
+        <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="$('#main-form').submit()" type="button">بلی</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+        </div>
+    </div>
+</div>

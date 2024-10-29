@@ -1362,4 +1362,48 @@ namespace EtehadBar.Domain
         public long ContractId { get; set; }
         public double Amount { get; set; }
     }
+
+    public class ShippingFeeRouteWithPriceVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "عنوان (اختیاری)")]
+        [MaxLength(256, ErrorMessage = "{0} حداکثر باید {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+
+        [Display(Name = "مبدأ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long OriginId { get; set; }
+
+        public string Origin { get; set; }
+
+        [Display(Name = "مقصد")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long DestinationId { get; set; }
+
+        public string Destination { get; set; }
+
+        [Display(Name = "خودرو")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Vehicle { get; set; }
+
+        [Display(Name = "کرایه (ریال)")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Price { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double DriverPrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه تریلی (ریال)")]
+        public double? TonnagePrice { get; set; }
+
+        [Display(Name = "نرخ تناژ اضافه تریلی راننده (ریال)")]
+        public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "نوع بار")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string ShippingFeeLoadType { get; set; }
+    }
 }

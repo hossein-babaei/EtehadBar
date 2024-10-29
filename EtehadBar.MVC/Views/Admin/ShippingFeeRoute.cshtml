@@ -1,0 +1,164 @@
+﻿@model ShippingFeeGroup
+
+@{
+    ViewData["pageId"] = 7;
+    ViewData["Title"] = "مسیر ها";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Links{
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+}
+
+@section Scripts{
+    <script src="~/lib/select2/select2.min.js"></script>
+    <script src="~/lib/persian-date/persian-date.min.js"></script>
+    <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
+    <script>
+        const shippingFeeGroupId = @Model.Id;
+        let select2Config = {
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        };
+        function create() {
+            preloader();
+            $.get('@Url.Action("CreateShippingFeeRoute")', { 'shippingFeeGroupId': shippingFeeGroupId }, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                $('#create-form #OriginId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#create-form #DestinationId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                parseValidator('#append-modal form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function submitCreate() {
+            var form = $('#create-form');
+            if (form.valid() == true) {
+                preloader();
+                var data = form.serialize();
+                $.post('@Url.Action("CreateShippingFeeRoute")', data, function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.get('@Url.Action("ShippingFeeRoutePartial")', { 'shippingFeeGroupId': shippingFeeGroupId }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                }, 'json').then(function () {
+                    preloader();
+                });
+            }
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditShippingFeeRoute")', { 'id': id }, function (r) {
+                $('#append-modal').html(r);
+            }, 'html').then(function () {
+                $('#edit-form #OriginId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#edit-form #DestinationId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                parseValidator('#append-modal form');
+                preloader();
+                UIkit.modal('#append-modal').show();
+            });
+        }
+        function submitEdit() {
+            var form = $('#edit-form');
+            if (form.valid() == true) {
+                preloader();
+                var data = form.serialize();
+                $.post('@Url.Action("EditShippingFeeRoute")', data, function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.get('@Url.Action("ShippingFeeRoutePartial")', { 'shippingFeeGroupId': shippingFeeGroupId }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                        UIkit.modal('#append-modal').hide();
+                    }
+                }, 'json').then(function () {
+                    preloader();
+                });
+            }
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="Contract" asp-controller="Admin">قرارداد ها</a></li>
+            <li><a asp-action="ShippingFeeGroup" asp-controller="Admin" asp-route-contractId="@Model.Contract.RowId">نرخ قرارداد به شماره @Model.Contract.Number</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+    </div>
+</div>
+
+<div class="box uk-margin-medium-bottom">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <caption class="uk-text-center">اطلاعات نرخ</caption>
+            <thead>
+                <tr>
+                    <th>@Html.DisplayNameFor(model => model.Title)</th>
+                    <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
+                    <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                    <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                    @if (Model.Contract.Customer.HasLoadType)
+                    {
+                        <th>@Html.DisplayNameFor(model => model.ShippingFeeLoadTypeId)</th>
+                    }
+                    <th>@Html.DisplayNameFor(model => model.Price)</th>
+                    <th>@Html.DisplayNameFor(model => model.DriverPrice)</th>
+                    @if (Model.Contract.Customer.HasAddonTonnage)
+                    {
+                        <th>@Html.DisplayNameFor(model => model.TonnagePrice)</th>
+                        <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="uk-text-center sm" data-id="@Model.Id">
+                    <td>@(string.IsNullOrWhiteSpace(Model.Title) ? "---" : Model.Title)</td>
+                    <td>@Model.Vehicle</td>
+                    <td>@Model.Origin</td>
+                    <td>@Model.Destination</td>
+                    @if (Model.Contract.Customer.HasLoadType)
+                    {
+                        <td>@Model.ShippingFeeLoadType.Name</td>
+                    }
+                    <td>@Model.Price.ToString("N0")</td>
+                    <td>@Model.DriverPrice.ToString("N0")</td>
+                    @if (Model.Contract.Customer.HasAddonTonnage)
+                    {
+                        <td>@(Model.TonnagePrice.HasValue ? Model.TonnagePrice.Value.ToString("N0") : "---")</td>
+                        <td>@(Model.DriverTonnagePrice.HasValue ? Model.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div id="append" class="box">
+    <partial name="~/Views/Admin/_ShippingFeeRoute.cshtml" model="@Model.ShippingFeeRoutes" />
+</div>

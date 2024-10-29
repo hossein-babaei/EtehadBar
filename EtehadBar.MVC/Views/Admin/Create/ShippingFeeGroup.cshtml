@@ -1,0 +1,89 @@
+﻿@model ShippingFeeGroup
+@{
+    var contractInfo = (Contract)ViewData["Contract"];
+    var types = (List<Definition>)ViewData["Data"];
+    var vehicles = types.Where(a => a.DefinitionType.Equals(DefinitionType.Car)).OrderBy(a => a.Title).ToList();
+    var loadTypes = (List<ShippingFeeLoadType>)ViewData["LoadTypes"];
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">افزودن گروه نرخ جدید</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="create-form" method="post">
+            <input asp-for="ContractId" type="hidden" value="@contractInfo.Id" />
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="Title" class="uk-form-label"></label>
+                    <input asp-for="Title" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Title" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Vehicle" class="uk-form-label"></label>
+                    <select asp-for="Vehicle" class="uk-select uk-border-rounded">
+                        @foreach (var item in vehicles)
+                        {
+                            <option value="@item.Title">@item.Title</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Vehicle" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Origin" class="uk-form-label"></label>
+                    <input asp-for="Origin" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Origin" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Destination" class="uk-form-label"></label>
+                    <input asp-for="Destination" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Destination" class="uk-text-danger"></span>
+                </div>
+                @if (contractInfo.Customer.HasLoadType)
+                {
+                    <div>
+                        <label asp-for="ShippingFeeLoadTypeId" class="uk-form-label"></label>
+                        <select asp-for="ShippingFeeLoadTypeId" class="uk-select uk-border-rounded">
+                            @foreach (var item in loadTypes)
+                            {
+                                <!option value="@item.Id">@item.Name</!option>
+                            }
+                        </select>
+                        <span asp-validation-for="ShippingFeeLoadTypeId" class="uk-text-danger"></span>
+                    </div>
+                }
+                else
+                {
+                        <input asp-for="ShippingFeeLoadTypeId" type="hidden" value="-1" />
+                }
+                <div>
+                    <label asp-for="Price" class="uk-form-label"></label>
+                    <input asp-for="Price" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="Price" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="DriverPrice" class="uk-form-label"></label>
+                    <input asp-for="DriverPrice" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="DriverPrice" class="uk-text-danger"></span>
+                </div>
+                @if (contractInfo.Customer.HasAddonTonnage)
+                {
+                    <div>
+                        <label asp-for="TonnagePrice" class="uk-form-label"></label>
+                        <input asp-for="TonnagePrice" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
+                        <span asp-validation-for="TonnagePrice" class="uk-text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="DriverTonnagePrice" class="uk-form-label"></label>
+                        <input asp-for="DriverTonnagePrice" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
+                        <span asp-validation-for="DriverTonnagePrice" class="uk-text-danger"></span>
+                    </div>
+                }
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitCreate()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

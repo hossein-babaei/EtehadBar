@@ -60,7 +60,7 @@
     }
     @if (User.IsInRole("Admin"))
     {
-        <li class="uk-parent @if(param == 8 || param == 24){<text>uk-open</text>}">
+        <li class="uk-parent @if(param == 8 || param == 40 || param == 24){<text>uk-open</text>}">
             <a><i class="uk-margin-left fas fa-clipboard-check"></i>بارنامه ها</a>
             <ul class="uk-nav-sub">
                 <li @if (param == 24) { <text> class="active" </text> }><a asp-action="FreeLoadFactor" asp-controller="Admin">آزاد</a></li>

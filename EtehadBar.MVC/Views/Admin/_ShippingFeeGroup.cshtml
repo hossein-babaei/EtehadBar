@@ -1,0 +1,60 @@
+﻿@model IEnumerable<ShippingFeeGroup>
+
+@{
+    int i = 1;
+    var contractInfo = (Contract)ViewData["Contract"];
+}
+<div class="uk-overflow-auto">
+    <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+        <thead>
+            <tr>
+                <th>ردیف</th>
+                <th>@Html.DisplayNameFor(model => model.Title)</th>
+                <th>@Html.DisplayNameFor(model => model.Vehicle)</th>
+                <th>@Html.DisplayNameFor(model => model.Origin)</th>
+                <th>@Html.DisplayNameFor(model => model.Destination)</th>
+                @if (contractInfo.Customer.HasLoadType)
+                {
+                    <th>@Html.DisplayNameFor(model => model.ShippingFeeLoadTypeId)</th>
+                }
+                <th>@Html.DisplayNameFor(model => model.Price)</th>
+                <th>@Html.DisplayNameFor(model => model.DriverPrice)</th>
+                @if (contractInfo.Customer.HasAddonTonnage)
+                {
+                    <th>@Html.DisplayNameFor(model => model.TonnagePrice)</th>
+                    <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
+                }
+                <th width="50">مسیر ها</th>
+                <th width="50">ویرایش</th>
+                <th width="50">حذف</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="uk-text-center sm" data-id="@item.Id">
+                    <td>@i</td>
+                    <td>@(string.IsNullOrWhiteSpace(item.Title) ? "---" : item.Title)</td>
+                    <td>@item.Vehicle</td>
+                    <td>@item.Origin</td>
+                    <td>@item.Destination</td>
+                    @if (contractInfo.Customer.HasLoadType)
+                    {
+                        <td>@item.ShippingFeeLoadType.Name</td>
+                    }
+                    <td>@item.Price.ToString("N0")</td>
+                    <td>@item.DriverPrice.ToString("N0")</td>
+                    @if (contractInfo.Customer.HasAddonTonnage)
+                    {
+                        <td>@(item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : "---")</td>
+                        <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
+                    }
+                    <td><a asp-action="ShippingFeeRoute" asp-route-id="@item.Id" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
+                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                </tr>
+                i++;
+            }
+        </tbody>
+    </table>
+</div>

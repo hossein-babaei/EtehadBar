@@ -1,4 +1,5 @@
 ﻿using EtehadBar.Domain.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace EtehadBar.Domain.Interfaces
         Task<bool> SequenceExistInMehrcomPars(long id, long sequence);
         Task<bool> CheckMehrcomParsLoadFactorGovNumber(string number);
         IQueryable<LoadFactor> LoadFactors();
+        Task<List<LoadFactor>> GetLoadFactorsByContractId(long contractId, DateTime date);
         Task<List<ExcelLoadFactorVM>> LoadFactors(long customerId, long? calendarId, long? accountBookId, long? driverId);
         void Update(LoadFactor obj);
         void UpdateSaipaPress(SaipaPressLoadFactor obj);

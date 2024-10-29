@@ -44,6 +44,7 @@ namespace EtehadBar.Domain.Models
         public virtual ICollection<CustomerFactor> CustomerFactors { get; set; }
         public virtual ICollection<LoadFactor> LoadFactors { get; set; }
         public virtual ICollection<ShippingFee> ShippingFees { get; set; }
+        public ICollection<ShippingFeeGroup> ShippingFeeGroups { get; set; }
 
         [Required]
         [StringLength(36)]

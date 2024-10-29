@@ -48,7 +48,7 @@ namespace EtehadBar.Domain
 
         [Required]
         [Display(Name = "نرخ بارنامه")]
-        public long ShippingFeeId { get; set; }
+        public long ShippingFeeRouteId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
@@ -134,7 +134,7 @@ namespace EtehadBar.Domain
 
         [Required]
         [Display(Name = "نرخ بارنامه")]
-        public long ShippingFeeId { get; set; }
+        public long? ShippingFeeRouteId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
@@ -210,7 +210,7 @@ namespace EtehadBar.Domain
 
         [Display(Name = "نرخ بارنامه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        public long ShippingFeeId { get; set; }
+        public long ShippingFeeRouteId { get; set; }
 
         [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
@@ -299,7 +299,7 @@ namespace EtehadBar.Domain
 
         [Required]
         [Display(Name = "نرخ بارنامه")]
-        public long ShippingFeeId { get; set; }
+        public long? ShippingFeeRouteId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
@@ -412,7 +412,7 @@ namespace EtehadBar.Domain
 
         [Required]
         [Display(Name = "نرخ بارنامه")]
-        public long ShippingFeeId { get; set; }
+        public long ShippingFeeRouteId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
@@ -534,7 +534,7 @@ namespace EtehadBar.Domain
 
         [Required]
         [Display(Name = "نرخ بارنامه")]
-        public long ShippingFeeId { get; set; }
+        public long? ShippingFeeRouteId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
@@ -620,7 +620,7 @@ namespace EtehadBar.Domain
 
         [Required]
         [Display(Name = "نرخ بارنامه")]
-        public long ShippingFeeId { get; set; }
+        public long ShippingFeeRouteId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
@@ -739,7 +739,7 @@ namespace EtehadBar.Domain
 
         [Required]
         [Display(Name = "نرخ بارنامه")]
-        public long ShippingFeeId { get; set; }
+        public long? ShippingFeeRouteId { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]

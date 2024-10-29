@@ -1,0 +1,53 @@
+﻿@model IEnumerable<ShippingFeeRoute>
+
+@{
+    int i = 1;
+}
+
+<div id="shipping-fee-head" class="uk-flex uk-flex-left"></div>
+<div class="uk-overflow-auto">
+    <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+        <thead>
+            <tr>
+                <th>ردیف</th>
+                <th>@Html.DisplayNameFor(model => model.Title)</th>
+                <th>@Html.DisplayNameFor(model => model.OriginId)</th>
+                <th>@Html.DisplayNameFor(model => model.DestinationId)</th>
+                <th width="50">بارنامه ها</th>
+                <th width="50">ویرایش</th>
+                <th width="50">حذف</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr class="uk-text-center sm" data-id="@item.Id">
+                    <td>@i</td>
+                    <td>@(string.IsNullOrWhiteSpace(item.Title) ? "---" : item.Title)</td>
+                    <td>@item.Origin.Title</td>
+                    <td>@item.Destination.Title</td>
+                    <td><a class="uk-button uk-button-primary uk-button-small" asp-action="ShippingFeeRouteLoadFactors" asp-route-id="@item.Id"><i class="fas fa-clipboard-check"></i></a></td>
+                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
+                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                </tr>
+                i++;
+            }
+        </tbody>
+    </table>
+</div>
+
+<div id="append-modal" uk-modal="bg-close: false"></div>
+
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteShippingFeeRoute" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>

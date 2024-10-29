@@ -1,6 +1,6 @@
 ﻿@model CSaipaPlascoLoadFactorVM
 @{
-    var fees = (List<ShippingFee>)ViewData["Fees"];
+    var fees = (List<ShippingFeeRouteWithPriceVM>)ViewData["Fees"];
     var contract = (List<Contract>)ViewData["Contracts"];
     var drivers = (List<Driver>)ViewData["Drivers"];
     var vehicles = (List<Vehicle>)ViewData["Vehicles"];
@@ -43,14 +43,15 @@
                     <span asp-validation-for="ContractId" class="uk-text-danger"></span>
                 </div>
                 <div class="uk-width-1-1@m">
-                    <label asp-for="ShippingFeeId" class="uk-form-label"></label>
-                    <select asp-for="ShippingFeeId" class="uk-select uk-border-rounded" data-last-type="@fees.First().ShippingFeeType" onchange="loadFactorFormShippingFeeChangeHandler(this, '@CustomerType.SaipaPlasco')">
+                    <label asp-for="ShippingFeeRouteId" class="uk-form-label"></label>
+                    <select asp-for="ShippingFeeRouteId" class="uk-select uk-border-rounded">
+                        @*data-last-type="@fees.First().ShippingFeeType" onchange="loadFactorFormShippingFeeChangeHandler(this, '@CustomerType.SaipaPlasco')"*@
                         @foreach (var item in fees)
                         {
-                            <!option value="@item.Id" data-vehicle-type="@item.Vehicle" data-type="@item.ShippingFeeType" @if(item == fees.First()){ <text>selected="selected"</text> }>@(string.IsNullOrWhiteSpace(item.Title) ? "" : $"({item.Title}) ")@item.Vehicle - (@item.Origin.Title به @item.Destination.Title - @item.ShippingFeeLoadType.Name) - @(item.ShippingFeeType == ShippingFeeType.Normal ? item.Price.ToString("N0") : "نرخ آزاد")</!option>
+                            <!option value="@item.Id" data-vehicle-type="@item.Vehicle" @*data-type="@item.ShippingFeeType"*@ @if(item == fees.First()){ <text>selected="selected"</text> }>@(string.IsNullOrWhiteSpace(item.Title) ? "" : $"({item.Title}) ")@item.Vehicle - (@item.Origin به @item.Destination - @item.ShippingFeeLoadType) - @item.Price.ToString("N0")</!option>
                         }
                     </select>
-                    <span asp-validation-for="ShippingFeeId" class="uk-text-danger"></span>
+                    <span asp-validation-for="ShippingFeeRouteId" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="VehicleId" class="uk-form-label"></label>

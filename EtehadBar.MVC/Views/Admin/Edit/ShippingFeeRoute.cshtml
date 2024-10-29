@@ -1,0 +1,53 @@
+﻿@model ShippingFeeRoute
+@{
+    var loadRoutes = (List<LoadRoutes>)ViewData["LoadRoutes"];
+    var origins = loadRoutes.Where(a => a.RouteType.Equals(LoadRouteType.Origin)).OrderBy(a => a.Title).ToList();
+    var destinations = loadRoutes.Where(a => a.RouteType.Equals(LoadRouteType.Destionation)).OrderBy(a => a.Title).ToList();
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">ویرایش مسیر</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="edit-form" asp-action="EditShippingFeeRoute" method="post">
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="ShippingFeeGroupId" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-2@m" uk-grid>
+                <div class="uk-width-1-1">
+                    <label asp-for="Title" class="uk-form-label"></label>
+                    <input asp-for="Title" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Title" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="OriginId" class="uk-form-label"></label>
+                    <select asp-for="OriginId" class="uk-select uk-border-rounded">
+                        @foreach (var item in origins)
+                        {
+                            <!option value="@item.Id" @if(Model.OriginId.Equals(item.Id)) {
+                        <text>selected="selected"</text>
+}>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="OriginId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="DestinationId" class="uk-form-label"></label>
+                    <select asp-for="DestinationId" class="uk-select uk-border-rounded">
+                        @foreach (var item in destinations)
+                        {
+                            <!option value="@item.Id" @if(Model.DestinationId.Equals(item.Id)) {
+                        <text>selected="selected"</text>
+}>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="DestinationId" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitEdit()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

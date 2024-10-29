@@ -24,6 +24,34 @@
                 UIkit.modal('#create-modal').show();
             });
         }
+        function submitCreateForm() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CreateCustomerFactor")',
+                data: $('#create-modal form').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.post('@Url.Action("CustomerFactorPartial")', {}, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+
+                        $('#create-modal form')[0].reset();
+                        $('.format-append').html('');
+                    }
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
         function edit(id) {
             preloader();
             $.get('@Url.Action("EditCustomerFactor")', { 'id': id }, function (r) {

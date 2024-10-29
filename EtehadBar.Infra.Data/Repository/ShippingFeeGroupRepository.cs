@@ -9,32 +9,32 @@ using System.Threading.Tasks;
 
 namespace EtehadBar.Infra.Data.Repository
 {
-    public class ShippingFeeRepository : IShippingFeeRepository
+    public class ShippingFeeGroupRepository : IShippingFeeGroupRepository
     {
         private readonly ApplicationDbContext db;
-        public ShippingFeeRepository(ApplicationDbContext context)
+        public ShippingFeeGroupRepository(ApplicationDbContext context)
         {
             db = context;
         }
 
-        public IQueryable<ShippingFee> ShippingFees()
+        public IQueryable<ShippingFeeGroup> Query()
         {
-            return db.ShippingFee.AsQueryable();
+            return db.ShippingFeeGroup.AsQueryable();
         }
 
-        public void Create(ShippingFee obj)
+        public void Create(ShippingFeeGroup obj)
         {
             db.Add(obj);
         }
 
-        public void Delete(ShippingFee obj)
+        public void Delete(ShippingFeeGroup obj)
         {
             db.Remove(obj);
         }
 
-        public async Task<ShippingFee> Get(long id)
+        public async Task<ShippingFeeGroup> Get(long id)
         {
-            return await db.ShippingFee.FindAsync(id);
+            return await db.ShippingFeeGroup.FindAsync(id);
         }
 
         public async Task<int> Save()
@@ -42,12 +42,12 @@ namespace EtehadBar.Infra.Data.Repository
             return await db.SaveChangesAsync();
         }
 
-        public void Update(ShippingFee obj)
+        public void Update(ShippingFeeGroup obj)
         {
             db.Update(obj);
         }
 
-        public void UpdateRange(List<ShippingFee> list)
+        public void UpdateRange(List<ShippingFeeGroup> list)
         {
             db.UpdateRange(list.AsEnumerable());
         }

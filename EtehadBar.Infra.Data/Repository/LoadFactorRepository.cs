@@ -4,6 +4,7 @@ using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
 using MD.PersianDateTime.Standard;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -107,7 +108,7 @@ namespace EtehadBar.Infra.Data.Repository
                 ExitNumber = loadFactor.ExitNumber,
                 LoadNumber = loadFactor.LoadNumber,
                 LoadNumberGov = loadFactor.LoadNumberGov,
-                ShippingFeeId = loadFactor.ShippingFeeId,
+                ShippingFeeRouteId = loadFactor.ShippingFeeRouteId,
                 VehicleId = loadFactor.VehicleId,
                 Amount = loadFactor.Amount,
                 DriverFee = loadFactor.DriverFee,
@@ -139,7 +140,7 @@ namespace EtehadBar.Infra.Data.Repository
                 DriverId = loadFactor.DriverId,
                 ExitNumber = loadFactor.ExitNumber,
                 LoadNumber = loadFactor.LoadNumber,
-                ShippingFeeId = loadFactor.ShippingFeeId,
+                ShippingFeeRouteId = loadFactor.ShippingFeeRouteId,
                 VehicleId = loadFactor.VehicleId,
                 EntryNumber = loadFactor.SaipaPressLoadFactor.EntryNumber,
                 LoadType = loadFactor.SaipaPressLoadFactor.LoadType,
@@ -178,7 +179,7 @@ namespace EtehadBar.Infra.Data.Repository
                 DriverId = loadFactor.DriverId,
                 ExitNumber = loadFactor.ExitNumber,
                 LoadNumber = loadFactor.LoadNumber,
-                ShippingFeeId = loadFactor.ShippingFeeId,
+                ShippingFeeRouteId = loadFactor.ShippingFeeRouteId,
                 VehicleId = loadFactor.VehicleId,
                 RelationId = loadFactor.SazehGostarLoadFactor.Id,
                 Certain = loadFactor.SazehGostarLoadFactor.Certain,
@@ -209,7 +210,6 @@ namespace EtehadBar.Infra.Data.Repository
                 var data = from a in db.LoadFactor.Include(a => a.MehrcomParsLoadFactor).ThenInclude(a => a.Category)
                            join b in db.Contract on a.ContractId equals b.Id
                            join c in db.AccountBook on a.AccountBookId equals c.Id
-                           join d in db.ShippingFee on a.ShippingFeeId equals d.Id
                            join e in db.Vehicles on a.VehicleId equals e.Id
                            join f in db.Driver on a.DriverId equals f.Id
                            join calendar in db.Calendar on a.CalendarId equals calendar.Id
@@ -257,7 +257,7 @@ namespace EtehadBar.Infra.Data.Repository
                                VehicleId = a.VehicleId,
                                VehicleIranStateNumber = e.IranStateNumber,
                                VehicleLeftNumber = e.LeftNumber,
-                               VehicleName = d.Vehicle,
+                               VehicleName = a.VehicleType,
                                VehicleNumberWord = e.NumberWord,
                                VehicleRightNumber = e.RightNumber,
                                WeighbridgePrice = a.WeighbridgePrice,
@@ -272,7 +272,6 @@ namespace EtehadBar.Infra.Data.Repository
                 var data = from a in db.LoadFactor
                            join b in db.Contract on a.ContractId equals b.Id
                            join c in db.AccountBook on a.AccountBookId equals c.Id
-                           join d in db.ShippingFee on a.ShippingFeeId equals d.Id
                            join e in db.Vehicles on a.VehicleId equals e.Id
                            join f in db.Driver on a.DriverId equals f.Id
                            join calendar in db.Calendar on a.CalendarId equals calendar.Id
@@ -320,7 +319,7 @@ namespace EtehadBar.Infra.Data.Repository
                                VehicleId = a.VehicleId,
                                VehicleIranStateNumber = e.IranStateNumber,
                                VehicleLeftNumber = e.LeftNumber,
-                               VehicleName = d.Vehicle,
+                               VehicleName = a.VehicleType,
                                VehicleNumberWord = e.NumberWord,
                                VehicleRightNumber = e.RightNumber,
                                WeighbridgePrice = a.WeighbridgePrice,
@@ -400,7 +399,7 @@ namespace EtehadBar.Infra.Data.Repository
                 Year = pd.Year,
                 DriverId = loadFactor.DriverId,
                 LoadNumber = loadFactor.LoadNumber,
-                ShippingFeeId = loadFactor.ShippingFeeId,
+                ShippingFeeRouteId = loadFactor.ShippingFeeRouteId,
                 VehicleId = loadFactor.VehicleId,
                 Amount = loadFactor.Amount,
                 DriverFee = loadFactor.DriverFee,
@@ -460,6 +459,11 @@ namespace EtehadBar.Infra.Data.Repository
         public void CreateSaipaPlasco(SaipaPlascoLoadFactor obj)
         {
             db.Add(obj);
+        }
+
+        public async Task<List<LoadFactor>> GetLoadFactorsByContractId(long contractId, DateTime date)
+        {
+            return await db.LoadFactor.Include(a => a.MehrcomParsLoadFactor).Where(a => a.ContractId.Equals(contractId) && a.Date >= date).ToListAsync();
         }
     }
 }

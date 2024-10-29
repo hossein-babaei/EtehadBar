@@ -47,6 +47,8 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<OtherCost> OtherCost { get; set; }
         public DbSet<ShippingFeeLoadType> ShippingFeeLoadType { get; set; }
         public DbSet<ShippingFee> ShippingFee { get; set; }
+        public DbSet<ShippingFeeGroup> ShippingFeeGroup { get; set; }
+        public DbSet<ShippingFeeRoute> ShippingFeeRoute { get; set; }
         public DbSet<StaticRouteFee> StaticRouteFee { get; set; }
         public DbSet<UploadedFiles> UploadedFiles { get; set; }
         public DbSet<Turnover> Turnover { get; set; }
@@ -74,6 +76,9 @@ namespace EtehadBar.Infra.Data.Context
 
             modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Origin).WithMany().HasForeignKey(sf => sf.OriginId).OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<ShippingFee>().HasOne(sf => sf.Destination).WithMany().HasForeignKey(sf => sf.DestinationId).OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<ShippingFeeRoute>().HasOne(sf => sf.Origin).WithMany().HasForeignKey(sf => sf.OriginId).OnDelete(DeleteBehavior.NoAction);
+            modelBuilder.Entity<ShippingFeeRoute>().HasOne(sf => sf.Destination).WithMany().HasForeignKey(sf => sf.DestinationId).OnDelete(DeleteBehavior.NoAction);
 
             modelBuilder.Entity<LoadFactor>().HasOne(lf => lf.Origin).WithMany().HasForeignKey(lf => lf.OriginId).OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<LoadFactor>().HasOne(lf => lf.Destination).WithMany().HasForeignKey(lf => lf.DestinationId).OnDelete(DeleteBehavior.NoAction);
