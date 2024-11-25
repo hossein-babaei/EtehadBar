@@ -333,18 +333,24 @@
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a onclick="moveLoadfactor()" class="uk-button uk-button-danger uk-margin-small-left">انتقال</a>
-        @if (Model.Any())
+        @if (User.IsInRole("Admin"))
         {
-            <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="deleteGroup()">حذف</a>
-            <a uk-toggle="#change-fee-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ</a>
+            <a onclick="moveLoadfactor()" class="uk-button uk-button-danger uk-margin-small-left">انتقال</a>
+            @if (Model.Any())
+            {
+                <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="deleteGroup()">حذف</a>
+                <a uk-toggle="#change-fee-modal" class="uk-button uk-button-secondary uk-margin-small-left">تغییر نرخ</a>
+            }
+            else
+            {
+                <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="copyFeeFromOldContract()">کپی نرخ از قرارداد</a>
+            }
         }
-        else
+        @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
         {
-            <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="copyFeeFromOldContract()">کپی نرخ از قرارداد</a>
+            <a onclick="create()" class="uk-button uk-button-primary uk-margin-small-left">افزودن</a>
         }
-        <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="getSearch()">جستجو</a>
-        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <a class="uk-button uk-button-secondary" onclick="getSearch()">جستجو</a>
     </div>
 </div>
 <div class="box uk-margin-medium-bottom">
@@ -453,7 +459,10 @@
                         }
                         <th width="50">مسیر ها</th>
                         <th width="50">ویرایش</th>
-                        <th width="50">حذف</th>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <th width="50">حذف</th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
@@ -478,7 +487,10 @@
                             }
                             <td><a asp-action="ShippingFeeRoute" asp-route-id="@item.Id" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
                             <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
-                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                            }
                         </tr>
                         i++;
                     }

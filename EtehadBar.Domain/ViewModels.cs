@@ -26,7 +26,7 @@ namespace EtehadBar.Domain
     public class ExcelLoadFactorVM
     {
         public long Id { get; set; }
-        public string VehicleName { get; set;}
+        public string VehicleName { get; set; }
         public string OriginName { get; set; }
         public string DestinationName { get; set; }
         public DateTime Date { get; set; }
@@ -74,8 +74,17 @@ namespace EtehadBar.Domain
         public string VehicleType { get; set; }
         public string VehicleNumber { get; set; }
         public double VehicleBalance { get; set; }
+        public List<VehicleBankAccountVM> BankAccounts { get; set; }
         public List<ActivityListByCustomerRouteVM> Routes { get; set; }
         public List<ActivityListByCustomerDetailVM> Details { get; set; }
+    }
+
+    public class VehicleBankAccountVM
+    {
+        public string Fullname { get; set; }
+        public string AccountNumber { get; set; }
+        public long VehicleId { get; set; }
+        public long BankId { get; set; }
     }
 
     public class ActivityListByCustomerRouteVM

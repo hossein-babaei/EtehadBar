@@ -90,9 +90,12 @@
             <li><span>@ViewData["Title"]</span></li>
         </ul>
     </div>
-    <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
-    </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="uk-width-expand@m uk-flex uk-flex-left">
+            <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        </div>
+    }
 </div>
 <div id="append" class="box">
     <div class="uk-overflow-auto">
@@ -106,13 +109,13 @@
                     <th>@Html.DisplayNameFor(model => model.StartDate)</th>
                     <th>@Html.DisplayNameFor(model => model.EndDate)</th>
                     <th width="50">الحاقیه</th>
-                    @if (User.IsInRole("Admin"))
+                    @if (User.IsInRole("Admin") || User.IsInRole("Milad") || User.IsInRole("RegisterUser"))
                     {
                         <th width="50">کرایه</th>
                     }
-                    <th width="50">ویرایش</th>
                     @if (User.IsInRole("Admin"))
                     {
+                        <th width="50">ویرایش</th>
                         <th width="50">حذف</th>
                     }
                 </tr>
@@ -139,13 +142,13 @@
                         {
                             <td><button disabled class="uk-button uk-button-default uk-button-small"><i class="fas fa-plus-circle"></i></button></td>
                         }
-                        @if (User.IsInRole("Admin"))
+                        @if (User.IsInRole("Admin") || User.IsInRole("Milad") || User.IsInRole("RegisterUser"))
                         {
                             <td><a asp-action="ShippingFeeGroup" asp-route-contractId="@item.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
                         }
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         @if (User.IsInRole("Admin"))
                         {
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                             <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                         }
                     </tr>
@@ -165,9 +168,15 @@
                                                 <th>@Html.DisplayNameFor(model => model.Subject)</th>
                                                 <th>@Html.DisplayNameFor(model => model.StartDate)</th>
                                                 <th>@Html.DisplayNameFor(model => model.EndDate)</th>
-                                                <th width="50">کرایه</th>
-                                                <th width="50">ویرایش</th>
-                                                <th width="50">حذف</th>
+                                                @if (User.IsInRole("Admin") || User.IsInRole("Milad") || User.IsInRole("RegisterUser"))
+                                                {
+                                                    <th width="50">کرایه</th>
+                                                }
+                                                @if (User.IsInRole("Admin"))
+                                                {
+                                                    <th width="50">ویرایش</th>
+                                                    <th width="50">حذف</th>
+                                                }
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -183,9 +192,15 @@
                                                     <td>@Html.DisplayFor(modelItem => addon.Subject)</td>
                                                     <td>@startPersianDate.ToShortDateString()</td>
                                                     <td>@endPersianDate.ToShortDateString()</td>
-                                                    <td><a asp-action="ShippingFeeGroup" asp-route-contractId="@addon.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
-                                                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@addon.Id)"><i class="far fa-edit"></i></a></td>
-                                                    <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@addon.Id)"><i class="fas fa-trash-alt"></i></a></td>
+                                                    @if (User.IsInRole("Admin") || User.IsInRole("Milad") || User.IsInRole("RegisterUser"))
+                                                    {
+                                                        <td><a asp-action="ShippingFeeGroup" asp-route-contractId="@addon.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
+                                                    }
+                                                    @if (User.IsInRole("Admin"))
+                                                    {
+                                                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                                                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
+                                                    }
                                                 </tr>
                                                 i++;
                                             }

@@ -2055,7 +2055,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region ShippingFeeGroup
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ShippingFeeGroup(string contractId)
         {
             if (string.IsNullOrWhiteSpace(contractId)) return BadRequest();
@@ -2065,22 +2065,24 @@ namespace EtehadBar.MVC.Controllers
 
             ViewData["Contract"] = contract;
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
-            return View(await _shippingFeeGroupRepository.Query().Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
+            return View(await _shippingFeeGroupRepository.Query().Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contract.Id))
+                .OrderBy(a => a.Vehicle).ThenBy(a => a.Title).ThenBy(a => a.Origin).ToListAsync());
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ShippingFeeGroupPartial(string contractId)
         {
             var contract = await _contractRepo.Contracts().Include(a => a.Customer).AsNoTracking().FirstOrDefaultAsync(a => a.RowId.Equals(contractId));
             if (contract == null) return NotFound();
 
             ViewData["Contract"] = contract;
-            return PartialView("_ShippingFeeGroup", await _shippingFeeGroupRepository.Query().Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contract.Id)).OrderBy(a => a.Id).ToListAsync());
+            return PartialView("_ShippingFeeGroup", await _shippingFeeGroupRepository.Query().Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contract.Id))
+                .OrderBy(a => a.Vehicle).ThenBy(a => a.Title).ThenBy(a => a.Origin).ToListAsync());
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ShippingFeeGroup_Search()
         {
             var vehicleTypes = await _definitionRepo.Definitions().AsNoTracking().Where(a => a.DefinitionType == DefinitionType.Car)
@@ -2094,7 +2096,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ShippingFeeGroup_Search(int? p, long contractId, string vehicleType, string title, double? amount, double? driverFee, string origin, string destination)
         {
             var pageNumber = p ?? 1;
@@ -2116,11 +2118,11 @@ namespace EtehadBar.MVC.Controllers
                 query = query.Where(a => a.Origin.Contains(destination));
 
 
-            return PartialView(await query.OrderBy(a => a.Id).ToListAsync());
+            return PartialView(await query.OrderBy(a => a.Vehicle).ThenBy(a => a.Title).ThenBy(a => a.Origin).ToListAsync());
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CreateShippingFeeGroup(string contractId)
         {
             ViewData["Contract"] = await _contractRepo.Contracts().Where(a => a.RowId.Equals(contractId)).Include(a => a.Customer).FirstOrDefaultAsync();
@@ -2135,7 +2137,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CreateShippingFeeGroup(ShippingFeeGroup s)
         {
             string msg;
@@ -2168,7 +2170,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditShippingFeeGroup(int id)
         {
             List<DefinitionType> types = new()
@@ -2183,7 +2185,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditShippingFeeGroup(ShippingFeeGroup s, string DateLimit, long CalendarLimit)
         {
             string msg;
@@ -2615,7 +2617,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region ShippingFeeRoute
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ShippingFeeRoute(int? id)
         {
             if(!id.HasValue) return NotFound();
@@ -2631,7 +2633,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ShippingFeeRoutePartial(long? shippingFeeGroupId)
         {
             if (!shippingFeeGroupId.HasValue) return NotFound();
@@ -2641,7 +2643,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CreateShippingFeeRoute(int shippingFeeGroupId)
         {
             ViewData["ShippingFeeGroup"] = await _shippingFeeGroupRepository.Get(shippingFeeGroupId);
@@ -2651,7 +2653,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CreateShippingFeeRoute(ShippingFeeRoute s)
         {
             string msg;
@@ -2684,7 +2686,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditShippingFeeRoute(int id)
         {
             ViewData["LoadRoutes"] = await _loadRouteRepo.LoadRoutes().Where(a => a.RealStatus).AsNoTracking().ToListAsync();
@@ -2693,7 +2695,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditShippingFeeRoute(ShippingFeeRoute s)
         {
             string msg;
@@ -2737,12 +2739,18 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> DeleteShippingFeeRoute(int id)
         {
             var item = await _shippingFeeRouteRepository.Get(id);
 
             if (item == null) return NotFound();
+
+            if (_loadFactorRepo.LoadFactors().Any(a => a.ShippingFeeRouteId.HasValue && a.ShippingFeeRouteId.Value.Equals(id)))
+            {
+                TempData["msg"] = "این مسیر دارای بارنامه است و حذف آن ممکن نیست. ابتدا بارنامه های آن را به مسیری دیگر انتقال دهید. |danger";
+                return Redirect(Request.Headers["Referer"].ToString());
+            }
 
             _shippingFeeRouteRepository.Delete(item);
             try

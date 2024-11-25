@@ -1,10 +1,8 @@
 ﻿@model IEnumerable<ShippingFeeGroup>
 
 @{
-    var contractInfo = (Contract)ViewData["Contract"];
-    var startPersianDate = new PersianDateTime(contractInfo.StartDate);
-    var endPersianDate = new PersianDateTime(contractInfo.EndDate);
     int i = 1;
+    var contractInfo = (Contract)ViewData["Contract"];
 }
 
 
@@ -30,9 +28,12 @@
                         <th>@Html.DisplayNameFor(model => model.TonnagePrice)</th>
                         <th>@Html.DisplayNameFor(model => model.DriverTonnagePrice)</th>
                     }
-                    <th width="50">بارنامه ها</th>
+                    <th width="50">مسیر ها</th>
                     <th width="50">ویرایش</th>
-                    <th width="50">حذف</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th width="50">حذف</th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -55,9 +56,12 @@
                             <td>@(item.TonnagePrice.HasValue ? item.TonnagePrice.Value.ToString("N0") : "---")</td>
                             <td>@(item.DriverTonnagePrice.HasValue ? item.DriverTonnagePrice.Value.ToString("N0") : "---")</td>
                         }
-                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="ShippingFeeGroupLoadFactors" asp-route-id="@item.Id"><i class="fas fa-clipboard-check"></i></a></td>
+                        <td><a asp-action="ShippingFeeRoute" asp-route-id="@item.Id" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-truck"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
+                        }
                     </tr>
                     i++;
                 }

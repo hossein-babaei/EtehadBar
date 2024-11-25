@@ -156,7 +156,7 @@ namespace EtehadBar.Infra.Data.Repository
                                    PressFloorType = a.SaipaPressLoadFactor != null ? a.SaipaPressLoadFactor.PressFloorType : SaipaPressLoadType.OneFloor,
                                    MehrcomLoad = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Load,
                                    MehrcomPalette = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Palette,
-                                   MehrcomReturn = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Return,
+                                   MehrcomReturn = a.MehrcomParsLoadFactor != null && a.MehrcomParsLoadFactor.Return
 
                                }).AsNoTracking().OrderBy(a => a.LeftNumber).ToListAsync();
 
@@ -199,6 +199,14 @@ namespace EtehadBar.Infra.Data.Repository
             //                                  a.WeighbridgePrice
             //                              }).AsNoTracking().ToListAsync();
 
+            var vehicleBankAccounts = await db.VehicleBankAccount.AsNoTracking().Where(a => vehicleIds.Contains(a.VehicleId)).Select(a => new VehicleBankAccountVM
+            {
+                VehicleId = a.VehicleId,
+                AccountNumber = a.AccountNumber,
+                BankId = a.BankId,
+                Fullname = a.Fullname
+            }).ToListAsync();
+
             foreach (var vehicle in vehicleData)
             {
                 var vehicleId = vehicle.ElementAt(0).VehicleId;
@@ -207,6 +215,7 @@ namespace EtehadBar.Infra.Data.Repository
                     VehicleType = vehicle.ElementAt(0).VehicleType,
                     VehicleNumber = vehicle.Key,
                     VehicleBalance = vehicleBalance.Where(a => a.VehicleId.Equals(vehicleId)).Sum(a => a.Amount),
+                    BankAccounts = vehicleBankAccounts.Where(a => a.VehicleId.Equals(vehicleId)).ToList(),
                     Routes = new List<ActivityListByCustomerRouteVM>(),
                     Details = new List<ActivityListByCustomerDetailVM>()
                 };

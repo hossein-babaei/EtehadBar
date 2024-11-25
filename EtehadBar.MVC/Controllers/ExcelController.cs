@@ -296,7 +296,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 ws.Cell(index + 2, 1).Value = index;
                 ws.Cell(index + 2, 2).Value = new PersianDateTime(costs[index - 1].Date).ToString("yyyy/MM/dd");
-                ws.Cell(index + 2, 3).Value = costs[index - 1].Description;
+                ws.Cell(index + 2, 3).Value = costs[index - 1].Description.Replace("*", "");
                 ws.Cell(index + 2, 4).Value = costs[index - 1].Amount.ToString("N0");
                 ws.Cell(index + 2, 5).Value = $"{costs[index - 1].ApplicationUser.Firstname} {costs[index - 1].ApplicationUser.Lastname}";
                 ws.Cell(index + 2, 6).Value = costs[index - 1].Definition.Title;
@@ -2653,6 +2653,20 @@ namespace EtehadBar.MVC.Controllers
                 ws.Range(item.Details.Count + 6, 1, item.Details.Count + item.Routes.Count + 6, 8)
                     .Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin)
                     .Border.SetInsideBorder(XLBorderStyleValues.Thin);
+
+                int lastRowFirstCellIndex = item.Details.Count + item.Routes.Count + 7;
+
+                var vehicleBankAccount = item.BankAccounts.FirstOrDefault(a => a.BankId.Equals(customer.ActiveBank));
+
+                string txt = "";
+                if (vehicleBankAccount is null)
+                    txt = $"مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال بابت {item.Details.Count} فقره بارنامه کارکرد {calendar.Title} به شماره حساب ......................... به نام اینجانب ......................... واریز و تصویه گردید.";
+                else
+                    txt = $"مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال بابت {item.Details.Count} فقره بارنامه کارکرد {calendar.Title} به شماره حساب {vehicleBankAccount.AccountNumber} به نام اینجانب {vehicleBankAccount.Fullname} واریز و تصویه گردید.";
+
+                ws.Range(lastRowFirstCellIndex + 1, 1, lastRowFirstCellIndex + 1, 8).Merge().SetValue(txt);
+                ws.Cell(lastRowFirstCellIndex + 1, 1).Style.Font.SetFontSize(9).Alignment.SetWrapText(true);
+                ws.Row(lastRowFirstCellIndex + 1).Height = 35;
             }
 
             await using var stream = new MemoryStream();
@@ -3877,7 +3891,7 @@ namespace EtehadBar.MVC.Controllers
             var thisCustomerContractIdList = await db.Contract.AsNoTracking().Where(a => a.CustomerId.Equals(customerId)).Select(a => a.Id).ToListAsync();
             var data = await _loadFactorRepo.LoadFactors().AsNoTracking()
                 .Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Vehicle).Include(a => a.LoadFactorGovRegistor)
-                .Where(a => (!string.IsNullOrWhiteSpace(a.LoadNumberGov) && a.LoadFactorGovAmount.HasValue) 
+                .Where(a => (!string.IsNullOrWhiteSpace(a.LoadNumberGov) && a.LoadFactorGovAmount.HasValue)
                 && a.LoadFactorGovDate.HasValue && a.LoadFactorGovDate.Value >= startD && a.LoadFactorGovDate.Value <= endD && thisCustomerContractIdList.Contains(a.ContractId))
                 .OrderBy(a => a.Date).ToListAsync();
 
@@ -4107,7 +4121,7 @@ namespace EtehadBar.MVC.Controllers
                     ContractId = item.ContractId
                 });
             }
-            var cost = await _costRepo.Costs().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            var cost = await _costRepo.Costs().AsNoTracking().Where(a => a.CalendarId.Equals(calendarId) && !a.Description.Contains("*")).SumAsync(a => a.Amount);
             var otherCosts = await _billRepository.Query().AsNoTracking().Where(a => a.Date >= calendar.StartDate && a.Date <= calendar.EndDate && a.BillType.Equals("جاری")).SumAsync(a => a.Amount);
             cost += otherCosts;
 
