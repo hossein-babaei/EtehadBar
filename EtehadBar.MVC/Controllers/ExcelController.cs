@@ -2660,13 +2660,13 @@ namespace EtehadBar.MVC.Controllers
 
                 string txt = "";
                 if (vehicleBankAccount is null)
-                    txt = $"مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال بابت {item.Details.Count} فقره بارنامه کارکرد {calendar.Title} به شماره حساب ......................... به نام اینجانب ......................... واریز و تصویه گردید.";
+                    txt = $"اینجانب ......................... مالک خودرو {item.VehicleType} به شماره انتظامی {item.VehicleNumber}، مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال بابت کل کارکرد {calendar.Title} در شرکت اتحاد بار آسیا و شرکت های همکار این شرکت که صدور بارنامه های دولتی از سوی آن ها می باشد را به تعداد {item.Details.Count} فقره بارنامه، به شماره حساب ......................... تمام و کمال دریافت نموده و تسویه گردیده است.";
                 else
-                    txt = $"مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال بابت {item.Details.Count} فقره بارنامه کارکرد {calendar.Title} به شماره حساب {vehicleBankAccount.AccountNumber} به نام اینجانب {vehicleBankAccount.Fullname} واریز و تصویه گردید.";
+                    txt = $"اینجانب {vehicleBankAccount.Fullname} مالک خودر {item.VehicleType} به شماره انتظامی {item.VehicleNumber}، مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال بابت کل کارکرد {calendar.Title} در شرکت اتحاد بار آسیا و شرکت های همکار این شرکت که صدور بارنامه های دولتی از سوی آن ها می باشد را به تعداد {item.Details.Count} فقره بارنامه، به شماره حساب {vehicleBankAccount.AccountNumber} تمام و کمال دریافت نموده و تسویه گردیده است.";
 
                 ws.Range(lastRowFirstCellIndex + 1, 1, lastRowFirstCellIndex + 1, 8).Merge().SetValue(txt);
                 ws.Cell(lastRowFirstCellIndex + 1, 1).Style.Font.SetFontSize(9).Alignment.SetWrapText(true);
-                ws.Row(lastRowFirstCellIndex + 1).Height = 35;
+                ws.Row(lastRowFirstCellIndex + 1).Height = 55;
             }
 
             await using var stream = new MemoryStream();

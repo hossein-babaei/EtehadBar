@@ -54,6 +54,14 @@ namespace EtehadBar.Domain.Models
         [StringLength(12, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
         public string Phonenumber { get; set; }
 
+        [Display(Name = "هوشمند خودرو")]
+        [StringLength(10, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string VehicleCardNo { get; set; }
+
+        [Display(Name = "هوشمند راننده")]
+        [StringLength(10, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string DriverCardNo { get; set; }
+
         [Display(Name = "حقیقی")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool RealStatus { get; set; }

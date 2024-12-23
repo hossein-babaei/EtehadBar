@@ -1073,6 +1073,8 @@ namespace EtehadBar.MVC.Controllers
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
                 item.Phonenumber = v.Phonenumber;
+                item.VehicleCardNo = v.VehicleCardNo;
+                item.DriverCardNo = v.DriverCardNo;
 
                 _vehicleRepo.Update(item);
                 try
@@ -2066,7 +2068,7 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Contract"] = contract;
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             return View(await _shippingFeeGroupRepository.Query().Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contract.Id))
-                .OrderBy(a => a.Vehicle).ThenBy(a => a.Title).ThenBy(a => a.Origin).ToListAsync());
+                .OrderBy(a => a.Vehicle).ThenByDescending(a => a.Price).ThenBy(a => a.Origin).ToListAsync());
         }
 
         [HttpGet]
@@ -2078,7 +2080,7 @@ namespace EtehadBar.MVC.Controllers
 
             ViewData["Contract"] = contract;
             return PartialView("_ShippingFeeGroup", await _shippingFeeGroupRepository.Query().Include(a => a.ShippingFeeLoadType).Where(a => a.ContractId.Equals(contract.Id))
-                .OrderBy(a => a.Vehicle).ThenBy(a => a.Title).ThenBy(a => a.Origin).ToListAsync());
+                .OrderBy(a => a.Vehicle).ThenByDescending(a => a.Price).ThenBy(a => a.Origin).ToListAsync());
         }
 
         [HttpGet]
@@ -2118,7 +2120,7 @@ namespace EtehadBar.MVC.Controllers
                 query = query.Where(a => a.Origin.Contains(destination));
 
 
-            return PartialView(await query.OrderBy(a => a.Vehicle).ThenBy(a => a.Title).ThenBy(a => a.Origin).ToListAsync());
+            return PartialView(await query.OrderBy(a => a.Vehicle).ThenByDescending(a => a.Price).ThenBy(a => a.Origin).ToListAsync());
         }
 
         [HttpGet]
