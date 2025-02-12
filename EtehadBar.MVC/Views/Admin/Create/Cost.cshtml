@@ -9,7 +9,7 @@
             <h2 class="uk-modal-title">افزودن هزینه جدید</h2>
         </div>
         <div class="uk-modal-body">
-            <form id="create-form" asp-action="Cost" method="post" enctype="multipart/form-data">
+            <form id="create-form" asp-action="Cost" method="post" enctype="multipart/form-data" autocomplete="off">
                 <input asp-for="UserId" type="hidden" value="@ViewData["UserId"].ToString()" />
                 <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
                 <div class="uk-grid-small uk-child-width-1-1" uk-grid>

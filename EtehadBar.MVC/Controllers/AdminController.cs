@@ -2553,10 +2553,10 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> DoCreateShippingFeeGroupTypeFromNormal(string contractRowId, string newContractRowId)
         {
             var newContract = await _contractRepo.Get(newContractRowId);
-            var contract = await _contractRepo.Contracts().Include(a => a.ShippingFeeGroups).Where(a => a.RowId.Equals(contractRowId)).FirstOrDefaultAsync();
+            var contract = await _contractRepo.Contracts().Include(a => a.ShippingFeeGroups).ThenInclude(a => a.ShippingFeeRoutes).Where(a => a.RowId.Equals(contractRowId)).FirstOrDefaultAsync();
             foreach (var item in contract.ShippingFeeGroups)
             {
-                _shippingFeeGroupRepository.Create(new Domain.Models.ShippingFeeGroup
+                var newShippingFeeGroup = new ShippingFeeGroup
                 {
                     ContractId = newContract.Id,
                     CreateDate = DateTime.Now,
@@ -2569,8 +2569,24 @@ namespace EtehadBar.MVC.Controllers
                     ShippingFeeLoadTypeId = item.ShippingFeeLoadTypeId,
                     Title = item.Title,
                     TonnagePrice = item.TonnagePrice,
-                    Vehicle = item.Vehicle
-                });
+                    Vehicle = item.Vehicle,
+                    ShippingFeeRoutes = new List<ShippingFeeRoute>()
+                };
+
+                if (item.ShippingFeeRoutes.Any())
+                    foreach (var route in item.ShippingFeeRoutes)
+                    {
+                        newShippingFeeGroup.ShippingFeeRoutes.Add(new ShippingFeeRoute
+                        {
+                            CreateDate = DateTime.Now,
+                            CreatorId = newShippingFeeGroup.CreatorId,
+                            Title = route.Title,
+                            DestinationId = route.DestinationId,
+                            OriginId = route.OriginId
+                        });
+                    }
+
+                _shippingFeeGroupRepository.Create(newShippingFeeGroup);
             }
             try
             {
