@@ -1,0 +1,56 @@
+﻿@model UserPlannerItem
+
+@{
+    ViewData["pageId"] = 43;
+    ViewData["Title"] = $"ویرایش {Model.Title}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@section Scripts {
+    <script src="~/lib/ckeditor/ckeditor.js"></script>
+    <script>
+        CKEDITOR.replace('Content', {
+            customConfig: '/lib/ckeditor/Config.js'
+        });
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><a asp-action="UserPlanner" asp-controller="Admin">کارتابل شخصی</a></li>
+            <li><a asp-action="UserPlannerItem" asp-controller="Admin" asp-route-id="@Model.UserPlanner.RowId">محتویات</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+</div>
+<div class="box">
+    <div class="uk-container uk-container-small">
+        <form id="edit-form" asp-action="EditUserPlannerItem" method="post">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="UserPlannerId" type="hidden"/>
+            <div class="uk-grid-small" uk-grid>
+                <div class="uk-width-1-2@m">
+                    <label asp-for="Priority" class="uk-form-label"></label>
+                    <input asp-for="Priority" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Priority" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-2@m">
+                    <label asp-for="Title" class="uk-form-label"></label>
+                    <input asp-for="Title" class="uk-input uk-border-rounded" />
+                    <span asp-validation-for="Title" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-1">
+                    <label asp-for="Content" class="uk-form-label"></label>
+                    <textarea asp-for="Content"></textarea>
+                </div>
+                <div class="uk-width-1-1 uk-text-center">
+                    <button class="uk-button uk-button-primary" type="submit">ثبت اطلاعات</button>
+                    <a asp-action="UserPlanner" class="uk-button uk-button-danger">بازگشت</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

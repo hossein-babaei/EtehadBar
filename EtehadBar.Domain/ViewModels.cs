@@ -1415,4 +1415,77 @@ namespace EtehadBar.Domain
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public string ShippingFeeLoadType { get; set; }
     }
+
+    public class CreateUserPlannerVM
+    {
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+    }
+
+
+    public class EditUserPlannerVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+    }
+
+    public class CreateUserPlannerItemVM
+    {
+        [Display(Name = "اولویت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Priority { get; set; } = 1;
+
+        [Display(Name = "عنوان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(256, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+
+        [Display(Name = "محتوا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Content { get; set; }
+
+        [Required]
+        public long UserPlannerId { get; set; }
+    }
+
+    public class EditUserPlannerItemVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "اولویت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Priority { get; set; } = 1;
+
+        [Display(Name = "عنوان")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(256, MinimumLength = 3, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string Title { get; set; }
+
+        [Display(Name = "محتوا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Content { get; set; }
+
+        [Required]
+        public long UserPlannerId { get; set; }
+    }
 }

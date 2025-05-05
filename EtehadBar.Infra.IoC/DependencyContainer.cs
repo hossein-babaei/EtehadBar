@@ -39,6 +39,8 @@ namespace EtehadBar.Infra.IoC
             services.AddScoped<IBillRepository, BillRepository>();
             services.AddScoped<IVehicleBalanceRepository, VehicleBalanceRepository>();
             services.AddScoped<ICustomerFactorRepository, CustomerFactorRepository>();
+            services.AddScoped<IUserPlannerRepository, UserPlannerRepository>();
+            services.AddScoped<IUserPlannerItemRepository, UserPlannerItemRepository>();
 
             return services;
         }

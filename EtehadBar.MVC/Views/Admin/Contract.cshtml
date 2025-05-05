@@ -155,7 +155,7 @@
                     i++;
                     if (addons.Any())
                     {
-                        i = 1;
+                        int j = 1;
                         <tr class="detail-row" style="display:none">
                             <td colspan="10">
                                 <div class="uk-overflow-auto uk-border-rounded uk-box-shadow-medium">
@@ -186,7 +186,7 @@
                                                 endPersianDate = new PersianDateTime(addon.EndDate);
 
                                                 <tr class="uk-text-center sm">
-                                                    <td>@i</td>
+                                                    <td>@j</td>
                                                     <td>@Html.DisplayFor(modelItem => addon.Number)</td>
                                                     <td>@Html.DisplayFor(modelItem => addon.Customer.Name)</td>
                                                     <td>@Html.DisplayFor(modelItem => addon.Subject)</td>
@@ -198,11 +198,11 @@
                                                     }
                                                     @if (User.IsInRole("Admin"))
                                                     {
-                                                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
-                                                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
+                                                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@addon.Id)"><i class="far fa-edit"></i></a></td>
+                                                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@addon.Id)"><i class="fas fa-trash-alt"></i></a></td>
                                                     }
                                                 </tr>
-                                                i++;
+                                                j++;
                                             }
                                         </tbody>
                                     </table>

@@ -51,6 +51,8 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<ShippingFeeRoute> ShippingFeeRoute { get; set; }
         public DbSet<StaticRouteFee> StaticRouteFee { get; set; }
         public DbSet<UploadedFiles> UploadedFiles { get; set; }
+        public DbSet<UserPlanner> UserPlanner { get; set; }
+        public DbSet<UserPlannerItem> UserPlannerItem { get; set; }
         public DbSet<Turnover> Turnover { get; set; }
         public DbSet<TurnoverProfile> TurnoverProfile { get; set; }
         public DbSet<TurnoverProfilePeriod> TurnoverProfilePeriod { get; set; }
@@ -87,7 +89,8 @@ namespace EtehadBar.Infra.Data.Context
                 new { Id = 1L, Name = "پلاسکو کار سایپا", CustomerType = Domain.CustomerType.SaipaPlasco, LoadFactorDeductions = 5d, HasLoadType = false, HasAddonTonnage = false, HasLoadSleep = false, Status = true, ActiveBank = 43L, RowId = "29f78114-f72a-427a-a3f1-8864e6eeb13c" },
                 new { Id = 2L, Name = "سایپا پرس", CustomerType = Domain.CustomerType.SaipaPress, LoadFactorDeductions = 5d, HasLoadType = true, HasAddonTonnage = true, HasLoadSleep = false, Status = true, ActiveBank = 43L, RowId = "e1cbee6e-f7a1-4a84-a1c5-e740fb84fa7d" },
                 new { Id = 3L, Name = "سازه گستر", CustomerType = Domain.CustomerType.SazehGostar, LoadFactorDeductions = 7.8d, HasLoadType = false, HasAddonTonnage = false, HasLoadSleep = false, Status = true, ActiveBank = 43L, RowId = "df204398-5c7c-4caf-98c0-0c9b9be54a6f" },
-                new { Id = 4L, Name = "مهرکام پارس", CustomerType = Domain.CustomerType.MehrcomPars, LoadFactorDeductions = 5d, HasLoadType = true, HasAddonTonnage = true, HasLoadSleep = true, Status = true, ActiveBank = 45L, RowId = "e70bffab-fa42-4c66-8af8-d7090a6ccbea" });
+                new { Id = 4L, Name = "مهرکام پارس", CustomerType = Domain.CustomerType.MehrcomPars, LoadFactorDeductions = 5d, HasLoadType = true, HasAddonTonnage = true, HasLoadSleep = true, Status = true, ActiveBank = 45L, RowId = "e70bffab-fa42-4c66-8af8-d7090a6ccbea" },
+                new { Id = 5L, Name = "مایان", CustomerType = Domain.CustomerType.Mayan, LoadFactorDeductions = 8d, HasLoadType = true, HasAddonTonnage = false, HasLoadSleep = false, Status = true, ActiveBank = 43L, RowId = "8802c985-c29b-4f52-aef9-38dcd4f82eb7" });
 
             modelBuilder.Entity<ShippingFeeLoadType>().HasData(
                 new ShippingFeeLoadType() { Id = -1L, Name = "کالا", RowId = "e015d881-cf4f-40b2-bf83-0a115bae3179" });

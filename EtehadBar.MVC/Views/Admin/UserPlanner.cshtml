@@ -1,0 +1,190 @@
+﻿@model UserPlanner
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 43;
+    ViewData["Title"] = "کارتابل شخصی";
+    var data = ViewBag.data as IPagedList<UserPlanner>;
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+    if (data.PageNumber > 1)
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+}
+
+@section Scripts {
+    <script>
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("UserPlanner_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+        function create() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("CreateUserPlanner")',
+                data: { },
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#create-modal').html(r);
+                    parseValidator('#create-modal form');
+                    UIkit.modal('#create-modal').show();
+                },
+                error: function (e) {
+                    UIkit.notification(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+        function edit(id) {
+            preloader();
+            $.get('@Url.Action("EditUserPlanner")', { 'id': id }, function (r) {
+                $('#edit-modal').html(r);
+            }, 'html').then(function () {
+                parseValidator('#edit-modal form');
+                preloader();
+                UIkit.modal('#edit-modal').show();
+            });
+        }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <button uk-toggle="#search-modal" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
+    </div>
+</div>
+
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th width="50">محتویات</th>
+                    <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    <tr class="uk-text-center">
+                        <td>@i</td>
+                        <td>@(new PersianDateTime(item.Date).ToLongDateString())</td>
+                        <td><a asp-action="UserPlannerItem" asp-route-id="@item.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-plus-circle"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    i++;
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (data.PageCount > 1)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("UserPlanner", new { p = page }))
+        </div>
+    }
+</div>
+<div id="edit-modal" uk-modal="bg-close: false"></div>
+<div id="create-modal" uk-modal="bg-close: false"></div>
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteUserPlanner" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div class="uk-grid-small" uk-grid>
+                    @{
+                        var now = PersianDateTime.Now;
+                    }
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">روز</label>
+                        <select name="Day" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                            @for (int i = 1; i < 32; i++)
+                            {
+                                <!option value="@i" @if (now.Day == i)
+                                {
+                                    <text> selected="selected" </text>
+                                }>@i</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">ماه</label>
+                        <select name="Month" class="uk-select uk-border-rounded uk-form-small uk-text-right" dir="ltr">
+                            @for (int i = 1; i < 13; i++)
+                            {
+                                <!option value="@i" @if (now.Month == i)
+                                {
+                                    <text> selected="selected" </text>
+                                }>@i</!option>
+                            }
+                        </select>
+                    </div>
+                    <div class="uk-width-1-3@m">
+                        <label class="uk-form-label">سال</label>
+                        <input class="uk-input uk-border-rounded uk-form-small" name="Year" value="@now.Year" dir="ltr" />
+                    </div>
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="UserPlanner" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

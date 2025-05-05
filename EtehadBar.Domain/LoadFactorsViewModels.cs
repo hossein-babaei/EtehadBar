@@ -2,6 +2,84 @@
 
 namespace EtehadBar.Domain
 {
+    public class CMayanLoadFactorVM
+    {
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovDay { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovMonth { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int GovYear { get; set; }
+
+        [Display(Name = "بارنامه اتحاد بار")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string LoadNumber { get; set; }
+
+        [Display(Name = "شماره بارنامه دولتی")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string LoadNumberGov { get; set; }
+
+        [Required]
+        [Display(Name = "نرخ بارنامه")]
+        public long ShippingFeeRouteId { get; set; }
+
+        [Required]
+        [Display(Name = "مشتری")]
+        public long ContractId { get; set; }
+
+        [Required]
+        [Display(Name = "تقویم کاری")]
+        public long CalendarId { get; set; }
+
+        [Display(Name = "راننده")]
+        public long DriverId { get; set; }
+
+        [Display(Name = "خودرو")]
+        public long VehicleId { get; set; }
+
+        [Display(Name = "مبلغ (ریال)")]
+        public double Amount { get; set; }
+
+        [Display(Name = "کرایه راننده (ریال)")]
+        public double DriverFee { get; set; }
+
+        [Display(Name = "صورت وضعیت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long AccountBookId { get; set; }
+
+        [Display(Name = "بارنامه آزاد")]
+        public bool IsFreeDriverPrice { get; set; }
+
+        [Display(Name = "کرایه بارنامه دولتی")]
+        public double? LoadFactorGovAmount { get; set; }
+
+        [Display(Name = "صادر کننده بارنامه")]
+        public long? LoadFactorGovRegistorId { get; set; }
+
+        [Display(Name = "هزینه بارنامه دولتی")]
+        public double? LoadFactorGovCost { get; set; }
+
+        [Display(Name = "مبلغ ترافیک")]
+        public double? TrafficCost { get; set; }
+    }
     public class CSaipaPlascoLoadFactorVM
     {
         //[Display(Name = "ترتیب")]

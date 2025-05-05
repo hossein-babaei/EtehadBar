@@ -13,6 +13,9 @@
     <li @if (param == 1) { <text> class="active" </text> }>
         <a asp-action="Index" asp-controller="Admin"><i class="uk-margin-left fas fa-tachometer-alt"></i>داشبورد</a>
     </li>
+    <li @if (param == 43) { <text> class="active" </text> }>
+        <a asp-action="UserPlanner" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar-plus"></i>کارتابل شخصی</a>
+    </li>
     @if (User.IsInRole("Admin"))
     {
         <li @if (param == 20) { <text> class="active" </text> }>
@@ -22,7 +25,7 @@
             <a asp-action="Customer" asp-controller="Admin"><i class="uk-margin-left fas fa-user"></i>مشتریان خدمات</a>
         </li>
         <li @if (param == 3) { <text> class="active" </text> }>
-            <a asp-action="Calendar" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar"></i>تقویم کاری</a>
+            <a asp-action="Calendar" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar-alt"></i>تقویم کاری</a>
         </li>
     }
     @if(User.IsInRole("Admin") || User.IsInRole("Milad"))

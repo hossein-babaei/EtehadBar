@@ -37,7 +37,7 @@
                     <select asp-for="ContractId" onchange="getShippingFees(this)" class="uk-select uk-border-rounded">
                         @foreach (var item in contract)
                         {
-                            <option value="@item.Id">@item.Subject - @item.Number</option>
+                            <option value="@item.Id">@item.Subject - @item.Number (@(new PersianDateTime(item.StartDate).ToString("yyyy/MM/dd")) الی @(new PersianDateTime(item.EndDate).ToString("yyyy/MM/dd")))</option>
                         }
                     </select>
                     <span asp-validation-for="ContractId" class="uk-text-danger"></span>

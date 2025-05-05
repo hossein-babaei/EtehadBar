@@ -65,7 +65,7 @@
             var form = $('#change-modal form');
 
             preloader();
-            $.post('@Url.Action("ChangeShippingFee")', form.serialize(), function (r) {
+            $.post('@Url.Action("ChangeShippingFeeGroup")', form.serialize(), function (r) {
                 uiAlert(r.msg, r.status);
                 if (r.status == 'success') {
                     setTimeout(function () {
@@ -555,6 +555,16 @@
                 <li>تا پایان عملیات مرورگر خود را نبندید و از تازه سازی (رفرش) صفحه خودداری نمائید.</li>
                 <li>این عملیات ممکن است بر اساس تعداد نرخ ها و بارنامه هایی را که شامل می شود، طولانی و زمان بر باشد. لطفا از داشتن اتصال اینترنت مناسب و مطمئن اطمینان حاصل نمائید.</li>
             </ul>
+
+            <label class="uk-form-label">نحوه محاسبه اعشار</label>
+            <select id="rounding" name="rounding" class="uk-select uk-border-rounded uk-form-small">
+                <option value="auto" selected="selected">خودکار</option>
+                <option value="floor">کف</option>
+                <option value="ceil">سقف</option>
+            </select>
+            <br />
+            <hr />
+
             <label class="uk-form-label">تغییر نرخ بارنامه های مرتبط از تاریخ</label>
             <input id="amountDate" name="amountDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
             <br />

@@ -30,7 +30,8 @@
         SaipaPlasco,
         SaipaPress,
         SazehGostar,
-        MehrcomPars
+        MehrcomPars,
+        Mayan
     }
 
     public enum ShippingFeeType

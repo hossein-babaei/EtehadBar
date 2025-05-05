@@ -1,4 +1,5 @@
-﻿using EtehadBar.Domain;
+﻿using DocumentFormat.OpenXml.Wordprocessing;
+using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
@@ -59,6 +60,8 @@ namespace EtehadBar.MVC.Controllers
         private readonly ITurnoverProfilePeriodRepository _turnoverProfilePeriodRepository;
         private readonly IShippingFeeGroupRepository _shippingFeeGroupRepository;
         private readonly IShippingFeeRouteRepository _shippingFeeRouteRepository;
+        private readonly IUserPlannerRepository _userPlannerRepository;
+        private readonly IUserPlannerItemRepository _userPlannerItemRepository;
         private readonly ApplicationDbContext _context;
 
         public AdminController(
@@ -95,7 +98,9 @@ namespace EtehadBar.MVC.Controllers
             ApplicationDbContext context,
             ITurnoverProfilePeriodRepository turnoverProfilePeriodRepository,
             IShippingFeeGroupRepository shippingFeeGroupRepository,
-            IShippingFeeRouteRepository shippingFeeRouteRepository)
+            IShippingFeeRouteRepository shippingFeeRouteRepository,
+            IUserPlannerRepository userPlannerRepository,
+            IUserPlannerItemRepository userPlannerItemRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -131,6 +136,8 @@ namespace EtehadBar.MVC.Controllers
             _turnoverProfilePeriodRepository = turnoverProfilePeriodRepository;
             _shippingFeeGroupRepository = shippingFeeGroupRepository;
             _shippingFeeRouteRepository = shippingFeeRouteRepository;
+            _userPlannerRepository = userPlannerRepository;
+            _userPlannerItemRepository = userPlannerItemRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -1916,7 +1923,7 @@ namespace EtehadBar.MVC.Controllers
                     //    return RedirectToAction("ShippingFee", new { contractId = parentRowId });
                     //}
 
-                    return RedirectToAction("ShippingFee", new { contractId = contract.RowId });
+                    return RedirectToAction("ShippingFeeGroup", new { contractId = contract.RowId });
                 }
                 catch (Exception e)
                 {
@@ -2303,7 +2310,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ChangeShippingFeeGroup(int contractId,
+        public async Task<IActionResult> ChangeShippingFeeGroup(long contractId, string rounding,
             string amountDate, double amount, string type,
             string driverAmountDate, double driverAmount, string driverType,
             string tonnageAmountDate, double tonnageAmount, string tonnageType,
@@ -2344,7 +2351,7 @@ namespace EtehadBar.MVC.Controllers
 
             //var exludedRoutes = new List<long> { 44, 45, 47, 30301 };
             //var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId) /*&& !exludedRoutes.Contains(a.OriginId) && !exludedRoutes.Contains(a.DestinationId)*/).ToListAsync();
-            var feeList = await _shippingFeeGroupRepository.Query().Where(a => a.ContractId.Equals(contractId)).ToListAsync();
+            var feeList = await _shippingFeeGroupRepository.Query().Where(a => a.ContractId.Equals(contractId) && a.Price > 10).ToListAsync();
             var loadFactors = await _loadFactorRepo.GetLoadFactorsByContractId(contractId, latestContractAddon.StartDate);
             var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(b => b.Id).ToList().Contains(a.LoadFactorId.Value)).ToListAsync();
 
@@ -2355,6 +2362,12 @@ namespace EtehadBar.MVC.Controllers
                     if (type.Equals("percent"))
                     {
                         var a = fee.Price * amount / 100;
+
+                        if (rounding == "floor")
+                            a = Math.Floor(a);
+                        else if (rounding == "ceil")
+                            a = Math.Ceiling(a);
+
                         fee.Price += a;
                     }
                     else fee.Price += amount;
@@ -2365,6 +2378,12 @@ namespace EtehadBar.MVC.Controllers
                     if (driverType.Equals("percent"))
                     {
                         var a = fee.DriverPrice * driverAmount / 100;
+
+                        if (rounding == "floor")
+                            a = Math.Floor(a);
+                        else if (rounding == "ceil")
+                            a = Math.Ceiling(a);
+
                         fee.DriverPrice += a;
                     }
                     else fee.DriverPrice += driverAmount;
@@ -2375,6 +2394,12 @@ namespace EtehadBar.MVC.Controllers
                     if (tonnageType.Equals("percent"))
                     {
                         var a = fee.TonnagePrice.Value * tonnageAmount / 100;
+
+                        if (rounding == "floor")
+                            a = Math.Floor(a);
+                        else if (rounding == "ceil")
+                            a = Math.Ceiling(a);
+
                         fee.TonnagePrice = fee.TonnagePrice.Value + a;
                     }
                     else fee.TonnagePrice = fee.TonnagePrice.Value + tonnageAmount;
@@ -2385,6 +2410,12 @@ namespace EtehadBar.MVC.Controllers
                     if (driverTonnageType.Equals("percent"))
                     {
                         var a = fee.DriverTonnagePrice.Value * tonnageDriverAmount / 100;
+
+                        if (rounding == "floor")
+                            a = Math.Floor(a);
+                        else if (rounding == "ceil")
+                            a = Math.Ceiling(a);
+
                         fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + a;
                     }
                     else fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + tonnageDriverAmount;
@@ -2398,11 +2429,9 @@ namespace EtehadBar.MVC.Controllers
                         bool isEdited = false;
 
                         if (loadFactor.Date >= amountDatetime /*&& loadFactor.CalendarId >= 5*/)
-                        {
                             loadFactor.Amount = fee.Price;
-                        }
 
-                        if (loadFactor.Date >= driverAmountDatetime && !loadFactor.IsFreeDriverPrice)
+                        if (loadFactor.Date >= driverAmountDatetime && !(loadFactor.IsFreeDriverPrice || loadFactor.IsDriverFeeEditedByAdmin))
                         {
                             isEdited = true;
                             loadFactor.DriverFee = fee.DriverPrice;
@@ -2416,7 +2445,7 @@ namespace EtehadBar.MVC.Controllers
                             loadFactor.TonnagePrice = fee.TonnagePrice;
                         }
 
-                        if (loadFactor.Date >= tonnageDriverAmountDatetime && loadFactor.DriverTonnagePrice.HasValue && !loadFactor.IsFreeDriverPrice)
+                        if (loadFactor.Date >= tonnageDriverAmountDatetime && loadFactor.DriverTonnagePrice.HasValue && !(loadFactor.IsFreeDriverPrice || loadFactor.IsDriverFeeEditedByAdmin))
                         {
                             isEdited = true;
                             loadFactor.DriverTonnagePrice = fee.DriverTonnagePrice;
@@ -3644,6 +3673,8 @@ namespace EtehadBar.MVC.Controllers
                 case (byte)CustomerType.MehrcomPars:
                     ViewData["Categories"] = await _mehrcomParsCategoryRepository.Categories().AsNoTracking().OrderBy(a => a.Title).ToListAsync();
                     return PartialView("~/Views/Admin/Create/LoadFactor/MehrcomPars.cshtml");
+                case (byte)CustomerType.Mayan:
+                    return PartialView("~/Views/Admin/Create/LoadFactor/Mayan.cshtml");
                 default:
                     return NoContent();
             }
@@ -4833,6 +4864,12 @@ namespace EtehadBar.MVC.Controllers
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (item.AccountBookId != input.AccountBookId && await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
                     return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
+
+                if (item.ContractId != input.ContractId)
+                {
+                    item.ContractId = input.ContractId;
+                    item.Contract = await _contractRepo.Get(input.ContractId); 
+                }
 
                 var oldAccountBookId = item.AccountBookId;
 
@@ -7332,10 +7369,10 @@ namespace EtehadBar.MVC.Controllers
             if (calendarId > 0)
             {
                 var queryCount = await query.CountAsync();
-                ViewBag.data = await query.OrderBy(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, queryCount == 0 ? 1 : queryCount);
+                ViewBag.data = await query.OrderBy(a => a.Date).ThenByDescending(a => a.BillNo).ThenByDescending(a => a.Id).ToPagedListAsync(pageNumber, queryCount == 0 ? 1 : queryCount);
             }
             else
-                ViewBag.data = await query.OrderByDescending(a => a.Date).ThenByDescending(a => a.BillNo).ToPagedListAsync(pageNumber, 100);
+                ViewBag.data = await query.OrderByDescending(a => a.Date).ThenByDescending(a => a.BillNo).ThenByDescending(a => a.Id).ToPagedListAsync(pageNumber, 100);
 
             ViewBag.Name = name;
             ViewBag.BillType = billType;
@@ -7348,6 +7385,12 @@ namespace EtehadBar.MVC.Controllers
             return PartialView();
         }
 
+        //[Authorize(Roles = "Admin")]
+        //public async Task<IActionResult> Bill_Print()
+        //{
+
+        //}
+        
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetBillReceiverNames()
         {
@@ -7675,6 +7718,248 @@ namespace EtehadBar.MVC.Controllers
             return View(await query.OrderBy(a => a.CreateDateTime).ToListAsync());
         }
 
+        #endregion
+
+        #region UserPlanner
+        [HttpGet]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> UserPlanner(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _userPlannerRepository.Query().Where(a => a.UserId.Equals(_userManager.GetUserId(User))).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> UserPlanner_Search(int Year, int Month, int Day)
+        {
+            var date = new PersianDateTime(Year, Month, Day).ToDateTime();
+            return PartialView(await _userPlannerRepository.Query().Where(a => a.Date.Equals(date) && a.UserId.Equals(_userManager.GetUserId(User))).FirstOrDefaultAsync());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public PartialViewResult CreateUserPlanner()
+        {
+            ViewData["UserId"] = _userManager.GetUserId(User);
+            return PartialView("~/Views/Admin/Create/UserPlanner.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> CreateUserPlanner(CreateUserPlannerVM v)
+        {
+            if (ModelState.IsValid)
+            {
+                var date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
+                string userId = _userManager.GetUserId(User);
+
+                if (await _userPlannerRepository.Query().AnyAsync(a => a.Date.Equals(date) && a.UserId.Equals(userId)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. رکورد تکراری درج کرده اید. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                _userPlannerRepository.Create(new UserPlanner
+                {
+                     Date = date,
+                     UserId = userId
+                });
+                try
+                {
+                    await _userPlannerRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<PartialViewResult> EditUserPlanner(int id)
+        {
+            return PartialView("~/Views/Admin/Edit/UserPlanner.cshtml", await _userPlannerRepository.GetUserPlannerEditData(id));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> EditUserPlanner(EditUserPlannerVM v)
+        {
+            if (ModelState.IsValid)
+            {
+                var item = await _userPlannerRepository.Get(v.Id);
+
+                var date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
+                item.Date = date;
+
+                _userPlannerRepository.Update(item);
+                try
+                {
+                    await _userPlannerRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> DeleteUserPlanner(long id)
+        {
+            var item = await _userPlannerRepository.Query().Include(a => a.UserPlannerItems).FirstOrDefaultAsync(a => a.Id.Equals(a.Id));
+            _userPlannerRepository.Delete(item);
+            try
+            {
+                await _userPlannerItemRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region UserPlannerItem
+        [HttpGet]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> UserPlannerItem(string id)
+        {
+            ViewData["UserPlannerRowId"] = id;
+            var userPlannerId = await _userPlannerRepository.Query().AsNoTracking().Where(a => a.RowId.Equals(id)).Select(a => a.Id).FirstOrDefaultAsync();
+            return View(await _userPlannerItemRepository.Query().Where(a => a.UserPlannerId.Equals(userPlannerId)).OrderBy(a => a.Priority).ToListAsync());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> GetUserPlannerItemDetail(long id)
+        {
+            return Json(new { Content = await _userPlannerItemRepository.Query().Where(a => a.Id.Equals(id)).Select(a => a.Content).FirstOrDefaultAsync() });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> CreateUserPlannerItem(string id)
+        {
+            ViewData["UserPlanner"] = await _userPlannerRepository.Query().AsNoTracking().FirstOrDefaultAsync(a => a.RowId.Equals(id));
+            return View("~/Views/Admin/Create/UserPlannerItem.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> CreateUserPlannerItem([Bind("Priority", "Title", "Content", "UserPlannerId")] UserPlannerItem v)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _userPlannerItemRepository.Query().AnyAsync(a => a.UserPlannerId.Equals(v.UserPlannerId) && a.Priority.Equals(v.Priority)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. لطفا اولویت تکراری ارسال نکنید. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                _userPlannerItemRepository.Create(v);
+                try
+                {
+                    await _userPlannerItemRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                    return RedirectToAction(nameof(UserPlannerItem), 
+                        new { id = await _userPlannerRepository.Query().Where(a => a.Id.Equals(v.UserPlannerId)).Select(a => a.RowId).FirstAsync() }
+                        );
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> EditUserPlannerItem(long id)
+        {
+            return View("~/Views/Admin/Edit/UserPlannerItem.cshtml", await _userPlannerItemRepository.Query().Include(a => a.UserPlanner).FirstOrDefaultAsync(a => a.Id.Equals(id)));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> EditUserPlannerItem(UserPlannerItem v)
+        {
+            if (ModelState.IsValid)
+            {
+                if (await _userPlannerItemRepository.Query().AnyAsync(a => !a.Id.Equals(v.Id) && a.UserPlannerId.Equals(v.UserPlannerId) && a.Priority.Equals(v.Priority)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. لطفا اولویت تکراری ارسال نکنید. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = await _userPlannerItemRepository.Get(v.Id);
+
+                item.Priority = v.Priority;
+                item.Title = v.Title;
+                item.Content = v.Content;
+
+                _userPlannerItemRepository.Update(item);
+                try
+                {
+                    await _userPlannerItemRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success"; 
+                    return RedirectToAction(nameof(UserPlannerItem),
+                        new { id = await _userPlannerRepository.Query().Where(a => a.Id.Equals(v.UserPlannerId)).Select(a => a.RowId).FirstAsync() }
+                        );
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
+            }
+            else
+            {
+                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, User, Milad")]
+        public async Task<IActionResult> DeleteUserPlannerItem(long id)
+        {
+            var item = await _userPlannerItemRepository.Get(id);
+            _userPlannerItemRepository.Delete(item);
+            try
+            {
+                await _userPlannerItemRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
         #endregion
     }
 }

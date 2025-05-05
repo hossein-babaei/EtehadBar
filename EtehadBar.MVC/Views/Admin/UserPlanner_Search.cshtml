@@ -1,0 +1,24 @@
+﻿@model UserPlanner
+
+<div class="uk-overflow-auto">
+    <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+        <thead>
+            <tr>
+                <th>ردیف</th>
+                <th>@Html.DisplayNameFor(model => model.Date)</th>
+                <th width="50">محتویات</th>
+                <th width="50">ویرایش</th>
+                <th width="50">حذف</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="uk-text-center">
+                <td>1</td>
+                <td>@(new PersianDateTime(Model.Date).ToLongDateString())</td>
+                <td><a asp-action="UserPlannerItem" asp-route-id="@Model.RowId" class="uk-button uk-button-primary uk-button-small"><i class="fas fa-plus-circle"></i></a></td>
+                <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@Model.Id)"><i class="far fa-edit"></i></a></td>
+                <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@Model.Id)"><i class="fas fa-trash-alt"></i></a></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
