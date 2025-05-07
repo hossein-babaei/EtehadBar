@@ -1,6 +1,6 @@
 ﻿@model CustomerFactor
 @{
-    var contracts = (List<Contract>)ViewData["Contracts"];
+    var customers = (List<Customer>)ViewData["Customers"];
     var calendars = (List<Calendar>)ViewData["Calendars"];
 }
 
@@ -40,14 +40,14 @@
                     <input class="uk-input uk-border-rounded" name="year" value="@pd.Year" dir="ltr" />
                 </div>
                 <div>
-                    <label asp-for="ContractId" class="uk-form-label"></label>
-                    <select asp-for="ContractId" class="uk-select uk-border-rounded">
-                        @foreach (var contract in contracts)
+                    <label asp-for="CustomerId" class="uk-form-label"></label>
+                    <select asp-for="CustomerId" class="uk-select uk-border-rounded">
+                        @foreach (var customer in customers)
                         {
-                            <!option @if(Model.ContractId.Equals(contract.Id)){<text>selected="selected"</text>} value="@contract.Id">@contract.Number (@contract.Customer.Name)</!option>
+                            <!option @if(Model.CustomerId.Equals(customer.Id)){<text>selected="selected"</text>} value="@customer.Id">@customer.Name</!option>
                         }
                     </select>
-                    <span asp-validation-for="ContractId" class="uk-text-danger"></span>
+                    <span asp-validation-for="CustomerId" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="CalendarId" class="uk-form-label"></label>

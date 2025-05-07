@@ -14,10 +14,19 @@
 
 @section Scripts {
     <script>
+        let isSearchLoaded = false;
+        let select2Config = {
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        };
+
         function create() {
             preloader();
             $.get('@Url.Action("CreateCustomerFactor")', {}, function (r) {
                 $('#create-modal').html(r);
+
+                $('#create-modal #CalendarId').select2(select2Config);
+                $('#create-modal #CustomerId').select2(select2Config);
             }, 'html').then(function () {
                 parseValidator('#create-form');
                 preloader();
@@ -56,6 +65,9 @@
             preloader();
             $.get('@Url.Action("EditCustomerFactor")', { 'id': id }, function (r) {
                 $('#edit-modal').html(r);
+
+                $('#edit-modal #CalendarId').select2(select2Config);
+                $('#edit-modal #CustomerId').select2(select2Config);
             }, 'html').then(function () {
                 parseValidator('#edit-form');
                 preloader();
@@ -65,6 +77,63 @@
         function remove(id) {
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();
+        }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CustomerFactor_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+        function getSearch() {
+            if (!isSearchLoaded) {
+            preloader();
+            $.get('@Url.Action("GetCustomerSearchModalData")', {}, function (r) {
+                let calendarOptions = '<option value="0">همه</option>',
+                    customerOptions = '<option value="0">همه</option>';
+
+                    $.each(r.customers, (i, v) => {
+                        customerOptions += `<option value="${v.id}">${v.name}</option>`;
+                    });
+                    $.each(r.calendars, (i, v) => {
+                        calendarOptions += `<option value="${v.id}">${v.title}</option>`;
+                    });
+
+                    $('#search-modal #customerId').html(customerOptions);
+                    $('#search-modal #calendarId').html(calendarOptions);
+
+                    $('#search-modal #customerId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+                    $('#search-modal #calendarId').select2({
+                        width: '100%',
+                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                    });
+
+            }, 'json').then(function () {
+                preloader();
+                isSearchLoaded = true;
+                UIkit.modal('#search-modal').show();
+            });
+            } else {
+                UIkit.modal('#search-modal').show();
+            }
         }
     </script>
 }
@@ -88,7 +157,7 @@
                 <tr>
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.FactorNumber)</th>
-                    <th>@Html.DisplayNameFor(model => model.ContractId)</th>
+                    <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
@@ -103,7 +172,7 @@
                     <tr class="uk-text-center sm">
                         <td>@i</td>
                         <td>@item.FactorNumber</td>
-                        <td>@item.Contract.Number - @item.Contract.Customer.Name</td>
+                        <td>@item.Customer.Name</td>
                         <td>@item.Calendar.Title</td>
                         <td>@pd.ToString("yyyy/MM/dd")</td>
                         <td>@item.Amount.ToString("N0")</td>
@@ -135,5 +204,33 @@
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
             </div>
         </form>
+    </div>
+</div>
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label class="uk-form-label">بر اساس مشتری</label>
+                        <select class="uk-select uk-border-rounded" id="customerId" name="customerId"></select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">بر اساس تقویم کاری</label>
+                        <select class="uk-select uk-border-rounded" id="calendarId" name="calendarId"></select>
+                    </div>
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="CustomerFactor" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
     </div>
 </div>

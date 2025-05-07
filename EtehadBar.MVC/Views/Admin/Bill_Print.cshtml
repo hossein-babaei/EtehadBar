@@ -1,0 +1,108 @@
+﻿@model Bill
+@using Helpers
+
+@{
+    Layout = null;
+    ViewData["Title"] = $"پرینت قبض شماره {Model.BillNo}";
+    PersianNumberToString pnts = new PersianNumberToString();
+    var vehicle = Model.Vehicle;
+}
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="language" content="FA-IR">
+    <title>@ViewData["Title"] | اتحاد بار آسیا</title>
+    <link href="~/css/bill-print.css" rel="stylesheet" asp-append-version="true" />
+</head>
+<body class="A4">
+    <div class="container sheet padding-10mm">
+
+        <article class="box">
+            <div>
+                <span style="position:absolute; left: 15px">@Model.BillNo</span>
+                <h2 class="text-center">شرکت حمل و نقل اتحاد بار آسیا</h2>
+                <h4>
+                    <span class="width-1-2">رسید پرداخت وجه بین بانکی</span>
+                    <span class="width-1-2 text-left">تاریخ: @(new PersianDateTime(Model.Date).ToShortDateString())</span>
+                </h4>
+                <hr style="margin-top: 60px; margin-bottom: 20px" />
+                <div class="content">
+                    <div id="price">
+                        <span class="mablagh">مبلغ</span>
+                        <div>
+                            <div class="adad">
+                                <span>عدد: </span>
+                                <span style="margin-right: 15px">@Model.Amount.ToString("N0")</span>
+                                <span class="rial">ریال</span>
+                            </div>
+                            <div class="horof">
+                                <span>حروف: </span>
+                                <span style="margin-right: 15px; font-size: 12px">@pnts.GetPersianNumberToString(Model.Amount.ToString())</span>
+                                <span class="rial">ریال</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; float:right; width: 100%;">
+                        <p style="line-height: 35px">
+                            @if (Model.BillType.Equals("تن خواه"))
+                            {
+                                <span>
+                                    مبلغ فوق بابت هزینه های جاری از حساب <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب کارت تن خواه دار واریز گردید.
+                                </span>
+                            }
+                            else if (Model.BillType.Equals("حقوق پرسنل"))
+                            {
+                                <span>
+                                    مبلغ فوق بابت حقوق پرسنل از حساب <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب اشخاص لیست پیوست واریز گردید.
+                                </span>
+                            }
+                            else if (Model.BillType.Contains("واریز شرکا"))
+                            {
+                                <span>
+                                    مبلغ فوق به حساب <b class="underline">@Model.ReceiverName</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> بانک <b class="underline">@Model.BankBranch</b> توسط شرکا واریز شد.
+                                </span>
+                            }
+                            else if (Model.BillType.Equals("مدیریت نقدینگی"))
+                            {
+                                <span>
+                                    مبلغ فوق بابت مدیریت نقدینگی از حساب <b class="underline">@Model.BankBranch</b> به حساب <b class="underline">@Model.ReceiverName</b> منتقل گردید.
+                                </span>
+                            }
+                            else if (Model.BillType.Contains("برداشت شرکا"))
+                            {
+                                <span>
+                                    مبلغ فوق از <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب <b class="underline">@Model.ReceiverName</b> (شرکا) واریز شد.
+                                </span>
+                            }
+                            else if (Model.BillType.Contains("بیمه") || Model.BillType.Contains("دارایی") || Model.BillType.Contains("مالیات"))
+                            {
+                                <span>
+                                    مبلغ فوق بابت واریز بیمه/مالیات از حساب <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> منتقل گردید.
+                                </span>
+                            }
+                            else if (Model.BillType.Contains("گروهی"))
+                            {
+                                <span>
+                                    مبلغ فوق بابت واریز گروهی از حساب <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب رانندگان لیست پیوست واریز گردید.
+                                </span>
+                                <br />
+                                <a asp-controller="Excel" asp-action="BillList" asp-route-id="@Model.RowId" target="_blank">دانلود لیست</a>
+                            }
+                            else
+                            {
+                                <span>
+                                    مبلغ فوق بابت کارکرد <b class="underline">@Model.Calendar.Title</b> شرکت <b class="underline">@Model.Customer.Name</b> به حساب آقا/خانم <b class="underline">@Model.ReceiverName</b> توسط فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> بانک <b class="underline">@Model.BankBranch</b>
+                                    جهت مطالبات قانونی خویش برای خودرو به شماره <b class="underline">ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber</b> دریافت گردید.
+                                </span>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </article>
+
+    </div>
+</body>
+</html>

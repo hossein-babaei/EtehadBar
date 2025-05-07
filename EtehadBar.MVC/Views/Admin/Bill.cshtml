@@ -42,7 +42,7 @@
                 preloader();
                 $.get('@Url.Action("Bill_Search")', {}, function (r) {
                     let vehicleOptions = '<option value="0">همه</option>',
-                        customerOptions = '<option value="0">همه</option>'
+                        customerOptions = '<option value="0">همه</option>',
                         nameOptions = '<option value="all">همه</option>',
                         calendarOptions = '<option value="0">همه</option>',
                         bankBranchOptions = '<option value="all">همه</option>',
@@ -307,6 +307,7 @@
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th width="50">قبض</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -335,6 +336,7 @@
                         <td>@item.Calendar.Title</td>
                         <td>@(item.CustomerId.HasValue ? item.Customer.Name : "---")</td>
                         <td class="uk-text-small">@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Bill_Print" asp-route-id="@item.RowId" target="_blank"><i class="fas fa-print"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

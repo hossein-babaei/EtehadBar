@@ -5910,7 +5910,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CustomerFactor(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await _customerFactorRepository.Query().Include(a => a.Calendar).Include(a => a.Contract).ThenInclude(a => a.Customer).OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await _customerFactorRepository.Query().Include(a => a.Calendar).Include(a => a.Customer).OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNumber, 20);
             return View();
         }
 
@@ -5918,30 +5918,44 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> CustomerFactorPartial(int? p)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await _customerFactorRepository.Query().Include(a => a.Calendar).Include(a => a.Contract).ThenInclude(a => a.Customer).OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNumber, 20);
+            ViewBag.data = await _customerFactorRepository.Query().Include(a => a.Calendar).Include(a => a.Customer).OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNumber, 20);
             return PartialView("_CustomerFactor");
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> SearchCustomerFactor(int? p, string param)
-        //{
-        //    var pageNum = p ?? 1;
-        //    var query = _customerFactorRepository.AccountBooks().Where(a => a.Number.Contains(param) || a.FactorNumber.Contains(param));
-        //    if (!User.IsInRole("Admin") && !User.IsInRole("Milad"))
-        //        query = query.Where(a => a.CreatorId.Equals(_userManager.GetUserId(User)));
+        [HttpGet]
+        public async Task<IActionResult> GetCustomerSearchModalData()
+        {
+            var customers = await _customerRepo.GetAll();
+            var calendars = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.Sequence).ToListAsync();
 
-        //    var onePageOfData = await query.OrderByDescending(a => a.Number).ToPagedListAsync(pageNum, 15);
-        //    ViewBag.data = onePageOfData;
-        //    ViewBag.param = param;
+            return Json(new { customers, calendars });
+        }
 
-        //    return PartialView("_CustomerFactor");
-        //}
+        [HttpPost]
+        public async Task<IActionResult> CustomerFactor_Search(int? p, long customerId, long calendarId)
+        {
+            var pageNum = p ?? 1;
+            var query = _customerFactorRepository.Query().Include(a => a.Calendar).Include(a => a.Customer).AsNoTracking();
+
+            if (customerId > 0)
+                query = query.Where(a => a.CustomerId.Equals(customerId));
+
+            if (calendarId > 0)
+                query = query.Where(a => a.CalendarId.Equals(calendarId));
+
+            var onePageOfData = await query.OrderByDescending(a => a.FactorNumber).ToPagedListAsync(pageNum, 15);
+            ViewBag.data = onePageOfData;
+            ViewBag.customerId = customerId;
+            ViewBag.calendarId = calendarId;
+
+            return PartialView("_CustomerFactor");
+        }
 
         [HttpGet]
         public async Task<IActionResult> CreateCustomerFactor()
         {
             ViewData["Calendars"] = await _calendarRepo.Calendars().OrderByDescending(a => a.StartDate).ToListAsync();
-            ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["Customers"] = await _customerRepo.GetAll();
             return PartialView("~/Views/Admin/Create/CustomerFactor.cshtml");
         }
 
@@ -5960,7 +5974,7 @@ namespace EtehadBar.MVC.Controllers
 
                 c.Date = new PersianDateTime(year, month, day).ToDateTime();
                 c.CreatorId = _userManager.GetUserId(User);
-                c.CustomerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(c.ContractId)).Select(a => a.CustomerId).FirstAsync();
+                //c.CustomerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(c.ContractId)).Select(a => a.CustomerId).FirstAsync();
                 _customerFactorRepository.Create(c);
                 try
                 {
@@ -5986,7 +6000,7 @@ namespace EtehadBar.MVC.Controllers
             var item = await _customerFactorRepository.Get(id);
 
             ViewData["Calendars"] = await _calendarRepo.Calendars().OrderByDescending(a => a.StartDate).ToListAsync();
-            ViewData["Contracts"] = await _contractRepo.Contracts().Include(a => a.Customer).OrderByDescending(a => a.StartDate).ToListAsync();
+            ViewData["Customers"] = await _customerRepo.GetAll();
 
             return PartialView("~/Views/Admin/Edit/CustomerFactor.cshtml", item);
         }
@@ -6007,9 +6021,9 @@ namespace EtehadBar.MVC.Controllers
                 item.Amount = c.Amount;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDatetime = DateTime.Now;
-                item.ContractId = c.ContractId;
                 item.CalendarId = c.CalendarId;
-                item.CustomerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(c.ContractId)).Select(a => a.CustomerId).FirstAsync();
+                item.CustomerId = c.CustomerId;
+                //item.CustomerId = await _contractRepo.Contracts().AsNoTracking().Where(a => a.Id.Equals(c.ContractId)).Select(a => a.CustomerId).FirstAsync();
                 item.Date = new PersianDateTime(year, month, day).ToDateTime();
 
                 _customerFactorRepository.Update(item);
@@ -7385,11 +7399,18 @@ namespace EtehadBar.MVC.Controllers
             return PartialView();
         }
 
-        //[Authorize(Roles = "Admin")]
-        //public async Task<IActionResult> Bill_Print()
-        //{
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Bill_Print(string id)
+        {
+            var item = await _billRepository.Query().AsNoTracking().Include(a => a.Vehicle).Include(a => a.Calendar).Include(a => a.Customer).FirstOrDefaultAsync(a => a.RowId.Equals(id));
+            if (item.BillType.Contains("گروهی"))
+            {
+                var amountSum = await _billRepository.Query().AsNoTracking().Where(a => a.BillNo.Equals(item.BillNo)).SumAsync(a => a.Amount);
+                item.Amount = amountSum;
+            }
 
-        //}
+            return View(item);
+        }
         
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetBillReceiverNames()

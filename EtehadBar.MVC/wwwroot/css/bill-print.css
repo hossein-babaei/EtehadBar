@@ -1,0 +1,241 @@
+﻿/**
+    Developed by HO3EiN Babaei
+    https://parsmvc.ir
+    https://github.com/cognitom/paper-css
+*/
+@import url(font.min.css);
+
+@page {
+    margin: 0;
+    size: A4;
+}
+
+body {
+    margin: 0
+}
+
+.sheet {
+    margin: 0;
+    overflow: hidden;
+    position: relative;
+    box-sizing: border-box;
+    page-break-after: always;
+}
+
+/** Paper sizes **/
+body.A3 .sheet {
+    width: 297mm;
+    height: 419mm
+}
+
+body.A3.landscape .sheet {
+    width: 420mm;
+    height: 296mm
+}
+
+body.A4 .sheet {
+    width: 210mm;
+    height: 296mm
+}
+
+body.A4.landscape .sheet {
+    width: 297mm;
+    height: 209mm
+}
+
+body.A5 .sheet {
+    width: 148mm;
+    height: 209mm
+}
+
+body.A5.landscape .sheet {
+    width: 210mm;
+    height: 147mm
+}
+
+body.letter .sheet {
+    width: 216mm;
+    height: 279mm
+}
+
+body.letter.landscape .sheet {
+    width: 280mm;
+    height: 215mm
+}
+
+body.legal .sheet {
+    width: 216mm;
+    height: 356mm
+}
+
+body.legal.landscape .sheet {
+    width: 357mm;
+    height: 215mm
+}
+
+/** Padding area **/
+.sheet.padding-10mm {
+    padding: 10mm
+}
+
+.sheet.padding-15mm {
+    padding: 15mm
+}
+
+.sheet.padding-20mm {
+    padding: 20mm
+}
+
+.sheet.padding-25mm {
+    padding: 25mm
+}
+
+/** For screen preview **/
+@media screen {
+    body {
+        background: #e0e0e0
+    }
+
+    .sheet {
+        background: white;
+        box-shadow: 0 .5mm 2mm rgba(0,0,0,.3);
+        margin: 5mm auto;
+    }
+}
+
+/** Fix for Chrome issue #273306 **/
+@media print {
+    body.A3.landscape {
+        width: 420mm
+    }
+
+    body.A3, body.A4.landscape {
+        width: 297mm
+    }
+
+    body.A4, body.A5.landscape {
+        width: 210mm
+    }
+
+    body.A5 {
+        width: 148mm
+    }
+
+    body.letter, body.legal {
+        width: 216mm
+    }
+
+        body.letter.landscape {
+            width: 280mm
+        }
+
+        body.legal.landscape {
+            width: 357mm
+        }
+}
+
+
+
+
+
+body {
+    font-family: iranyekan-fanum;
+    color: #000;
+}
+
+.sm {
+    font-size: 0.7rem
+}
+
+.xs {
+    font-size: 0.65rem
+}
+
+.xxs {
+    font-size: 0.6rem
+}
+
+.no-margin {
+    margin: 0
+}
+
+.box {
+    border: 1px solid #000;
+    border-radius: 20px;
+    width: 100%;
+    height: 46%;
+    position: relative
+}
+
+    .box > div {
+        margin: 15px;
+    }
+
+.text-center {
+    text-align: center;
+}
+
+.text-left {
+    text-align: left
+}
+
+.width-1-2 {
+    display: block;
+    float: right;
+    width: 50%;
+}
+
+.block {
+    display: block
+}
+
+.underline {
+    text-decoration: underline
+}
+
+.mablagh {
+    width: 10%;
+    font-size: 15pt;
+    display: block;
+    height: 60px;
+    padding-top: 20px;
+    float: right;
+    text-align: center;
+}
+
+#price {
+    border: 1px dotted #000;
+    border-radius: 10px;
+    float: right;
+    width: 97%;
+    padding: 10px
+}
+
+    #price > div {
+        width: 87%;
+        height: 80px;
+        float: right;
+        padding-right: 10px;
+        border-right: 1px dotted #000
+    }
+
+    #price .adad, #price .horof {
+        width: 100%;
+        height: 40px;
+        padding-top: 5px
+    }
+
+        #price .adad span, #price .horof span {
+            margin-top: 10px;
+        }
+
+.rial {
+    font-size: 11px;
+    font-weight: 300
+}
+
+@media print {
+    .content a {
+        display: none
+    }
+}

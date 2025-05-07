@@ -23,18 +23,20 @@ namespace EtehadBar.Domain.Models
         public double Amount { get; set; } = 0;
 
         [Display(Name = "قرارداد")]
-        public long CustomerId { get; set; }
-
-        [Display(Name = "قرارداد")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [ForeignKey(nameof(Contract))]
-        public long ContractId { get; set; }
-        public virtual Contract Contract { get; set; }
+        public long CustomerId { get; set; }
+        public Customer Customer { get; set; }
+
+        //[Display(Name = "قرارداد")]
+        //[Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        //[ForeignKey(nameof(Contract))]
+        //public long ContractId { get; set; }
+        //public Contract Contract { get; set; }
 
         [Required]
         [Display(Name = "تقویم کاری")]
         public long CalendarId { get; set; }
-        public virtual Calendar Calendar { get; set; }
+        public Calendar Calendar { get; set; }
 
         [Required]
         public DateTime CreateDatetime { get; set; } = DateTime.Now;

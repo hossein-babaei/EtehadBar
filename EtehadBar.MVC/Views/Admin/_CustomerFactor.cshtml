@@ -15,7 +15,7 @@
             <tr>
                 <th>ردیف</th>
                 <th>@Html.DisplayNameFor(model => model.FactorNumber)</th>
-                <th>@Html.DisplayNameFor(model => model.ContractId)</th>
+                <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                 <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                 <th>@Html.DisplayNameFor(model => model.Date)</th>
                 <th>@Html.DisplayNameFor(model => model.Amount)</th>
@@ -30,7 +30,7 @@
                 <tr class="uk-text-center sm">
                     <td>@i</td>
                     <td>@item.FactorNumber</td>
-                    <td>@item.Contract.Number - @item.Contract.Customer.Name</td>
+                    <td>@item.Customer.Name</td>
                     <td>@item.Calendar.Title</td>
                     <td>@pd.ToString("yyyy/MM/dd")</td>
                     <td>@item.Amount.ToString("N0")</td>
@@ -44,7 +44,17 @@
 </div>
 @if (data.PageCount > 1)
 {
-    <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-        @Html.PagedListPager(data, page => Url.Action("CustomerFactorPartial", new { p = page }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
-    </div>
+    if (ViewBag.customerId is not null)
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("CustomerFactor_Search", new { p = page, customerId = ViewBag.customerId, calendarId = ViewBag.calendarId }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+        </div>
+    }
+    else
+    {
+        <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+            @Html.PagedListPager(data, page => Url.Action("CustomerFactorPartial", new { p = page }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+        </div>
+    }
+
 }

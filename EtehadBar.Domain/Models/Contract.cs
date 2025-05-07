@@ -31,19 +31,19 @@ namespace EtehadBar.Domain.Models
 
         [ForeignKey(nameof(ParentContract))]
         public long? ParentContractId { get; set; }
-        public virtual Contract ParentContract { get; set; }
+        public Contract ParentContract { get; set; }
 
-        public virtual ICollection<Contract> ContractAddons { get; set; }
+        public ICollection<Contract> ContractAddons { get; set; }
 
         [Required]
         [Display(Name = "مشتری")]
         public long CustomerId { get; set; }
-        public virtual Customer Customer { get; set; }
+        public Customer Customer { get; set; }
 
-        public virtual ICollection<CustomerIncome> Incomes { get; set; }
-        public virtual ICollection<CustomerFactor> CustomerFactors { get; set; }
-        public virtual ICollection<LoadFactor> LoadFactors { get; set; }
-        public virtual ICollection<ShippingFee> ShippingFees { get; set; }
+        public ICollection<CustomerIncome> Incomes { get; set; }
+        //public virtual ICollection<CustomerFactor> CustomerFactors { get; set; }
+        public ICollection<LoadFactor> LoadFactors { get; set; }
+        public ICollection<ShippingFee> ShippingFees { get; set; }
         public ICollection<ShippingFeeGroup> ShippingFeeGroups { get; set; }
 
         [Required]

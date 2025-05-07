@@ -282,7 +282,6 @@ namespace EtehadBar.MVC.Controllers
             rngTable.FirstRow().Merge();
 
             rngTable.FirstRow().Style
-                .Font.SetBold()
                 .Font.SetFontSize(15)
                     .Fill.SetBackgroundColor(XLColor.LightGray)
                         .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
@@ -309,17 +308,17 @@ namespace EtehadBar.MVC.Controllers
 
             var rngTable2 = ws.Range($"B{costs.Count + 3}:F{costs.Count + 3}");
             rngTable2.RangeUsed().Style
-                .Font.SetBold()
                 .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center)
                 .Font.SetFontSize(12);
 
+            ws.RangeUsed().Style.Font.SetBold();
             ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             ws.RangeUsed().Style.Border.SetInsideBorder(XLBorderStyleValues.Thin)
                 .Border.SetInsideBorderColor(XLColor.Black);
 
             ws.Columns().AdjustToContents();
 
-            ws.PageSetup.SetPageOrientation(XLPageOrientation.Landscape)
+            ws.PageSetup.SetPageOrientation(XLPageOrientation.Portrait)
                 .SetPaperSize(XLPaperSize.A4Paper);
 
             await using var stream = new MemoryStream();
@@ -4209,6 +4208,79 @@ namespace EtehadBar.MVC.Controllers
             var content = stream.ToArray();
 
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> BillList(string id)
+        {
+            var billItem = await _billRepository.Query().AsNoTracking().FirstOrDefaultAsync(a => a.RowId.Equals(id));
+
+            var billItemList = await _billRepository.Query().AsNoTracking().Include(a => a.Vehicle)
+                .Where(a => a.BillNo.Equals(billItem.BillNo)).ToListAsync();
+
+            string docTitle = $"لیست قبض پرداختی به شماره {billItem.BillNo}";
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add(billItem.BillNo);
+
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+
+            ws.Cell(2, 1).Value = "ردیف";
+            ws.Cell(2, 2).Value = "نام و نام خانوادگی";
+            ws.Cell(2, 3).Value = "شماره خودرو";
+            ws.Cell(2, 4).Value = "مبلغ";
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(billItemList.Count + 2, 4));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetFontSize(15)
+                    .Fill.SetBackgroundColor(XLColor.LightGray);
+
+            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 4)); // The address is relative to rngTable (NOT the worksheet)
+            rngHeaders.Style.Font.FontColor = XLColor.Black;
+
+            for (int index = 1; index <= billItemList.Count; index++)
+            {
+                var vehicle = billItemList[index - 1].Vehicle;
+
+                ws.Cell(index + 2, 1).Value = index;
+                ws.Cell(index + 2, 2).Value = billItemList[index - 1].ReceiverName.Replace("/", "");
+                ws.Cell(index + 2, 3).Value = $"ایران {vehicle.IranStateNumber} - {vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber}";
+                ws.Cell(index + 2, 4).Value = billItemList[index - 1].Amount.ToString("N0");
+            }
+
+            ws.Cell($"A{billItemList.Count + 3}").Value = "جمع کل";
+            ws.Cell($"D{billItemList.Count + 3}").Value = billItemList.Sum(a => a.Amount).ToString("N0");
+            ws.Range($"A{billItemList.Count + 3}:C{billItemList.Count + 3}").Row(1).Merge();
+
+            var rngTable2 = ws.Range($"A{billItemList.Count + 3}:D{billItemList.Count + 3}");
+            rngTable2.RangeUsed().Style
+                .Font.SetBold()
+                .Font.SetFontSize(12);
+
+            ws.RangeUsed().Style.Font.SetBold()
+                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            ws.RangeUsed().Style.Border.SetInsideBorder(XLBorderStyleValues.Thin)
+                .Border.SetInsideBorderColor(XLColor.Black);
+
+            ws.Columns().AdjustToContents();
+
+            ws.PageSetup.SetPageOrientation(XLPageOrientation.Portrait)
+                .SetPaperSize(XLPaperSize.A4Paper);
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
     }
 }
