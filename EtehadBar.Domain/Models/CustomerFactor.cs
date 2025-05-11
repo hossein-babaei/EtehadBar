@@ -22,7 +22,7 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public double Amount { get; set; } = 0;
 
-        [Display(Name = "قرارداد")]
+        [Display(Name = "مشتری")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerId { get; set; }
         public Customer Customer { get; set; }

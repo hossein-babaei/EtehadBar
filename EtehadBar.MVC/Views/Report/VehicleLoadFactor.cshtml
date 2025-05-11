@@ -21,6 +21,37 @@
             e.preventDefault();
             filter();
         });
+
+        function getOtherCalendarData(tag, type) {
+            let customerId = $(tag).data('customer-id'),
+                calendarId = $(tag).data('calendar-id'),
+                vehicleId = $(tag).data('vehicle-id');
+
+                $.ajax({
+                type: 'POST',
+                url: '@Url.Action("VehicleLoadFactor", "Report")',
+                data: {
+                    'customerId': customerId,
+                    'calendarId': calendarId,
+                    'vehicleId': vehicleId,
+                    'type': type
+                },
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
+
         function filter() {
             $.ajax({
                 type: 'POST',

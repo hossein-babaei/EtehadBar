@@ -225,26 +225,26 @@ namespace EtehadBar.MVC.Controllers
                 .Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Vehicle)
                 .Include(a => a.Contract).ThenInclude(a => a.Customer)
                 .Where(a => a.CalendarId.Equals(calendarId)).Select(a => new GlobalLoadFactorVM
-            {
-                Amount = a.Amount,
-                CustomerName = a.Contract.Customer.Name + " " + a.Contract.Number,
-                Date = a.Date,
-                Destination = a.Destination.Title,
-                Origin = a.Origin.Title,
-                DriverFee = a.DriverFee,
-                DriverName = a.Driver.Fullname,
-                LoadFactorDeductions = a.LoadFactorDeductions,
-                LoadNumber = a.LoadNumber,
-                LoadNumberGov = a.LoadNumberGov,
-                Id = a.Id,
-                RowId = a.RowId,
-                VAT = a.VAT,
-                VehicleType = a.Vehicle.Type,
-                WithholdingTax = a.WithholdingTax,
-                Tonnage = a.Tonnage,
-                TonnagePrice = a.TonnagePrice,
-                DriverTonnagePrice = a.DriverTonnagePrice
-            }).ToListAsync();
+                {
+                    Amount = a.Amount,
+                    CustomerName = a.Contract.Customer.Name + " " + a.Contract.Number,
+                    Date = a.Date,
+                    Destination = a.Destination.Title,
+                    Origin = a.Origin.Title,
+                    DriverFee = a.DriverFee,
+                    DriverName = a.Driver.Fullname,
+                    LoadFactorDeductions = a.LoadFactorDeductions,
+                    LoadNumber = a.LoadNumber,
+                    LoadNumberGov = a.LoadNumberGov,
+                    Id = a.Id,
+                    RowId = a.RowId,
+                    VAT = a.VAT,
+                    VehicleType = a.Vehicle.Type,
+                    WithholdingTax = a.WithholdingTax,
+                    Tonnage = a.Tonnage,
+                    TonnagePrice = a.TonnagePrice,
+                    DriverTonnagePrice = a.DriverTonnagePrice
+                }).ToListAsync();
 
             data.AddRange(loadFactors);
 
@@ -321,12 +321,25 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId, long customerId)
+        public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId, long customerId, string type)
         {
-            ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
-            ViewData["calendar"] = await _calendarRepo.Get(calendarId);
-            ViewData["Balance"] = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
+            var calendar = await _calendarRepo.Get(calendarId);
+            if (!string.IsNullOrWhiteSpace(type))
+                if (type == "next" && await _calendarRepo.Calendars().AnyAsync(a => a.Sequence > calendar.Sequence))
+                {
+                    calendar = await _calendarRepo.Calendars().Where(a => a.Sequence == (calendar.Sequence + 1)).FirstOrDefaultAsync();
+                    calendarId = calendar.Id;
+                }
+                else if (type == "previous" && await _calendarRepo.Calendars().AnyAsync(a => a.Sequence < calendar.Sequence))
+                {
+                    calendar = await _calendarRepo.Calendars().Where(a => a.Sequence == (calendar.Sequence - 1)).FirstOrDefaultAsync();
+                    calendarId = calendar.Id;
+                }
+
+            ViewData["calendar"] = calendar;
             ViewData["customerId"] = customerId;
+            ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
+            ViewData["Balance"] = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
 
             var query = _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Contract).ThenInclude(a => a.Customer)
                 .Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
@@ -348,12 +361,25 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId, long customerId)
+        public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId, long customerId, string type)
         {
-            ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
-            ViewData["calendar"] = await _calendarRepo.Get(calendarId);
-            ViewData["Balance"] = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
+            var calendar = await _calendarRepo.Get(calendarId);
+            if (!string.IsNullOrWhiteSpace(type))
+                if (type == "next" && await _calendarRepo.Calendars().AnyAsync(a => a.Sequence > calendar.Sequence))
+                {
+                    calendar = await _calendarRepo.Calendars().Where(a => a.Sequence == (calendar.Sequence + 1)).FirstOrDefaultAsync();
+                    calendarId = calendar.Id;
+                }
+                else if (type == "previous" && await _calendarRepo.Calendars().AnyAsync(a => a.Sequence < calendar.Sequence))
+                {
+                    calendar = await _calendarRepo.Calendars().Where(a => a.Sequence == (calendar.Sequence - 1)).FirstOrDefaultAsync();
+                    calendarId = calendar.Id;
+                }
+
+            ViewData["calendar"] = calendar;
             ViewData["customerId"] = customerId;
+            ViewData["vehicle"] = await _vehicleRepo.Get(vehicleId);
+            ViewData["Balance"] = await _vehicleBalanceRepository.GetVehicleBalanceSum(vehicleId, calendarId, customerId == 0 ? null : customerId);
 
             var query = _loadFactorRepo.LoadFactors().Include(a => a.Origin).Include(a => a.Destination).Include(a => a.Driver).Include(a => a.Contract).ThenInclude(a => a.Customer)
                 .Where(a => a.VehicleId.Equals(vehicleId) && a.CalendarId.Equals(calendarId));
@@ -986,7 +1012,7 @@ namespace EtehadBar.MVC.Controllers
 
             return PartialView("_CustomerBalance", data);
         }
-         
+
         [HttpGet]
         [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> CustomerSeparateRoute(long customerId, long calendarId)

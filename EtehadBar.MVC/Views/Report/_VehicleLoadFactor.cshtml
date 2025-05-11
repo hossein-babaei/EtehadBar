@@ -6,6 +6,7 @@
     var vehicle = (Vehicle)ViewData["vehicle"];
     var calendar = (Calendar)ViewData["calendar"];
     var balance = (double)ViewData["Balance"];
+    var customerId = ViewData["customerId"].ToString();
 }
 
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -28,8 +29,22 @@
     </div>
 </div>
 <div class="box uk-margin-small-bottom" style="padding:15px 30px">
-    <h3 class="uk-text-center">گزارش بارنامه های @vehicle.Type به شماره (ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber) در <span class="underline">@calendar.Title</span></h3>
-    <h5 class="uk-text-center uk-margin-remove">مالک خودرو: @vehicle.VehicleOwnerFullname</h5>
+    <div class="uk-grid-small" uk-grid>
+        <div class="uk-width-expand uk-flex uk-flex-middle uk-flex-center">
+            <a href="#" class="uk-icon-button" uk-icon="icon: chevron-left; ratio: 2"
+               data-customer-id="@customerId" data-calendar-id="@calendar.Id" data-vehicle-id="@vehicle.Id" onclick="getOtherCalendarData(this, 'previous')">
+            </a>
+        </div>
+        <div class="uk-width-4-5">
+            <h3 class="uk-text-center">گزارش بارنامه های @vehicle.Type به شماره (ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber) در <span class="underline">@calendar.Title</span></h3>
+            <h5 class="uk-text-center uk-margin-remove">مالک خودرو: @vehicle.VehicleOwnerFullname</h5>
+        </div>
+        <div class="uk-width-expand uk-flex uk-flex-middle uk-flex-center">
+            <a href="#" class="uk-icon-button" uk-icon="icon: chevron-right; ratio: 2"
+               data-customer-id="@customerId" data-calendar-id="@calendar.Id" data-vehicle-id="@vehicle.Id" onclick="getOtherCalendarData(this, 'next')">
+            </a>
+        </div>
+    </div>
 </div>
 <div class="box uk-margin-small-bottom">
     @if (Model.Any())
