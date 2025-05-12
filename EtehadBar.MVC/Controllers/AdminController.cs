@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using X.PagedList;
 
@@ -276,6 +277,7 @@ namespace EtehadBar.MVC.Controllers
             //}
 
             //await _vehicleBalanceRepository.Save();
+            
 
             ViewData["DayLimit"] = dayLimit;
 

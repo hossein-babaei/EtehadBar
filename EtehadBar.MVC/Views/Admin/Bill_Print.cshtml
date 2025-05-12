@@ -21,7 +21,7 @@
 
         <article class="box">
             <div>
-                <span style="position:absolute; left: 15px">@Model.BillNo</span>
+                <span style="position:absolute; left: 15px; font-weight:700; font-size: 20px; font-family:Calibri">@Model.BillNo.PersianToEnglish()</span>
                 <h2 class="text-center">شرکت حمل و نقل اتحاد بار آسیا</h2>
                 <h4>
                     <span class="width-1-2">رسید پرداخت وجه بین بانکی</span>
@@ -94,7 +94,7 @@
                             {
                                 <span>
                                     مبلغ فوق بابت کارکرد <b class="underline">@Model.Calendar.Title</b> شرکت <b class="underline">@Model.Customer.Name</b> به حساب آقا/خانم <b class="underline">@Model.ReceiverName</b> توسط فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> بانک <b class="underline">@Model.BankBranch</b>
-                                    جهت مطالبات قانونی خویش برای خودرو به شماره <b class="underline">ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber</b> دریافت گردید.
+                                    جهت مطالبات قانونی خویش برای خودرو به شماره <b class="underline">ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber</b> پرداخت گردید.
                                 </span>
                             }
                         </p>
