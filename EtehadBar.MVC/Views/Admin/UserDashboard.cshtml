@@ -75,6 +75,24 @@
 
 <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
     <div>
+        <div id="box-0" class="box">
+            <div class="uk-grid-medium uk-child-width-1-2" uk-grid>
+                <div>
+                    <div class="uk-tile uk-tile-secondary uk-padding-small uk-border-rounded uk-text-center pointer" uk-toggle="#mellat-file">
+                        <p class="uk-h5">فایل ساز بانک ملت</p>
+                        <p class="uk-h6">ملت به ملت (گروهی)</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="uk-tile uk-tile-muted uk-padding-small uk-border-rounded uk-text-center pointer" uk-toggle="#tejarat-file">
+                        <p class="uk-h5">فایل ساز بانک تجارت</p>
+                        <p class="uk-h6">تجارت به تجارت (گروهی)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
         <div id="box-3" class="box uk-text-center">
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
                 @foreach (var item in Model)
@@ -164,3 +182,52 @@
     </div>
 </div>
 
+<div id="mellat-file" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>دریافت فایل انتقال وجه ملت به ملت (گروهی)</h3>
+        <form enctype="multipart/form-data" asp-action="MellatToMellatFile" asp-controller="BankFileCreator" method="post">
+            <div class="uk-width-1-1">
+                <div class="uk-alert-warning" uk-alert>
+                    <h3>تـوجه</h3>
+                    <p>فایل را به صورت استاندارد و بدون تغییر در نام و ردیف ستون ها انتخاب نمائید.</p>
+                    <div>
+                        <div uk-form-custom="target: true">
+                            <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: push"></a>
+                            <input name="excel" accept=".xlsx" type="file" id="excel" aria-invalid="true">
+                            <input class="uk-input uk-form-width-large uk-border-rounded" type="text" placeholder="انتخاب کنید ..." disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary" onclick="$('#mellat-file form').submit()">ارسال</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+
+<div id="tejarat-file" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>دریافت فایل انتقال وجه تجارت به تجارت (گروهی)</h3>
+        <form enctype="multipart/form-data" asp-action="TejaratToTejaratFile" asp-controller="BankFileCreator" method="post">
+            <div class="uk-width-1-1">
+                <div class="uk-alert-warning" uk-alert>
+                    <h3>تـوجه</h3>
+                    <p>فایل را به صورت استاندارد و بدون تغییر در نام و ردیف ستون ها انتخاب نمائید.</p>
+                    <div>
+                        <div uk-form-custom="target: true">
+                            <a class="uk-form-icon uk-form-icon-flip" href="" uk-icon="icon: push"></a>
+                            <input name="excel" accept=".xlsx" type="file" id="excel" aria-invalid="true">
+                            <input class="uk-input uk-form-width-large uk-border-rounded" type="text" placeholder="انتخاب کنید ..." disabled>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary" onclick="$('#tejarat-file form').submit()">ارسال</a>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>

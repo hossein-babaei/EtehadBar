@@ -4225,56 +4225,93 @@ namespace EtehadBar.MVC.Controllers
             var ws = workbook.Worksheets.Add(billItem.BillNo);
 
             ws.RightToLeft = true;
-            ws.Style.Font.FontName = "B Nazanin";
+            ws.Style.Font.FontName = "B Titr";
             ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
             ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
 
-            ws.Cell(1, 1).Value = docTitle;
+            // page header
+            string bankPresidentName = "",
+                phrase = "";
+            if (billItem.BankBranch.Contains("ملت"))
+            {
+                bankPresidentName = "جناب آقای حسینی";
+                phrase = "ریاست محترم بانک ملت شعبه پارس خودرو کد 67603";
+            }
+            else if (billItem.BankBranch.Contains("تجارت"))
+            {
+                bankPresidentName = "سرکار خانم کیانی";
+                phrase = "ریاست محترم بانک تجارت شعبه چیتگر کد 409";
+            }
+            else if (billItem.BankBranch.Contains("سامان"))
+            {
+                bankPresidentName = "جناب آقای باقری نیا";
+                phrase = "ریاست محترم بانک سامان شعبه شهرک راه آهن کد 840";
+            }
+            else if (billItem.BankBranch.Contains("پاسارگاد"))
+            {
+                bankPresidentName = "جناب آقای قربانی";
+                phrase = "ریاست محترم بانک پاسارگاد شعبه شهرک راه آهن کد 241";
+            }
 
-            ws.Cell(2, 1).Value = "ردیف";
-            ws.Cell(2, 2).Value = "نام و نام خانوادگی";
-            ws.Cell(2, 3).Value = "شماره خودرو";
-            ws.Cell(2, 4).Value = "مبلغ";
+                ws.Cell(1, 1).Value = bankPresidentName;
+            ws.Cell(2, 1).Value = phrase;
+            ws.Cell(3, 1).Value = "با سلام";
+            ws.Cell(4, 1).Value = $"احتراماً به پیوست لیست پرداختی به مبلغ {billItemList.Sum(a => a.Amount):N0} ریال";
+            ws.Cell(5, 1).Value = "در وجه خودتان جهت واریز به حساب رانندگان مشروحه ذیل تقدیم می گردد.";
+            //
 
-            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(billItemList.Count + 2, 4));
+            ws.Cell(6, 1).Value = "ردیف";
+            ws.Cell(6, 2).Value = "نام و نام خانوادگی";
+            ws.Cell(6, 3).Value = "شماره خودرو";
+            ws.Cell(6, 4).Value = "مبلغ";
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(billItemList.Count + 6, 4));
             rngTable.FirstRow().Merge();
+            ws.Range(2, 1, 2, 4).Merge();
+            ws.Range(3, 1, 3, 4).Merge();
+            ws.Range(4, 1, 4, 4).Merge();
+            ws.Range(5, 1, 5, 4).Merge();
 
-            rngTable.FirstRow().Style
-                .Font.SetFontSize(15)
-                    .Fill.SetBackgroundColor(XLColor.LightGray);
-
-            var rngHeaders = rngTable.Range(rngTable.Cell(2, 1), rngTable.Cell(2, 4)); // The address is relative to rngTable (NOT the worksheet)
+            var rngHeaders = rngTable.Range(rngTable.Cell(1, 1), rngTable.Cell(5, 4)); // The address is relative to rngTable (NOT the worksheet)
             rngHeaders.Style.Font.FontColor = XLColor.Black;
 
             for (int index = 1; index <= billItemList.Count; index++)
             {
                 var vehicle = billItemList[index - 1].Vehicle;
 
-                ws.Cell(index + 2, 1).Value = index;
-                ws.Cell(index + 2, 2).Value = billItemList[index - 1].ReceiverName.Replace("/", "");
-                ws.Cell(index + 2, 3).Value = $"ایران {vehicle.IranStateNumber} - {vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber}";
-                ws.Cell(index + 2, 4).Value = billItemList[index - 1].Amount.ToString("N0");
+                ws.Cell(index + 6, 1).Value = index;
+                ws.Cell(index + 6, 2).Value = billItemList[index - 1].ReceiverName.Replace("/", "");
+                ws.Cell(index + 6, 3).Value = $"ایران {vehicle.IranStateNumber} - {vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber}";
+                ws.Cell(index + 6, 4).Value = billItemList[index - 1].Amount.ToString("N0");
             }
 
-            ws.Cell($"A{billItemList.Count + 3}").Value = "جمع کل";
-            ws.Cell($"D{billItemList.Count + 3}").Value = billItemList.Sum(a => a.Amount).ToString("N0");
-            ws.Range($"A{billItemList.Count + 3}:C{billItemList.Count + 3}").Row(1).Merge();
+            ws.Cell($"A{billItemList.Count + 7}").Value = "جمع کل";
+            ws.Cell($"D{billItemList.Count + 7}").Value = billItemList.Sum(a => a.Amount).ToString("N0");
+            ws.Range($"A{billItemList.Count + 7}:C{billItemList.Count + 7}").Row(1).Merge();
 
-            var rngTable2 = ws.Range($"A{billItemList.Count + 3}:D{billItemList.Count + 3}");
+            var rngTable2 = ws.Range($"A{billItemList.Count + 7}:D{billItemList.Count + 7}");
             rngTable2.RangeUsed().Style
                 .Font.SetBold()
                 .Font.SetFontSize(12);
 
-            ws.RangeUsed().Style.Font.SetBold()
+            ws.Cell($"D{billItemList.Count + 8}").Value = "با تشکر";
+            ws.Cell($"D{billItemList.Count + 9}").Value = "امیر سعادت";
+
+            var contentRange = ws.Range(6, 1, billItemList.Count + 7, 4);
+            contentRange.Style.Font.SetBold()
                 .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-            ws.RangeUsed().Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-            ws.RangeUsed().Style.Border.SetInsideBorder(XLBorderStyleValues.Thin)
+            contentRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            contentRange.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin)
                 .Border.SetInsideBorderColor(XLColor.Black);
 
-            ws.Columns().AdjustToContents();
+            ws.Column(1).Width = 5.22;
+            ws.Column(2).Width = 26;
+            ws.Column(3).Width = 26.67;
+            ws.Column(4).Width = 25;
 
             ws.PageSetup.SetPageOrientation(XLPageOrientation.Portrait)
-                .SetPaperSize(XLPaperSize.A4Paper);
+                .SetPaperSize(XLPaperSize.A4Paper)
+                .Margins.SetTop(2.5).SetBottom(0.8).SetRight(1).SetLeft(0.5).SetHeader(0.25).SetFooter(0.25);
 
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);

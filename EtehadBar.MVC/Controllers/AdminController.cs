@@ -3860,12 +3860,13 @@ namespace EtehadBar.MVC.Controllers
                 if (HasNumber && string.IsNullOrWhiteSpace(input.EntryNumber) && string.IsNullOrWhiteSpace(input.ExitNumber))
                     return NotFound("لطفا شماره ورود یا خروج را وارد نمائید.");
 
+                var relatedContractIds = await _contractRepo.GetAllContractIdListForSameCustomer(input.ContractId);
                 if (input.PressFloorType == SaipaPressLoadType.OneFloor)
                 {
-                    if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).AnyAsync(a => a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)))
+                    if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).AnyAsync(a =>  a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)))
                         return NotFound("شماره ورود تکراری است.");
 
-                    if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().AnyAsync(a => a.ExitNumber.Equals(input.ExitNumber)))
+                    if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().AnyAsync(a => relatedContractIds.Contains(a.ContractId) && a.ExitNumber.Equals(input.ExitNumber)))
                         return NotFound("شماره خروج تکراری است.");
                 }
 
@@ -3874,7 +3875,7 @@ namespace EtehadBar.MVC.Controllers
                     if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).CountAsync(a => a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)) >= 2)
                         return NotFound("شماره ورود تکراری است.");
 
-                    if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().CountAsync(a => a.ExitNumber.Equals(input.ExitNumber)) >= 2)
+                    if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().CountAsync(a => relatedContractIds.Contains(a.ContractId) && a.ExitNumber.Equals(input.ExitNumber)) >= 2)
                         return NotFound("شماره خروج تکراری است.");
                 }
 
@@ -4527,12 +4528,13 @@ namespace EtehadBar.MVC.Controllers
                 if (HasNumber && string.IsNullOrWhiteSpace(input.EntryNumber) && string.IsNullOrWhiteSpace(input.ExitNumber))
                     return NotFound("لطفا شماره ورود یا خروج را وارد نمائید.");
 
+                var relatedContractIds = await _contractRepo.GetAllContractIdListForSameCustomer(input.ContractId);
                 if (input.PressFloorType == SaipaPressLoadType.OneFloor)
                 {
                     if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().AnyAsync(a => !a.Id.Equals(input.Id) && a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)))
                         return NotFound("شماره ورود تکراری است.");
 
-                    if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().AnyAsync(a => !a.Id.Equals(input.Id) && a.ExitNumber.Equals(input.ExitNumber)))
+                    if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().AnyAsync(a => !a.Id.Equals(input.Id) && relatedContractIds.Contains(a.ContractId) && a.ExitNumber.Equals(input.ExitNumber)))
                         return NotFound("شماره خروج تکراری است.");
                 }
 
@@ -4541,7 +4543,7 @@ namespace EtehadBar.MVC.Controllers
                     if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().CountAsync(a => !a.Id.Equals(input.Id) && a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)) >= 2)
                         return NotFound("شماره ورود تکراری است.");
 
-                    if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().CountAsync(a => !a.Id.Equals(input.Id) && a.ExitNumber.Equals(input.ExitNumber)) >= 2)
+                    if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().CountAsync(a => !a.Id.Equals(input.Id) && relatedContractIds.Contains(a.ContractId) && a.ExitNumber.Equals(input.ExitNumber)) >= 2)
                         return NotFound("شماره خروج تکراری است.");
                 }
 
