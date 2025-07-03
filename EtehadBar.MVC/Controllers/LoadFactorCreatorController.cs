@@ -1,20 +1,15 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Presentation;
-using DocumentFormat.OpenXml.Wordprocessing;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Domain.Models.LoadFactorCreator;
-using EtehadBar.Infra.Data;
 using EtehadBar.Infra.Data.Context;
 using EtehadBar.Infra.Data.Repository;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,8 +28,9 @@ namespace EtehadBar.MVC.Controllers
         private readonly IBillRepository _billRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly ICustomerRepository _customerRepository;
+        private readonly ICustomerFactorRepository _customerFactorRepository;
 
-        public LoadFactorCreatorController(ICalendarRepository calendarRepository, IBillRepository billRepository, IVehicleRepository vehicleRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager, ICustomerRepository customerRepository)
+        public LoadFactorCreatorController(ICalendarRepository calendarRepository, IBillRepository billRepository, IVehicleRepository vehicleRepository, ApplicationDbContext context, UserManager<ApplicationUser> userManager, ICustomerRepository customerRepository, ICustomerFactorRepository customerFactorRepository)
         {
             _calendarRepository = calendarRepository;
             _billRepository = billRepository;
@@ -42,6 +38,7 @@ namespace EtehadBar.MVC.Controllers
             db = context;
             _userManager = userManager;
             _customerRepository = customerRepository;
+            _customerFactorRepository = customerFactorRepository;
         }
 
         public async Task<IActionResult> Index(int? p)
@@ -416,6 +413,171 @@ namespace EtehadBar.MVC.Controllers
             try
             {
                 await db.SaveChangesAsync();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CreateGroupOtherCost()
+        {
+            ViewData["Customers"] = await _customerRepository.Customers().AsNoTracking().OrderByDescending(a => a.Name).ToListAsync();
+            ViewData["Calendars"] = await _calendarRepository.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
+
+            return PartialView("~/Views/LoadFactorCreator/Create/GroupOtherCost.cshtml");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CreateGroupOtherCost(CreateGroupOtherCostVM c)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                var customerFactorsSum = await _customerFactorRepository.Query().AsNoTracking().Where(a => a.CalendarId.Equals(c.CalendarId) && a.CustomerId.Equals(c.CustomerId)).SumAsync(a => a.Amount);
+
+                var driverFeeList = await (from a in db.LoadFactor
+                                   join b in db.Contract on a.ContractId equals b.Id
+                                   where a.CalendarId.Equals(c.CalendarId) && b.CustomerId.Equals(c.CustomerId)
+                                   select new
+                                   {
+                                       a.Tonnage,
+                                       a.DriverTonnagePrice,
+                                       a.DriverFee,
+                                       a.WeighbridgePrice,
+                                       a.DriverLoadSleepPrice
+                                   }).AsNoTracking().ToListAsync();
+
+                double driverFee = 0;
+                foreach (var item in driverFeeList)
+                {
+                    driverFee += item.DriverFee;
+                    if (item.Tonnage.HasValue)
+                        driverFee += item.Tonnage.Value * item.DriverTonnagePrice.Value;
+
+                    if (item.WeighbridgePrice.HasValue)
+                        driverFee += item.WeighbridgePrice.Value;
+
+                    if (item.DriverLoadSleepPrice.HasValue)
+                        driverFee += item.DriverLoadSleepPrice.Value;
+                }
+
+                var billsSum = await _billRepository.Query().Include(a => a.Vehicle).Include(a => a.Customer)
+                .Where(a => a.CalendarId.Equals(c.CalendarId) && a.CustomerId.Value.Equals(c.CustomerId) && (a.VehicleId.HasValue &&
+          (_vehicleRepository.Vehicles().Where(b => !b.RealStatus).Select(a => a.Id)).Contains(a.VehicleId.Value))).SumAsync(a => a.Amount);
+
+                var otherCostsSum = await db.OtherCost.Include(a => a.Vehicle).AsNoTracking().Where(a => a.CalendarId.Equals(c.CalendarId) && a.CustomerId.Equals(c.CustomerId)).SumAsync(a => a.Amount);
+
+                var loadFactorNovinsSum = await db.LoadFactorNovin.Include(a => a.Vehicle).AsNoTracking()
+                    .Where(a => a.CalendarId.Equals(c.CalendarId) && a.CustomerId.Equals(c.CustomerId)).SumAsync(a => a.DriverFee);
+
+                var costSum = driverFee + billsSum + otherCostsSum + loadFactorNovinsSum;
+
+
+                var requiredAmount = c.Amount.HasValue ? c.Amount.Value : (customerFactorsSum - (customerFactorsSum * 0.16)) - costSum;
+                var rnd = new Random();
+                var minimumNumber = c.MinimumAmount / 1000000;
+                var maximumNumber = c.MaximumAmount / 1000000;
+                double calculatedAmount = 0;
+                var amountList = new List<double>();
+                while (calculatedAmount < requiredAmount)
+                {
+                    var difference = requiredAmount - calculatedAmount;
+                    if (difference <= c.MaximumAmount)
+                    {
+                        if (c.Amount.HasValue)
+                            calculatedAmount += difference;
+                        else
+                        {
+                            var x = Convert.ToInt32(difference / 1000000);
+                            amountList.Add(x * 1000000);
+                            calculatedAmount += (x * 1000000);
+                        }
+                    }
+                    else
+                    {
+                        var x = rnd.Next(Convert.ToInt32(minimumNumber), Convert.ToInt32(maximumNumber));
+                        var y = x * 1000000;
+
+                        amountList.Add(y);
+                        calculatedAmount += y;
+                    }
+                }
+
+                List<OtherCost> otherCosts = new();
+                string userId = _userManager.GetUserId(User);
+                var unrealVehicles = await _vehicleRepository.Vehicles().AsNoTracking().Where(a => !a.RealStatus && !a.VehicleOwnerFullname.EndsWith("//")).Select(a => new { a.Id, a.VehicleOwnerFullname}).ToListAsync();
+                for (int i = 0; i < amountList.Count; i++)
+                {
+                    int index = rnd.Next(0, unrealVehicles.Count - 1);
+                    var vehicleId = unrealVehicles[index].Id;
+                    unrealVehicles.Remove(unrealVehicles[index]);
+
+                    otherCosts.Add(new Domain.Models.LoadFactorCreator.OtherCost
+                    {
+                        AdminId = userId,
+                        Amount = amountList[i],
+                        CalendarId = c.CalendarId,
+                        CustomerId = c.CustomerId,
+                        DriverName = unrealVehicles[index].VehicleOwnerFullname.Replace("/", ""),
+                        VehicleId = vehicleId
+                    });
+                }
+
+                await db.AddRangeAsync(otherCosts);
+
+                try
+                {
+                    await db.SaveChangesAsync();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+            return Json(new { msg, status });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUnBillOtherCost(long billId)
+        {
+            var bill = await _billRepository.Query().AsNoTracking().Include(a => a.OtherCosts).FirstOrDefaultAsync(a => a.Id.Equals(billId));
+            if (!bill.OtherCosts.Any())
+            {
+                var data = await db.OtherCost.AsNoTracking().Include(a => a.Vehicle)
+                    .Where(a => a.CustomerId.Equals(bill.CustomerId) && a.CalendarId.Equals(bill.CalendarId) && !a.BillId.HasValue).ToListAsync();
+
+                ViewData["BillId"] = billId;
+                return PartialView("OtherCost_Relation", data);
+            }
+            else
+                return BadRequest("قبلا ثبت شده است");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SubmitBillCostRelation(long BillId, long[] IdList)
+        {
+            try
+            {
+                var otherCosts = await db.OtherCost.Where(a => !a.BillId.HasValue && IdList.Contains(a.Id)).ToListAsync();
+
+                if (otherCosts.Count == IdList.Length)
+                {
+                    foreach (var item in otherCosts)
+                        item.BillId = BillId;
+
+                    await db.SaveChangesAsync();
+                }
                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
             }
             catch (Exception e)

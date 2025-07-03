@@ -4214,10 +4214,29 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> BillList(string id)
         {
-            var billItem = await _billRepository.Query().AsNoTracking().FirstOrDefaultAsync(a => a.RowId.Equals(id));
+            var billItem = await _billRepository.Query().AsNoTracking().Include(a => a.OtherCosts).FirstOrDefaultAsync(a => a.RowId.Equals(id));
 
-            var billItemList = await _billRepository.Query().AsNoTracking().Include(a => a.Vehicle)
-                .Where(a => a.BillNo.Equals(billItem.BillNo)).ToListAsync();
+            List<BillPrintDataVM> billItemList = new();
+            if (billItem.OtherCosts.Any())
+            {
+                foreach (var item in billItem.OtherCosts)
+                    billItemList.Add(new BillPrintDataVM
+                    {
+                        Amount = item.Amount,
+                        ReceiverName = item.DriverName,
+                        VehicleNumber = $"ایران {item.Vehicle.IranStateNumber} - {item.Vehicle.RightNumber} {item.Vehicle.NumberWord} {item.Vehicle.LeftNumber}"
+                    });
+            }
+            else
+            {
+                billItemList = await _billRepository.Query().AsNoTracking().Include(a => a.Vehicle)
+                    .Where(a => a.BillNo.Equals(billItem.BillNo)).Select(a => new BillPrintDataVM
+                    {
+                        Amount = a.Amount,
+                        ReceiverName = a.ReceiverName,
+                        VehicleNumber = $"ایران {a.Vehicle.IranStateNumber} - {a.Vehicle.RightNumber} {a.Vehicle.NumberWord} {a.Vehicle.LeftNumber}"
+                    }).ToListAsync();
+            }
 
             string docTitle = $"لیست قبض پرداختی به شماره {billItem.BillNo}";
 
@@ -4253,7 +4272,7 @@ namespace EtehadBar.MVC.Controllers
                 phrase = "ریاست محترم بانک پاسارگاد شعبه شهرک راه آهن کد 241";
             }
 
-                ws.Cell(1, 1).Value = bankPresidentName;
+            ws.Cell(1, 1).Value = bankPresidentName;
             ws.Cell(2, 1).Value = phrase;
             ws.Cell(3, 1).Value = "با سلام";
             ws.Cell(4, 1).Value = $"احتراماً به پیوست لیست پرداختی به مبلغ {billItemList.Sum(a => a.Amount):N0} ریال";
@@ -4277,11 +4296,9 @@ namespace EtehadBar.MVC.Controllers
 
             for (int index = 1; index <= billItemList.Count; index++)
             {
-                var vehicle = billItemList[index - 1].Vehicle;
-
                 ws.Cell(index + 6, 1).Value = index;
                 ws.Cell(index + 6, 2).Value = billItemList[index - 1].ReceiverName.Replace("/", "");
-                ws.Cell(index + 6, 3).Value = $"ایران {vehicle.IranStateNumber} - {vehicle.RightNumber} {vehicle.NumberWord} {vehicle.LeftNumber}";
+                ws.Cell(index + 6, 3).Value = billItemList[index - 1].VehicleNumber;
                 ws.Cell(index + 6, 4).Value = billItemList[index - 1].Amount.ToString("N0");
             }
 

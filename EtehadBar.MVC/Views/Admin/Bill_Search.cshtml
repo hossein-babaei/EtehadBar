@@ -27,9 +27,10 @@
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
-                    <th width="50">قبض</th>
-                    <th width="50">ویرایش</th>
-                    <th width="50">حذف</th>
+                    <th width="35">قبض</th>
+                    <th width="35">کارکرد</th>
+                    <th width="35">ویرایش</th>
+                    <th width="35">حذف</th>
                 </tr>
             </thead>
             <tbody>
@@ -57,6 +58,16 @@
                         <td>@(item.CustomerId.HasValue ? item.Customer.Name : "---")</td>
                         <td class="uk-text-small">@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Bill_Print" asp-route-id="@item.RowId" target="_blank"><i class="fas fa-print"></i></a></td>
+                        <td>
+                            @if (item.BillType.StartsWith("گروهی"))
+                            {
+                                <a class="uk-button uk-button-primary uk-button-small" onclick="relate(@item.Id)"><i class="fas fa-clone"></i></a>
+                            }
+                            else
+                            {
+                                <a class="uk-button uk-button-default uk-button-small" disabled><i class="fas fa-clone"></i></a>
+                            }
+                        </td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>

@@ -1488,4 +1488,33 @@ namespace EtehadBar.Domain
         [Required]
         public long UserPlannerId { get; set; }
     }
+
+    public class CreateGroupOtherCostVM
+    {
+        [Display(Name = "مشتری")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CustomerId { get; set; }
+
+        [Display(Name = "تقویم")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CalendarId { get; set; }
+
+        [Display(Name = "مبلغ")]
+        public double? Amount { get; set; }
+
+        [Display(Name = "حداقل مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double MinimumAmount { get; set; }
+
+        [Display(Name = "حداکثر مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double MaximumAmount { get; set; }
+    }
+
+    public class BillPrintDataVM
+    {
+        public string ReceiverName { get; set; }
+        public string VehicleNumber { get; set; }
+        public double Amount { get; set; }
+    }
 }

@@ -1,5 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using EtehadBar.Domain.Models.LoadFactorCreator;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -72,6 +74,8 @@ namespace EtehadBar.Domain.Models
 
         [StringLength(450)]
         public string EditorId { get; set; }
+
+        public ICollection<OtherCost> OtherCosts { get; set; }
 
         [Required]
         [StringLength(36)]

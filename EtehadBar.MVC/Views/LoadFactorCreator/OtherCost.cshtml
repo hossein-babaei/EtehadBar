@@ -4,9 +4,9 @@
 @using X.PagedList.Mvc.Core
 
 @{
-    ViewData["pageId"] = 5;
+    ViewData["pageId"] = 43;
     var data = ViewBag.data as IPagedList<OtherCost>;
-    ViewData["Title"] = "هزینه های دیگر";
+    ViewData["Title"] = "هزینه ساز";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     int i = 1;
     if (data.PageNumber > 1)
@@ -30,6 +30,50 @@
         function vehicleSelectChangeHandler(select) {
             let ownerName = $(select).find('option:selected').data('owner');
             $(select).parent().next().find('input').val(ownerName);
+        }
+
+        async function createGroup() {
+            preloader();
+            await $.get('@Url.Action("CreateGroupOtherCost")', {}, function (r) {
+                let modal = $('#create-group-modal');
+                modal.html(r);
+                modal.find('#CalendarId').select2(select2Config);
+
+                modal.find('form').submit(function (e) {
+                    e.preventDefault();
+                    submitCreateGroupForm();
+                });
+            }, 'html').then(function () {
+                parseValidator('#create-group-form');
+                preloader();
+                UIkit.modal('#create-group-modal').show();
+            });
+        }
+
+        function submitCreateGroupForm() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CreateGroupOtherCost")',
+                data: $('#create-group-modal form').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        $.post('@Url.Action("OtherCost_Search")', { }, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
         }
 
         async function create() {
@@ -110,12 +154,12 @@
     <div class="uk-width-auto@m">
         <ul class="uk-breadcrumb">
             <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
-            <li><a asp-action="Index">بارنامه ساز</a></li>
             <li><span>@ViewData["Title"]</span></li>
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a class="uk-button uk-button-primary" onclick="create()">افزودن</a>
+        <a class="uk-button uk-button-primary uk-margin-small-left" onclick="create()">افزودن</a>
+        <a class="uk-button uk-button-secondary" onclick="createGroup()">افزودن خودکار گروهی</a>
     </div>
 </div>
 <div id="append" class="box">
@@ -159,6 +203,7 @@
     }
 </div>
 <div id="create-modal" uk-modal="bg-close: false"></div>
+<div id="create-group-modal" uk-modal="bg-close: false"></div>
 <div id="edit-modal" uk-modal="bg-close: false"></div>
 <div id="delete-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">

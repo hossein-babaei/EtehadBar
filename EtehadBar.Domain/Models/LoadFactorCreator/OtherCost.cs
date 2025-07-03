@@ -29,16 +29,21 @@ namespace EtehadBar.Domain.Models.LoadFactorCreator
         [Display(Name = "پلاک")]
         [ForeignKey(nameof(Vehicle))]
         public long VehicleId { get; set; }
-        public virtual Vehicle Vehicle { get; set; }
+        public Vehicle Vehicle { get; set; }
 
         [Display(Name = "مشتری")]
         [ForeignKey(nameof(Customer))]
         public long CustomerId { get; set; }
-        public virtual Customer Customer { get; set; }
+        public Customer Customer { get; set; }
 
         [Required]
         [Display(Name = "تقویم کاری")]
         public long CalendarId { get; set; }
-        public virtual Calendar Calendar { get; set; }
+        public Calendar Calendar { get; set; }
+
+        [Display(Name = "فیش بانکی")]
+        [ForeignKey(nameof(Bill))]
+        public long? BillId { get; set; }
+        public Bill Bill { get; set; }
     }
 }

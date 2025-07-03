@@ -1,0 +1,58 @@
+﻿@model CreateGroupOtherCostVM
+
+@{
+    var calendars = (List<Calendar>)ViewData["Calendars"];
+    var customers = (List<Customer>)ViewData["Customers"];
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">افزودن گروهی جدید</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="create-form" asp-action="CreateGroupOtherCost" method="post" autocomplete="off">
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-flex-bottom uk-child-width-1-1" uk-grid>
+                <div>
+                    <label asp-for="CustomerId" class="uk-form-label"></label>
+                    <select asp-for="CustomerId" class="uk-select uk-border-rounded uk-form-small">
+                        <option value="0">انتخاب مشتری</option>
+                        @foreach (var item in customers)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="CalendarId" class="uk-form-label"></label>
+                    <select asp-for="CalendarId" class="uk-select uk-border-rounded">
+                        @foreach (var item in calendars)
+                        {
+                            <option value="@item.Id">@item.Title</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CalendarId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Amount" class="uk-form-label"></label>
+                    <input asp-for="Amount" class="uk-input uk-border-rounded format-number" dir="ltr"/>
+                    <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="MinimumAmount" class="uk-form-label"></label>
+                    <input asp-for="MinimumAmount" class="uk-input uk-border-rounde format-number" dir="ltr" />
+                    <span asp-validation-for="MinimumAmount" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="MaximumAmount" class="uk-form-label"></label>
+                    <input asp-for="MaximumAmount" class="uk-input uk-border-rounded format-number" dir="ltr" />
+                    <span asp-validation-for="MaximumAmount" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitCreateGroupForm()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

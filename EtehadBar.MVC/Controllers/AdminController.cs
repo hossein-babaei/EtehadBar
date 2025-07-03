@@ -7426,6 +7426,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<PartialViewResult> CreateBill()
         {
+            ViewData["LastBillNo"] = await _billRepository.Query().AsNoTracking().MaxAsync(a => a.BillNo);
             ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderByDescending(a => a.Name).ToListAsync();
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().OrderByDescending(a => a.LeftNumber).ToListAsync();

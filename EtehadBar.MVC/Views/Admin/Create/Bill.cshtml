@@ -4,6 +4,7 @@
     var vehicles = (List<Vehicle>)ViewData["Vehicles"];
     var definitions = (List<Definition>)ViewData["Definitions"];
     var customers = (List<Customer>)ViewData["Customers"];
+    var billNumber = (Convert.ToDouble(ViewData["LastBillNo"].ToString())) + 1;
 }
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -68,7 +69,7 @@
                 </div>
                 <div class="uk-width-1-2">
                     <label asp-for="BillNo" class="uk-form-label"></label>
-                    <input asp-for="BillNo" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                    <input asp-for="BillNo" dir="ltr" class="uk-input uk-border-rounded uk-form-small" value="@billNumber" />
                     <span asp-validation-for="BillNo" class="uk-text-danger"></span>
                 </div>
                 <div class="uk-width-1-2">

@@ -86,13 +86,14 @@
     }
     @if (User.IsInRole("Admin") || User.IsInRole("Milad") || User.IsInRole("User"))
     {
-        <li class="uk-parent @if (param == 4 || param == 33 || param == 34 || param == 36) { <text>uk-open</text> }">
+        <li class="uk-parent @if (param == 4 || param == 33 || param == 34 || param == 36 || param == 43) { <text>uk-open</text> }">
             <a><i class="uk-margin-left fas fa-money-bill"></i>هزینه ها</a>
             <ul class="uk-nav-sub">
                 <li @if (param == 4) { <text> class="active" </text> }><a asp-action="Cost" asp-controller="Admin">جاری</a></li>
                 @if (User.IsInRole("Admin"))
                 {
                     <li @if (param == 36) { <text> class="active" </text> }><a asp-action="Bill" asp-controller="Admin">پرداختی</a></li>
+                    <li @if (param == 43) { <text> class="active" </text> }><a asp-action="OtherCost" asp-controller="LoadFactorCreator">هزینه ساز</a></li>
                     <li @if (param == 33) { <text> class="active" </text> }><a asp-action="TurnoverProfile" asp-controller="Admin" asp-route-type="@((int)TurnoverType.Partner)">شرکا</a></li>
                     <li @if (param == 34) { <text> class="active" </text> }><a asp-action="TurnoverProfile" asp-controller="Admin" asp-route-type="@((int)TurnoverType.Investor)">سرمایه گذار</a></li>
                 }

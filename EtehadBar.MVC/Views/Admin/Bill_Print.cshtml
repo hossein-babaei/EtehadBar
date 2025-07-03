@@ -6,6 +6,14 @@
     ViewData["Title"] = $"پرینت قبض شماره {Model.BillNo}";
     PersianNumberToString pnts = new();
     var vehicle = Model.Vehicle;
+
+    bool billTypeCondition = true;
+    if (Model.BillType.Equals("تن خواه") || Model.BillType.Equals("حقوق پرسنل") || Model.BillType.Contains("واریز شرکا") || Model.BillType.Equals("مدیریت نقدینگی")
+    || Model.BillType.Contains("برداشت شرکا") || Model.BillType.Contains("بیمه") || Model.BillType.Contains("دارایی") || Model.BillType.Contains("مالیات")
+    || Model.BillType.Contains("گروهی"))
+    {
+        billTypeCondition = false;
+    }
 }
 
 <!DOCTYPE html>
@@ -45,47 +53,54 @@
                         </div>
                     </div>
                     <div style="margin-top: 15px; float:right; width: 100%;">
+                        @if (billTypeCondition)
+                        {
+                            <span>شماره خودرو: ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber &emsp;| &emsp;</span>
+                        }
+                        <span>بانک: @Model.BankBranch</span>
+                    </div>
+                    <div style="float:right; width: 100%;">
                         <p style="line-height: 35px">
                             @if (Model.BillType.Equals("تن خواه"))
                             {
                                 <span>
-                                    مبلغ فوق بابت هزینه های جاری از حساب <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب کارت تن خواه دار واریز گردید.
+                                    مبلغ فوق بابت هزینه های جاری طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب کارت تن خواه دار واریز گردید.
                                 </span>
                             }
                             else if (Model.BillType.Equals("حقوق پرسنل"))
                             {
                                 <span>
-                                    مبلغ فوق بابت حقوق پرسنل از حساب <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب اشخاص لیست پیوست واریز گردید.
+                                    مبلغ فوق بابت حقوق پرسنل طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب اشخاص لیست پیوست واریز گردید.
                                 </span>
                             }
                             else if (Model.BillType.Contains("واریز شرکا"))
                             {
                                 <span>
-                                    مبلغ فوق به حساب <b class="underline">@Model.ReceiverName</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> بانک <b class="underline">@Model.BankBranch</b> توسط شرکا واریز شد.
+                                    مبلغ فوق به حساب <b class="underline">@Model.ReceiverName</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> توسط شرکا واریز شد.
                                 </span>
                             }
                             else if (Model.BillType.Equals("مدیریت نقدینگی"))
                             {
                                 <span>
-                                    مبلغ فوق بابت مدیریت نقدینگی از حساب <b class="underline">@Model.BankBranch</b> به حساب <b class="underline">@Model.ReceiverName</b> منتقل گردید.
+                                    مبلغ فوق بابت مدیریت نقدینگی به حساب <b class="underline">@Model.ReceiverName</b> منتقل گردید.
                                 </span>
                             }
                             else if (Model.BillType.Contains("برداشت شرکا"))
                             {
                                 <span>
-                                    مبلغ فوق از <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب <b class="underline">@Model.ReceiverName</b> (شرکا) واریز شد.
+                                    مبلغ فوق طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب <b class="underline">@Model.ReceiverName</b> (شرکا) واریز شد.
                                 </span>
                             }
                             else if (Model.BillType.Contains("بیمه") || Model.BillType.Contains("دارایی") || Model.BillType.Contains("مالیات"))
                             {
                                 <span>
-                                    مبلغ فوق بابت واریز بیمه/مالیات از حساب <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> منتقل گردید.
+                                    مبلغ فوق بابت واریز بیمه/مالیات طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> منتقل گردید.
                                 </span>
                             }
                             else if (Model.BillType.Contains("گروهی"))
                             {
                                 <span>
-                                    مبلغ فوق بابت واریز گروهی از حساب <b class="underline">@Model.BankBranch</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب رانندگان لیست پیوست واریز گردید.
+                                    مبلغ فوق بابت واریز گروهی طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب رانندگان لیست پیوست واریز گردید.
                                 </span>
                                 <br />
                                 <a asp-controller="Excel" asp-action="BillList" asp-route-id="@Model.RowId" target="_blank">دانلود لیست</a>
@@ -94,7 +109,7 @@
                             {
                                 <span>
                                     مبلغ فوق بابت کارکرد <b class="underline">@Model.Calendar.Title</b> شرکت <b class="underline">@Model.Customer.Name</b> به حساب آقا/خانم <b class="underline">@Model.ReceiverName</b> توسط فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> بانک <b class="underline">@Model.BankBranch</b>
-                                    جهت مطالبات قانونی خویش برای خودرو به شماره <b class="underline">ایران @vehicle.IranStateNumber - @vehicle.RightNumber @vehicle.NumberWord @vehicle.LeftNumber</b> پرداخت گردید.
+                                    جهت مطالبات قانونی ایشان برای خودرو به شماره فوق پرداخت گردید.
                                 </span>
                             }
                         </p>

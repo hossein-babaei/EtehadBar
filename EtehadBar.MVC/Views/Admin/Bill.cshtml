@@ -13,17 +13,18 @@
 }
 
 
-@section Links{
+@section Links {
     <link href="~/css/autocomplete.css" rel="stylesheet" asp-asp-append-version="true" />
 }
 
-@section Scripts{
+@section Scripts {
     <script src="~/js/autocomplete.js"></script>
     <script>
-        let autoCompleteData = [];
+        let autoCompleteData = [],
+            relateModalSelectedAmountSum = 0;
         let select2Config = {
-            width: '100%',
-            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        width: '100%',
+        matcher: ignoreSpecialCharAndWhitespaceInSelect2
         };
         let isSearchLoaded = false;
 
@@ -38,245 +39,301 @@
         });
 
         function getSearch() {
-            if (!isSearchLoaded) {
-                preloader();
-                $.get('@Url.Action("Bill_Search")', {}, function (r) {
-                    let vehicleOptions = '<option value="0">همه</option>',
-                        customerOptions = '<option value="0">همه</option>',
-                        nameOptions = '<option value="all">همه</option>',
-                        calendarOptions = '<option value="0">همه</option>',
-                        bankBranchOptions = '<option value="all">همه</option>',
-                        billTypeOptions = '<option value="all">همه</option>';
+        if (!isSearchLoaded) {
+        preloader();
+        $.get('@Url.Action("Bill_Search")', {}, function (r) {
+            let vehicleOptions = '<option value="0">همه</option>',
+            customerOptions = '<option value="0">همه</option>',
+            nameOptions = '<option value="all">همه</option>',
+            calendarOptions = '<option value="0">همه</option>',
+            bankBranchOptions = '<option value="all">همه</option>',
+            billTypeOptions = '<option value="all">همه</option>';
 
-                    $.each(r.customers, (i, v) => {
-                        customerOptions += `<option value="${v.id}">${v.name}</option>`;
-                    });
+            $.each(r.customers, (i, v) => {
+            customerOptions += `<option value="${v.id}">${v.name}</option>`;
+            });
 
-                    $.each(r.vehicles, (i, v) => {
-                        vehicleOptions += `<option value="${v.id}">${v.number} - ${v.owner}</option>`;
-                    });
-                    $.each(r.names, (i, v) => {
-                        nameOptions += `<option value="${v}">${v}</option>`;
-                    });
-                    $.each(r.calendars, (i, v) => {
-                        calendarOptions += `<option value="${v.id}">${v.title}</option>`;
-                    });
-                    $.each(r.bankBranches, (i, v) => {
-                        bankBranchOptions += `<option value="${v}">${v}</option>`;
-                    });
-                    $.each(r.billTypes, (i, v) => {
-                        billTypeOptions += `<option value="${v}">${v}</option>`;
-                    });
-                    $('#search-modal #customerId').html(customerOptions);
-                    $('#search-modal #vehicleId').html(vehicleOptions);
-                    $('#search-modal #name').html(nameOptions);
-                    $('#search-modal #calendarId').html(calendarOptions);
-                    $('#search-modal #bankBranch').html(bankBranchOptions);
-                    $('#search-modal #billType').html(billTypeOptions);
+            $.each(r.vehicles, (i, v) => {
+            vehicleOptions += `<option value="${v.id}">${v.number} - ${v.owner}</option>`;
+            });
+            $.each(r.names, (i, v) => {
+            nameOptions += `<option value="${v}">${v}</option>`;
+            });
+            $.each(r.calendars, (i, v) => {
+            calendarOptions += `<option value="${v.id}">${v.title}</option>`;
+            });
+            $.each(r.bankBranches, (i, v) => {
+            bankBranchOptions += `<option value="${v}">${v}</option>`;
+            });
+            $.each(r.billTypes, (i, v) => {
+            billTypeOptions += `<option value="${v}">${v}</option>`;
+            });
+            $('#search-modal #customerId').html(customerOptions);
+            $('#search-modal #vehicleId').html(vehicleOptions);
+            $('#search-modal #name').html(nameOptions);
+            $('#search-modal #calendarId').html(calendarOptions);
+            $('#search-modal #bankBranch').html(bankBranchOptions);
+            $('#search-modal #billType').html(billTypeOptions);
 
-                    $('#search-modal #customerId').select2({
-                        width: '100%',
-                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
-                    });
-                    $('#search-modal #vehicleId').select2({
-                        width: '100%',
-                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
-                    });
-                    $('#search-modal #name').select2({
-                        width: '100%',
-                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
-                    });
-                    $('#search-modal #calendarId').select2({
-                        width: '100%',
-                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
-                    });
-                    $('#search-modal #bankBranch').select2({
-                        width: '100%',
-                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
-                    });
-                    $('#search-modal #billType').select2({
-                        width: '100%',
-                        matcher: ignoreSpecialCharAndWhitespaceInSelect2
-                    });
-                }, 'json').then(function () {
-                    preloader();
-                    UIkit.modal('#search-modal').show();
-                });
+            $('#search-modal #customerId').select2({
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+            });
+            $('#search-modal #vehicleId').select2({
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+            });
+            $('#search-modal #name').select2({
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+            });
+            $('#search-modal #calendarId').select2({
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+            });
+            $('#search-modal #bankBranch').select2({
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+            });
+            $('#search-modal #billType').select2({
+            width: '100%',
+            matcher: ignoreSpecialCharAndWhitespaceInSelect2
+            });
+            }, 'json').then(function () {
+            preloader();
+            UIkit.modal('#search-modal').show();
+            });
             } else {
-                UIkit.modal('#search-modal').show();
+            UIkit.modal('#search-modal').show();
             }
         }
         function filter() {
-            var data = $('#search-modal form').serialize();
-            $.ajax({
-                type: 'POST',
-                url: '@Url.Action("Bill_Search")',
-                data: data,
-                dataType: 'html',
-                beforeSend: function () {
-                    preloader();
-                },
-                success: function (r) {
-                    $('#append').html(r);
-                },
-                error: function (e) {
-                    uiAlert(e.responseText, 'danger')
-                },
-                complete: function () {
-                    preloader();
-                    UIkit.modal('#search-modal').hide();
-                }
-            });
+        var data = $('#search-modal form').serialize();
+        $.ajax({
+        type: 'POST',
+        url: '@Url.Action("Bill_Search")',
+        data: data,
+        dataType: 'html',
+        beforeSend: function () {
+        preloader();
+        },
+        success: function (r) {
+        $('#append').html(r);
+        },
+        error: function (e) {
+        uiAlert(e.responseText, 'danger')
+        },
+        complete: function () {
+        preloader();
+        UIkit.modal('#search-modal').hide();
+        }
+        });
         }
         async function create() {
-            preloader();
-            if (autoCompleteData.length == 0) {
-                await $.get('@Url.Action("GetBillReceiverNames")', {}, function (r) {
-                    $.each(r, (i, v) => {
-                        autoCompleteData.push(v);
-                    });
-                }, 'json');
-            }
-            await $.get('@Url.Action("CreateBill")', {}, function (r) {
-                $('#create-modal').html(r);
+        preloader();
+        if (autoCompleteData.length == 0) {
+        await $.get('@Url.Action("GetBillReceiverNames")', {}, function (r) {
+        $.each(r, (i, v) => {
+        autoCompleteData.push(v);
+        });
+        }, 'json');
+        }
+        await $.get('@Url.Action("CreateBill")', {}, function (r) {
+        $('#create-modal').html(r);
 
-                $('#create-modal #CalendarId').select2(select2Config);
-                $('#create-modal #VehicleId').select2(select2Config);
-                $('#create-modal #BankBranch').select2(select2Config);
-                $('#create-modal #BillType').select2(select2Config);
-                $('#create-modal form').submit(function (e) {
-                    e.preventDefault();
-                    submitCreateForm();
-                });
-                autocomplete($('#create-form #ReceiverName').get(0), autoCompleteData);
-            }, 'html').then(function () {
-                parseValidator('#create-form');
-                preloader();
-                UIkit.modal('#create-modal').show();
-            });
+        $('#create-modal #CalendarId').select2(select2Config);
+        $('#create-modal #VehicleId').select2(select2Config);
+        $('#create-modal #BankBranch').select2(select2Config);
+        $('#create-modal #BillType').select2(select2Config);
+        $('#create-modal form').submit(function (e) {
+        e.preventDefault();
+        submitCreateForm();
+        });
+        autocomplete($('#create-form #ReceiverName').get(0), autoCompleteData);
+        }, 'html').then(function () {
+        parseValidator('#create-form');
+        preloader();
+        UIkit.modal('#create-modal').show();
+        });
         }
         function submitCreateForm() {
-            $.ajax({
-                type: 'POST',
-                url: '@Url.Action("CreateBill")',
-                data: $('#create-modal form').serialize(),
-                dataType: 'json',
-                beforeSend: function () {
-                    preloader();
-                },
-                success: function (r) {
-                    uiAlert(r.msg, r.status);
-                    if (r.status == 'success') {
-                        $.post('@Url.Action("Bill_Search")', {}, function (r) {
-                            $('#append').html(r);
-                        }, 'html');
-                    }
-                },
-                error: function (e) {
-                    uiAlert(e.responseText, 'danger');
-                },
-                complete: function () {
-                    preloader();
-                }
-            });
+        $.ajax({
+        type: 'POST',
+        url: '@Url.Action("CreateBill")',
+        data: $('#create-modal form').serialize(),
+        dataType: 'json',
+        beforeSend: function () {
+        preloader();
+        },
+        success: function (r) {
+        uiAlert(r.msg, r.status);
+        if (r.status == 'success') {
+        $.post('@Url.Action("Bill_Search")', {}, function (r) {
+        $('#append').html(r);
+        }, 'html');
+        }
+        },
+        error: function (e) {
+        uiAlert(e.responseText, 'danger');
+        },
+        complete: function () {
+        preloader();
+        if (!$('#create-modal #BillNo').startsWith('گروهی')) {
+            $('#create-modal #BillNo').val(parseInt($('#create-modal #BillNo').val())+1);
+        }
+        }
+        });
         }
         function edit(id) {
-            preloader();
-            $.get('@Url.Action("EditBill")', { 'id': id }, function (r) {
-                $('#edit-modal').html(r);
+        preloader();
+        $.get('@Url.Action("EditBill")', { 'id': id }, function (r) {
+        $('#edit-modal').html(r);
 
-                $('#edit-modal #CalendarId').select2(select2Config);
-                $('#edit-modal #VehicleId').select2(select2Config);
-                $('#edit-modal #BankBranch').select2(select2Config);
-                $('#edit-modal #BillType').select2(select2Config);
-                $('#edit-modal form').submit(function (e) {
-                    e.preventDefault();
-                    submitEditForm();
-                });
-                autocomplete($('#edit-form #ReceiverName').get(0), autoCompleteData);
-            }, 'html').then(function () {
-                parseValidator('#edit-modal form');
-                preloader();
-                UIkit.modal('#edit-modal').show();
-            });
+        $('#edit-modal #CalendarId').select2(select2Config);
+        $('#edit-modal #VehicleId').select2(select2Config);
+        $('#edit-modal #BankBranch').select2(select2Config);
+        $('#edit-modal #BillType').select2(select2Config);
+        $('#edit-modal form').submit(function (e) {
+        e.preventDefault();
+        submitEditForm();
+        });
+        autocomplete($('#edit-form #ReceiverName').get(0), autoCompleteData);
+        }, 'html').then(function () {
+        parseValidator('#edit-modal form');
+        preloader();
+        UIkit.modal('#edit-modal').show();
+        });
         }
         function submitEditForm() {
-            $.ajax({
-                type: 'POST',
-                url: '@Url.Action("EditBill")',
-                data: $('#edit-modal form').serialize(),
-                dataType: 'json',
-                beforeSend: function () {
-                    preloader();
-                },
-                success: function (r) {
-                    uiAlert(r.msg, r.status);
-                    if (r.status == 'success') {
-                        //$.post('@Url.Action("Bill_Search")', {}, function (r) {
-                        //    $('#append').html(r);
-                        //}, 'html');
-                    }
-                    UIkit.modal('#edit-modal').hide();
-                },
-                error: function (e) {
-                    uiAlert(e.responseText, 'danger');
-                },
-                complete: function () {
-                    preloader();
-                }
-            });
+        $.ajax({
+        type: 'POST',
+        url: '@Url.Action("EditBill")',
+        data: $('#edit-modal form').serialize(),
+        dataType: 'json',
+        beforeSend: function () {
+        preloader();
+        },
+        success: function (r) {
+        uiAlert(r.msg, r.status);
+        if (r.status == 'success') {
+        //$.post('@Url.Action("Bill_Search")', {}, function (r) {
+        //    $('#append').html(r);
+        //}, 'html');
+        }
+        UIkit.modal('#edit-modal').hide();
+        },
+        error: function (e) {
+        uiAlert(e.responseText, 'danger');
+        },
+        complete: function () {
+        preloader();
+        }
+        });
         }
         async function vehicleSelectChangeHandler(select) {
 
             let ownerName = $(select).find('option:selected').data('owner');
             ownerName = ownerName.replace('/', '');
+            ownerName = ownerName.replace('//', '');
             $(select).parent().next().find('input').val(ownerName);
 
             let realStatus = $(select).find('option:selected').data('real-status');
             if (realStatus == 'True') {
-                let form = $(select).parents('form'),
-                    customerId = form.find('#CustomerId').val(),
-                    calendarId = form.find('#CalendarId').val(),
-                    vehicleId = $(select).val();
+            let form = $(select).parents('form'),
+            customerId = form.find('#CustomerId').val(),
+            calendarId = form.find('#CalendarId').val(),
+            vehicleId = $(select).val();
 
-                    if  (customerId > 0) {
-                        //implement activity amount
-                        await $.get('@Url.Action("GetSelectedVehicleBalanceInBillForm")',
-                        { 'customerId': customerId, 'calendarId': calendarId, 'vehicleId': vehicleId }
+            if  (customerId > 0) {
+            //implement activity amount
+                await $.get('@Url.Action("GetSelectedVehicleBalanceInBillForm")',
+                    { 'customerId': customerId, 'calendarId': calendarId, 'vehicleId': vehicleId }
                         , function (r) {
-                            form.find('#Amount').val(r).keyup();
-                        }
-                        , 'json');
+                        form.find('#Amount').val(r).keyup();
                     }
+                    , 'json');
+                }
             }
         }
         function remove(id) {
-            $('#delete-modal input').val(id);
-            UIkit.modal('#delete-modal').show();
+        $('#delete-modal input').val(id);
+        UIkit.modal('#delete-modal').show();
         }
         function calcBillSum(){
-            let billNo = $('#sum-modal input').val();
-            $.ajax({
-                type: 'POST',
-                url: '@Url.Action("CalculateBillSum")',
-                data: {'billNo' : billNo },
-                dataType: 'json',
-                beforeSend: function () {
-                    preloader();
-                },
-                success: function (r) {
-                    $('#sum-modal .result').text(r);
-                },
-                error: function (e) {
-                    uiAlert(e.responseText, 'danger');
-                },
-                complete: function () {
-                    preloader();
-                }
+        let billNo = $('#sum-modal input').val();
+        $.ajax({
+        type: 'POST',
+        url: '@Url.Action("CalculateBillSum")',
+        data: {'billNo' : billNo },
+        dataType: 'json',
+        beforeSend: function () {
+        preloader();
+        },
+        success: function (r) {
+        $('#sum-modal .result').text(r);
+        },
+        error: function (e) {
+        uiAlert(e.responseText, 'danger');
+        },
+        complete: function () {
+        preloader();
+        }
+        });
+        }
+        async function relate(id) {
+            preloader();
+            await $.get('@Url.Action("GetUnBillOtherCost", "LoadFactorCreator")', {'billId': id}, (r) => {
+                $('#relation-modal').html(r);
+            }, 'html').then(function() {
+                preloader();
+                UIkit.modal('#relation-modal').show();
             });
         }
+         function selectAllCosts() {
+            $('.select-btn').attr('onclick', 'deselectAllCosts()').text('حذف انتخاب همه');
+            $.each($('#relation-modal td input'), (i, v) => {
+                if (!$(v).prop('checked')) {
+                    $('#relation-modal td input').prop('checked', true);
+                }
+            })
+            relationCheckboxGroupHandler('select');
+        }
+        function deselectAllCosts() {
+            $('.select-btn').attr('onclick', 'selectAllCosts()').text('انتخاب همه');
+            $.each($('#relation-modal td input'), (i, v) => {
+                if ($(v).prop('checked')) {
+                    $('#relation-modal td input').prop('checked', false);
+                }
+            })
+            relationCheckboxGroupHandler('deSelect');
+        }
+        function relationCheckboxGroupHandler (type){
+            relateModalSelectedAmountSum = 0;
+            if (type == 'select') {
+                $.each($('#relation-modal td input'), (i, v) => {
+                let checkboxAmount = parseInt($(v).data('amount'));
+
+                    relateModalSelectedAmountSum += checkboxAmount;
+                });
+            }
+
+            $('#SelectedAmount span').text(numberWithCommas(relateModalSelectedAmountSum));
+        }
+
+        $(document).on('change', '#relation-modal td input', function (){
+            let checkboxAmount = parseInt($(this).data('amount')),
+                isChecked = $(this).prop('checked');
+                if (isChecked) {
+                    relateModalSelectedAmountSum += checkboxAmount;
+                } else {
+                    relateModalSelectedAmountSum -= checkboxAmount;
+                }
+
+            $('#SelectedAmount span').text(numberWithCommas(relateModalSelectedAmountSum));
+        });
     </script>
 }
+
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
     <div class="uk-width-auto@m">
         <ul class="uk-breadcrumb">
@@ -307,9 +364,10 @@
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
-                    <th width="50">قبض</th>
-                    <th width="50">ویرایش</th>
-                    <th width="50">حذف</th>
+                    <th width="35">قبض</th>
+                    <th width="35">کارکرد</th>
+                    <th width="35">ویرایش</th>
+                    <th width="35">حذف</th>
                 </tr>
             </thead>
             <tbody>
@@ -337,6 +395,16 @@
                         <td>@(item.CustomerId.HasValue ? item.Customer.Name : "---")</td>
                         <td class="uk-text-small">@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Bill_Print" asp-route-id="@item.RowId" target="_blank"><i class="fas fa-print"></i></a></td>
+                        <td>
+                            @if (item.BillType.StartsWith("گروهی"))
+                            {
+                                <a class="uk-button uk-button-primary uk-button-small" onclick="relate(@item.Id)"><i class="fas fa-clone"></i></a>
+                            }
+                            else
+                            {
+                                <a class="uk-button uk-button-default uk-button-small" disabled><i class="fas fa-clone"></i></a>
+                            }
+                        </td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
@@ -374,7 +442,7 @@
             <input class="uk-input uk-border-rounded" dir="ltr" />
 
             <hr />
-            <p class="uk-text-bold">حاصل جمع: <span class ="result">0</span></p>
+            <p class="uk-text-bold">حاصل جمع: <span class="result">0</span></p>
 
             <div class="uk-modal-footer uk-text-center">
                 <button class="uk-button uk-button-primary" onclick="calcBillSum()" type="button">محاسبه و نمایش</button>
@@ -454,3 +522,4 @@
         </div>
     </div>
 </div>
+<div id="relation-modal" class="uk-modal-container" uk-modal=""></div>
