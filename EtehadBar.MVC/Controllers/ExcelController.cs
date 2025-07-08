@@ -4214,7 +4214,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> BillList(string id)
         {
-            var billItem = await _billRepository.Query().AsNoTracking().Include(a => a.OtherCosts).FirstOrDefaultAsync(a => a.RowId.Equals(id));
+            var billItem = await _billRepository.Query().AsNoTracking().Include(a => a.OtherCosts).ThenInclude(a => a.Vehicle).FirstOrDefaultAsync(a => a.RowId.Equals(id));
 
             List<BillPrintDataVM> billItemList = new();
             if (billItem.OtherCosts.Any())
@@ -4224,6 +4224,8 @@ namespace EtehadBar.MVC.Controllers
                     {
                         Amount = item.Amount,
                         ReceiverName = item.DriverName,
+                        VehicleLeftNumber = item.Vehicle.LeftNumber,
+                        VehicleRightNumber = item.Vehicle.RightNumber,
                         VehicleNumber = $"ایران {item.Vehicle.IranStateNumber} - {item.Vehicle.RightNumber} {item.Vehicle.NumberWord} {item.Vehicle.LeftNumber}"
                     });
             }
@@ -4234,10 +4236,13 @@ namespace EtehadBar.MVC.Controllers
                     {
                         Amount = a.Amount,
                         ReceiverName = a.ReceiverName,
+                        VehicleLeftNumber = a.Vehicle.LeftNumber,
+                        VehicleRightNumber = a.Vehicle.RightNumber,
                         VehicleNumber = $"ایران {a.Vehicle.IranStateNumber} - {a.Vehicle.RightNumber} {a.Vehicle.NumberWord} {a.Vehicle.LeftNumber}"
                     }).ToListAsync();
             }
 
+            billItemList = billItemList.OrderBy(a => a.VehicleLeftNumber).ThenBy(a => a.VehicleRightNumber).ToList();
             string docTitle = $"لیست قبض پرداختی به شماره {billItem.BillNo}";
 
             using var workbook = new XLWorkbook();

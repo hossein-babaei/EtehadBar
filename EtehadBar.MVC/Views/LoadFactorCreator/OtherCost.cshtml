@@ -13,25 +13,24 @@
         i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
 }
 
-@section Links{
+@section Links {
     <link href="~/css/autocomplete.css" rel="stylesheet" asp-asp-append-version="true" />
 }
 
 @section Scripts {
     <script src="~/js/autocomplete.js"></script>
     <script>
-        let autoCompleteData = [];
+        let isSearchLoaded = false,
+            isSumLoaded = false,
+            autoCompleteData = [];
         let select2Config = {
             width: '100%',
             matcher: ignoreSpecialCharAndWhitespaceInSelect2
         };
-        let isSearchLoaded = false;
-
         function vehicleSelectChangeHandler(select) {
             let ownerName = $(select).find('option:selected').data('owner');
             $(select).parent().next().find('input').val(ownerName);
         }
-
         async function createGroup() {
             preloader();
             await $.get('@Url.Action("CreateGroupOtherCost")', {}, function (r) {
@@ -49,7 +48,6 @@
                 UIkit.modal('#create-group-modal').show();
             });
         }
-
         function submitCreateGroupForm() {
             $.ajax({
                 type: 'POST',
@@ -75,7 +73,6 @@
                 }
             });
         }
-
         async function create() {
             preloader();
             if (autoCompleteData.length == 0) {
@@ -143,9 +140,150 @@
                 UIkit.modal('#edit-modal').show();
             });
         }
+        function submitEditForm() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EditOtherCost")',
+                data: $('#edit-modal form').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                    success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        let dataTag = $('#append > div');
+                        data = {
+                            'p': dataTag.data('page'),
+                            'customerId': dataTag.data('customer'),
+                            'calendarId': dataTag.data('calendar')
+                        };
+                        $.post('@Url.Action("OtherCost_Search")', data, function (r) {
+                           $('#append').html(r);
+                        }, 'html');
+                    }
+                    UIkit.modal('#edit-modal').hide();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
+        }
         function remove(id) {
             $('#delete-modal input').val(id);
             UIkit.modal('#delete-modal').show();
+        }
+        function filter() {
+            var data = $('#search-modal form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("OtherCost_Search")',
+                data: data,
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#append').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger')
+                },
+                complete: function () {
+                    preloader();
+                    UIkit.modal('#search-modal').hide();
+                }
+            });
+        }
+        function getSearch() {
+        if (!isSearchLoaded) {
+            preloader();
+            $.get('@Url.Action("OtherCost_Search")', {}, function (r) {
+                let customerOptions = '<option value="0">همه</option>',
+                    calendarOptions = '<option value="0">همه</option>';
+
+                $.each(r.customers, (i, v) => {
+                    customerOptions += `<option value="${v.id}">${v.name}</option>`;
+                });
+                $.each(r.calendars, (i, v) => {
+                    calendarOptions += `<option value="${v.id}">${v.title}</option>`;
+                });
+                $('#search-modal #customerId').html(customerOptions);
+                $('#search-modal #calendarId').html(calendarOptions);
+
+                $('#search-modal #customerId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#search-modal #calendarId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+            }, 'json').then(function () {
+                    preloader();
+                    UIkit.modal('#search-modal').show();
+                    isSearchLoaded = true;
+                });
+            } else {
+                UIkit.modal('#search-modal').show();
+            }
+        }
+        function getSum() {
+            if (!isSumLoaded) {
+            preloader();
+            $.get('@Url.Action("OtherCost_Search")', {}, function (r) {
+                let customerOptions = '<option value="0">همه</option>',
+                    calendarOptions = '<option value="0">همه</option>';
+
+                $.each(r.customers, (i, v) => {
+                    customerOptions += `<option value="${v.id}">${v.name}</option>`;
+                });
+                $.each(r.calendars, (i, v) => {
+                    calendarOptions += `<option value="${v.id}">${v.title}</option>`;
+                });
+                $('#sum-modal #customerId').html(customerOptions);
+                $('#sum-modal #calendarId').html(calendarOptions);
+
+                $('#sum-modal #customerId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#sum-modal #calendarId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+            }, 'json').then(function () {
+                    preloader();
+                    UIkit.modal('#sum-modal').show();
+                    isSumLoaded = true;
+                });
+            } else {
+                UIkit.modal('#sum-modal').show();
+            }
+        }
+        function calcSum(){
+            var data = $('#sum-modal form').serialize();
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CalculateOtherCostSum")',
+                data: data,
+                dataType: 'json',
+                beforeSend: function () {
+                preloader();
+            },
+            success: function (r) {
+                $('#sum-modal .result').text(r);
+            },
+            error: function (e) {
+                uiAlert(e.responseText, 'danger');
+            },
+            complete: function () {
+                preloader();
+            }
+            });
         }
     </script>
 }
@@ -159,7 +297,9 @@
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
         <a class="uk-button uk-button-primary uk-margin-small-left" onclick="create()">افزودن</a>
-        <a class="uk-button uk-button-secondary" onclick="createGroup()">افزودن خودکار گروهی</a>
+        <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="getSearch()">جستجو</a>
+        <a class="uk-button uk-button-secondary uk-margin-small-left" onclick="getSum()">جمع کل</a>
+        <a class="uk-button uk-button-danger" onclick="createGroup()">افزودن خودکار گروهی</a>
     </div>
 </div>
 <div id="append" class="box">
@@ -173,6 +313,7 @@
                     <th>@Html.DisplayNameFor(model => model.Amount)</th>
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
+                    <th>قبض</th>
                     <th width="50">ویرایش</th>
                     <th width="50">حذف</th>
                 </tr>
@@ -187,6 +328,16 @@
                         <td>@item.Amount.ToString("N0")</td>
                         <td>@item.Calendar.Title</td>
                         <td>@item.Customer.Name</td>
+                        <td>
+                            @if (item.BillId.HasValue)
+                            {
+                                <span class="uk-text-success">دارد</span>
+                            }
+                            else
+                            {
+                                <span class="uk-text-danger">ندارد</span>
+                            }
+                        </td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
@@ -214,6 +365,59 @@
             <div class="uk-modal-footer uk-text-center">
                 <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
                 <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="search-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">جستجو</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form>
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label class="uk-form-label">بر اساس مشتری</label>
+                        <select class="uk-select uk-border-rounded" id="customerId" name="customerId"></select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">بر اساس تقویم کاری</label>
+                        <select class="uk-select uk-border-rounded" id="calendarId" name="calendarId"></select>
+                    </div>
+                </div>
+            </form>
+            <div class="uk-margin-top uk-text-center">
+                <a asp-action="OtherCost" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+            </div>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="sum-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-margin-auto-vertical">
+        <form>
+            <p class="uk-text-bold uk-text-center">برای محاسبه مجموع یک ماه مشتری، اطلاعات ان را وارد نمائید.</p>
+                <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                    <div>
+                        <label class="uk-form-label"> مشتری</label>
+                        <select class="uk-select uk-border-rounded" id="customerId" name="customerId"></select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label"> تقویم کاری</label>
+                        <select class="uk-select uk-border-rounded" id="calendarId" name="calendarId"></select>
+                    </div>
+                </div>
+            <hr />
+            <p class="uk-text-bold uk-text-center">حاصل جمع: <span class="result">0</span></p>
+
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="calcSum()" type="button">محاسبه و نمایش</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
             </div>
         </form>
     </div>

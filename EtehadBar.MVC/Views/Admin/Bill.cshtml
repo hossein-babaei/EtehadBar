@@ -205,30 +205,44 @@
         });
         }
         function submitEditForm() {
-        $.ajax({
-        type: 'POST',
-        url: '@Url.Action("EditBill")',
-        data: $('#edit-modal form').serialize(),
-        dataType: 'json',
-        beforeSend: function () {
-        preloader();
-        },
-        success: function (r) {
-        uiAlert(r.msg, r.status);
-        if (r.status == 'success') {
-        //$.post('@Url.Action("Bill_Search")', {}, function (r) {
-        //    $('#append').html(r);
-        //}, 'html');
-        }
-        UIkit.modal('#edit-modal').hide();
-        },
-        error: function (e) {
-        uiAlert(e.responseText, 'danger');
-        },
-        complete: function () {
-        preloader();
-        }
-        });
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("EditBill")',
+                data: $('#edit-modal form').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                    success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        let dataTag = $('#append > div');
+                        data = {
+                            'p': dataTag.data('page'),
+                            'customerId': dataTag.data('customer'),
+                            'calendarId': dataTag.data('calendar'),
+                            'vehicleId': dataTag.data('vehicle'),
+                            'billType': dataTag.data('bill-type'),
+                            'bankBranch': dataTag.data('bank-branch'),
+                            'name': dataTag.data('name'),
+                            'realVehicle': dataTag.data('real-vehicle'),
+                            'description': dataTag.data('description'),
+                            'billNo': dataTag.data('bill-no'),
+                            'bankBillNo': dataTag.data('bank-bill-no')
+                        };
+                        $.post('@Url.Action("Bill_Search")', data, function (r) {
+                           $('#append').html(r);
+                        }, 'html');
+                    }
+                    UIkit.modal('#edit-modal').hide();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+            });
         }
         async function vehicleSelectChangeHandler(select) {
 

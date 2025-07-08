@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Bibliography;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
@@ -10,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using NuGet.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -307,10 +309,28 @@ namespace EtehadBar.MVC.Controllers
             return View();
         }
 
-        public async Task<IActionResult> OtherCost_Search(int? p)
+        [HttpGet]
+        public async Task<JsonResult> OtherCost_Search()
+        {
+            var customers = await _customerRepository.GetAllActive();
+            var calendars = await _calendarRepository.Calendars().OrderByDescending(a => a.Id).ToListAsync();
+            return Json(new { customers, calendars });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> OtherCost_Search(int? p, long? calendarId, long? customerId)
         {
             var pageNumber = p ?? 1;
-            ViewBag.data = await db.OtherCost.Include(a => a.Calendar).Include(a => a.Vehicle).Include(a => a.Customer).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
+            var query = db.OtherCost.AsNoTracking();
+
+            if (calendarId.HasValue)
+                query = query.Where(a => a.CalendarId.Equals(calendarId.Value));
+            if (customerId.HasValue)
+                query = query.Where(a => a.CustomerId.Equals(customerId.Value));
+
+            ViewBag.CustomerId = customerId;
+            ViewBag.CalendarId = calendarId;
+            ViewBag.data = await query.Include(a => a.Calendar).Include(a => a.Vehicle).Include(a => a.Customer).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             return PartialView();
         }
 
@@ -375,6 +395,8 @@ namespace EtehadBar.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> EditOtherCost(OtherCost c)
         {
+            string msg;
+            string status = "danger";
             if (ModelState.IsValid)
             {
                 var item = await db.OtherCost.FindAsync(c.Id);
@@ -390,18 +412,22 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await db.SaveChangesAsync();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+
+
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
                 }
                 catch (Exception e)
                 {
-                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
                 }
             }
             else
             {
-                TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
             }
-            return Redirect(Request.Headers["Referer"].ToString());
+
+            return Json(new { msg, status });
         }
 
         [HttpPost]
@@ -490,12 +516,17 @@ namespace EtehadBar.MVC.Controllers
                     if (difference <= c.MaximumAmount)
                     {
                         if (c.Amount.HasValue)
+                        {
+                            amountList.Add(difference);
                             calculatedAmount += difference;
+                        }
                         else
                         {
                             var x = Convert.ToInt32(difference / 1000000);
-                            amountList.Add(x * 1000000);
-                            calculatedAmount += (x * 1000000);
+                            var y = x * 1000000;
+
+                            amountList.Add(y);
+                            calculatedAmount += y;
                         }
                     }
                     else
@@ -510,7 +541,22 @@ namespace EtehadBar.MVC.Controllers
 
                 List<OtherCost> otherCosts = new();
                 string userId = _userManager.GetUserId(User);
-                var unrealVehicles = await _vehicleRepository.Vehicles().AsNoTracking().Where(a => !a.RealStatus && !a.VehicleOwnerFullname.EndsWith("//")).Select(a => new { a.Id, a.VehicleOwnerFullname}).ToListAsync();
+
+                var unrealVehicles = await _vehicleRepository.Vehicles().AsNoTracking()
+                    .Where(a => !a.RealStatus && !a.VehicleOwnerFullname.EndsWith("//"))
+                    .Select(a => new { a.Id, a.VehicleOwnerFullname }).ToListAsync();
+
+                var usedVehicles = await _billRepository.Query().AsNoTracking()
+                    .Where(a => a.CalendarId.Equals(c.CalendarId) && a.VehicleId.HasValue && unrealVehicles.Select(a => a.Id).Contains(a.VehicleId.Value))
+                    .Select(a => a.VehicleId.Value).Distinct().ToListAsync();
+
+                var oCosts = await db.OtherCost.AsNoTracking().Where(a => a.CalendarId.Equals(c.CalendarId) && unrealVehicles.Select(a => a.Id).Contains(a.VehicleId))
+                    .Select(a => a.VehicleId).Distinct().ToListAsync();
+
+                usedVehicles.AddRange(oCosts);
+
+                unrealVehicles = unrealVehicles.Where(a => !usedVehicles.Contains(a.Id)).ToList();
+
                 for (int i = 0; i < amountList.Count; i++)
                 {
                     int index = rnd.Next(0, unrealVehicles.Count - 1);
@@ -585,6 +631,13 @@ namespace EtehadBar.MVC.Controllers
                 TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
             }
             return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> CalculateOtherCostSum(long customerId, long calendarId)
+        {
+            var sum = await db.OtherCost.AsNoTracking().Where(a => a.CustomerId.Equals(customerId) && a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            return Json(sum.ToString("N0"));
         }
     }
 }

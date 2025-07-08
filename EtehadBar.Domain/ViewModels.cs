@@ -1516,5 +1516,7 @@ namespace EtehadBar.Domain
         public string ReceiverName { get; set; }
         public string VehicleNumber { get; set; }
         public double Amount { get; set; }
+        public string VehicleLeftNumber { get; set; }
+        public string VehicleRightNumber { get; set; }
     }
 }

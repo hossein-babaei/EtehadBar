@@ -7344,7 +7344,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 vehicles,
                 customers = await _customerRepo.Customers().AsNoTracking().Select(a => new { id = a.Id, name = a.Name }).OrderBy(a => a.name).ToListAsync(),
-                calendars = await _calendarRepo.Calendars().AsNoTracking().Select(a => new { id = a.Id, title = a.Title }).OrderBy(a => a.title).ToListAsync(),
+                calendars = await _calendarRepo.Calendars().AsNoTracking().Select(a => new { id = a.Id, title = a.Title }).OrderByDescending(a => a.id).ToListAsync(),
                 names = await _billRepository.Query().AsNoTracking().Select(a => a.ReceiverName).Distinct().OrderBy(a => a).ToListAsync(),
                 bankBranches = definitions.Where(a => a.DefinitionType == DefinitionType.BankBranch).Select(a => a.Title).ToList(),
                 billTypes = definitions.Where(a => a.DefinitionType == DefinitionType.BillType).Select(a => a.Title).ToList()
@@ -7399,6 +7399,9 @@ namespace EtehadBar.MVC.Controllers
             ViewBag.BankBranch = bankBranch;
             ViewBag.CalendarId = calendarId;
             ViewBag.RealVehicle = realVehicle;
+            ViewBag.BillNo = billNo;
+            ViewBag.BankBillNo = bankBillNo;
+            ViewBag.Description = description;
 
             return PartialView();
         }
