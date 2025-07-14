@@ -100,7 +100,7 @@
                             else if (Model.BillType.Contains("گروهی"))
                             {
                                 <span>
-                                    مبلغ فوق بابت واریز گروهی طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب رانندگان لیست پیوست واریز گردید.
+                                    مبلغ فوق بابت کارکرد شرکت <b class="underline">@Model.Customer.Name</b> در <b class="underline">@Model.Calendar.Title</b> به صورت واریز گروهی طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب رانندگان لیست پیوست واریز گردید.
                                 </span>
                                 <br />
                                 <a asp-controller="Excel" asp-action="BillList" asp-route-id="@Model.RowId" target="_blank">دانلود لیست</a>

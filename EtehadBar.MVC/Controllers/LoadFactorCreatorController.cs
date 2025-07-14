@@ -318,7 +318,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> OtherCost_Search(int? p, long? calendarId, long? customerId)
+        public async Task<IActionResult> OtherCost_Search(int? p, long? calendarId, long? customerId, int bill)
         {
             var pageNumber = p ?? 1;
             var query = db.OtherCost.AsNoTracking();
@@ -327,9 +327,15 @@ namespace EtehadBar.MVC.Controllers
                 query = query.Where(a => a.CalendarId.Equals(calendarId.Value));
             if (customerId.HasValue)
                 query = query.Where(a => a.CustomerId.Equals(customerId.Value));
+            if (bill == 1)
+                query = query.Where(a => a.BillId.HasValue);
+            else if (bill == 2)
+                query = query.Where(a => !a.BillId.HasValue);
+
 
             ViewBag.CustomerId = customerId;
             ViewBag.CalendarId = calendarId;
+            ViewBag.Cost = bill;
             ViewBag.data = await query.Include(a => a.Calendar).Include(a => a.Vehicle).Include(a => a.Customer).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             return PartialView();
         }

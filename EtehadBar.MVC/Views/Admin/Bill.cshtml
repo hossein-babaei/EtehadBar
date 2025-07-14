@@ -157,32 +157,32 @@
         });
         }
         function submitCreateForm() {
-        $.ajax({
-        type: 'POST',
-        url: '@Url.Action("CreateBill")',
-        data: $('#create-modal form').serialize(),
-        dataType: 'json',
-        beforeSend: function () {
-        preloader();
-        },
-        success: function (r) {
-        uiAlert(r.msg, r.status);
-        if (r.status == 'success') {
-        $.post('@Url.Action("Bill_Search")', {}, function (r) {
-        $('#append').html(r);
-        }, 'html');
-        }
-        },
-        error: function (e) {
-        uiAlert(e.responseText, 'danger');
-        },
-        complete: function () {
-        preloader();
-        if (!$('#create-modal #BillNo').startsWith('گروهی')) {
-            $('#create-modal #BillNo').val(parseInt($('#create-modal #BillNo').val())+1);
-        }
-        }
-        });
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("CreateBill")',
+                data: $('#create-modal form').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                uiAlert(r.msg, r.status);
+                if (r.status == 'success') {
+                    $.post('@Url.Action("Bill_Search")', {}, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                    if (!$('#create-modal #BillType').val().startsWith('گروهی')) {
+                        $('#create-modal #BillNo').val(parseInt($('#create-modal #BillNo').val())+1);
+                    }
+                }
+            });
         }
         function edit(id) {
         preloader();
@@ -295,12 +295,24 @@
         });
         }
         async function relate(id) {
-            preloader();
-            await $.get('@Url.Action("GetUnBillOtherCost", "LoadFactorCreator")', {'billId': id}, (r) => {
-                $('#relation-modal').html(r);
-            }, 'html').then(function() {
-                preloader();
-                UIkit.modal('#relation-modal').show();
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("GetUnBillOtherCost", "LoadFactorCreator")',
+                data: {'billId': id},
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#relation-modal').html(r);
+                    UIkit.modal('#relation-modal').show();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
             });
         }
          function selectAllCosts() {
