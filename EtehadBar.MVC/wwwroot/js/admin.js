@@ -77,6 +77,29 @@ function ignoreSpecialCharAndWhitespaceInSelect2(params, data) {
         return null;
 }
 
+function getAllCostModal() {
+    const modalId = '#all-cost-report-modal';
+    $.post('/admin/get-all-cost-modal-lists', {}, function (r) {
+        let datesOptions = '';
+        $.each(r.dates, (i, v) => {
+            datesOptions += `<option value="${v.startDate}|${v.endDate}">${v.title}</options>`;
+        });
+
+        let customerOptions = '';
+        $.each(r.customers, (i, v) => {
+            customerOptions += `<option value="${v.id}">${v.name}</options>`;
+        });
+        console.log(r.dates);
+        $(`${modalId} select[name=date]`).html(datesOptions);
+        $(`${modalId} select[name=customer]`).html(customerOptions);
+    }, 'json');
+    UIkit.modal(modalId).show();
+}
+
+function submitAllCostModal() {
+    $('#all-cost-report-modal form').submit();
+}
+
 function getGeneralModal() {
     const modalId = '#general-report-modal';
     $.post('/admin/get-calendars-json', {}, function (r) {
@@ -151,6 +174,8 @@ async function getGovLoadFactor() {
 
 $(document).ready(function () {
     $(`#general-report-modal select[name=calendarId]`).select2({ width: '100%' });
+    $(`#all-cost-report-modal select[name=date]`).select2({ width: '100%' });
+    $(`#all-cost-report-modal select[name=customer]`).select2({ width: '100%' });
     $(`#slashed-load-factor-modal select[name=calendarId]`).select2({ width: '100%' });
     $(`#drivers-periodic-activity-modal select`).select2({ width: '100%' });
     new StickySidebar('#sidebar', {

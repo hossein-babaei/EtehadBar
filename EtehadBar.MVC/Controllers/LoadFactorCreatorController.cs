@@ -363,9 +363,9 @@ namespace EtehadBar.MVC.Controllers
             {
                 db.Add(new OtherCost
                 {
-                    Amount= c.Amount,
-                    DriverName= c.DriverName,
-                    VehicleId= c.VehicleId,
+                    Amount = c.Amount,
+                    DriverName = c.DriverName,
+                    VehicleId = c.VehicleId,
                     CustomerId = c.CustomerId,
                     CalendarId = c.CalendarId,
                     AdminId = _userManager.GetUserId(User)
@@ -440,7 +440,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> DeleteOtherCost(long id)
         {
             var item = await db.OtherCost.FindAsync(id);
-            
+
             db.Remove(item);
             try
             {
@@ -473,16 +473,16 @@ namespace EtehadBar.MVC.Controllers
                 var customerFactorsSum = await _customerFactorRepository.Query().AsNoTracking().Where(a => a.CalendarId.Equals(c.CalendarId) && a.CustomerId.Equals(c.CustomerId)).SumAsync(a => a.Amount);
 
                 var driverFeeList = await (from a in db.LoadFactor
-                                   join b in db.Contract on a.ContractId equals b.Id
-                                   where a.CalendarId.Equals(c.CalendarId) && b.CustomerId.Equals(c.CustomerId)
-                                   select new
-                                   {
-                                       a.Tonnage,
-                                       a.DriverTonnagePrice,
-                                       a.DriverFee,
-                                       a.WeighbridgePrice,
-                                       a.DriverLoadSleepPrice
-                                   }).AsNoTracking().ToListAsync();
+                                           join b in db.Contract on a.ContractId equals b.Id
+                                           where a.CalendarId.Equals(c.CalendarId) && b.CustomerId.Equals(c.CustomerId)
+                                           select new
+                                           {
+                                               a.Tonnage,
+                                               a.DriverTonnagePrice,
+                                               a.DriverFee,
+                                               a.WeighbridgePrice,
+                                               a.DriverLoadSleepPrice
+                                           }).AsNoTracking().ToListAsync();
 
                 double driverFee = 0;
                 foreach (var item in driverFeeList)
@@ -509,8 +509,7 @@ namespace EtehadBar.MVC.Controllers
 
                 var costSum = driverFee + billsSum + otherCostsSum + loadFactorNovinsSum;
 
-
-                var requiredAmount = c.Amount.HasValue ? c.Amount.Value : (customerFactorsSum - (customerFactorsSum * 0.16)) - costSum;
+                var requiredAmount = Math.Truncate(c.Amount.HasValue ? c.Amount.Value : (customerFactorsSum - (customerFactorsSum * 0.16)) - costSum);
                 var rnd = new Random();
                 var minimumNumber = c.MinimumAmount / 1000000;
                 var maximumNumber = c.MaximumAmount / 1000000;
@@ -533,6 +532,7 @@ namespace EtehadBar.MVC.Controllers
 
                             amountList.Add(y);
                             calculatedAmount += y;
+                            break;
                         }
                     }
                     else
@@ -567,7 +567,6 @@ namespace EtehadBar.MVC.Controllers
                 {
                     int index = rnd.Next(0, unrealVehicles.Count - 1);
                     var vehicleId = unrealVehicles[index].Id;
-                    unrealVehicles.Remove(unrealVehicles[index]);
 
                     otherCosts.Add(new Domain.Models.LoadFactorCreator.OtherCost
                     {
@@ -578,6 +577,8 @@ namespace EtehadBar.MVC.Controllers
                         DriverName = unrealVehicles[index].VehicleOwnerFullname.Replace("/", ""),
                         VehicleId = vehicleId
                     });
+
+                    unrealVehicles.Remove(unrealVehicles[index]);
                 }
 
                 await db.AddRangeAsync(otherCosts);
@@ -640,9 +641,17 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CalculateOtherCostSum(long customerId, long calendarId)
+        public async Task<IActionResult> CalculateOtherCostSum(long customerId, long calendarId, int bill)
         {
-            var sum = await db.OtherCost.AsNoTracking().Where(a => a.CustomerId.Equals(customerId) && a.CalendarId.Equals(calendarId)).SumAsync(a => a.Amount);
+            var query = db.OtherCost.AsNoTracking().Where(a => a.CustomerId.Equals(customerId) && a.CalendarId.Equals(calendarId));
+
+            if (bill == 1)
+                query = query.Where(a => a.BillId.HasValue);
+            else if (bill == 2)
+                query = query.Where(a => !a.BillId.HasValue);
+
+            var sum = await query.SumAsync(a => a.Amount);
+
             return Json(sum.ToString("N0"));
         }
     }

@@ -73,6 +73,12 @@ body.legal.landscape .sheet {
     height: 215mm
 }
 
+.strong {
+    font-weight: 900;
+    font-size: 18px;
+    padding: 0 10px
+}
+
 /** Padding area **/
 .sheet.padding-10mm {
     padding: 10mm

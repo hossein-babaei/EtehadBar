@@ -277,7 +277,7 @@ namespace EtehadBar.MVC.Controllers
             //}
 
             //await _vehicleBalanceRepository.Save();
-            
+
 
             ViewData["DayLimit"] = dayLimit;
 
@@ -381,6 +381,46 @@ namespace EtehadBar.MVC.Controllers
                 msg = "عملیات با خطا مواجه شد. جزئیات: خطای اعتبار سنجی فرم رخ داده است؛ لطفا فرم را بررسی کنید.";
             }
             return Json(new { msg, status });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllCostModalLists()
+        {
+            var customers = await _customerRepo.GetAll();
+            var dates = new List<CustomerCostDateVM>();
+
+            var currentPersianDate = new PersianDateTime(DateTime.Now);
+            var currentPersianYear = currentPersianDate.Year;
+            var lastDayOfYear = 29;
+            if (currentPersianDate.IsLeapYear)
+                lastDayOfYear = 30;
+
+            dates.Add(new CustomerCostDateVM
+            {
+                StartDate = $"{currentPersianYear}/01/01",
+                EndDate = $"{currentPersianYear}/12/{lastDayOfYear}",
+                Title = currentPersianYear.ToString()
+            });
+
+            currentPersianYear -= 1;
+            currentPersianDate = currentPersianDate.AddYears(-1);
+
+            while (currentPersianYear >= 1403)
+            {
+                lastDayOfYear = 29;
+                if (currentPersianDate.IsLeapYear)
+                    lastDayOfYear = 30;
+                dates.Add(new CustomerCostDateVM
+                {
+                    StartDate = $"{currentPersianYear}/01/01",
+                    EndDate = $"{currentPersianYear}/12/{lastDayOfYear}",
+                    Title = currentPersianYear.ToString()
+                });
+                currentPersianYear--;
+            }
+
+            return Json(new { dates, customers });
         }
 
         #region Users
@@ -1588,7 +1628,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Customer()
         {
-            return View(await _customerRepo.GetAll());
+            return View(await _customerRepo.Customers().AsNoTracking().Include(a => a.Definition).OrderBy(a => a.Name).ToListAsync());
         }
 
         [HttpPost]
@@ -1619,6 +1659,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<PartialViewResult> EditCustomer(int id)
         {
+            ViewData["Banks"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType.Equals(DefinitionType.BankName)).OrderBy(a => a.Title).ToListAsync();
             return PartialView("~/Views/Admin/Edit/Customer.cshtml", await _customerRepo.Get(id));
         }
 
@@ -1633,6 +1674,7 @@ namespace EtehadBar.MVC.Controllers
                 item.Status = c.Status;
                 item.HasAddonTonnage = c.HasAddonTonnage;
                 item.HasLoadType = c.HasLoadType;
+                item.ActiveBank = c.ActiveBank;
 
                 _customerRepo.Update(item);
                 try
@@ -2347,14 +2389,16 @@ namespace EtehadBar.MVC.Controllers
             var tonnageDriverAmountDateArray = tonnageDriverAmountDate.PersianToEnglish().Split('/');
             var tonnageDriverAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageDriverAmountDateArray[0]), Convert.ToInt32(tonnageDriverAmountDateArray[1]), Convert.ToInt32(tonnageDriverAmountDateArray[2])).ToDateTime();
 
-            var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
-            if (latestContractAddon == null)
-                latestContractAddon = await _contractRepo.Get(contractId);
+            var contract = await _contractRepo.Get(contractId);
+
+            //var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
+            //if (latestContractAddon == null)
+            //    latestContractAddon = await _contractRepo.Get(contractId);
 
             //var exludedRoutes = new List<long> { 44, 45, 47, 30301 };
             //var feeList = await _shippingFeeRepo.ShippingFees().Where(a => a.ContractId.Equals(contractId) /*&& !exludedRoutes.Contains(a.OriginId) && !exludedRoutes.Contains(a.DestinationId)*/).ToListAsync();
             var feeList = await _shippingFeeGroupRepository.Query().Where(a => a.ContractId.Equals(contractId) && a.Price > 10).ToListAsync();
-            var loadFactors = await _loadFactorRepo.GetLoadFactorsByContractId(contractId, latestContractAddon.StartDate);
+            var loadFactors = await _loadFactorRepo.GetLoadFactorsByContractId(contractId, contract.StartDate);
             var vehicleBalances = await _vehicleBalanceRepository.Query().Where(a => a.LoadFactorId.HasValue && loadFactors.Select(b => b.Id).ToList().Contains(a.LoadFactorId.Value)).ToListAsync();
 
             foreach (var fee in feeList)
@@ -2370,9 +2414,11 @@ namespace EtehadBar.MVC.Controllers
                         else if (rounding == "ceil")
                             a = Math.Ceiling(a);
 
-                        fee.Price += a;
+                        int b = Convert.ToInt32(a);
+                        fee.Price += b;
                     }
-                    else fee.Price += amount;
+                    else
+                        fee.Price += amount;
                 }
 
                 if (driverAmount != 0)
@@ -2386,7 +2432,8 @@ namespace EtehadBar.MVC.Controllers
                         else if (rounding == "ceil")
                             a = Math.Ceiling(a);
 
-                        fee.DriverPrice += a;
+                        int b = Convert.ToInt32(a);
+                        fee.DriverPrice += b;
                     }
                     else fee.DriverPrice += driverAmount;
                 }
@@ -2402,7 +2449,8 @@ namespace EtehadBar.MVC.Controllers
                         else if (rounding == "ceil")
                             a = Math.Ceiling(a);
 
-                        fee.TonnagePrice = fee.TonnagePrice.Value + a;
+                        int b = Convert.ToInt32(a);
+                        fee.TonnagePrice = fee.TonnagePrice.Value + b;
                     }
                     else fee.TonnagePrice = fee.TonnagePrice.Value + tonnageAmount;
                 }
@@ -2418,7 +2466,8 @@ namespace EtehadBar.MVC.Controllers
                         else if (rounding == "ceil")
                             a = Math.Ceiling(a);
 
-                        fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + a;
+                        int b = Convert.ToInt32(a);
+                        fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + b;
                     }
                     else fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + tonnageDriverAmount;
                 }
@@ -2456,14 +2505,16 @@ namespace EtehadBar.MVC.Controllers
                         if (isEdited)
                         {
                             var balanceItem = vehicleBalances.Single(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(loadFactor.Id));
+
                             balanceItem.Amount = loadFactor.DriverFee +
                         ((loadFactor.Tonnage.HasValue && loadFactor.DriverTonnagePrice.HasValue) ? loadFactor.Tonnage.Value * loadFactor.DriverTonnagePrice.Value : 0) +
                         (loadFactor.WeighbridgePrice.HasValue ? loadFactor.WeighbridgePrice.Value : 0) +
                         (loadFactor.DriverLoadSleepPrice.HasValue ? loadFactor.DriverLoadSleepPrice.Value : 0);
+
                             balanceItem.EditDatetime = DateTime.Now;
                         }
                     }
-                    _shippingFeeRepo.UpdateLoadFactors(thisLoadFactor);
+                    _shippingFeeGroupRepository.UpdateLoadFactors(thisLoadFactor);
                 }
             }
 
@@ -2630,7 +2681,7 @@ namespace EtehadBar.MVC.Controllers
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
-        
+
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteGroupShippingFeeGroup(long[] idList)
@@ -2669,7 +2720,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> ShippingFeeRoute(int? id)
         {
-            if(!id.HasValue) return NotFound();
+            if (!id.HasValue) return NotFound();
 
             var shippingFeeGroup = await _shippingFeeGroupRepository.Query().AsNoTracking()
                 .Include(a => a.Contract).ThenInclude(a => a.Customer).Include(a => a.ShippingFeeLoadType)
@@ -3675,8 +3726,6 @@ namespace EtehadBar.MVC.Controllers
                 case (byte)CustomerType.MehrcomPars:
                     ViewData["Categories"] = await _mehrcomParsCategoryRepository.Categories().AsNoTracking().OrderBy(a => a.Title).ToListAsync();
                     return PartialView("~/Views/Admin/Create/LoadFactor/MehrcomPars.cshtml");
-                case (byte)CustomerType.Mayan:
-                    return PartialView("~/Views/Admin/Create/LoadFactor/Mayan.cshtml");
                 default:
                     return NoContent();
             }
@@ -3689,7 +3738,7 @@ namespace EtehadBar.MVC.Controllers
             string status = "danger";
             if (ModelState.IsValid)
             {
-                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null) 
+                if (!string.IsNullOrWhiteSpace(input.LoadNumberGov) && input.LoadFactorGovAmount is null)
                     return NotFound("کرایه بارنامه دولتی را وارد کنید.");
 
                 if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
@@ -3863,7 +3912,7 @@ namespace EtehadBar.MVC.Controllers
                 var relatedContractIds = await _contractRepo.GetAllContractIdListForSameCustomer(input.ContractId);
                 if (input.PressFloorType == SaipaPressLoadType.OneFloor)
                 {
-                    if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).AnyAsync(a =>  a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)))
+                    if (!string.IsNullOrWhiteSpace(input.EntryNumber) && await _loadFactorRepo.LoadFactors().Include(a => a.SaipaPressLoadFactor).AnyAsync(a => a.SaipaPressLoadFactor.EntryNumber.Equals(input.EntryNumber)))
                         return NotFound("شماره ورود تکراری است.");
 
                     if (!string.IsNullOrWhiteSpace(input.ExitNumber) && await _loadFactorRepo.LoadFactors().AnyAsync(a => relatedContractIds.Contains(a.ContractId) && a.ExitNumber.Equals(input.ExitNumber)))
@@ -4872,7 +4921,7 @@ namespace EtehadBar.MVC.Controllers
                 if (item.ContractId != input.ContractId)
                 {
                     item.ContractId = input.ContractId;
-                    item.Contract = await _contractRepo.Get(input.ContractId); 
+                    item.Contract = await _contractRepo.Get(input.ContractId);
                 }
 
                 var oldAccountBookId = item.AccountBookId;
@@ -5301,7 +5350,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 bool flag = false;
                 if (isReceived.Value == 1) flag = true;
-                    query = query.Where(a => a.IsReceived.Equals(flag));
+                query = query.Where(a => a.IsReceived.Equals(flag));
             }
             if (isPaied.HasValue && isPaied.Value > 0)
             {
@@ -7418,7 +7467,7 @@ namespace EtehadBar.MVC.Controllers
 
             return View(item);
         }
-        
+
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetBillReceiverNames()
         {
@@ -7622,7 +7671,7 @@ namespace EtehadBar.MVC.Controllers
             return Json(sum.ToString("N0"));
         }
 
-        public async Task<JsonResult> GetSelectedVehicleBalanceInBillForm (long customerId, long calendarId, long vehicleId)
+        public async Task<JsonResult> GetSelectedVehicleBalanceInBillForm(long customerId, long calendarId, long vehicleId)
         {
             var thisCalendarSequence = await _calendarRepo.Calendars().AsNoTracking().Where(a => a.Id.Equals(calendarId)).Select(a => a.Sequence).SingleAsync();
             var calendars = await _calendarRepo.Calendars().AsNoTracking().Where(a => a.Sequence <= thisCalendarSequence).Select(a => a.Id).ToListAsync();
@@ -7793,8 +7842,8 @@ namespace EtehadBar.MVC.Controllers
 
                 _userPlannerRepository.Create(new UserPlanner
                 {
-                     Date = date,
-                     UserId = userId
+                    Date = date,
+                    UserId = userId
                 });
                 try
                 {
@@ -7910,7 +7959,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _userPlannerItemRepository.Save();
                     TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
-                    return RedirectToAction(nameof(UserPlannerItem), 
+                    return RedirectToAction(nameof(UserPlannerItem),
                         new { id = await _userPlannerRepository.Query().Where(a => a.Id.Equals(v.UserPlannerId)).Select(a => a.RowId).FirstAsync() }
                         );
                 }
@@ -7955,7 +8004,7 @@ namespace EtehadBar.MVC.Controllers
                 try
                 {
                     await _userPlannerItemRepository.Save();
-                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success"; 
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
                     return RedirectToAction(nameof(UserPlannerItem),
                         new { id = await _userPlannerRepository.Query().Where(a => a.Id.Equals(v.UserPlannerId)).Select(a => a.RowId).FirstAsync() }
                         );

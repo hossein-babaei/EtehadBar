@@ -241,6 +241,7 @@ namespace EtehadBar.Infra.Data.Repository
                         DriverName = item.DriverName,
                         IsFreeDriverPrice = item.IsFreeDriverPrice,
                         LoadFactorNumber = customerInfo.CustomerType == CustomerType.SaipaPlasco ? (string.IsNullOrWhiteSpace(item.LoadNumberGov) ? item.LoadNumber : item.LoadNumberGov) : item.LoadNumber,
+                        LoadFactorGovNumber = item.LoadNumberGov,
                         MehrcomLoad = item.MehrcomLoad,
                         MehrcomPalette = item.MehrcomPalette,
                         MehrcomReturn = item.MehrcomReturn,

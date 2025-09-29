@@ -27,7 +27,7 @@ namespace EtehadBar.Domain.Models
 
         [Required]
         public long LoadFactorId { get; set; }
-        public virtual LoadFactor LoadFactor { get; set; }
+        public LoadFactor LoadFactor { get; set; }
 
         [Required]
         [StringLength(36)]

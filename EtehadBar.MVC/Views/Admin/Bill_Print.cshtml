@@ -10,7 +10,7 @@
     bool billTypeCondition = true;
     if (Model.BillType.Equals("تن خواه") || Model.BillType.Equals("حقوق پرسنل") || Model.BillType.Contains("واریز شرکا") || Model.BillType.Equals("مدیریت نقدینگی")
     || Model.BillType.Contains("برداشت شرکا") || Model.BillType.Contains("بیمه") || Model.BillType.Contains("دارایی") || Model.BillType.Contains("مالیات")
-    || Model.BillType.Contains("گروهی"))
+    || Model.BillType.Contains("گروهی") || Model.BillType.Contains("جاری"))
     {
         billTypeCondition = false;
     }
@@ -29,7 +29,7 @@
 
         <article class="box">
             <div>
-                <span style="position:absolute; left: 15px; font-weight:700; font-size: 20px; font-family:Calibri">@Model.BillNo.PersianToEnglish()</span>
+                <span style="position:absolute; left: 15px; font-weight:900; font-size: 20px; font-family:Calibri">@Model.BillNo.PersianToEnglish()</span>
                 <h2 class="text-center">شرکت حمل و نقل اتحاد بار آسیا</h2>
                 <h4>
                     <span class="width-1-2">رسید پرداخت وجه بین بانکی</span>
@@ -64,51 +64,66 @@
                             @if (Model.BillType.Equals("تن خواه"))
                             {
                                 <span>
-                                    مبلغ فوق بابت هزینه های جاری طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب کارت تن خواه دار واریز گردید.
+                                    مبلغ فوق بابت هزینه های جاری طی فیش بانکی به شماره <b class="underline strong">@Model.BankBillNo</b> به حساب کارت تن خواه دار واریز گردید.
                                 </span>
                             }
                             else if (Model.BillType.Equals("حقوق پرسنل"))
                             {
                                 <span>
-                                    مبلغ فوق بابت حقوق پرسنل طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب اشخاص لیست پیوست واریز گردید.
+                                    مبلغ فوق بابت حقوق پرسنل طی فیش بانکی به شماره <b class="underline strong">@Model.BankBillNo</b> به حساب اشخاص لیست پیوست واریز گردید.
                                 </span>
                             }
                             else if (Model.BillType.Contains("واریز شرکا"))
                             {
                                 <span>
-                                    مبلغ فوق به حساب <b class="underline">@Model.ReceiverName</b> طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> توسط شرکا واریز شد.
+                                    مبلغ فوق به حساب <b class="underline">@Model.ReceiverName</b> طی فیش بانکی به شماره <b class="underline strong">@Model.BankBillNo</b> توسط شرکا واریز شد.
                                 </span>
                             }
                             else if (Model.BillType.Equals("مدیریت نقدینگی"))
                             {
                                 <span>
-                                    مبلغ فوق بابت مدیریت نقدینگی به حساب <b class="underline">@Model.ReceiverName</b> منتقل گردید.
+                                    مبلغ فوق بابت مدیریت نقدینگی به حساب <b class="underline">@Model.ReceiverName</b> طی فیش بانکی به شماره <b class="underline strong">@Model.BankBillNo</b> منتقل گردید.
                                 </span>
                             }
                             else if (Model.BillType.Contains("برداشت شرکا"))
                             {
                                 <span>
-                                    مبلغ فوق طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب <b class="underline">@Model.ReceiverName</b> (شرکا) واریز شد.
+                                    مبلغ فوق طی فیش بانکی به شماره <b class="underline strong">@Model.BankBillNo</b> به حساب <b class="underline">@Model.ReceiverName</b> (شرکا) واریز شد.
                                 </span>
                             }
                             else if (Model.BillType.Contains("بیمه") || Model.BillType.Contains("دارایی") || Model.BillType.Contains("مالیات"))
                             {
                                 <span>
-                                    مبلغ فوق بابت واریز بیمه/مالیات طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> منتقل گردید.
+                                    مبلغ فوق بابت واریز بیمه/مالیات طی فیش بانکی به شماره <b class="underline strong">@Model.BankBillNo</b> منتقل گردید.
                                 </span>
                             }
                             else if (Model.BillType.Contains("گروهی"))
                             {
-                                <span>
-                                    مبلغ فوق بابت کارکرد شرکت <b class="underline">@Model.Customer.Name</b> در <b class="underline">@Model.Calendar.Title</b> به صورت واریز گروهی طی فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> به حساب رانندگان لیست پیوست واریز گردید.
-                                </span>
+                                if (Model.CustomerId.HasValue)
+                                {
+                                    <span>
+                                        مبلغ فوق بابت کارکرد شرکت <b class="underline">@Model.Customer.Name</b> در <b class="underline">@Model.Calendar.Title</b> به صورت واریز گروهی طی فیش بانکی به شماره <b class="underline strong">@Model.BankBillNo</b> به حساب رانندگان لیست پیوست واریز گردید.
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span>
+                                        مبلغ فوق بابت واریز گروهی طی فیش بانکی به شماره <b class="underline strong">@Model.BankBillNo</b> به حساب رانندگان لیست پیوست واریز گردید.
+                                    </span>
+                                }
                                 <br />
                                 <a asp-controller="Excel" asp-action="BillList" asp-route-id="@Model.RowId" target="_blank">دانلود لیست</a>
+                            }
+                            else if (Model.BillType.Contains("جاری"))
+                            {
+                                <span>
+                                    مبلغ فوق بابت پرداخت هزینه فاکتور پیوست پرداخت گردید.
+                                </span>
                             }
                             else
                             {
                                 <span>
-                                    مبلغ فوق بابت کارکرد <b class="underline">@Model.Calendar.Title</b> شرکت <b class="underline">@Model.Customer.Name</b> به حساب آقا/خانم <b class="underline">@Model.ReceiverName</b> توسط فیش بانکی به شماره <b class="underline">@Model.BankBillNo</b> بانک <b class="underline">@Model.BankBranch</b>
+                                    مبلغ فوق بابت کارکرد <b class="underline">@Model.Calendar.Title</b> شرکت <b class="underline">@Model.Customer.Name</b> به حساب آقا/خانم <b class="underline">@Model.ReceiverName</b> توسط فیش بانکی به شماره <b class="underline strong">@Model.BankBillNo</b> بانک <b class="underline">@Model.BankBranch</b>
                                     جهت مطالبات قانونی ایشان برای خودرو به شماره فوق پرداخت گردید.
                                 </span>
                             }

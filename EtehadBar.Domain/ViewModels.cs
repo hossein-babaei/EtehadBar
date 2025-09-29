@@ -101,6 +101,7 @@ namespace EtehadBar.Domain
         public string Destination { get; set; }
         public bool IsFreeDriverPrice { get; set; }
         public string LoadFactorNumber { get; set; }
+        public string LoadFactorGovNumber { get; set; }
         public double Amount { get; set; }
         public SaipaPressLoadType? PressFloorType { get; set; }
         public double? Tonnage { get; set; }
@@ -1518,5 +1519,19 @@ namespace EtehadBar.Domain
         public double Amount { get; set; }
         public string VehicleLeftNumber { get; set; }
         public string VehicleRightNumber { get; set; }
+    }
+
+    public class CustomerCostDateVM
+    {
+        public string StartDate { get; set; }
+        public string EndDate { get; set; }
+        public string Title { get; set; }
+    }
+
+    public class CustomerDetailedCostVM
+    {
+        public string CalendarTitle { get; set; }
+        public double BillSum { get; set; }
+        public double CostSum { get; set; }
     }
 }

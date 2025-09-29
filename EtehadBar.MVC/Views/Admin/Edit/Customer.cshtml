@@ -1,5 +1,9 @@
 ﻿@model Customer
 
+@{
+    var banks = (List<Definition>)ViewData["Banks"];
+}
+
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
         <h2 class="uk-modal-title">ویرایش @Model.Name</h2>
@@ -15,26 +19,69 @@
                     <span asp-validation-for="Name" class="uk-text-danger"></span>
                 </div>
                 <div>
+                    <label asp-for="ActiveBank" class="uk-form-label"></label>
+                    <select asp-for="ActiveBank" class="uk-select uk-border-rounded">
+                        @foreach (var item in banks)
+                        {
+                            <!option value="@item.Id" @if (Model.ActiveBank == item.Id)
+                            {
+                                <text>selected="selected"</text>
+                            }>@item.Title</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="ActiveBank" class="uk-text-danger"></span>
+                </div>
+                <div>
                     <label asp-for="HasAddonTonnage" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
-                        <label><input class="uk-radio" type="radio" name="HasAddonTonnage" value="true" @if (Model.HasAddonTonnage) { <text> checked</text> } /> دارد</label>
-                        <label><input class="uk-radio" type="radio" name="HasAddonTonnage" value="false" @if (!Model.HasAddonTonnage) { <text> checked</text> } /> ندارد</label>
+                        <label>
+                            <input class="uk-radio" type="radio" name="HasAddonTonnage" value="true" @if (Model.HasAddonTonnage)
+                            {
+                                <text> checked</text>
+                            } /> دارد
+                        </label>
+                        <label>
+                            <input class="uk-radio" type="radio" name="HasAddonTonnage" value="false" @if (!Model.HasAddonTonnage)
+                            {
+                                <text> checked</text>
+                            } /> ندارد
+                        </label>
                     </div>
                     <span asp-validation-for="HasAddonTonnage" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="HasLoadType" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
-                        <label><input class="uk-radio" type="radio" name="HasLoadType" value="true" @if (Model.HasLoadType) { <text> checked</text> } /> دارد</label>
-                        <label><input class="uk-radio" type="radio" name="HasLoadType" value="false" @if (!Model.HasLoadType) { <text> checked</text> } /> ندارد</label>
+                        <label>
+                            <input class="uk-radio" type="radio" name="HasLoadType" value="true" @if (Model.HasLoadType)
+                            {
+                                <text> checked</text>
+                            } /> دارد
+                        </label>
+                        <label>
+                            <input class="uk-radio" type="radio" name="HasLoadType" value="false" @if (!Model.HasLoadType)
+                            {
+                                <text> checked</text>
+                            } /> ندارد
+                        </label>
                     </div>
                     <span asp-validation-for="HasLoadType" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="Status" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
-                        <label><input class="uk-radio" type="radio" name="Status" value="true" @if (Model.Status) { <text> checked</text> } /> فعال</label>
-                        <label><input class="uk-radio" type="radio" name="Status" value="false" @if (!Model.Status) { <text> checked</text> } /> غیر فعال</label>
+                        <label>
+                            <input class="uk-radio" type="radio" name="Status" value="true" @if (Model.Status)
+                            {
+                                <text> checked</text>
+                            } /> فعال
+                        </label>
+                        <label>
+                            <input class="uk-radio" type="radio" name="Status" value="false" @if (!Model.Status)
+                            {
+                                <text> checked</text>
+                            } /> غیر فعال
+                        </label>
                     </div>
                     <span asp-validation-for="Status" class="uk-text-danger"></span>
                 </div>

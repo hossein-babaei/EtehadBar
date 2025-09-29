@@ -39,6 +39,7 @@
                 <tr>
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.Name)</th>
+                    <th>@Html.DisplayNameFor(model => model.ActiveBank)</th>
                     <th>@Html.DisplayNameFor(model => model.Status)</th>
                     <th width="60">دریافتی ها</th>
                     <th width="50">ویرایش</th>
@@ -50,6 +51,7 @@
                     <tr class="uk-text-center sm">
                         <td>@i</td>
                         <td>@item.Name</td>
+                        <td>@item.Definition.Title</td>
                         @if (item.Status)
                         {
                             <td class="uk-text-bold uk-text-success">فعال</td>
@@ -59,8 +61,8 @@
                             <td class="uk-text-bold uk-text-danger">غیر فعال</td>
                         }
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="CustomerIncome" asp-route-id="@item.Id"><i class="fas fa-money-bill"></i></a></td>
-                        @*<td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>*@
-                        <td><button class="uk-button uk-button-default uk-button-small" disabled><i class="far fa-edit"></i></button></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        @* <td><button class="uk-button uk-button-default uk-button-small" disabled><i class="far fa-edit"></i></button></td> *@
                     </tr>
                     i++;
                 }
