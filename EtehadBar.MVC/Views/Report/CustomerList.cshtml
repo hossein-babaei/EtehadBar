@@ -208,6 +208,15 @@
             let modalId = '#load-factor-gov-modal';
             $(`${modalId} form`).submit();
         }
+        function showInvestorForm(customerId) {
+            const modalId = '#investor-modal';
+            $(`${modalId} input[name=customerId]`).val(customerId);
+            $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
+            UIkit.modal(modalId).show();
+        }
+        function submitInvestor() {
+            $('#investor-modal form').submit();
+        }
     </script>
 }
 <div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
@@ -264,6 +273,12 @@
                                         </li>
                                     }
                                     <li class="uk-nav-header">گزارشات</li>
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li>
+                                            <a onclick="showInvestorForm(@item.Id)">سرمایه گذاران</a>
+                                        </li>
+                                    }
                                     @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
                                     {
                                         <li>
@@ -564,6 +579,37 @@
         <div class="uk-modal-footer uk-text-center">
             <button class="uk-button uk-button-primary" type="button" onclick="filterLoadFactorGov()">مشاهده نتایج</button>
             <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+        </div>
+    </div>
+</div>
+<div id="investor-modal" uk-modal>
+    <div class="uk-modal-dialog">
+        <div class="uk-modal-header uk-light">
+            <h2 class="uk-modal-title">خروجی بر اساس تقویم کاری</h2>
+        </div>
+        <div class="uk-modal-body">
+            <form method="post" action="@Url.Action("InvestorCustomerReport", "Excel")" autocomplete="off">
+                <input type="hidden" name="customerId" value="" />
+                <div class="uk-grid-medium uk-child-width-1-1" data-uk-grid>
+                    <div>
+                        <label class="uk-form-label">تاریخ</label>
+                        <select name="calendarId">
+                            @foreach (var item in calendars)
+                            {
+                                <!option value="@item.Id" @if (latestCal.Id.Equals(item))
+                                {
+                                    <text> selected="selected" </text>
+                                }>@item.Title</!option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+        <div class="uk-modal-footer uk-text-center">
+            <a class="uk-button uk-button-primary uk-margin-small-left uk-margin-small-top" onclick="submitInvestor()">دانلود گزارش</a>
+            <button class="uk-button uk-button-danger uk-modal-close uk-margin-small-top" type="button">بازگشت</button>
         </div>
     </div>
 </div>

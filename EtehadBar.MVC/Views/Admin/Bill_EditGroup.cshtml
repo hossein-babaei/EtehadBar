@@ -1,0 +1,68 @@
+﻿@{
+    var definitions = (List<Definition>)ViewData["Definitions"];
+}
+
+<div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+    <form>
+        <p class="uk-text-bold">برای ویرایش گروهی فیش ها، شماره قبض را وارد کنید.</p>
+
+        <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+            <div class="uk-width-1-2">
+                <label class="uk-form-label">شماره فیش</label>
+                <input name="BillNo" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+            </div>
+            <div class="uk-width-1-2">
+                <label class="uk-form-label">شماره قبض بانکی</label>
+                <input name="BankBillNo" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+            </div>
+            <hr />
+            <div class="uk-width-1-3@m">
+                <label class="uk-form-label">روز</label>
+                <select class="uk-select uk-border-rounded" name="Day" dir="ltr">
+                    @for (int i = 0; i < 32; i++)
+                    {
+                        <!option value="@i">@i</!option>
+                    }
+                </select>
+            </div>
+            <div class="uk-width-1-3@m">
+                <label class="uk-form-label">ماه</label>
+                <select class="uk-select uk-border-rounded" name="Month" dir="ltr">
+                    @for (int i = 0; i < 13; i++)
+                    {
+                        <!option value="@i">@i</!option>
+                    }
+                </select>
+            </div>
+            <div class="uk-width-1-3@m">
+                <label class="uk-form-label">سال</label>
+                <input class="uk-input uk-border-rounded" name="Year" value="0" dir="ltr" />
+            </div>
+            <div class="uk-width-1-2">
+                <label class="uk-form-label">نام بانک</label>
+                <select name="BankBranch" class="uk-select uk-border-rounded uk-form-small">
+                    <option value="0" selected="selected">بدون تغییر</option>
+                    @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BankBranch))
+                    {
+                        <option value="@item.Title">@item.Title</option>
+                    }
+                </select>
+            </div>
+            <div class="uk-width-1-2">
+                <label class="uk-form-label">نوع هزینه</label>
+                <select name="BillType" class="uk-select uk-border-rounded uk-form-small">
+                    <option value="0" selected="selected">بدون تغییر</option>
+                    @foreach (var item in definitions.Where(a => a.DefinitionType == DefinitionType.BillType))
+                    {
+                        <option value="@item.Title">@item.Title</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <hr />
+        <div class="uk-modal-footer uk-text-center">
+            <button class="uk-button uk-button-primary" onclick="submitEditGroup()" type="button">ویرایش دسته جمعی</button>
+            <button class="uk-button uk-button-danger uk-modal-close" type="button">انصراف</button>
+        </div>
+    </form>
+</div>

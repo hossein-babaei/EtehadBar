@@ -1534,4 +1534,275 @@ namespace EtehadBar.Domain
         public double BillSum { get; set; }
         public double CostSum { get; set; }
     }
+
+    public class CreateBillVM
+    {
+        [Display(Name = "نام دریافت کننده")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string ReceiverName { get; set; }
+
+        [Display(Name = "شماره فیش")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string BillNo { get; set; }
+
+        [Display(Name = "شماره رسید")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string BankBillNo { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+        [Display(Name = "مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
+        [Display(Name = "توضیحات")]
+        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Description { get; set; }
+
+        [Display(Name = "نوع هزینه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string BillType { get; set; } // definition table
+
+        [Display(Name = "نام بانک")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string BankBranch { get; set; } // definition table
+
+        [Display(Name = "تقویم کاری")]
+        [ForeignKey(nameof(BankBranch))]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CalendarId { get; set; }
+
+        [Display(Name = "پلاک")]
+        public long? VehicleId { get; set; }
+
+        [Display(Name = "مشتری")]
+        public long? CustomerId { get; set; }
+
+        [Display(Name = "برگشت از بانک")]
+        public bool IsReturned { get; set; }
+
+        [Display(Name = "نام دریافت کننده")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string RealReceiverName { get; set; }
+
+        [Display(Name = "شماره حساب دریافت کننده")]
+        [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string ReceiverBankAccount { get; set; }
+    }
+
+    public class EditBillVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "نام دریافت کننده")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string ReceiverName { get; set; }
+
+        [Display(Name = "شماره فیش")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string BillNo { get; set; }
+
+        [Display(Name = "شماره رسید")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string BankBillNo { get; set; }
+
+        [Display(Name = "روز")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Day { get; set; }
+
+        [Display(Name = "ماه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Month { get; set; }
+
+        [Display(Name = "سال")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int Year { get; set; }
+
+        [Display(Name = "مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
+        [Display(Name = "توضیحات")]
+        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Description { get; set; }
+
+        [Display(Name = "نوع هزینه")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string BillType { get; set; } // definition table
+
+        [Display(Name = "نام بانک")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string BankBranch { get; set; } // definition table
+
+        [Display(Name = "تقویم کاری")]
+        [ForeignKey(nameof(BankBranch))]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public long CalendarId { get; set; }
+
+        [Display(Name = "پلاک")]
+        public long? VehicleId { get; set; }
+
+        [Display(Name = "مشتری")]
+        public long? CustomerId { get; set; }
+
+        [Display(Name = "برگشت از بانک")]
+        public bool IsReturned { get; set; }
+
+        [Display(Name = "نام دریافت کننده")]
+        [StringLength(128, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string RealReceiverName { get; set; }
+
+        [Display(Name = "شماره حساب دریافت کننده")]
+        [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string ReceiverBankAccount { get; set; }
+    }
+
+    public class CreateTurnoverProfileVM
+    {
+        [Display(Name = "نام و نام خانوادگی")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string FullName { get; set; }
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public TurnoverType TurnoverType { get; set; }
+
+        [Display(Name = "نوع پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public TurnoverPaymentType TurnoverPaymentType { get; set; }
+
+        [Display(Name = "نوبت پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(64, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string TurnoverTurnType { get; set; }
+
+        [Display(Name = "درصد/مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double ProfitPercent { get; set; } = 0;
+
+        [Display(Name = "شماره حساب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(64, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string BankAccount { get; set; }
+
+        [Display(Name = "مالک حساب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string BankAccountOwner { get; set; }
+
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز انقضا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int ExpireDay { get; set; }
+
+        [Display(Name = "ماه انقضا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int ExpireMonth { get; set; }
+
+        [Display(Name = "سال انقضا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int ExpireYear { get; set; }
+
+        [Display(Name = "توضیحات")]
+        [StringLength(256, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string Description { get; set; }
+
+        [Display(Name = "مشتری")]
+        public long? CustomerId { get; set; }
+    }
+
+    public class EditTurnoverProfileVM
+    {
+        public long Id { get; set; }
+
+        [Display(Name = "نام و نام خانوادگی")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string FullName { get; set; }
+
+        [Display(Name = "نوع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public TurnoverType TurnoverType { get; set; }
+
+        [Display(Name = "نوع پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public TurnoverPaymentType TurnoverPaymentType { get; set; }
+
+        [Display(Name = "نوبت پرداخت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string TurnoverTurnType { get; set; }
+
+        [Display(Name = "درصد/مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double ProfitPercent { get; set; } = 0;
+
+        [Display(Name = "شماره حساب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(64, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string BankAccount { get; set; }
+
+        [Display(Name = "مالک حساب")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string BankAccountOwner { get; set; }
+
+        [Display(Name = "روز شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartDay { get; set; }
+
+        [Display(Name = "ماه شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartMonth { get; set; }
+
+        [Display(Name = "سال شروع")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int StartYear { get; set; }
+
+        [Display(Name = "روز انقضا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int ExpireDay { get; set; }
+
+        [Display(Name = "ماه انقضا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int ExpireMonth { get; set; }
+
+        [Display(Name = "سال انقضا")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public int ExpireYear { get; set; }
+
+        [Display(Name = "توضیحات")]
+        [StringLength(256, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string Description { get; set; }
+
+        [Display(Name = "مشتری")]
+        public long? CustomerId { get; set; }
+    }
 }

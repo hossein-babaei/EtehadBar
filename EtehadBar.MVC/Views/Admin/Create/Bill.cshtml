@@ -1,4 +1,4 @@
-﻿@model Bill
+﻿@model CreateBillVM
 @{
     var calendar = (List<Calendar>)ViewData["Calendars"];
     var vehicles = (List<Vehicle>)ViewData["Vehicles"];
@@ -43,7 +43,7 @@
                 }
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">روز</label>
-                    <select class="uk-select uk-border-rounded" name="day" dir="ltr">
+                    <select class="uk-select uk-border-rounded" asp-for="Day" dir="ltr">
                         @for (int i = 1; i < 32; i++)
                         {
                             <!option value="@i" @if (now.Day == i) {
@@ -54,7 +54,7 @@
                 </div>
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">ماه</label>
-                    <select class="uk-select uk-border-rounded" name="month" dir="ltr">
+                    <select class="uk-select uk-border-rounded" asp-for="Month" dir="ltr">
                         @for (int i = 1; i < 13; i++)
                         {
                             <!option value="@i" @if (now.Month == i) {
@@ -65,7 +65,7 @@
                 </div>
                 <div class="uk-width-1-3@m">
                     <label class="uk-form-label">سال</label>
-                    <input class="uk-input uk-border-rounded" name="year" value="@now.Year" dir="ltr" />
+                    <input class="uk-input uk-border-rounded" asp-for="Year" value="@now.Year" dir="ltr" />
                 </div>
                 <div class="uk-width-1-2">
                     <label asp-for="BillNo" class="uk-form-label"></label>
@@ -120,10 +120,43 @@
                     <input asp-for="Amount" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
                     <span asp-validation-for="Amount" class="uk-text-danger"></span>
                 </div>
+
+                <div>
+                    <div class="box uk-flex uk-flex-center">
+                        <button class="uk-button uk-button-primary" type="button" onclick="submitCreateForm()">ثبت اطلاعات</button>
+                        <button class="uk-button uk-button-danger uk-margin-small-right uk-modal-close" type="button">بازگشت</button>
+                    </div>
+                </div>
                 <div>
                     <label asp-for="Description" class="uk-form-label"></label>
                     <textarea asp-for="Description" class="uk-textarea uk-border-rounded" rows="2"></textarea>
                     <span asp-validation-for="Description" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="IsReturned" class="uk-form-label"></label>
+                    <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                        <label><input class="uk-radio" type="radio" name="IsReturned" value="True" checked /> بلی</label>
+                        <label><input class="uk-radio" type="radio" name="IsReturned" value="False" /> خبر</label>
+                    </div>
+                    <span asp-validation-for="IsReturned" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <div class="box">
+                        <h5 class="uk-text-center">اطلاعات ذی نفع</h5>
+                        <hr />
+                        <div class="uk-child-width-1-1 uk-grid-small" uk-grid>
+                            <div>
+                                <label asp-for="RealReceiverName" class="uk-form-label"></label>
+                                <input asp-for="RealReceiverName" class="uk-input uk-border-rounded uk-form-small" />
+                                <span asp-validation-for="RealReceiverName" class="uk-text-danger"></span>
+                            </div>
+                            <div>
+                                <label asp-for="ReceiverBankAccount" class="uk-form-label"></label>
+                                <input asp-for="ReceiverBankAccount" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                                <span asp-validation-for="ReceiverBankAccount" class="uk-text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </form>

@@ -55,6 +55,7 @@ namespace EtehadBar.Domain.Models
         public ICollection<CustomerPeriodicBalanceSummary> CustomerPeriodicBalanceSummaries { get; set; }
         public ICollection<LoadFactorNovin> LoadFactorNovins { get; set; }
         public ICollection<CustomerFactor> CustomerFactors { get; set; }
+        public ICollection<TurnoverProfile> TurnoverProfiles { get; set; }
 
         [Required]
         [StringLength(36)]

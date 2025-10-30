@@ -1,4 +1,8 @@
-﻿@model TurnoverProfile
+﻿@model EditTurnoverProfileVM
+
+@{
+    var customers = (List<Customer>)ViewData["Customer"];
+}
 
 <div class="uk-modal-dialog">
     <div class="uk-modal-header uk-light">
@@ -11,13 +15,108 @@
             <div class="uk-grid-small uk-child-width-1-1" uk-grid>
                 <div>
                     <label asp-for="FullName" class="uk-form-label"></label>
-                    <input asp-for="FullName" class="uk-input uk-border-rounded" />
+                    <input asp-for="FullName" class="uk-input uk-form-small uk-border-rounded" />
                     <span asp-validation-for="FullName" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-3@m">
                     <label asp-for="ProfitPercent" class="uk-form-label"></label>
-                    <input asp-for="ProfitPercent" class="uk-input uk-border-rounded" />
+                    <input asp-for="ProfitPercent" class="uk-input uk-form-small uk-border-rounded" />
                     <span asp-validation-for="ProfitPercent" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-2-3@m">
+                    <label asp-for="CustomerId" class="uk-form-label"></label>
+                    <select asp-for="CustomerId" class="uk-select uk-border-rounded uk-form-small">
+                        <!option @if(!Model.CustomerId.HasValue) { <text>selected="selected"</text>} value="0">انتخاب مشتری</!option>
+                        @foreach (var item in customers)
+                        {
+                            <!option @if(Model.CustomerId.HasValue && Model.CustomerId.Value.Equals(item.Id)) { <text>selected="selected"</text>} value="@item.Id">@item.Name</!option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-2@m">
+                    <label asp-for="TurnoverPaymentType" class="uk-form-label"></label>
+                    <select asp-for="TurnoverPaymentType" class="uk-select uk-border-rounded uk-form-small">
+                        <!option value="@((byte)TurnoverPaymentType.Rial)" @if ((byte)Model.TurnoverPaymentType == ((byte)TurnoverPaymentType.Rial)) { <text>selected="selected"</text> }>ریال</!option>
+                        <!option value="@((byte)TurnoverPaymentType.Sekke)" @if ((byte)Model.TurnoverPaymentType == ((byte)TurnoverPaymentType.Sekke)) { <text>selected="selected"</text> }>سکه</!option>
+                        <!option value="@((byte)TurnoverPaymentType.Dollar)" @if ((byte)Model.TurnoverPaymentType == ((byte)TurnoverPaymentType.Dollar)) { <text>selected="selected"</text> }>دلار</!option>
+                    </select>
+                    <span asp-validation-for="TurnoverPaymentType" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-2@m">
+                    <label asp-for="TurnoverTurnType" class="uk-form-label"></label>
+                    <select asp-for="TurnoverTurnType" class="uk-select uk-border-rounded uk-form-small">
+                        <!option value="هر دریافتی" @if (Model.TurnoverTurnType.Equals("هر دریافتی")) { <text>selected="selected"</text>}>هر دریافتی</!option>
+                        <!option value="هر ماه"  @if (Model.TurnoverTurnType.Equals("هر ماه")) { <text>selected="selected"</text>}>هر ماه</!option>
+                        <!option value="هر 6 ماه" @if (Model.TurnoverTurnType.Equals("هر 6 ماه")) { <text>selected="selected"</text>}>هر 6 ماه</!option>
+                    </select>
+                    <span asp-validation-for="TurnoverTurnType" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="BankAccountOwner" class="uk-form-label"></label>
+                    <input asp-for="BankAccountOwner" class="uk-input uk-form-small uk-border-rounded" />
+                    <span asp-validation-for="BankAccountOwner" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="BankAccount" class="uk-form-label"></label>
+                    <input asp-for="BankAccount" dir="ltr" class="uk-input uk-form-small uk-border-rounded" />
+                    <span asp-validation-for="BankAccount" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">روز شروع</label>
+                    <select class="uk-select uk-form-small uk-border-rounded" asp-for="StartDay">
+                        @for (int i = 1; i < 32; i++)
+                        {
+                            <!option value="@i" @if (Model.StartDay == i) { <text> selected="selected" </text> }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">ماه شروع</label>
+                    <select class="uk-select uk-form-small uk-border-rounded" asp-for="StartMonth">
+                        @for (int i = 1; i < 13; i++)
+                        {
+                            <!option value="@i" @if (Model.StartMonth == i)
+                            {
+                                <text> selected="selected" </text>
+                            }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">سال شروع</label>
+                    <input class="uk-input uk-form-small uk-border-rounded" asp-for="StartYear" value="@Model.StartYear" />
+                </div>
+
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">روز انقضا</label>
+                    <select class="uk-select uk-form-small uk-border-rounded" asp-for="ExpireDay">
+                        @for (int i = 1; i < 32; i++)
+                        {
+                            <!option value="@i" @if (Model.ExpireDay == i) { <text> selected="selected" </text> }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">ماه انقضا</label>
+                    <select class="uk-select uk-form-small uk-border-rounded" asp-for="ExpireMonth">
+                        @for (int i = 1; i < 13; i++)
+                        {
+                            <!option value="@i" @if (Model.ExpireMonth == i)
+                            {
+                                <text> selected="selected" </text>
+                            }>@i</!option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-3@m">
+                    <label class="uk-form-label">سال انقضا</label>
+                    <input class="uk-input uk-form-small uk-border-rounded" asp-for="ExpireYear" value="@Model.ExpireYear" />
+                </div>
+                <div>
+                    <label asp-for="Description" class="uk-form-label"></label>
+                    <textarea asp-for="Description" class="uk-textarea uk-border-rounded" rows="2"></textarea>
+                    <span asp-validation-for="Description" class="uk-text-danger"></span>
                 </div>
                 <div>
                     <label asp-for="TurnoverType" class="uk-form-label"></label>

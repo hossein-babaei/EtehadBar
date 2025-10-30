@@ -12,7 +12,7 @@
 @if (data.Any())
 {
     <div class="uk-overflow-auto" data-page="@data.PageNumber" data-customer="@ViewBag.CustomerId" data-calendar="@ViewBag.CalendarId"
-         data-vehicle="@ViewBag.VehicleId" data-bill-type="@ViewBag.BillType" data-bank-branch="@ViewBag.BankBranch" data-name="@ViewBag.Name" 
+         data-vehicle="@ViewBag.VehicleId" data-bill-type="@ViewBag.BillType" data-bank-branch="@ViewBag.BankBranch" data-name="@ViewBag.Name"
          data-real-vehicle="@ViewBag.RealVehicle" data-description="@ViewBag.Description" data-bill-no="@ViewBag.BillNo" data-bank-bill-no="@ViewBag.BankBillNo">
         <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
             <thead>
@@ -29,10 +29,9 @@
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th width="35">@Html.DisplayNameFor(model => model.IsReturned)</th>
                     <th width="35">قبض</th>
-                    <th width="35">کارکرد</th>
-                    <th width="35">ویرایش</th>
-                    <th width="35">حذف</th>
+                    <th width="35">عملیات</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,19 +58,24 @@
                         <td>@item.Calendar.Title</td>
                         <td>@(item.CustomerId.HasValue ? item.Customer.Name : "---")</td>
                         <td class="uk-text-small">@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Bill_Print" asp-route-id="@item.RowId" target="_blank"><i class="fas fa-print"></i></a></td>
                         <td>
-                            @if (item.BillType.StartsWith("گروهی"))
+                            @if (item.IsReturned)
                             {
-                                <a class="uk-button uk-button-primary uk-button-small" onclick="relate(@item.Id)"><i class="fas fa-clone"></i></a>
+                                <span class="uk-text-success pointer" onclick="setIsReturned(@item.Id, 1, this)">بلی</span>
                             }
                             else
                             {
-                                <a class="uk-button uk-button-default uk-button-small" disabled><i class="fas fa-clone"></i></a>
+                                <span class="uk-text-danger pointer" onclick="setIsReturned(@item.Id, 0, this)">خیر</span>
                             }
                         </td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Bill_Print" asp-route-id="@item.RowId" target="_blank"><i class="fas fa-print"></i></a></td>
+                        <td>
+                            <a class="uk-button uk-button-primary uk-button-small" onclick="getOp(@item.Id, '@item.RowId', @if (item.BillType.StartsWith("گروهی")) {
+                        <text>true</text>
+ } else {
+                        <text>false</text>
+ })"><i class="fas fa-clipboard-check"></i></a>
+                        </td>
                     </tr>
                     i++;
                 }

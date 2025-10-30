@@ -52,17 +52,20 @@ namespace EtehadBar.Domain.Models
         [ForeignKey(nameof(BankBranch))]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CalendarId { get; set; }
-        public virtual Calendar Calendar { get; set; }
+        public Calendar Calendar { get; set; }
 
         [Display(Name = "پلاک")]
         [ForeignKey(nameof(Vehicle))]
         public long? VehicleId { get; set; }
-        public virtual Vehicle Vehicle { get; set; }
+        public Vehicle Vehicle { get; set; }
 
         [Display(Name = "مشتری")]
         [ForeignKey(nameof(Customer))]
         public long? CustomerId { get; set; }
-        public virtual Customer Customer { get; set; }
+        public Customer Customer { get; set; }
+
+        [Display(Name = "برگشت از بانک")]
+        public bool IsReturned { get; set; } = false;
 
         [Required]
         public DateTime CreateDatetime { get; set; } = DateTime.Now;
@@ -75,6 +78,7 @@ namespace EtehadBar.Domain.Models
         [StringLength(450)]
         public string EditorId { get; set; }
 
+        public BillDetail BillDetail { get; set; }
         public ICollection<OtherCost> OtherCosts { get; set; }
 
         [Required]

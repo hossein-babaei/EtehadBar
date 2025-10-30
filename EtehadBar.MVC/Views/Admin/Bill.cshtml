@@ -21,7 +21,7 @@
     <script src="~/js/autocomplete.js"></script>
     <script>
         let autoCompleteData = [],
-            relateModalSelectedAmountSum = 0;
+        relateModalSelectedAmountSum = 0;
         let select2Config = {
         width: '100%',
         matcher: ignoreSpecialCharAndWhitespaceInSelect2
@@ -29,83 +29,83 @@
         let isSearchLoaded = false;
 
         $('#search-modal form').submit(function (e) {
-            e.preventDefault();
-            filter();
+        e.preventDefault();
+        filter();
         });
 
         $('#sum-modal form').submit(function (e) {
-            e.preventDefault();
-            calcBillSum();
+        e.preventDefault();
+        calcBillSum();
         });
 
         function getSearch() {
         if (!isSearchLoaded) {
         preloader();
         $.get('@Url.Action("Bill_Search")', {}, function (r) {
-            let vehicleOptions = '<option value="0">همه</option>',
-            customerOptions = '<option value="0">همه</option>',
-            nameOptions = '<option value="all">همه</option>',
-            calendarOptions = '<option value="0">همه</option>',
-            bankBranchOptions = '<option value="all">همه</option>',
-            billTypeOptions = '<option value="all">همه</option>';
+        let vehicleOptions = '<option value="0">همه</option>',
+        customerOptions = '<option value="0">همه</option>',
+        nameOptions = '<option value="all">همه</option>',
+        calendarOptions = '<option value="0">همه</option>',
+        bankBranchOptions = '<option value="all">همه</option>',
+        billTypeOptions = '<option value="all">همه</option>';
 
-            $.each(r.customers, (i, v) => {
-            customerOptions += `<option value="${v.id}">${v.name}</option>`;
-            });
+        $.each(r.customers, (i, v) => {
+        customerOptions += `<option value="${v.id}">${v.name}</option>`;
+        });
 
-            $.each(r.vehicles, (i, v) => {
-            vehicleOptions += `<option value="${v.id}">${v.number} - ${v.owner}</option>`;
-            });
-            $.each(r.names, (i, v) => {
-            nameOptions += `<option value="${v}">${v}</option>`;
-            });
-            $.each(r.calendars, (i, v) => {
-            calendarOptions += `<option value="${v.id}">${v.title}</option>`;
-            });
-            $.each(r.bankBranches, (i, v) => {
-            bankBranchOptions += `<option value="${v}">${v}</option>`;
-            });
-            $.each(r.billTypes, (i, v) => {
-            billTypeOptions += `<option value="${v}">${v}</option>`;
-            });
-            $('#search-modal #customerId').html(customerOptions);
-            $('#search-modal #vehicleId').html(vehicleOptions);
-            $('#search-modal #name').html(nameOptions);
-            $('#search-modal #calendarId').html(calendarOptions);
-            $('#search-modal #bankBranch').html(bankBranchOptions);
-            $('#search-modal #billType').html(billTypeOptions);
+        $.each(r.vehicles, (i, v) => {
+        vehicleOptions += `<option value="${v.id}">${v.number} - ${v.owner}</option>`;
+        });
+        $.each(r.names, (i, v) => {
+        nameOptions += `<option value="${v}">${v}</option>`;
+        });
+        $.each(r.calendars, (i, v) => {
+        calendarOptions += `<option value="${v.id}">${v.title}</option>`;
+        });
+        $.each(r.bankBranches, (i, v) => {
+        bankBranchOptions += `<option value="${v}">${v}</option>`;
+        });
+        $.each(r.billTypes, (i, v) => {
+        billTypeOptions += `<option value="${v}">${v}</option>`;
+        });
+        $('#search-modal #customerId').html(customerOptions);
+        $('#search-modal #vehicleId').html(vehicleOptions);
+        $('#search-modal #name').html(nameOptions);
+        $('#search-modal #calendarId').html(calendarOptions);
+        $('#search-modal #bankBranch').html(bankBranchOptions);
+        $('#search-modal #billType').html(billTypeOptions);
 
-            $('#search-modal #customerId').select2({
-            width: '100%',
-            matcher: ignoreSpecialCharAndWhitespaceInSelect2
-            });
-            $('#search-modal #vehicleId').select2({
-            width: '100%',
-            matcher: ignoreSpecialCharAndWhitespaceInSelect2
-            });
-            $('#search-modal #name').select2({
-            width: '100%',
-            matcher: ignoreSpecialCharAndWhitespaceInSelect2
-            });
-            $('#search-modal #calendarId').select2({
-            width: '100%',
-            matcher: ignoreSpecialCharAndWhitespaceInSelect2
-            });
-            $('#search-modal #bankBranch').select2({
-            width: '100%',
-            matcher: ignoreSpecialCharAndWhitespaceInSelect2
-            });
-            $('#search-modal #billType').select2({
-            width: '100%',
-            matcher: ignoreSpecialCharAndWhitespaceInSelect2
-            });
-            }, 'json').then(function () {
-            preloader();
-            UIkit.modal('#search-modal').show();
-            });
-            } else {
-            UIkit.modal('#search-modal').show();
-            }
+        $('#search-modal #customerId').select2({
+        width: '100%',
+        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        });
+        $('#search-modal #vehicleId').select2({
+        width: '100%',
+        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        });
+        $('#search-modal #name').select2({
+        width: '100%',
+        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        });
+        $('#search-modal #calendarId').select2({
+        width: '100%',
+        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        });
+        $('#search-modal #bankBranch').select2({
+        width: '100%',
+        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        });
+        $('#search-modal #billType').select2({
+        width: '100%',
+        matcher: ignoreSpecialCharAndWhitespaceInSelect2
+        });
+        }, 'json').then(function () {
+        preloader();
+        UIkit.modal('#search-modal').show();
+        });
+        } else {
+        UIkit.modal('#search-modal').show();
+        }
         }
         function filter() {
         var data = $('#search-modal form').serialize();
@@ -157,32 +157,32 @@
         });
         }
         function submitCreateForm() {
-            $.ajax({
-                type: 'POST',
-                url: '@Url.Action("CreateBill")',
-                data: $('#create-modal form').serialize(),
-                dataType: 'json',
-                beforeSend: function () {
-                    preloader();
-                },
-                success: function (r) {
-                uiAlert(r.msg, r.status);
-                if (r.status == 'success') {
-                    $.post('@Url.Action("Bill_Search")', {}, function (r) {
-                            $('#append').html(r);
-                        }, 'html');
-                    }
-                },
-                error: function (e) {
-                    uiAlert(e.responseText, 'danger');
-                },
-                complete: function () {
-                    preloader();
-                    if (!$('#create-modal #BillType').val().startsWith('گروهی')) {
-                        $('#create-modal #BillNo').val(parseInt($('#create-modal #BillNo').val())+1);
-                    }
-                }
-            });
+        $.ajax({
+        type: 'POST',
+        url: '@Url.Action("CreateBill")',
+        data: $('#create-modal form').serialize(),
+        dataType: 'json',
+        beforeSend: function () {
+        preloader();
+        },
+        success: function (r) {
+        uiAlert(r.msg, r.status);
+        if (r.status == 'success') {
+        $.post('@Url.Action("Bill_Search")', {}, function (r) {
+        $('#append').html(r);
+        }, 'html');
+        }
+        },
+        error: function (e) {
+        uiAlert(e.responseText, 'danger');
+        },
+        complete: function () {
+        preloader();
+        if (!$('#create-modal #BillType').val().startsWith('گروهی')) {
+        $('#create-modal #BillNo').val(parseInt($('#create-modal #BillNo').val())+1);
+        }
+        }
+        });
         }
         function edit(id) {
         preloader();
@@ -205,69 +205,69 @@
         });
         }
         function submitEditForm() {
-            $.ajax({
-                type: 'POST',
-                url: '@Url.Action("EditBill")',
-                data: $('#edit-modal form').serialize(),
-                dataType: 'json',
-                beforeSend: function () {
-                    preloader();
-                },
-                    success: function (r) {
-                    uiAlert(r.msg, r.status);
-                    if (r.status == 'success') {
-                        let dataTag = $('#append > div');
-                        data = {
-                            'p': dataTag.data('page'),
-                            'customerId': dataTag.data('customer'),
-                            'calendarId': dataTag.data('calendar'),
-                            'vehicleId': dataTag.data('vehicle'),
-                            'billType': dataTag.data('bill-type'),
-                            'bankBranch': dataTag.data('bank-branch'),
-                            'name': dataTag.data('name'),
-                            'realVehicle': dataTag.data('real-vehicle'),
-                            'description': dataTag.data('description'),
-                            'billNo': dataTag.data('bill-no'),
-                            'bankBillNo': dataTag.data('bank-bill-no')
-                        };
-                        $.post('@Url.Action("Bill_Search")', data, function (r) {
-                           $('#append').html(r);
-                        }, 'html');
-                    }
-                    UIkit.modal('#edit-modal').hide();
-                },
-                error: function (e) {
-                    uiAlert(e.responseText, 'danger');
-                },
-                complete: function () {
-                    preloader();
-                }
-            });
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("EditBill")',
+            data: $('#edit-modal form').serialize(),
+            dataType: 'json',
+            beforeSend: function () {
+            preloader();
+        },
+        success: function (r) {
+            uiAlert(r.msg, r.status);
+            if (r.status == 'success') {
+                let dataTag = $('#append > div');
+                data = {
+                    'p': dataTag.data('page'),
+                    'customerId': dataTag.data('customer'),
+                    'calendarId': dataTag.data('calendar'),
+                    'vehicleId': dataTag.data('vehicle'),
+                    'billType': dataTag.data('bill-type'),
+                    'bankBranch': dataTag.data('bank-branch'),
+                    'name': dataTag.data('name'),
+                    'realVehicle': dataTag.data('real-vehicle'),
+                    'description': dataTag.data('description'),
+                    'billNo': dataTag.data('bill-no'),
+                    'bankBillNo': dataTag.data('bank-bill-no')
+                };
+                $.post('@Url.Action("Bill_Search")', data, function (r) {
+                    $('#append').html(r);
+                }, 'html');
+            }
+            UIkit.modal('#edit-modal').hide();
+        },
+        error: function (e) {
+        uiAlert(e.responseText, 'danger');
+        },
+        complete: function () {
+        preloader();
+        }
+        });
         }
         async function vehicleSelectChangeHandler(select) {
 
-            let ownerName = $(select).find('option:selected').data('owner');
-            ownerName = ownerName.replace('/', '');
-            ownerName = ownerName.replace('//', '');
-            $(select).parent().next().find('input').val(ownerName);
+        let ownerName = $(select).find('option:selected').data('owner');
+        ownerName = ownerName.replace('/', '');
+        ownerName = ownerName.replace('//', '');
+        $(select).parent().next().find('input').val(ownerName);
 
-            let realStatus = $(select).find('option:selected').data('real-status');
-            if (realStatus == 'True') {
-            let form = $(select).parents('form'),
-            customerId = form.find('#CustomerId').val(),
-            calendarId = form.find('#CalendarId').val(),
-            vehicleId = $(select).val();
+        let realStatus = $(select).find('option:selected').data('real-status');
+        if (realStatus == 'True') {
+        let form = $(select).parents('form'),
+        customerId = form.find('#CustomerId').val(),
+        calendarId = form.find('#CalendarId').val(),
+        vehicleId = $(select).val();
 
-            if  (customerId > 0) {
-            //implement activity amount
-                await $.get('@Url.Action("GetSelectedVehicleBalanceInBillForm")',
-                    { 'customerId': customerId, 'calendarId': calendarId, 'vehicleId': vehicleId }
-                        , function (r) {
-                        form.find('#Amount').val(r).keyup();
-                    }
-                    , 'json');
-                }
-            }
+        if  (customerId > 0) {
+        //implement activity amount
+        await $.get('@Url.Action("GetSelectedVehicleBalanceInBillForm")',
+        { 'customerId': customerId, 'calendarId': calendarId, 'vehicleId': vehicleId }
+        , function (r) {
+        form.find('#Amount').val(r).keyup();
+        }
+        , 'json');
+        }
+        }
         }
         function remove(id) {
         $('#delete-modal input').val(id);
@@ -295,17 +295,104 @@
         });
         }
         async function relate(id) {
-            $.ajax({
-                type: 'GET',
-                url: '@Url.Action("GetUnBillOtherCost", "LoadFactorCreator")',
-                data: {'billId': id},
-                dataType: 'html',
+        $.ajax({
+        type: 'GET',
+        url: '@Url.Action("GetUnBillOtherCost", "LoadFactorCreator")',
+        data: {'billId': id},
+        dataType: 'html',
+        beforeSend: function () {
+        preloader();
+        },
+        success: function (r) {
+        $('#relation-modal').html(r);
+        UIkit.modal('#relation-modal').show();
+        },
+        error: function (e) {
+        uiAlert(e.responseText, 'danger');
+        },
+        complete: function () {
+        preloader();
+        }
+        });
+        }
+        function selectAllCosts() {
+        $('.select-btn').attr('onclick', 'deselectAllCosts()').text('حذف انتخاب همه');
+        $.each($('#relation-modal td input'), (i, v) => {
+        if (!$(v).prop('checked')) {
+        $('#relation-modal td input').prop('checked', true);
+        }
+        })
+        relationCheckboxGroupHandler('select');
+        }
+        function deselectAllCosts() {
+        $('.select-btn').attr('onclick', 'selectAllCosts()').text('انتخاب همه');
+        $.each($('#relation-modal td input'), (i, v) => {
+        if ($(v).prop('checked')) {
+        $('#relation-modal td input').prop('checked', false);
+        }
+        })
+        relationCheckboxGroupHandler('deSelect');
+        }
+        function relationCheckboxGroupHandler (type){
+        relateModalSelectedAmountSum = 0;
+        if (type == 'select') {
+        $.each($('#relation-modal td input'), (i, v) => {
+        let checkboxAmount = parseInt($(v).data('amount'));
+
+        relateModalSelectedAmountSum += checkboxAmount;
+        });
+        }
+
+        $('#SelectedAmount span').text(numberWithCommas(relateModalSelectedAmountSum));
+        }
+        function getOp(id, rowId, billType){
+        let billTypeHtml = '';
+        if (billType) {
+        billTypeHtml = `<a class="uk-button uk-button-primary uk-button-small" onclick="relate(${id})"><i class="fas fa-clone"></i> ثبت لیست کارکرد</a>`;
+        } else {
+        billTypeHtml = `<a class="uk-button uk-button-default uk-button-small" disabled><i class="fas fa-clone"></i> ثبت لیست کارکرد</a>`;
+        }
+
+        let modal = $('#op-modal'),
+        listItem = `
+        <li>
+        <a class="uk-button uk-button-primary uk-button-small" href="/admin/bill_print?id=${rowId}&type=bill" target="_blank"><i class="fas fa-print"></i> قبض رسید</a>
+        </li>
+        <li>
+        <a class="uk-button uk-button-primary uk-button-small" href="/admin/bill_print?id=${rowId}&type=license" target="_blank"><i class="fas fa-print"></i> قبض مجوز</a>
+        </li>
+        <li>
+        <a class="uk-button uk-button-primary uk-button-small" onclick="edit(${id})"><i class="far fa-edit"></i> ویرایش</a>
+        </li>
+        <li>
+        <a class="uk-button uk-button-primary uk-button-small" onclick="remove(${id})"><i class="fas fa-trash-alt"></i> حذف</a>
+        </li>
+        <li>
+        ${billTypeHtml}
+        </li>
+        `;
+
+        modal.find('.uk-list').html(listItem);
+        UIkit.modal('#op-modal').show();
+        }
+        function setIsReturned(id, value, tag) {
+             $.ajax({
+                type: 'POST',
+                url: '@Url.Action("ChangeBillIsReturned")',
+                data: {'id' : id },
+                dataType: 'json',
                 beforeSend: function () {
                     preloader();
                 },
                 success: function (r) {
-                    $('#relation-modal').html(r);
-                    UIkit.modal('#relation-modal').show();
+                    let parentTag = $(tag).parent();
+                    if (value == 1) {
+                        parentTag.html(`<span class="uk-text-danger pointer" onclick="setIsReturned(${id}, 0, this)">خیر</span>`);
+                    } else {
+                        parentTag.html(`<span class="uk-text-success pointer" onclick="setIsReturned(${id}, 1, this)">بلی</span>`);
+                    }
+
+                    uiAlert(r.msg, r.status);
                 },
                 error: function (e) {
                     uiAlert(e.responseText, 'danger');
@@ -315,47 +402,78 @@
                 }
             });
         }
-         function selectAllCosts() {
-            $('.select-btn').attr('onclick', 'deselectAllCosts()').text('حذف انتخاب همه');
-            $.each($('#relation-modal td input'), (i, v) => {
-                if (!$(v).prop('checked')) {
-                    $('#relation-modal td input').prop('checked', true);
+        function editGroup() {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("Bill_EditGroup")',
+                data: {},
+                dataType: 'html',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    $('#edit-group-modal').html(r);
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                    complete: function () {
+                    preloader();
+                    UIkit.modal('#edit-group-modal').show();
                 }
-            })
-            relationCheckboxGroupHandler('select');
+            });
         }
-        function deselectAllCosts() {
-            $('.select-btn').attr('onclick', 'selectAllCosts()').text('انتخاب همه');
-            $.each($('#relation-modal td input'), (i, v) => {
-                if ($(v).prop('checked')) {
-                    $('#relation-modal td input').prop('checked', false);
+        function submitEditGroup() {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Bill_EditGroup")',
+                data: $('#edit-group-modal form').serialize(),
+                dataType: 'json',
+                beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    if (r.status == 'success') {
+                        let dataTag = $('#append > div');
+                        data = {
+                            'p': dataTag.data('page'),
+                            'customerId': dataTag.data('customer'),
+                            'calendarId': dataTag.data('calendar'),
+                            'vehicleId': dataTag.data('vehicle'),
+                            'billType': dataTag.data('bill-type'),
+                            'bankBranch': dataTag.data('bank-branch'),
+                            'name': dataTag.data('name'),
+                            'realVehicle': dataTag.data('real-vehicle'),
+                            'description': dataTag.data('description'),
+                            'billNo': dataTag.data('bill-no'),
+                            'bankBillNo': dataTag.data('bank-bill-no')
+                        };
+                        $.post('@Url.Action("Bill_Search")', data, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                    UIkit.modal('#edit-group-modal').hide();
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
                 }
-            })
-            relationCheckboxGroupHandler('deSelect');
-        }
-        function relationCheckboxGroupHandler (type){
-            relateModalSelectedAmountSum = 0;
-            if (type == 'select') {
-                $.each($('#relation-modal td input'), (i, v) => {
-                let checkboxAmount = parseInt($(v).data('amount'));
-
-                    relateModalSelectedAmountSum += checkboxAmount;
-                });
-            }
-
-            $('#SelectedAmount span').text(numberWithCommas(relateModalSelectedAmountSum));
+            });
         }
 
         $(document).on('change', '#relation-modal td input', function (){
-            let checkboxAmount = parseInt($(this).data('amount')),
-                isChecked = $(this).prop('checked');
-                if (isChecked) {
-                    relateModalSelectedAmountSum += checkboxAmount;
-                } else {
-                    relateModalSelectedAmountSum -= checkboxAmount;
-                }
+        let checkboxAmount = parseInt($(this).data('amount')),
+        isChecked = $(this).prop('checked');
+        if (isChecked) {
+        relateModalSelectedAmountSum += checkboxAmount;
+        } else {
+        relateModalSelectedAmountSum -= checkboxAmount;
+        }
 
-            $('#SelectedAmount span').text(numberWithCommas(relateModalSelectedAmountSum));
+        $('#SelectedAmount span').text(numberWithCommas(relateModalSelectedAmountSum));
         });
     </script>
 }
@@ -369,7 +487,8 @@
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
         <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
-        <button uk-toggle="#sum-modal" class="uk-button uk-button-secondary uk-margin-small-right">محاسبه</button>
+        <a onclick="editGroup()" class="uk-button uk-button-secondary uk-margin-small-right">ویرایش</a>
+        <button uk-toggle="#sum-modal" class="uk-button uk-button-primary uk-margin-small-right">محاسبه</button>
         <button onclick="getSearch()" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
     </div>
 </div>
@@ -390,10 +509,9 @@
                     <th>@Html.DisplayNameFor(model => model.CalendarId)</th>
                     <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th width="35">@Html.DisplayNameFor(model => model.IsReturned)</th>
                     <th width="35">قبض</th>
-                    <th width="35">کارکرد</th>
-                    <th width="35">ویرایش</th>
-                    <th width="35">حذف</th>
+                    <th width="35">عملیات</th>
                 </tr>
             </thead>
             <tbody>
@@ -420,19 +538,24 @@
                         <td>@item.Calendar.Title</td>
                         <td>@(item.CustomerId.HasValue ? item.Customer.Name : "---")</td>
                         <td class="uk-text-small">@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Bill_Print" asp-route-id="@item.RowId" target="_blank"><i class="fas fa-print"></i></a></td>
                         <td>
-                            @if (item.BillType.StartsWith("گروهی"))
+                            @if (item.IsReturned)
                             {
-                                <a class="uk-button uk-button-primary uk-button-small" onclick="relate(@item.Id)"><i class="fas fa-clone"></i></a>
+                                <span class="uk-text-success pointer" onclick="setIsReturned(@item.Id, 1, this)">بلی</span>
                             }
                             else
                             {
-                                <a class="uk-button uk-button-default uk-button-small" disabled><i class="fas fa-clone"></i></a>
+                                <span class="uk-text-danger pointer" onclick="setIsReturned(@item.Id, 0, this)">خیر</span>
                             }
                         </td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
-                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Bill_Print" asp-route-id="@item.RowId" target="_blank"><i class="fas fa-print"></i></a></td>
+                        <td>
+                            <a class="uk-button uk-button-primary uk-button-small" onclick="getOp(@item.Id, '@item.RowId', @if (item.BillType.StartsWith("گروهی")) {
+                        <text>true</text>
+ } else {
+                        <text>false</text>
+ })"><i class="fas fa-clipboard-check"></i></a>
+                        </td>
                     </tr>
                     i++;
                 }
@@ -445,6 +568,12 @@
             @Html.PagedListPager(data, page => Url.Action("Bill", new { p = page }))
         </div>
     }
+</div>
+<div id="op-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <h3>انتخاب عملیات</h3>
+        <ul class="uk-list"></ul>
+    </div>
 </div>
 <div id="create-modal" uk-modal="bg-close: false"></div>
 <div id="edit-modal" uk-modal="bg-close: false"></div>
@@ -549,3 +678,4 @@
     </div>
 </div>
 <div id="relation-modal" class="uk-modal-container" uk-modal=""></div>
+<div id="edit-group-modal" class="uk-flex-top" uk-modal></div>

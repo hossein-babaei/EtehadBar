@@ -1,5 +1,6 @@
 ﻿using Castle.Core.Resource;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
@@ -320,7 +321,8 @@ namespace EtehadBar.MVC.Controllers
             ws.Columns().AdjustToContents();
 
             ws.PageSetup.SetPageOrientation(XLPageOrientation.Portrait)
-                .SetPaperSize(XLPaperSize.A4Paper);
+                .SetPaperSize(XLPaperSize.A4Paper)
+                .Margins.SetTop(0).SetBottom(0).SetRight(0.5).SetLeft(0).SetHeader(0).SetFooter(0);
 
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);
@@ -2281,6 +2283,10 @@ namespace EtehadBar.MVC.Controllers
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
 
+            ws.PageSetup.SetPageOrientation(XLPageOrientation.Portrait)
+                .SetPaperSize(XLPaperSize.A4Paper)
+                .Margins.SetTop(0).SetBottom(0).SetRight(0.5).SetLeft(0).SetHeader(0).SetFooter(0);
+
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);
             var content = stream.ToArray();
@@ -2482,7 +2488,11 @@ namespace EtehadBar.MVC.Controllers
             table.Theme = XLTableTheme.None;
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
-            table.Style.Font.FontSize = 9;
+            table.Style.Font.FontSize = 9; 
+            
+            ws.PageSetup.SetPageOrientation(XLPageOrientation.Portrait)
+                .SetPaperSize(XLPaperSize.A4Paper)
+                .Margins.SetTop(0).SetBottom(0).SetRight(0.5).SetLeft(0).SetHeader(0).SetFooter(0);
 
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);
@@ -3174,6 +3184,12 @@ namespace EtehadBar.MVC.Controllers
                 ws.Cell(i + 3, 2).Value = vehicles[i].VehicleOwnerFullname;
                 ws.Cell(i + 3, 3).Value = vehicleNumber;
                 ws.Cell(i + 3, 4).SetValue<string>(vehicles[i].NationalNumber);
+
+                //var tejarat = vehicles[i].VehicleBankAccounts.FirstOrDefault(a => a.BankId.Equals(43));
+                //if (tejarat != null)
+                //{
+                //    ws.Cell(i + 3, 5).SetValue<string>(tejarat.AccountNumber);
+                //}
 
                 if (!vehicles[i].VehicleBankAccounts.Any())
                     ws.Cell(i + 3, 2).Style.Fill.SetBackgroundColor(XLColor.LightGray);
@@ -4268,7 +4284,7 @@ namespace EtehadBar.MVC.Controllers
                 phrase = "";
             if (billItem.BankBranch.Contains("ملت"))
             {
-                bankPresidentName = "جناب آقای حسینی";
+                bankPresidentName = "جناب آقای طحان پور";
                 phrase = "ریاست محترم بانک ملت شعبه پارس خودرو کد 67603";
             }
             else if (billItem.BankBranch.Contains("تجارت"))
@@ -4455,6 +4471,87 @@ namespace EtehadBar.MVC.Controllers
             ws.Columns().AdjustToContents();
 
             ws.PageSetup.SetPaperSize(XLPaperSize.A4Paper);
+
+            await using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> InvestorCustomerReport(long calendarId, long customerId)
+        {
+            var customer = await _customerRepo.Get(customerId);
+            var calendar = await _calendarRepo.Get(calendarId);
+            var data = await (from a in db.TurnoverProfile
+                              join b in db.Turnover on a.Id equals b.TurnoverProfileId
+                              where a.CustomerId.Equals(customerId) && (b.Date >= calendar.StartDate && b.Date <= calendar.EndDate)
+                              select new
+                              {
+                                  a.FullName,
+                                  b.Date,
+                                  b.Creditor,
+                                  b.Description
+                              }).OrderBy(a => a.Date).ToListAsync();
+
+            string docTitle = $"گزارش سرمایه گذاران شرکت {customer.Name} در {calendar.Title}";
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add($"{calendar.Title}");
+
+            ws.RightToLeft = true;
+            ws.Style.Font.FontName = "B Titr";
+            ws.Style.Font.FontCharSet = XLFontCharSet.Arabic;
+            ws.Style.Alignment.SetReadingOrder(XLAlignmentReadingOrderValues.RightToLeft);
+
+            ws.Cell(1, 1).Value = docTitle;
+            ws.Cell(2, 1).Value = "ردیف";
+            ws.Cell(2, 2).Value = "تاریخ";
+            ws.Cell(2, 3).Value = "نام و نام خانوادگی";
+            ws.Cell(2, 4).Value = "مبلغ";
+
+
+            for (int index = 0; index < data.Count; index++)
+            {
+                var pd = new PersianDateTime(data[index].Date).ToString("yyyy/MM/dd");
+                ws.Cell(index + 3, 1).Value = index + 1;
+                ws.Cell(index + 3, 2).Value = pd;
+                ws.Cell(index + 3, 3).Value = data[index].FullName;
+                ws.Cell(index + 3, 4).Value = data[index].Creditor.ToString("N0");
+            }
+
+            ws.Cell(data.Count + 3, 1).Value = "جمع کل";
+            ws.Range(data.Count + 3, 1, data.Count + 3, 3).Merge();
+            ws.Cell(data.Count + 3, 4).Value = data.Sum(a => a.Creditor).ToString("N0");
+
+
+            ws.Column("A").Width = 5;
+            ws.Column("B").Width = 25;
+            ws.Column("C").Width = 27;
+            ws.Column("D").Width = 31;
+
+            var rngTable = ws.Range(ws.Cell(1, 1), ws.Cell(data.Count + 3, 4));
+            rngTable.FirstRow().Merge();
+
+            rngTable.FirstRow().Style
+                .Font.SetBold()
+                .Font.SetFontSize(14)
+                    .Fill.SetBackgroundColor(XLColor.LightGray)
+                        .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            rngTable.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            rngTable.Style.Font.Bold = true;
+            rngTable.Style.Font.FontColor = XLColor.Black;
+            rngTable.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
+            rngTable.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
+
+            ws.CellsUsed().Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
+
+            ws.PageSetup.SetPageOrientation(XLPageOrientation.Portrait)
+                .SetPaperSize(XLPaperSize.A4Paper)
+                .Margins.SetTop(0).SetBottom(0).SetRight(0.5).SetLeft(0).SetHeader(0).SetFooter(0);
 
             await using var stream = new MemoryStream();
             workbook.SaveAs(stream);

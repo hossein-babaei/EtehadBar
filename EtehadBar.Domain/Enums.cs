@@ -118,4 +118,11 @@
         Partner,
         Investor
     }
+
+    public enum TurnoverPaymentType
+    {
+        Rial,
+        Sekke,
+        Dollar
+    }
 }

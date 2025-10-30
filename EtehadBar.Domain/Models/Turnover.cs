@@ -40,7 +40,7 @@ namespace EtehadBar.Domain.Models
         [Required]
         [ForeignKey(nameof(TurnoverProfile))]
         public long TurnoverProfileId { get; set; }
-        public virtual TurnoverProfile TurnoverProfile { get; set; }
+        public TurnoverProfile TurnoverProfile { get; set; }
 
         [Required]
         [StringLength(36)]

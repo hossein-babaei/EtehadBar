@@ -24,6 +24,7 @@ namespace EtehadBar.Infra.Data.Context
         public DbSet<BankAccount> BankAccount { get; set; }
         public DbSet<BankAccountBook> BankAccountBook { get; set; }
         public DbSet<Bill> Bill { get; set; }
+        public DbSet<BillDetail> BillDetail { get; set; }
         public DbSet<Calendar> Calendar { get; set; }
         public DbSet<Config> Config { get; set; }
         public DbSet<Contract> Contract { get; set; }

@@ -345,7 +345,7 @@
                 <tr>
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.LoadNumber)</th>
-                    @if (User.IsInRole("Admin"))
+                    @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
                     {
                         <th>@Html.DisplayNameFor(model => model.LoadNumberGov)</th>
                     }
@@ -353,7 +353,7 @@
                     <th>خودرو</th>
                     <th>راننده</th>
                     <th>@Html.DisplayNameFor(model => model.Date)</th>
-                    @if (User.IsInRole("Admin"))
+                    @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
                     {
                         <th>مشتری</th>
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
@@ -380,7 +380,7 @@
                     <tr class="uk-text-center sm" data-id="@item.Id">
                         <td>@i</td>
                         <td>@Html.DisplayFor(modelItem => item.LoadNumber)</td>
-                        @if (User.IsInRole("Admin"))
+                        @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
                         {
                             <td>@(string.IsNullOrWhiteSpace(item.LoadNumberGov) ? "---" : item.LoadNumberGov)</td>
                         }
@@ -388,7 +388,7 @@
                         <td>@item.Vehicle.RightNumber @item.Vehicle.NumberWord @item.Vehicle.LeftNumber</td>
                         <td>@item.Driver.Fullname</td>
                         <td>@(new PersianDateTime(item.Date).ToString("yyyy/MM/dd"))</td>
-                        @if (User.IsInRole("Admin"))
+                        @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
                         {
                             <td>@item.Contract.Customer.Name</td>
                             <td class="uk-text-bold md amount pointer" onclick="editAmount(this)" data-val="@item.Amount">@item.Amount.ToString("N0")</td>

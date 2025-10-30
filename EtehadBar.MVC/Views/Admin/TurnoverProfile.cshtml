@@ -16,17 +16,32 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     var model = new TurnoverProfile();
 }
-@section Scripts{
+@section Scripts {
     <script>
+        function create() {
+        preloader();
+        $.get('@Url.Action("CreateTurnoverProfile")', { }, function (r) {
+        $('#create-modal').html(r);
+        }, 'html').then(function () {
+        parseValidator('#create-modal form');
+        preloader();
+        UIkit.modal('#create-modal').show();
+        });
+        }
         function edit(id) {
-            preloader();
-            $.get('@Url.Action("EditTurnoverProfile")', { 'id': id }, function (r) {
-                $('#edit-modal').html(r);
-            }, 'html').then(function () {
-                parseValidator('#edit-modal form');
-                preloader();
-                UIkit.modal('#edit-modal').show();
-            });
+        preloader();
+        $.get('@Url.Action("EditTurnoverProfile")', { 'id': id }, function (r) {
+        $('#edit-modal').html(r);
+        }, 'html').then(function () {
+        parseValidator('#edit-modal form');
+        preloader();
+        UIkit.modal('#edit-modal').show();
+        });
+        }
+
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
         }
     </script>
 }
@@ -38,7 +53,7 @@
         </ul>
     </div>
     <div class="uk-width-expand@m uk-flex uk-flex-left">
-        <a class="uk-button uk-button-primary" uk-toggle="#create-modal">افزودن</a>
+        <a class="uk-button uk-button-primary" onclick="create()">افزودن</a>
     </div>
 </div>
 <div id="append" class="box">
@@ -48,22 +63,54 @@
                 <tr>
                     <th>ردیف</th>
                     <th>@Html.DisplayNameFor(model => model.FullName)</th>
+                    <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
                     <th>@Html.DisplayNameFor(model => model.ProfitPercent)</th>
-                    <th width="60">دوره</th>
-                    <th width="60">گردش</th>
+                    <th>@Html.DisplayNameFor(model => model.TurnoverPaymentType)</th>
+                    <th>@Html.DisplayNameFor(model => model.TurnoverTurnType)</th>
+                    <th>@Html.DisplayNameFor(model => model.StartDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.ExpireDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.BankAccountOwner)</th>
+                    <th>@Html.DisplayNameFor(model => model.BankAccount)</th>
+                    <th width="50">دوره</th>
+                    <th width="50">گردش</th>
                     <th width="50">ویرایش</th>
+                    <th width="50">حذف</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var item in Model)
                 {
+                    string startDate = new PersianDateTime(item.StartDate).ToShortDateString();
+                    string expireDate = "---";
+                    if (item.ExpireDate.HasValue)
+                        expireDate = new PersianDateTime(item.ExpireDate).ToShortDateString();
+
                     <tr class="uk-text-center sm">
                         <td>@i</td>
                         <td>@item.FullName</td>
+                        <td>@(item.CustomerId.HasValue ? item.Customer.Name : "---")</td>
                         <td>@item.ProfitPercent</td>
+                        @if (item.TurnoverPaymentType.Equals(TurnoverPaymentType.Sekke))
+                        {
+                            <td>سکه</td>
+                        }
+                        else if (item.TurnoverPaymentType.Equals(TurnoverPaymentType.Rial))
+                        {
+                            <td>ریال</td>
+                        }
+                        else
+                        {
+                            <td>دلار</td>
+                        }
+                        <td>@item.TurnoverTurnType</td>
+                        <td>@startDate</td>
+                        <td>@expireDate</td>
+                        <td>@(!string.IsNullOrWhiteSpace(item.BankAccountOwner) ? item.BankAccountOwner : "---")</td>
+                        <td style="font-family: iranyekan">@(!string.IsNullOrWhiteSpace(item.BankAccount) ? item.BankAccount : "---")</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="TurnoverProfilePeriod" asp-route-id="@item.Id"><i class="fas fa-clipboard-list"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Turnover" asp-route-id="@item.RowId"><i class="fas fa-money-bill"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
                     i++;
                 }
@@ -71,5 +118,18 @@
         </table>
     </div>
 </div>
+<div id="create-modal" uk-modal="bg-close: false"></div>
 <div id="edit-modal" uk-modal="bg-close: false"></div>
-<partial name="~/Views/Admin/Create/TurnoverProfile.cshtml" model="model" />
+<div id="delete-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+        <form id="delete-form" method="post" asp-action="DeleteTurnoverProfile" asp-controller="Admin">
+            <input type="hidden" name="id" />
+            <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+            <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+            </div>
+        </form>
+    </div>
+</div>

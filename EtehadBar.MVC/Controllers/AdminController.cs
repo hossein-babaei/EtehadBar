@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
+﻿using DocumentFormat.OpenXml.Office.CustomUI;
+using DocumentFormat.OpenXml.Wordprocessing;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
@@ -2251,6 +2252,12 @@ namespace EtehadBar.MVC.Controllers
 
                 var item = await _shippingFeeGroupRepository.Get(s.Id);
 
+
+                bool isDriverFeeChanged = false;
+
+                if (item.DriverPrice != s.DriverPrice || item.DriverTonnagePrice != s.DriverTonnagePrice)
+                    isDriverFeeChanged = true;
+
                 item.DriverPrice = s.DriverPrice;
                 item.Price = s.Price;
                 item.Vehicle = s.Vehicle;
@@ -2303,12 +2310,15 @@ namespace EtehadBar.MVC.Controllers
                             factor.TonnagePrice = item.TonnagePrice;
                             factor.DriverTonnagePrice = item.DriverTonnagePrice;
 
-                            var balance = vehicleBalances.Single(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(factor.Id));
-                            balance.Amount = factor.DriverFee +
-                    ((factor.Tonnage.HasValue && factor.DriverTonnagePrice.HasValue) ? factor.Tonnage.Value * factor.DriverTonnagePrice.Value : 0) +
-                    (factor.WeighbridgePrice.HasValue ? factor.WeighbridgePrice.Value : 0) +
-                    (factor.DriverLoadSleepPrice.HasValue ? factor.DriverLoadSleepPrice.Value : 0);
-                            balance.EditDatetime = DateTime.Now;
+                            if (isDriverFeeChanged)
+                            {
+                                var balance = vehicleBalances.Single(a => a.LoadFactorId.HasValue && a.LoadFactorId.Value.Equals(factor.Id));
+                                balance.Amount = factor.DriverFee +
+                                    ((factor.Tonnage.HasValue && factor.DriverTonnagePrice.HasValue) ? factor.Tonnage.Value * factor.DriverTonnagePrice.Value : 0) +
+                                    (factor.WeighbridgePrice.HasValue ? factor.WeighbridgePrice.Value : 0) +
+                                    (factor.DriverLoadSleepPrice.HasValue ? factor.DriverLoadSleepPrice.Value : 0);
+                                balance.EditDatetime = DateTime.Now;
+                            }
                         }
                         _loadFactorRepo.UpdateRange(loadFactors);
                         await _loadFactorRepo.Save();
@@ -5213,7 +5223,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditLoadFactorDriverFee(long Id, double Fee, double TonnageFee, bool IsFree)
         {
             string msg;
@@ -5256,7 +5266,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Milad")]
         public async Task<IActionResult> EditLoadFactorAmount(long Id, double Amount)
         {
             string msg;
@@ -6921,23 +6931,48 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> TurnoverProfile(TurnoverType type)
         {
             ViewData["Type"] = type;
-            return View(await _turnoverProfileRepository.Query().Where(a => a.TurnoverType == type).ToListAsync());
+            return View(await _turnoverProfileRepository.Query().Include(a => a.Customer).Where(a => a.TurnoverType == type).ToListAsync());
         }
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public PartialViewResult CreateTurnoverProfile()
+        public async Task<PartialViewResult> CreateTurnoverProfile()
         {
+            ViewData["Customer"] = await _customerRepo.GetAll();
             return PartialView("~/Views/Admin/Create/TurnoverProfile.cshtml");
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateTurnoverProfile(TurnoverProfile v)
+        public async Task<IActionResult> CreateTurnoverProfile(CreateTurnoverProfileVM v)
         {
             if (ModelState.IsValid)
             {
-                _turnoverProfileRepository.Create(v);
+                var startDate = new PersianDateTime(v.StartYear, v.StartMonth, v.StartDay);
+                var expireDate = new PersianDateTime(v.ExpireYear, v.ExpireMonth, v.ExpireDay);
+
+                if (expireDate < startDate)
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. لطفا تاریخ انقضا را بزرگتر از تاریخ شروع وارد کنید. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var item = new TurnoverProfile
+                {
+                    BankAccount = v.BankAccount,
+                    BankAccountOwner = v.BankAccountOwner,
+                    CustomerId = v.CustomerId.Value == 0 ? null : v.CustomerId.Value,
+                    ExpireDate = expireDate.ToDateTime(),
+                    StartDate = startDate.ToDateTime(),
+                    FullName = v.FullName,
+                    ProfitPercent = v.ProfitPercent,
+                    TurnoverType = v.TurnoverType,
+                    TurnoverPaymentType = v.TurnoverPaymentType,
+                    TurnoverTurnType = v.TurnoverTurnType,
+                    Description = v.Description
+                };
+
+                _turnoverProfileRepository.Create(item);
                 try
                 {
                     await _turnoverProfileRepository.Save();
@@ -6959,20 +6994,60 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<PartialViewResult> EditTurnoverProfile(int id)
         {
-            return PartialView("~/Views/Admin/Edit/TurnoverProfile.cshtml", await _turnoverProfileRepository.Get(id));
+            ViewData["Customer"] = await _customerRepo.GetAll();
+            var item = await _turnoverProfileRepository.Get(id);
+            var startDate = new PersianDateTime(item.StartDate);
+            var expireDate = new PersianDateTime(item.ExpireDate);
+
+            return PartialView("~/Views/Admin/Edit/TurnoverProfile.cshtml", new EditTurnoverProfileVM
+            {
+                Id = item.Id,
+                BankAccount = item.BankAccount,
+                BankAccountOwner = item.BankAccountOwner,
+                CustomerId = item.CustomerId ?? 0,
+                ExpireDay = expireDate.Day,
+                ExpireMonth = expireDate.Month,
+                ExpireYear = expireDate.Year,
+                StartDay = startDate.Day,
+                StartMonth = startDate.Month,
+                StartYear = startDate.Year,
+                FullName = item.FullName,
+                ProfitPercent = item.ProfitPercent,
+                TurnoverType = item.TurnoverType,
+                TurnoverPaymentType = item.TurnoverPaymentType,
+                TurnoverTurnType = item.TurnoverTurnType,
+                Description = item.Description
+            });
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> EditTurnoverProfile(TurnoverProfile v)
+        public async Task<IActionResult> EditTurnoverProfile(EditTurnoverProfileVM v)
         {
             if (ModelState.IsValid)
             {
+                var startDate = new PersianDateTime(v.StartYear, v.StartMonth, v.StartDay);
+                var expireDate = new PersianDateTime(v.ExpireYear, v.ExpireMonth, v.ExpireDay);
+
+                if (expireDate < startDate)
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. لطفا تاریخ انقضا را بزرگتر از تاریخ شروع وارد کنید. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
                 var item = await _turnoverProfileRepository.Get(v.Id);
 
                 item.TurnoverType = v.TurnoverType;
                 item.FullName = v.FullName;
                 item.ProfitPercent = v.ProfitPercent;
+                item.StartDate = startDate;
+                item.ExpireDate = expireDate;
+                item.BankAccount = v.BankAccount;
+                item.BankAccountOwner = v.BankAccountOwner;
+                item.CustomerId = v.CustomerId.Value == 0 ? null : v.CustomerId.Value;
+                item.TurnoverPaymentType = v.TurnoverPaymentType;
+                item.TurnoverTurnType = v.TurnoverTurnType;
+                item.Description = v.Description;
 
                 _turnoverProfileRepository.Update(item);
                 try
@@ -6988,6 +7063,27 @@ namespace EtehadBar.MVC.Controllers
             else
             {
                 TempData["msg"] = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید. |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteTurnoverProfile(long id)
+        {
+            var item = await _turnoverProfileRepository.Query().Include(a => a.Turnovers).Include(a => a.TurnoverProfilePeriods).Where(a => a.Id.Equals(id)).FirstOrDefaultAsync();
+            if (item is not null)
+            {
+                _turnoverProfileRepository.Delete(item);
+                try
+                {
+                    await _turnoverProfileRepository.Save();
+                    TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+                }
+                catch (Exception e)
+                {
+                    TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+                }
             }
             return Redirect(Request.Headers["Referer"].ToString());
         }
@@ -7456,7 +7552,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Bill_Print(string id)
+        public async Task<IActionResult> Bill_Print(string id, string type)
         {
             var item = await _billRepository.Query().AsNoTracking().Include(a => a.Vehicle).Include(a => a.Calendar).Include(a => a.Customer).FirstOrDefaultAsync(a => a.RowId.Equals(id));
             if (item.BillType.Contains("گروهی"))
@@ -7465,6 +7561,7 @@ namespace EtehadBar.MVC.Controllers
                 item.Amount = amountSum;
             }
 
+            ViewData["Type"] = type;
             return View(item);
         }
 
@@ -7472,6 +7569,99 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> GetBillReceiverNames()
         {
             return Json(await _billRepository.Query().AsNoTracking().Select(a => a.ReceiverName.Replace("/", "")).Distinct().ToListAsync());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<JsonResult> ChangeBillIsReturned(long id)
+        {
+            string msg;
+            string status = "danger";
+
+            var bill = await _billRepository.Get(id);
+            bill.IsReturned = !bill.IsReturned;
+            _billRepository.Update(bill);
+            try
+            {
+                await _billRepository.Save();
+
+                msg = "عملیات موفقیت آمیز بود.";
+                status = "success";
+            }
+            catch (Exception e)
+            {
+                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+            }
+            return Json(new { msg, status, });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Bill_EditGroup()
+        {
+            ViewData["Definitions"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BillType || a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderBy(a => a.Title).ToListAsync();
+            return PartialView();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Bill_EditGroup(string BillNo, string BankBillNo, int Day, int Month, int Year, string BankBranch, string BillType)
+        {
+            string msg;
+            string status = "danger";
+            if (string.IsNullOrWhiteSpace(BillNo) && string.IsNullOrWhiteSpace(BankBillNo))
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+                return Json(new { msg, status });
+            }
+
+            var query = _billRepository.Query();
+
+            if (!string.IsNullOrWhiteSpace(BillNo))
+                query = query.Where(a => a.BillNo.Equals(BillNo));
+
+            if (!string.IsNullOrWhiteSpace(BankBillNo))
+                query = query.Where(a => a.BankBillNo.Equals(BankBillNo));
+
+            var bills = await query.ToListAsync();
+
+            if (!bills.Any())
+            {
+                msg = "عملیات با خطا مواجه شد. موردی پیدا نشد.";
+                return Json(new { msg, status });
+            }
+
+            if (Year > 0 && Month > 0 && Day > 0)
+            {
+                var date = new PersianDateTime(Year, Month, Day).ToDateTime();
+                foreach (var item in bills)
+                {
+                    item.Date = date;
+                    item.EditDatetime = DateTime.Now;
+                    item.EditorId = _userManager.GetUserId(User);
+                }
+            }
+
+            if (BankBranch != "0")
+                foreach (var item in bills)
+                    item.BankBranch = BankBranch;
+
+            if (BillType != "0")
+                foreach (var item in bills)
+                    item.BillType = BillType;
+
+            _billRepository.UpdateRange(bills);
+            try
+            {
+                await _billRepository.Save();
+
+                msg = "عملیات موفقیت آمیز بود.";
+                status = "success";
+            }
+            catch (Exception e)
+            {
+                msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+            }
+
+            return Json(new { msg, status });
         }
 
         [HttpGet]
@@ -7489,17 +7679,40 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> CreateBill(Bill b, int day, int month, int year)
+        public async Task<IActionResult> CreateBill(CreateBillVM b)
         {
             string msg;
             string status = "danger";
             if (ModelState.IsValid)
             {
-                b.Date = new PersianDateTime(year, month, day).ToDateTime();
-                b.CreatorId = _userManager.GetUserId(User);
-                b.CustomerId = b.CustomerId.Value == 0 ? null : b.CustomerId;
+                var bill = new Bill
+                {
+                    Amount = b.Amount,
+                    BankBillNo = b.BankBillNo,
+                    BillNo = b.BillNo,
+                    BankBranch = b.BankBranch,
+                    BillType = b.BillType,
+                    CalendarId = b.CalendarId,
+                    CustomerId = b.CustomerId == 0 ? null : b.CustomerId.Value,
+                    Description = b.Description,
+                    IsReturned = b.IsReturned,
+                    ReceiverName = b.ReceiverName,
+                    VehicleId = b.VehicleId,
+                    CreatorId = _userManager.GetUserId(User),
+                    Date = new PersianDateTime(b.Year, b.Month, b.Day).ToDateTime()
+                };
 
-                _billRepository.Create(b);
+                if (!string.IsNullOrWhiteSpace(b.RealReceiverName))
+                {
+                    bill.BillDetail = new BillDetail
+                    {
+                        Bill = bill,
+                        ReceiverBankAccount = b.ReceiverBankAccount,
+                        ReceiverName = b.RealReceiverName
+                    };
+                }
+
+                _billRepository.Create(bill);
                 try
                 {
                     await _billRepository.Save();
@@ -7509,10 +7722,10 @@ namespace EtehadBar.MVC.Controllers
                         await _vehicleBalanceRepository.Create(new VehicleBalance
                         {
                             Amount = -b.Amount,
-                            BillId = b.Id,
+                            BillId = bill.Id,
                             CalendarId = b.CalendarId,
                             VehicleId = b.VehicleId.Value,
-                            CreateDateTime = b.Date,
+                            CreateDateTime = bill.Date,
                             Description = b.Description,
                             CustomerId = b.CustomerId
                         });
@@ -7544,12 +7757,12 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
             ViewData["Vehicles"] = await _vehicleRepo.Vehicles().AsNoTracking().OrderByDescending(a => a.LeftNumber).ToListAsync();
             ViewData["Definitions"] = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BillType || a.DefinitionType == DefinitionType.BankBranch).AsNoTracking().OrderBy(a => a.Title).ToListAsync();
-            return PartialView("~/Views/Admin/Edit/Bill.cshtml", await _billRepository.Get(id));
+            return PartialView("~/Views/Admin/Edit/Bill.cshtml", await _billRepository.GetEditData(id));
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> EditBill(Bill b, int day, int month, int year)
+        public async Task<IActionResult> EditBill(EditBillVM b)
         {
             string msg;
             string status = "danger";
@@ -7557,7 +7770,7 @@ namespace EtehadBar.MVC.Controllers
             {
                 b.CustomerId = b.CustomerId.Value == 0 ? null : b.CustomerId;
 
-                var item = await _billRepository.Get(b.Id);
+                var item = await _billRepository.GetIncludedDetail(b.Id);
 
                 var isVehicleChanged = false;
                 if (item.VehicleId.HasValue && !b.VehicleId.HasValue)
@@ -7575,8 +7788,27 @@ namespace EtehadBar.MVC.Controllers
                 item.Description = b.Description;
                 item.ReceiverName = b.ReceiverName;
                 item.CustomerId = b.CustomerId;
+                item.IsReturned = b.IsReturned;
 
-                item.Date = new PersianDateTime(year, month, day).ToDateTime();
+                item.Date = new PersianDateTime(b.Year, b.Month, b.Day).ToDateTime();
+                if (item.BillDetail != null && !string.IsNullOrWhiteSpace(b.RealReceiverName))
+                {
+                    item.BillDetail.ReceiverName = b.RealReceiverName;
+                    item.BillDetail.ReceiverBankAccount = b.ReceiverBankAccount;
+                }
+                else if (item.BillDetail != null && string.IsNullOrWhiteSpace(b.RealReceiverName))
+                {
+                    _billRepository.DeleteBillDetail(item.BillDetail);
+                }
+                else if (item.BillDetail == null && !string.IsNullOrWhiteSpace(b.RealReceiverName))
+                {
+                    item.BillDetail = new BillDetail
+                    {
+                        BillId = item.Id,
+                        ReceiverBankAccount = b.ReceiverBankAccount,
+                        ReceiverName = b.RealReceiverName
+                    };
+                }
 
                 _billRepository.Update(item);
                 try
@@ -7642,7 +7874,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteBill(long id)
         {
-            var item = await _billRepository.Get(id);
+            var item = await _billRepository.Query().Include(a => a.BillDetail).FirstOrDefaultAsync(a => a.Id.Equals(id));
             _billRepository.Delete(item);
             try
             {
