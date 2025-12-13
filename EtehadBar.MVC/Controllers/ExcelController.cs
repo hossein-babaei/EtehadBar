@@ -1,6 +1,4 @@
-﻿using Castle.Core.Resource;
-using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Office2010.Excel;
+﻿using ClosedXML.Excel;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
@@ -250,7 +248,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        [Authorize(Roles = "Admin, User, Milad")]
+        [Authorize(Roles = "Admin, User, Milad, Accountant")]
         public async Task<IActionResult> Cost(long calendarId, string userId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -331,7 +329,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId, long customerId)
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
@@ -440,7 +438,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}.xlsx");
         }
 
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId, long customerId)
         {
             var vehicle = await _vehicleRepo.Get(vehicleId);
@@ -2201,7 +2199,7 @@ namespace EtehadBar.MVC.Controllers
                 .Border.SetInsideBorderColor(XLColor.Black);
         }
 
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> ActivityList(long customerId, long calendarId, bool hasPayment, bool isFreeDriverFee)
         {
             var data = await _vehicleRepo.ActivityList(customerId, calendarId, hasPayment, isFreeDriverFee);
@@ -2293,7 +2291,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
 
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> FullActivityList(long customerId, long calendarId, int type)
         {
             var finalData = new List<VehicleFullActivityVM>();
@@ -2500,7 +2498,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
 
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> VehicleActivityByCustomer(long customerId, long calendarId, bool isFreeDriverFee)
         {
             var data = await _vehicleRepo.ActivityListByCustomer(customerId, calendarId, isFreeDriverFee);
@@ -2679,13 +2677,13 @@ namespace EtehadBar.MVC.Controllers
 
                 string txt = "";
                 if (vehicleBankAccount is null)
-                    txt = $"اینجانب ......................... مالک خودرو {item.VehicleType} به شماره انتظامی {item.VehicleNumber}، مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال بابت کل کارکرد {calendar.Title} در شرکت اتحاد بار آسیا و شرکت های همکار این شرکت که صدور بارنامه های دولتی از سوی آن ها می باشد را به تعداد {item.Details.Count} فقره بارنامه، به شماره حساب ......................... تمام و کمال دریافت نموده و تسویه گردیده است.";
+                    txt = $"اینجانب ......................... مالک خودرو {item.VehicleType} به شماره انتظامی {item.VehicleNumber}، مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال، کل کارکرد بابت کرایه حمل قطعات به صورت رفت و برگشت پالت خالی در {calendar.Title} در شرکت اتحاد بار آسیا و شرکت های همکار این شرکت که صدور بارنامه های دولتی از سوی آن ها می باشد را به تعداد {item.Details.Count} فقره بارنامه، به شماره حساب ......................... تمام و کمال دریافت نموده و تسویه گردیده است.";
                 else
-                    txt = $"اینجانب {vehicleBankAccount.Fullname} مالک خودر {item.VehicleType} به شماره انتظامی {item.VehicleNumber}، مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال بابت کل کارکرد {calendar.Title} در شرکت اتحاد بار آسیا و شرکت های همکار این شرکت که صدور بارنامه های دولتی از سوی آن ها می باشد را به تعداد {item.Details.Count} فقره بارنامه، به شماره حساب {vehicleBankAccount.AccountNumber} تمام و کمال دریافت نموده و تسویه گردیده است.";
+                    txt = $"اینجانب {vehicleBankAccount.Fullname} مالک خودر {item.VehicleType} به شماره انتظامی {item.VehicleNumber}، مبلغ {(item.VehicleBalance > 0 ? item.VehicleBalance.ToString("N0") : "0")} ریال، کل کارکرد بابت کرایه حمل قطعات به صورت رفت و برگشت پالت خالی در {calendar.Title} در شرکت اتحاد بار آسیا و شرکت های همکار این شرکت که صدور بارنامه های دولتی از سوی آن ها می باشد را به تعداد {item.Details.Count} فقره بارنامه، به شماره حساب {vehicleBankAccount.AccountNumber} تمام و کمال دریافت نموده و تسویه گردیده است.";
 
                 ws.Range(lastRowFirstCellIndex + 1, 1, lastRowFirstCellIndex + 1, 8).Merge().SetValue(txt);
                 ws.Cell(lastRowFirstCellIndex + 1, 1).Style.Font.SetFontSize(9).Alignment.SetWrapText(true);
-                ws.Row(lastRowFirstCellIndex + 1).Height = 55;
+                ws.Row(lastRowFirstCellIndex + 1).Height = 75;
             }
 
             await using var stream = new MemoryStream();
@@ -3035,7 +3033,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
 
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> SlashedLoadFactor(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -3152,7 +3150,7 @@ namespace EtehadBar.MVC.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"{docTitle}_{new PersianDateTime(DateTime.Now):yyyyMMddHHmmss}.xlsx");
         }
 
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> Vehicles(string type)
         {
             string docTitle = $"لیست خودرو های اتحاد بار آسیا";
@@ -3232,7 +3230,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> GetHasCapacityUnrealVehicles(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -3302,7 +3300,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> GlobalDetailedReport(long customerId, long calendarId)
         {
             var data = new List<LoadFactorModel>();
@@ -3781,7 +3779,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> DriversPeriodicActivity(long fromCalendarId, long toCalendarId)
         {
             var calendars = await _calendarRepo.Calendars().AsNoTracking().Where(a => a.Id.Equals(fromCalendarId) || a.Id.Equals(toCalendarId)).ToListAsync();
@@ -3900,7 +3898,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> LoadFactorGov(long customerId, string startDate, string endDate)
         {
             var startArr = startDate.PersianToEnglish().Split('/');
@@ -4005,7 +4003,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> LoadFactorGovReportByCompany(long companyId, int sYear, int sMonth, int sDay, int eYear, int eMonth, int eDay)
         {
             var startD = new PersianDateTime(sYear, sMonth, sDay, 0, 0, 0).ToDateTime();
@@ -4237,7 +4235,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> BillList(string id)
         {
             var billItem = await _billRepository.Query().AsNoTracking().Include(a => a.OtherCosts).ThenInclude(a => a.Vehicle).FirstOrDefaultAsync(a => a.RowId.Equals(id));
@@ -4369,7 +4367,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> DetailedCost(long customer, string date)
         {
             var dateArr = date.Split('|');

@@ -102,6 +102,17 @@ namespace Helpers
 
                 IdentityResult roleResult = roleManager.CreateAsync(role).Result;
             }
+
+            //حسابدار
+            if (!roleManager.RoleExistsAsync("Accountant").Result)
+            {
+                IdentityRole role = new IdentityRole
+                {
+                    Name = "Accountant"
+                };
+
+                IdentityResult roleResult = roleManager.CreateAsync(role).Result;
+            }
         }
     }
 }

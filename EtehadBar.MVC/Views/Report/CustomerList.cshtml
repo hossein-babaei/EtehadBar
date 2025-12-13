@@ -10,212 +10,212 @@
     var latestCal = calendars.First();
 }
 @section Links{
-    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+<link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
 }
 @section Scripts{
     <script src="~/lib/persian-date/persian-date.min.js"></script>
     <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
     <script>
         let datePickerConfig = {
-            initialValue: true,
-            autoClose: true,
-            timePicker: {
-                enabled: false
-            },
-            format: 'YYYY/MM/DD',
-            navigator: {
-                enabled: true,
-                scroll: {
-                    "enabled": true
-                },
-                text: {
-                    btnNextText: '>',
-                    btnPrevText: '<'
-                }
-            },
-            toolbox: {
-                calendarSwitch: {
-                    enabled: false
-                }
-            }
+        initialValue: true,
+        autoClose: true,
+        timePicker: {
+        enabled: false
+        },
+        format: 'YYYY/MM/DD',
+        navigator: {
+        enabled: true,
+        scroll: {
+        "enabled": true
+        },
+        text: {
+        btnNextText: '>',
+        btnPrevText: '<'
+        }
+        },
+        toolbox: {
+        calendarSwitch: {
+        enabled: false
+        }
+        }
         };
 
         $(document).ready(function () {
-            $('.startDate').persianDatepicker(datePickerConfig);
-            $('.endDate').persianDatepicker(datePickerConfig);
+        $('.startDate').persianDatepicker(datePickerConfig);
+        $('.endDate').persianDatepicker(datePickerConfig);
         });
         let vehicleList = [],
-            contractList = [];
+        contractList = [];
         function submitActivityByCustomerForm(submitButton, isFreeDriverFee) {
-            let form = $(submitButton).parent().parent().parent().parent().find('form');
-            form.find('input[name=isFreeDriverFee]').val(isFreeDriverFee);
-            form.submit();
+        let form = $(submitButton).parent().parent().parent().parent().find('form');
+        form.find('input[name=isFreeDriverFee]').val(isFreeDriverFee);
+        form.submit();
         }
         function getGlobalDetailedReport(submitButton) {
-            let form = $(submitButton).parent().parent().parent().parent().find('form');
-            let customerId = form.find('input[name=customerId]').val(),
-                calendarId = form.find('select').val();
+        let form = $(submitButton).parent().parent().parent().parent().find('form');
+        let customerId = form.find('input[name=customerId]').val(),
+        calendarId = form.find('select').val();
 
-            window.open(`/excel/global-detailed-report?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
+        window.open(`/excel/global-detailed-report?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
         }
         function showFormByCalendar(id, type) {
-            //if (vehicleList.length == 0) {
-            //    $.ajax({
-            //        type: 'POST',
-            //        url: '@Url.Action("GetVehicleListJson", "Report")',
-            //        data: {},
-            //        dataType: 'json',
-            //        async: false,
-            //        beforeSend: function () {
-            //            preloader();
-            //        },
-            //        success: function (r) {
-            //            vehicleList = r;
-            //        },
-            //        error: function (e) {
-            //            uiAlert(e.responseText, 'danger')
-            //        },
-            //        complete: function () {
-            //            preloader();
-            //        }
-            //    });
-            //}
+        //if (vehicleList.length == 0) {
+        //    $.ajax({
+        //        type: 'POST',
+        //        url: '@Url.Action("GetVehicleListJson", "Report")',
+        //        data: {},
+        //        dataType: 'json',
+        //        async: false,
+        //        beforeSend: function () {
+        //            preloader();
+        //        },
+        //        success: function (r) {
+        //            vehicleList = r;
+        //        },
+        //        error: function (e) {
+        //            uiAlert(e.responseText, 'danger')
+        //        },
+        //        complete: function () {
+        //            preloader();
+        //        }
+        //    });
+        //}
 
-            //let options = '<option value="0">همه راننده ها</option>';
-            //$.each(vehicleList, (i, v) => {
-            //    options += `<option value="${v.id}">${v.number} (${v.type})</option>`;
-            //});
-            //$('#modal select[name=vehicleId]').html(options);
-            $('#modal-append').html('');
+        //let options = '<option value="0">همه راننده ها</option>';
+        //$.each(vehicleList, (i, v) => {
+        //    options += `<option value="${v.id}">${v.number} (${v.type})</option>`;
+        //});
+        //$('#modal select[name=vehicleId]').html(options);
+        $('#modal-append').html('');
 
-            $('#modal input[name=customerId]').val(id);
+        $('#modal input[name=customerId]').val(id);
 
-            $('#modal select[name=calendarId]').select2({ width: '100%' });
-            $('#modal select[name=exportType]').select2({ width: '100%' });
-            //$('#modal select[name=vehicleId]').select2({ width: '100%' });
-            UIkit.modal('#modal').show();
+        $('#modal select[name=calendarId]').select2({ width: '100%' });
+        $('#modal select[name=exportType]').select2({ width: '100%' });
+        //$('#modal select[name=vehicleId]').select2({ width: '100%' });
+        UIkit.modal('#modal').show();
         }
         function showFormByCustomer(id) {
-            const modalId = '#activity-modal';
-            $(`${modalId} input[name=customerId]`).val(id);
+        const modalId = '#activity-modal';
+        $(`${modalId} input[name=customerId]`).val(id);
 
-            $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
-            UIkit.modal(modalId).show();
+        $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
+        UIkit.modal(modalId).show();
         }
         function showFormByAccountBook(id, type) {
-            const modal = $('#account-book-modal');
-            let options = '';
+        const modal = $('#account-book-modal');
+        let options = '';
 
-            preloader();
-            $.post('@Url.Action("GetAccountBookListByCustomerId", "Admin")', { 'customerId': id }, (r) => {
-                $.each(r, (i, v) => {
-                    options += `<option value="${v.id}">${v.number} (${v.status})</option>`;
-                });
-                modal.find('select[name="accountBookId"]').html(options);
-            }, 'json').then(() => { preloader() });
+        preloader();
+        $.post('@Url.Action("GetAccountBookListByCustomerId", "Admin")', { 'customerId': id }, (r) => {
+        $.each(r, (i, v) => {
+        options += `<option value="${v.id}">${v.number} (${v.status})</option>`;
+        });
+        modal.find('select[name="accountBookId"]').html(options);
+        }, 'json').then(() => { preloader() });
 
-            modal.find('select[name=accountBookId]').select2({ width: '100%' });
-            modal.find('select[name=exportType]').select2({ width: '100%' });
-            modal.find('input[name=customerId]').val(id);
-            UIkit.modal('#account-book-modal').show();
+        modal.find('select[name=accountBookId]').select2({ width: '100%' });
+        modal.find('select[name=exportType]').select2({ width: '100%' });
+        modal.find('input[name=customerId]').val(id);
+        UIkit.modal('#account-book-modal').show();
         }
         function submitForm(submitButton, hasPayment, isFreeDriverFee) {
-            let form = $(submitButton).parent().parent().find('form');
-            form.find('input[name=hasPayment]').val(hasPayment);
-            form.find('input[name=isFreeDriverFee]').val(isFreeDriverFee);
-            form.submit();
+        let form = $(submitButton).parent().parent().find('form');
+        form.find('input[name=hasPayment]').val(hasPayment);
+        form.find('input[name=isFreeDriverFee]').val(isFreeDriverFee);
+        form.submit();
         }
         function submitCustomerSeparateRouteReport() {
-            let calendarId = $('#activity-modal select').val();
-            let customerId = $('#activity-modal input[name=customerId]').val();
+        let calendarId = $('#activity-modal select').val();
+        let customerId = $('#activity-modal input[name=customerId]').val();
 
-            window.open(`/report/customer-separate-route?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
+        window.open(`/report/customer-separate-route?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
         }
         function submitCustomerSeparateRouteIncomeReport() {
-            let calendarId = $('#activity-modal select').val();
-            let customerId = $('#activity-modal input[name=customerId]').val();
+        let calendarId = $('#activity-modal select').val();
+        let customerId = $('#activity-modal input[name=customerId]').val();
 
-            window.open(`/report/customer-separate-route-income?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
+        window.open(`/report/customer-separate-route-income?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
         }
         function showActivityList(id, type) {
-            $('#modal-append').html('');
+        $('#modal-append').html('');
 
-            $('#activity-list-modal input[name=customerId]').val(id);
+        $('#activity-list-modal input[name=customerId]').val(id);
 
-            $('#activity-list-modal select[name=calendarId]').select2({ width: '100%' });
-            //$('#modal select[name=vehicleId]').select2({ width: '100%' });
-            UIkit.modal('#activity-list-modal').show();
+        $('#activity-list-modal select[name=calendarId]').select2({ width: '100%' });
+        //$('#modal select[name=vehicleId]').select2({ width: '100%' });
+        UIkit.modal('#activity-list-modal').show();
         }
         function showFullActivity(id) {
-            const modalId = '#full-activity-list-modal';
-            $(`${modalId} input[name=customerId]`).val(id);
+        const modalId = '#full-activity-list-modal';
+        $(`${modalId} input[name=customerId]`).val(id);
 
-            $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
-            UIkit.modal(modalId).show();
+        $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
+        UIkit.modal(modalId).show();
         }
         function showLoadFactorGov(id) {
-            const modalId = '#load-factor-gov-modal';
-            $(`${modalId} input[name=customerId]`).val(id);
+        const modalId = '#load-factor-gov-modal';
+        $(`${modalId} input[name=customerId]`).val(id);
 
-            UIkit.modal(modalId).show();
+        UIkit.modal(modalId).show();
         }
         function submitFullActivity(type) {
-            const modalId = '#full-activity-list-modal';
-            $(`${modalId} input[name=type]`).val(type);
-            $(`${modalId} form`).submit();
+        const modalId = '#full-activity-list-modal';
+        $(`${modalId} input[name=type]`).val(type);
+        $(`${modalId} form`).submit();
         }
         function goToDriverBalance() {
-            var customerId = $('#activity-list-modal input[name=customerId]').val();
-            var calendarId = $('#activity-list-modal select[name=calendarId]').val();
-            window.open(`/admin/vehicle-balance-by-customer?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
+        var customerId = $('#activity-list-modal input[name=customerId]').val();
+        var calendarId = $('#activity-list-modal select[name=calendarId]').val();
+        window.open(`/admin/vehicle-balance-by-customer?customerId=${customerId}&calendarId=${calendarId}`, '_blank');
         }
         function showContracts(customerId) {
-            if (contractList.length == 0) {
-                $.ajax({
-                    type: 'POST',
-                    url: '@Url.Action("GetContractsJson", "Admin")',
-                    data: {},
-                    dataType: 'json',
-                    async: false,
-                    beforeSend: function () {
-                        preloader();
-                    },
-                    success: function (r) {
-                        contractList = r;
-                    },
-                    error: function (e) {
-                        uiAlert(e.responseText, 'danger')
-                    },
-                    complete: function () {
-                        preloader();
-                    }
-                });
-            }
+        if (contractList.length == 0) {
+        $.ajax({
+        type: 'POST',
+        url: '@Url.Action("GetContractsJson", "Admin")',
+        data: {},
+        dataType: 'json',
+        async: false,
+        beforeSend: function () {
+        preloader();
+        },
+        success: function (r) {
+        contractList = r;
+        },
+        error: function (e) {
+        uiAlert(e.responseText, 'danger')
+        },
+        complete: function () {
+        preloader();
+        }
+        });
+        }
 
-            const modalId = '#contract-modal';
-            $(`${modalId} select[name=contractId]`).select2({ width: '100%' });
-            let thisCustomerContracts = contractList.filter(a => a.customerId == customerId);
+        const modalId = '#contract-modal';
+        $(`${modalId} select[name=contractId]`).select2({ width: '100%' });
+        let thisCustomerContracts = contractList.filter(a => a.customerId == customerId);
 
-            let options = '';
-            $.each(thisCustomerContracts, (i, v) => {
-                options += `<option value="${v.id}">${v.number}</option>`;
-            })
-            $(`${modalId} select[name=contractId]`).html(options);
+        let options = '';
+        $.each(thisCustomerContracts, (i, v) => {
+        options += `<option value="${v.id}">${v.number}</option>`;
+        })
+        $(`${modalId} select[name=contractId]`).html(options);
 
-            UIkit.modal(modalId).show();
+        UIkit.modal(modalId).show();
         }
         function filterLoadFactorGov() {
-            let modalId = '#load-factor-gov-modal';
-            $(`${modalId} form`).submit();
+        let modalId = '#load-factor-gov-modal';
+        $(`${modalId} form`).submit();
         }
         function showInvestorForm(customerId) {
-            const modalId = '#investor-modal';
-            $(`${modalId} input[name=customerId]`).val(customerId);
-            $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
-            UIkit.modal(modalId).show();
+        const modalId = '#investor-modal';
+        $(`${modalId} input[name=customerId]`).val(customerId);
+        $(`${modalId} select[name=calendarId]`).select2({ width: '100%' });
+        UIkit.modal(modalId).show();
         }
         function submitInvestor() {
-            $('#investor-modal form').submit();
+        $('#investor-modal form').submit();
         }
     </script>
 }
@@ -272,6 +272,16 @@
                                             <a asp-action="CustomerPeriodicBalanceSummary" asp-route-customerId="@item.Id">خلاصه مالی دوره ای</a>
                                         </li>
                                     }
+                                    @if (User.IsInRole("Accountant"))
+                                    {
+                                        <li class="uk-nav-header">دریافتی</li>
+                                        <li>
+                                            <a asp-action="CustomerIncome" asp-route-id="@item.Id">دریافتی</a>
+                                        </li>
+                                        <li>
+                                            <a asp-action="CustomerPeriodicBalanceSummary" asp-route-customerId="@item.Id">خلاصه مالی دوره ای</a>
+                                        </li>
+                                    }
                                     <li class="uk-nav-header">گزارشات</li>
                                     @if (User.IsInRole("Admin"))
                                     {
@@ -279,7 +289,7 @@
                                             <a onclick="showInvestorForm(@item.Id)">سرمایه گذاران</a>
                                         </li>
                                     }
-                                    @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Milad") || User.IsInRole("Accountant"))
                                     {
                                         <li>
                                             <a onclick="showFormByCustomer(@item.Id)">عملکرد تفصیلی</a>

@@ -89,7 +89,7 @@
                         <td>@i</td>
                         <td>@item.FullName</td>
                         <td>@(item.CustomerId.HasValue ? item.Customer.Name : "---")</td>
-                        <td>@item.ProfitPercent</td>
+                        <td>@item.ProfitPercent.ToString("N0")</td>
                         @if (item.TurnoverPaymentType.Equals(TurnoverPaymentType.Sekke))
                         {
                             <td>سکه</td>
@@ -106,7 +106,7 @@
                         <td>@startDate</td>
                         <td>@expireDate</td>
                         <td>@(!string.IsNullOrWhiteSpace(item.BankAccountOwner) ? item.BankAccountOwner : "---")</td>
-                        <td style="font-family: iranyekan">@(!string.IsNullOrWhiteSpace(item.BankAccount) ? item.BankAccount : "---")</td>
+                        <td style="font-family: iranyekan" dir="ltr">@(!string.IsNullOrWhiteSpace(item.BankAccount) ? item.BankAccount : "---")</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="TurnoverProfilePeriod" asp-route-id="@item.Id"><i class="fas fa-clipboard-list"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Turnover" asp-route-id="@item.RowId"><i class="fas fa-money-bill"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>

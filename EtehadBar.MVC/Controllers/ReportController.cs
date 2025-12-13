@@ -154,7 +154,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> CustomerIncome(long? id)
         {
             if (!id.HasValue)
@@ -174,7 +174,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> CustomerIncome(long? id, long calendarId)
         {
             ViewData["customer"] = await _customerRepo.Get(id.Value);
@@ -294,7 +294,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User, Milad")]
+        [Authorize(Roles = "Admin, User, Milad, Accountant")]
         public async Task<IActionResult> Cost(long calendarId, string userId)
         {
             ViewData["userId"] = userId;
@@ -311,7 +311,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> VehicleLoadFactor()
         {
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -320,7 +320,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> VehicleLoadFactor(long calendarId, long vehicleId, long customerId, string type)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -350,7 +350,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> VehicleActivity()
         {
             ViewData["calendars"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -360,7 +360,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> VehicleActivity(long calendarId, long vehicleId, long customerId, string type)
         {
             var calendar = await _calendarRepo.Get(calendarId);
@@ -538,7 +538,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region CustomerPeriodicBalanceSummary
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> CustomerPeriodicBalanceSummary(long customerId)
         {
             ViewData["CustomerInfo"] = await _customerRepo.Get(customerId);
@@ -546,7 +546,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public IActionResult CreateCustomerPeriodicBalanceSummary(long customerId)
         {
             ViewData["CustomerId"] = customerId;
@@ -554,7 +554,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> CreateCustomerPeriodicBalanceSummary(CreateCustomerPeriodicBalanceSummaryVM c)
         {
             if (ModelState.IsValid)
@@ -594,7 +594,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<PartialViewResult> EditCustomerPeriodicBalanceSummary(int id)
         {
             var item = await _customerPeriodicBalanceSummaryRepository.Get(id);
@@ -617,7 +617,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> EditCustomerPeriodicBalanceSummary(EditCustomerPeriodicBalanceSummaryVM c)
         {
             if (ModelState.IsValid)
@@ -657,7 +657,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> DeleteCustomerPeriodicBalanceSummary(int id)
         {
             var item = await _customerPeriodicBalanceSummaryRepository.Get(id);
@@ -677,7 +677,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> CustomerPeriodicBalanceAddon(long? id)
         {
             if (id == null) return NotFound();
@@ -689,7 +689,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public IActionResult CreateCustomerPeriodicBalanceAddon(long id)
         {
             ViewData["Id"] = id;
@@ -697,7 +697,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> CreateCustomerPeriodicBalanceAddon(CreateCustomerPeriodicBalanceAddonVM c)
         {
             if (ModelState.IsValid)
@@ -730,7 +730,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<PartialViewResult> EditCustomerPeriodicBalanceAddon(int id)
         {
             var item = await _customerPeriodicBalanceAddonRepository.Get(id);
@@ -750,7 +750,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> EditCustomerPeriodicBalanceAddon(EditCustomerPeriodicBalanceAddonVM c)
         {
             if (ModelState.IsValid)
@@ -781,7 +781,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> DeleteCustomerPeriodicBalanceAddon(int id)
         {
             var item = await _customerPeriodicBalanceAddonRepository.Get(id);
@@ -1014,7 +1014,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> CustomerSeparateRoute(long customerId, long calendarId)
         {
             var routes = await _loadRoutesRepository.LoadRoutes().AsNoTracking().ToListAsync();
@@ -1091,7 +1091,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> CustomerSeparateRouteIncome(long customerId, long calendarId)
         {
             var routes = await _loadRoutesRepository.LoadRoutes().AsNoTracking().ToListAsync();
@@ -1168,7 +1168,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, Milad")]
+        [Authorize(Roles = "Admin, Milad, Accountant")]
         public async Task<IActionResult> GetHasCapacityUnrealVehicles(long calendarId)
         {
             var calendar = await _calendarRepo.Get(calendarId);

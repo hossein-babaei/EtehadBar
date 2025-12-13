@@ -21,7 +21,7 @@ using X.PagedList;
 
 namespace EtehadBar.MVC.Controllers
 {
-    [Authorize(Roles = "Admin,Milad")]
+    [Authorize(Roles = "Admin, Milad, Accountant")]
     public class LoadFactorCreatorController : Controller
     {
         private readonly ApplicationDbContext db;

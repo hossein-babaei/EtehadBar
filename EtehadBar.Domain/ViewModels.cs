@@ -1690,7 +1690,6 @@ namespace EtehadBar.Domain
 
         [Display(Name = "نوبت پرداخت")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
-        [StringLength(64, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
         public string TurnoverTurnType { get; set; }
 
         [Display(Name = "درصد/مبلغ")]

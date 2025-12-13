@@ -1416,7 +1416,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Cost
         [HttpGet]
-        [Authorize(Roles = "Admin, User, Milad")]
+        [Authorize(Roles = "Admin, User, Milad, Accountant")]
         public async Task<IActionResult> Cost(int? p)
         {
             ViewData["UserId"] = _userManager.GetUserId(User);
@@ -1434,7 +1434,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User, Milad")]
+        [Authorize(Roles = "Admin, User, Milad, Accountant")]
         public async Task<IActionResult> Cost_Search(int? p)
         {
             var query = _costRepo.Costs().Include(a => a.Calendar).Include(a => a.ApplicationUser).Include(a => a.Definition).AsQueryable();
@@ -1448,7 +1448,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User, Milad")]
+        [Authorize(Roles = "Admin, User, Milad, Accountant")]
         public async Task<IActionResult> Cost(Cost c, int day, int month, int year)
         {
             string msg;
@@ -1506,7 +1506,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin, User, Milad")]
+        [Authorize(Roles = "Admin, User, Milad, Accountant")]
         public async Task<PartialViewResult> EditCost(int id)
         {
             ViewData["Calendar"] = await _calendarRepo.Calendars().AsNoTracking().OrderByDescending(a => a.StartDate).ToListAsync();
@@ -1515,7 +1515,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User, Milad")]
+        [Authorize(Roles = "Admin, User, Milad, Accountant")]
         public async Task<IActionResult> EditCost(Cost c, int day, int month, int year)
         {
             string msg;
@@ -1592,7 +1592,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin, User, Milad")]
+        [Authorize(Roles = "Admin, User, Milad, Accountant")]
         public async Task<IActionResult> DeleteCost(int id)
         {
             var item = await _costRepo.Get(id);
@@ -6931,7 +6931,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> TurnoverProfile(TurnoverType type)
         {
             ViewData["Type"] = type;
-            return View(await _turnoverProfileRepository.Query().Include(a => a.Customer).Where(a => a.TurnoverType == type).ToListAsync());
+            return View(await _turnoverProfileRepository.Query().Include(a => a.Customer).Where(a => a.TurnoverType == type).OrderBy(a => a.Customer.Name).ThenBy(a => a.FullName).ToListAsync());
         }
 
         [HttpGet]
@@ -7455,7 +7455,7 @@ namespace EtehadBar.MVC.Controllers
 
         #region Bill
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> Bill(int? p)
         {
             var pageNumber = p ?? 1;
@@ -7466,7 +7466,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> Bill_Search()
         {
             var definitions = await _definitionRepo.Definitions().Where(a => a.DefinitionType == DefinitionType.BillType || a.DefinitionType == DefinitionType.BankBranch).AsNoTracking()
@@ -7497,7 +7497,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> Bill_Search(int? p, long customerId, long vehicleId, long calendarId, string name, string bankBranch, string billType, string description, string bankBillNo, string billNo, int realVehicle = -1)
         {
             var pageNumber = p ?? 1;
@@ -7551,7 +7551,7 @@ namespace EtehadBar.MVC.Controllers
             return PartialView();
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> Bill_Print(string id, string type)
         {
             var item = await _billRepository.Query().AsNoTracking().Include(a => a.Vehicle).Include(a => a.Calendar).Include(a => a.Customer).FirstOrDefaultAsync(a => a.RowId.Equals(id));
@@ -7565,14 +7565,14 @@ namespace EtehadBar.MVC.Controllers
             return View(item);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> GetBillReceiverNames()
         {
             return Json(await _billRepository.Query().AsNoTracking().Select(a => a.ReceiverName.Replace("/", "")).Distinct().ToListAsync());
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<JsonResult> ChangeBillIsReturned(long id)
         {
             string msg;
@@ -7665,7 +7665,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<PartialViewResult> CreateBill()
         {
             ViewData["LastBillNo"] = await _billRepository.Query().AsNoTracking().MaxAsync(a => a.BillNo);
@@ -7678,7 +7678,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> CreateBill(CreateBillVM b)
         {
             string msg;
@@ -7717,7 +7717,7 @@ namespace EtehadBar.MVC.Controllers
                 {
                     await _billRepository.Save();
 
-                    if (b.VehicleId.HasValue && b.BillType != "نوین بار")
+                    if (b.VehicleId.HasValue && !b.BillType.Contains("نوین بار"))
                     {
                         await _vehicleBalanceRepository.Create(new VehicleBalance
                         {
@@ -7750,7 +7750,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<PartialViewResult> EditBill(long id)
         {
             ViewData["Customers"] = await _customerRepo.Customers().AsNoTracking().OrderByDescending(a => a.Name).ToListAsync();
@@ -7761,7 +7761,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> EditBill(EditBillVM b)
         {
             string msg;
@@ -7871,7 +7871,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<IActionResult> DeleteBill(long id)
         {
             var item = await _billRepository.Query().Include(a => a.BillDetail).FirstOrDefaultAsync(a => a.Id.Equals(id));
@@ -7896,7 +7896,7 @@ namespace EtehadBar.MVC.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, Accountant")]
         public async Task<JsonResult> CalculateBillSum(string billNo)
         {
             var sum = await _billRepository.Query().Where(a => a.BillNo.Equals(billNo)).SumAsync(a => a.Amount);
