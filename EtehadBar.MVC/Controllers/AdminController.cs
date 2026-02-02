@@ -1,6 +1,4 @@
-﻿using DocumentFormat.OpenXml.Office.CustomUI;
-using DocumentFormat.OpenXml.Wordprocessing;
-using EtehadBar.Domain;
+﻿using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Infra.Data.Context;
@@ -19,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using X.PagedList;
 
@@ -4258,6 +4255,12 @@ namespace EtehadBar.MVC.Controllers
                 if (input.LoadFactorGovRegistorId.HasValue && input.GovYear < 1400)
                     return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
 
+                if (input.HasLoadHours && !input.LoadHours.HasValue)
+                    return NotFound("لطفا مقدار زمان بارنامه شارژ داخلی را وارد نمائید.");
+
+                if (input.HasLoadHours && input.LoadHours.HasValue && (input.LoadHours.Value < 0.1 || input.LoadHours.Value > 24))
+                    return NotFound("مقدار زمان شارژ داخلی باید بین 0.1 الی 24 باشد.");
+
                 var accountBookLoadFactorLimit = await _accountBookRepository.AccountBooks().AsNoTracking().Where(a => a.Id.Equals(input.AccountBookId)).Select(a => a.LoadFactorLimit).SingleAsync();
                 if (await _loadFactorRepo.LoadFactors().CountAsync(a => a.AccountBookId.Equals(input.AccountBookId)) >= accountBookLoadFactorLimit)
                     return NotFound("صورت وضعیت / زونکن شما پر شده است. لطفا صورت وضعیت / زونکن دیگری را انتخاب کنید.");
@@ -4340,8 +4343,16 @@ namespace EtehadBar.MVC.Controllers
                 //    loadFactor.DriverFee = input.HasAddonMessage ? Math.Floor(fee.DriverPrice + (fee.DriverPrice * 0.3)) : fee.DriverPrice;
                 //}
 
-                loadFactor.Amount = input.HasAddonMessage ? Math.Floor(fee.ShippingFeeGroup.Price + (fee.ShippingFeeGroup.Price * 0.3)) : fee.ShippingFeeGroup.Price;
-                loadFactor.DriverFee = input.HasAddonMessage ? Math.Floor(fee.ShippingFeeGroup.DriverPrice + (fee.ShippingFeeGroup.DriverPrice * 0.3)) : fee.ShippingFeeGroup.DriverPrice;
+                if (input.HasLoadHours)
+                {
+                    loadFactor.Amount = fee.ShippingFeeGroup.Price * input.LoadHours.Value;
+                    loadFactor.DriverFee = fee.ShippingFeeGroup.DriverPrice * input.LoadHours.Value;
+                }
+                else
+                {
+                    loadFactor.Amount = input.HasAddonMessage ? Math.Floor(fee.ShippingFeeGroup.Price + (fee.ShippingFeeGroup.Price * 0.3)) : fee.ShippingFeeGroup.Price;
+                    loadFactor.DriverFee = input.HasAddonMessage ? Math.Floor(fee.ShippingFeeGroup.DriverPrice + (fee.ShippingFeeGroup.DriverPrice * 0.3)) : fee.ShippingFeeGroup.DriverPrice;
+                }
 
                 loadFactor.MehrcomParsLoadFactor = new MehrcomParsLoadFactor
                 {
@@ -4353,6 +4364,8 @@ namespace EtehadBar.MVC.Controllers
                     LoadFactorId = loadFactor.Id,
                     CategoryId = input.CategoryId,
                     HasAddonMessage = input.HasAddonMessage,
+                    HasLoadHours = input.HasLoadHours,
+                    LoadHours = input.LoadHours,
                     Sequence = await _loadFactorRepo.GetBiggestSequenceInMehrcomPars() + 1
                 };
 
@@ -4895,6 +4908,12 @@ namespace EtehadBar.MVC.Controllers
                 if (input.LoadFactorGovRegistorId.HasValue && input.LoadFactorGovRegistorId.Value > 0 && input.GovYear < 1400)
                     return NotFound("تاریخ وارد شده برای بارنامه دولتی را بررسی نمائید.");
 
+                if (input.HasLoadHours && !input.LoadHours.HasValue)
+                    return NotFound("لطفا مقدار زمان بارنامه شارژ داخلی را وارد نمائید.");
+
+                if (input.HasLoadHours && input.LoadHours.HasValue && (input.LoadHours.Value < 0.1 || input.LoadHours.Value > 24))
+                    return NotFound("مقدار زمان شارژ داخلی باید بین 0.1 الی 24 باشد.");
+
                 if (await _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).AsNoTracking().AnyAsync(a => !a.Id.Equals(input.Id) && a.LoadNumber.Equals(input.LoadNumber) && a.MehrcomParsLoadFactor != null))
                     return NotFound("شماره بارنامه درج شده تکراری است.");
 
@@ -4972,6 +4991,8 @@ namespace EtehadBar.MVC.Controllers
                 item.LoadSleepPrice = input.LoadSleepPrice;
                 item.LoadSleepTime = input.LoadSleepTime;
                 item.MehrcomParsLoadFactor.HasAddonMessage = input.HasAddonMessage;
+                item.MehrcomParsLoadFactor.HasLoadHours = input.HasLoadHours;
+                item.MehrcomParsLoadFactor.LoadHours = input.LoadHours;
 
                 //if (fee.ShippingFeeType == ShippingFeeType.Custom)
                 //{
@@ -4990,10 +5011,17 @@ namespace EtehadBar.MVC.Controllers
                 //    }
                 //}
 
-                item.Amount = input.HasAddonMessage ? Math.Floor(fee.ShippingFeeGroup.Price + (fee.ShippingFeeGroup.Price * 0.3)) : fee.ShippingFeeGroup.Price;
-                if (!item.IsDriverFeeEditedByAdmin)
+                if (input.HasLoadHours)
                 {
-                    item.DriverFee = input.HasAddonMessage ? Math.Floor(fee.ShippingFeeGroup.DriverPrice + (fee.ShippingFeeGroup.DriverPrice * 0.3)) : fee.ShippingFeeGroup.DriverPrice;
+                    item.Amount = fee.ShippingFeeGroup.Price * input.LoadHours.Value;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                        item.DriverFee = fee.ShippingFeeGroup.DriverPrice * input.LoadHours.Value;
+                }
+                else
+                {
+                    item.Amount = input.HasAddonMessage ? Math.Floor(fee.ShippingFeeGroup.Price + (fee.ShippingFeeGroup.Price * 0.3)) : fee.ShippingFeeGroup.Price;
+                    if (!item.IsDriverFeeEditedByAdmin)
+                        item.DriverFee = input.HasAddonMessage ? Math.Floor(fee.ShippingFeeGroup.DriverPrice + (fee.ShippingFeeGroup.DriverPrice * 0.3)) : fee.ShippingFeeGroup.DriverPrice;
                 }
 
                 _loadFactorRepo.Update(item);

@@ -26,6 +26,10 @@ namespace EtehadBar.Domain.Models
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public bool IsPositive { get; set; }
 
+        [Display(Name = "نوع تراکنش")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public CustomerPeriodicBalanceAddonType AddonType { get; set; } = CustomerPeriodicBalanceAddonType.Other;
+
         [Display(Name = "دوره مربوطه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerPeriodicBalanceSummaryId { get; set; }

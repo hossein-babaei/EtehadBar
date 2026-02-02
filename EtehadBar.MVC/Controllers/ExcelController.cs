@@ -2486,8 +2486,8 @@ namespace EtehadBar.MVC.Controllers
             table.Theme = XLTableTheme.None;
             table.Style.Border.SetOutsideBorder(XLBorderStyleValues.Thin);
             table.Style.Border.SetInsideBorder(XLBorderStyleValues.Thin);
-            table.Style.Font.FontSize = 9; 
-            
+            table.Style.Font.FontSize = 9;
+
             ws.PageSetup.SetPageOrientation(XLPageOrientation.Portrait)
                 .SetPaperSize(XLPaperSize.A4Paper)
                 .Margins.SetTop(0).SetBottom(0).SetRight(0.5).SetLeft(0).SetHeader(0).SetFooter(0);
@@ -3372,16 +3372,27 @@ namespace EtehadBar.MVC.Controllers
             {
                 var itemAmount = item.Amount;
                 var bestRouteAmount = itemAmount / 30;
+
+                if (bestRouteAmount > routes.Max(a => a.Amount))
+                    bestRouteAmount = routes.Max(a => a.Amount);
+
                 List<int> takenDays = new();
                 while (itemAmount > 0)
                 {
                     int day = 0;
 
                     day = rnd.Next(1, 30);
-                    while (takenDays.Contains(day) && takenDays.Count <= 30)
-                        day = rnd.Next(1, 30);
-                    takenDays.Add(day);
 
+                    while (takenDays.Contains(day))
+                    {
+                        if (takenDays.Count >= 29)
+                            break;
+
+                        day = rnd.Next(1, 30);
+                    }
+
+                    takenDays.Add(day);
+                     
                     var possibleRoutes = new List<StaticRouteFee>();
 
                     if (itemAmount >= bestRouteAmount)

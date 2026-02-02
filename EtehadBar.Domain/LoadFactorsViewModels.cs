@@ -773,6 +773,13 @@ namespace EtehadBar.Domain
 
         [Display(Name = "صادر کننده بارنامه")]
         public long? LoadFactorGovRegistorId { get; set; }
+
+
+        [Display(Name = "شارژ ساعتی")]
+        public bool HasLoadHours { get; set; }
+
+        [Display(Name = "میزان شارژ ساعتی")]
+        public double? LoadHours { get; set; }
     }
 
     public class EMehrcomParsLoadFactorVM
@@ -892,6 +899,13 @@ namespace EtehadBar.Domain
 
         [Display(Name = "صادر کننده بارنامه")]
         public long? LoadFactorGovRegistorId { get; set; }
+
+
+        [Display(Name = "شارژ ساعتی")]
+        public bool HasLoadHours { get; set; }
+
+        [Display(Name = "میزان شارژ ساعتی")]
+        public double? LoadHours { get; set; }
     }
 
     public class CreateLoadFactorNovinVM

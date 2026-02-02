@@ -10,28 +10,28 @@
 @section Scripts{
     <script>
         function create() {
-            preloader();
-            $.get('@Url.Action("CreateCustomerPeriodicBalanceAddon")', { 'id': @((long)ViewData["Id"]) }, function (r) {
-                $('#append-modal').html(r);
-            }, 'html').then(function () {
-                parseValidator('#create-form');
-                preloader();
-                UIkit.modal('#append-modal').show();
-            });
+        preloader();
+        $.get('@Url.Action("CreateCustomerPeriodicBalanceAddon")', { 'id': @((long)ViewData["Id"]) }, function (r) {
+        $('#append-modal').html(r);
+        }, 'html').then(function () {
+        parseValidator('#create-form');
+        preloader();
+        UIkit.modal('#append-modal').show();
+        });
         }
         function edit(id) {
-            preloader();
-            $.get('@Url.Action("EditCustomerPeriodicBalanceAddon")', { 'id': id }, function (r) {
-                $('#append-modal').html(r);
-            }, 'html').then(function () {
-                parseValidator('#edit-form');
-                preloader();
-                UIkit.modal('#append-modal').show();
-            });
+        preloader();
+        $.get('@Url.Action("EditCustomerPeriodicBalanceAddon")', { 'id': id }, function (r) {
+        $('#append-modal').html(r);
+        }, 'html').then(function () {
+        parseValidator('#edit-form');
+        preloader();
+        UIkit.modal('#append-modal').show();
+        });
         }
         function remove(id) {
-            $('#delete-modal input').val(id);
-            UIkit.modal('#delete-modal').show();
+        $('#delete-modal input').val(id);
+        UIkit.modal('#delete-modal').show();
         }
     </script>
 }
@@ -58,6 +58,7 @@
                         <th>@Html.DisplayNameFor(model => model.Date)</th>
                         <th>@Html.DisplayNameFor(model => model.Amount)</th>
                         <th>@Html.DisplayNameFor(model => model.IsPositive)</th>
+                        <th>@Html.DisplayNameFor(model => model.AddonType)</th>
                         <th width="50">ویرایش</th>
                         <th width="50">حذف</th>
                     </tr>
@@ -82,6 +83,24 @@
                                     <span>کسر</span>
                                 }
                             </td>
+                            @switch (item.AddonType)
+                            {
+                                case CustomerPeriodicBalanceAddonType.Mofasa:
+                                    <td>مفاصاحساب</td>
+                                    break;
+                                case CustomerPeriodicBalanceAddonType.Food:
+                                    <td>غذا</td>
+                                    break;
+                                case CustomerPeriodicBalanceAddonType.Damage:
+                                    <td>خسارت</td>
+                                    break;
+                                case CustomerPeriodicBalanceAddonType.Other:
+                                    <td>سایر</td>
+                                    break;
+                                default:
+                                    <td></td>
+                                    break;
+                            }
                             <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit('@item.Id')"><i class="far fa-edit"></i></a></td>
                             <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove('@item.Id')"><i class="fas fa-trash-alt"></i></a></td>
                         </tr>
@@ -106,7 +125,7 @@
 <div id="append-modal" uk-modal="bg-close: false"></div>
 <div id="delete-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
-        <form id="delete-form" method="post" asp-action="DeletCustomerPeriodicBalanceAddon" asp-controller="Report">
+        <form id="delete-form" method="post" asp-action="DeleteCustomerPeriodicBalanceAddon" asp-controller="Report">
             <input type="hidden" name="id" />
             <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
             <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>

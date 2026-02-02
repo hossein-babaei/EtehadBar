@@ -54,6 +54,16 @@
                     </div>
                 </div>
                 <div>
+                    <label asp-for="AddonType" class="uk-form-label"></label>
+                    <select asp-for="AddonType" class="uk-select uk-border-rounded">
+                        <option value="@((int)CustomerPeriodicBalanceAddonType.Mofasa)">مفاصاحساب</option>
+                        <option value="@((int)CustomerPeriodicBalanceAddonType.Damage)">خسارت</option>
+                        <option value="@((int)CustomerPeriodicBalanceAddonType.Food)">غذا</option>
+                        <option value="@((int)CustomerPeriodicBalanceAddonType.Other)">سایر</option>
+                    </select>
+                    <span asp-validation-for="AddonType" class="uk-text-danger"></span>
+                </div>
+                <div>
                     <div class="uk-grid-small uk-child-width-auto uk-grid">
                         <label asp-for="IsPositive"></label>
                         <label><input class="uk-radio" type="radio" asp-for="IsPositive" value="true"> اضافه</label>

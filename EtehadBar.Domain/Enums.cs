@@ -125,4 +125,12 @@
         Sekke,
         Dollar
     }
+
+    public enum CustomerPeriodicBalanceAddonType
+    {
+        Mofasa,
+        Food,
+        Damage,
+        Other
+    }
 }

@@ -27,7 +27,10 @@
                             <select asp-for="Day" class="uk-select uk-border-rounded">
                                 @for (int i = 1; i < 32; i++)
                                 {
-                                    <option value="@i">@i</option>
+                                    <!option @if (Model.Day.Equals(i))
+                                    {
+                                        <text>selected="selected"</text>
+                                    } value="@i">@i</!option>
                                 }
                             </select>
                             <span asp-validation-for="Day" class="uk-text-danger"></span>
@@ -37,7 +40,10 @@
                             <select asp-for="Month" class="uk-select uk-border-rounded">
                                 @for (int i = 1; i < 13; i++)
                                 {
-                                    <option value="@i">@i</option>
+                                    <!option  @if (Model.Month.Equals(i))
+                                    {
+                                        <text>selected="selected"</text>
+                                    } value="@i">@i</!option>
                                 }
                             </select>
                             <span asp-validation-for="Month" class="uk-text-danger"></span>
@@ -47,7 +53,10 @@
                             <select asp-for="Year" class="uk-select uk-border-rounded">
                                 @for (int i = 1398; i < 1411; i++)
                                 {
-                                    <!option value="@i" @if (new PersianDateTime(DateTime.Now).Year == i) { <text> selected</text> }>@i</!option>
+                                    <!option value="@i" @if (Model.Year == i)
+                                    {
+                                        <text> selected</text>
+                                    }>@i</!option>
                                 }
                             </select>
                             <span asp-validation-for="Year" class="uk-text-danger"></span>
@@ -55,10 +64,42 @@
                     </div>
                 </div>
                 <div>
+                    <label asp-for="AddonType" class="uk-form-label"></label>
+                    <select asp-for="AddonType" class="uk-select uk-border-rounded">
+                        <!option value="@((int)CustomerPeriodicBalanceAddonType.Mofasa)" @if (Model.AddonType.Equals(CustomerPeriodicBalanceAddonType.Mofasa))
+                        {
+                            <text>selected="selected"</text>
+                        }>مفاصاحساب</!option>
+                        <!option value="@((int)CustomerPeriodicBalanceAddonType.Damage)" @if (Model.AddonType.Equals(CustomerPeriodicBalanceAddonType.Damage))
+                        {
+                            <text>selected="selected"</text>
+                        }>خسارت</!option>
+                        <!option value="@((int)CustomerPeriodicBalanceAddonType.Food)" @if (Model.AddonType.Equals(CustomerPeriodicBalanceAddonType.Food))
+                        {
+                            <text>selected="selected"</text>
+                        }>غذا</!option>
+                        <!option value="@((int)CustomerPeriodicBalanceAddonType.Other)" @if (Model.AddonType.Equals(CustomerPeriodicBalanceAddonType.Other))
+                        {
+                            <text>selected="selected"</text>
+                        }>سایر</!option>
+                    </select>
+                    <span asp-validation-for="AddonType" class="uk-text-danger"></span>
+                </div>
+                <div>
                     <div class="uk-grid-small uk-child-width-auto uk-grid">
                         <label asp-for="IsPositive"></label>
-                        <label><!input class="uk-radio" type="radio" name="IsPositive" id="IsPositive" value="true" @if(Model.IsPositive){<text>checked</text>} > اضافه</label>
-                        <label><!input class="uk-radio" type="radio" name="IsPositive" id="IsPositive" value="false" @if(!Model.IsPositive){<text>checked</text>}> کسر</label>
+                        <label>
+                            <!input class="uk-radio" type="radio" name="IsPositive" id="IsPositive" value="true" @if (Model.IsPositive)
+                            {
+                                <text>checked</text>
+                            } > اضافه
+                        </label>
+                        <label>
+                            <!input class="uk-radio" type="radio" name="IsPositive" id="IsPositive" value="false" @if (!Model.IsPositive)
+                            {
+                                <text>checked</text>
+                            }> کسر
+                        </label>
                     </div>
                 </div>
             </div>

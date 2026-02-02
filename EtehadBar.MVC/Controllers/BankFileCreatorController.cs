@@ -129,5 +129,53 @@ namespace EtehadBar.MVC.Controllers
             buffer = Encoding.Default.GetBytes(str);
             return File(buffer, "text/plain", $"trans.dat.txt");
         }
+
+        [HttpPost]
+        public IActionResult SamanToSamanFile(IFormFile excel)
+        {
+            string str = "";
+
+            var stream = excel.OpenReadStream();
+            if (stream.Length != 0)
+            {
+                using XLWorkbook workbook = new(stream);
+                var ws = workbook.Worksheet(1);
+
+                var rowCount = ws.LastRowUsed().RowNumber();
+                var columnCount = ws.LastColumnUsed().ColumnNumber();
+
+                var amountList = new List<double>();
+                var bankAccountList = new List<string>();
+
+                for (int i = 9; i < rowCount - 2; i++)
+                {
+                    amountList.Add(ws.Cell(i, 4).GetDouble());
+                    bankAccountList.Add(ws.Cell(i, 5).GetString().Replace('.', '-'));
+                }
+
+                //creating first row
+                var amountSum = amountList.Sum();
+                string firstRow = "";
+
+                firstRow += $"N {amountList.Count} 840-819-2298306-1 {amountSum}";
+                //
+
+                str += $"{firstRow}\n";
+                for (int i = 0; i < amountList.Count; i++)
+                {
+                    string bankAcountNumber = bankAccountList[i];
+                    string amount = amountList[i].ToString();
+
+                    if (i == amountList.Count - 1)
+                        str += $"{bankAcountNumber} {amount}";
+                    else
+                        str += $"{bankAcountNumber} {amount}\n";
+                }
+            }
+
+            byte[] buffer;
+            buffer = Encoding.Default.GetBytes(str);
+            return File(buffer, "text/plain", $"etehadbarasia{new PersianDateTime(DateTime.Now).ToString("yyMMdd")}.txt");
+        }
     }
 }

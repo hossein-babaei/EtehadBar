@@ -444,7 +444,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> NovinLoadFactor(long calendarId, string startDate, string endDate)
+        public async Task<IActionResult> NovinLoadFactor(long calendarId, int code, string startDate, string endDate)
         {
             startDate = startDate.PersianToEnglish();
             endDate = endDate.PersianToEnglish();
@@ -455,6 +455,10 @@ namespace EtehadBar.MVC.Controllers
             {
                 ViewData["Calendar"] = await _calendarRepo.Get(calendarId);
                 return PartialView("_NovinLoadFactor", await _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Where(a => a.CalendarId.Equals(calendarId)).OrderBy(a => a.Date).ToListAsync());
+            }
+            else if (code > 0)
+            {
+                return PartialView("_NovinLoadFactor", await _loadFactorNovinRepository.Query().Include(a => a.Vehicle).Where(a => a.Code.HasValue && a.Code.Value.Equals(code)).OrderBy(a => a.Date).ToListAsync());
             }
             else
             {
@@ -710,7 +714,8 @@ namespace EtehadBar.MVC.Controllers
                     Title = c.Title,
                     CustomerPeriodicBalanceSummaryId = c.CustomerPeriodicBalanceSummaryId,
                     Date = date,
-                    IsPositive = c.IsPositive
+                    IsPositive = c.IsPositive,
+                    AddonType = c.AddonType
                 });
                 try
                 {
@@ -745,6 +750,7 @@ namespace EtehadBar.MVC.Controllers
                 Amount = item.Amount,
                 Title = item.Title,
                 IsPositive = item.IsPositive,
+                AddonType = item.AddonType,
                 CustomerPeriodicBalanceSummaryId = item.CustomerPeriodicBalanceSummaryId
             });
         }
@@ -761,6 +767,7 @@ namespace EtehadBar.MVC.Controllers
                 item.IsPositive = c.IsPositive;
                 item.CustomerPeriodicBalanceSummaryId = c.CustomerPeriodicBalanceSummaryId;
                 item.Amount = c.Amount;
+                item.AddonType = c.AddonType;
 
                 _customerPeriodicBalanceAddonRepository.Update(item);
                 try

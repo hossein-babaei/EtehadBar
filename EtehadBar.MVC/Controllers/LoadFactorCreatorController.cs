@@ -527,8 +527,8 @@ namespace EtehadBar.MVC.Controllers
                         }
                         else
                         {
-                            var x = Convert.ToInt32(difference / 1000000);
-                            var y = x * 1000000;
+                            long x = Convert.ToInt32(difference / 1000000);
+                            long y = x * 1000000L;
 
                             amountList.Add(y);
                             calculatedAmount += y;
@@ -537,11 +537,12 @@ namespace EtehadBar.MVC.Controllers
                     }
                     else
                     {
-                        var x = rnd.Next(Convert.ToInt32(minimumNumber), Convert.ToInt32(maximumNumber));
-                        var y = x * 1000000;
+                        long x = rnd.Next(Convert.ToInt32(minimumNumber), Convert.ToInt32(maximumNumber));
+                        long y = x * 1000000L;
 
                         amountList.Add(y);
                         calculatedAmount += y;
+                        y = 0;
                     }
                 }
 

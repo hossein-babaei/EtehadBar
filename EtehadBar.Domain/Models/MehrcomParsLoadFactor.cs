@@ -39,6 +39,12 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "افزایش 30%")]
         public bool HasAddonMessage { get; set; } = false;
 
+        [Display(Name = "شارژ ساعتی")]
+        public bool HasLoadHours { get; set; } = false;
+
+        [Display(Name = "میزان شارژ ساعتی")]
+        public double? LoadHours { get; set; }
+
         [ForeignKey(nameof(Category))]
         [Display(Name = "دسته بندی")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]

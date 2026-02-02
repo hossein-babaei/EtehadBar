@@ -1310,6 +1310,10 @@ namespace EtehadBar.Domain
         [Display(Name = "دوره مربوطه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerPeriodicBalanceSummaryId { get; set; }
+
+        [Display(Name = "نوع تراکنش")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public CustomerPeriodicBalanceAddonType AddonType { get; set; }
     }
 
     public class EditCustomerPeriodicBalanceAddonVM
@@ -1345,6 +1349,10 @@ namespace EtehadBar.Domain
         [Display(Name = "دوره مربوطه")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         public long CustomerPeriodicBalanceSummaryId { get; set; }
+
+        [Display(Name = "نوع تراکنش")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public CustomerPeriodicBalanceAddonType AddonType { get; set; }
     }
 
     public class VehicleFullActivityVM

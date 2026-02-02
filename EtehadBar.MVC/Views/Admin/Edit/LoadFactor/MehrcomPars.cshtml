@@ -161,12 +161,23 @@
                         <label><input class="uk-checkbox uk-border-rounded" onchange="checkboxBoolean(this)" type="checkbox" name="Return" id="Return" value="@(Model.Return ? "True" : "False")" @if(Model.Return){<text>checked</text>}/> برگشتی</label>
                     </div>
                 </div>
-                <div>
+
+                <div class="uk-width-1-2@m">
+                    <div class="uk-grid-small uk-child-width-auto uk-grid">
+                        <label class="uk-margin-top"><input class="uk-checkbox uk-border-rounded" onchange="checkboxBoolean(this)" type="checkbox" id="HasLoadHours" name="HasLoadHours" value="@(Model.HasLoadHours ? "True" : "False")" @if(Model.HasLoadHours){<text>checked</text>}> شارژ ساعتی</label>
+
+                        <div class="uk-width-expand">
+                            <label asp-for="LoadHours" class="uk-form-label"></label>
+                            <input asp-for="LoadHours" dir="ltr" class="uk-input uk-border-rounded uk-form-small" />
+                        </div>
+                    </div>
+                </div>
+                <div class="uk-width-1-4@m">
                     <label asp-for="TonnagePrice" class="uk-form-label"></label>
                     <input asp-for="TonnagePrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
                     <span asp-validation-for="TonnagePrice" class="uk-text-danger"></span>
                 </div>
-                <div>
+                <div class="uk-width-1-4@m">
                     <label asp-for="DriverTonnagePrice" class="uk-form-label"></label>
                     <input asp-for="DriverTonnagePrice" dir="ltr" class="uk-input uk-border-rounded uk-form-small format-number" />
                     <span asp-validation-for="DriverTonnagePrice" class="uk-text-danger"></span>

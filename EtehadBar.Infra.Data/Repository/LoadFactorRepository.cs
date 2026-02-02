@@ -422,7 +422,9 @@ namespace EtehadBar.Infra.Data.Repository
                 LoadFactorGovRegistorId = loadFactor.LoadFactorGovRegistorId,
                 GovYear = govPd.Year,
                 GovMonth = govPd.Month,
-                GovDay = govPd.Day
+                GovDay = govPd.Day,
+                HasLoadHours = loadFactor.MehrcomParsLoadFactor.HasLoadHours,
+                LoadHours = loadFactor.MehrcomParsLoadFactor.LoadHours
             };
         }
 

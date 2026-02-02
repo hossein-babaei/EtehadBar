@@ -20,6 +20,7 @@
     var addonsSum = addons.Where(a => a.IsPositive).Sum(a => a.Amount) - addons.Where(a => !a.IsPositive).Sum(a => a.Amount);
     var balanceAmount = (double)ViewData["BalanceAmount"];
     var insuranceBalanceAmount = (double)ViewData["InsuranceBalanceAmount"];
+    var mofasaSum = addons.Where(a => a.AddonType.Equals(CustomerPeriodicBalanceAddonType.Mofasa)).Sum(a => a.Amount);
     var calendars = (List<Calendar>)ViewData["Calendars"];
 }
 
@@ -282,6 +283,10 @@
 
                     <div class="amount-container">
                         <div class="uk-grid-small" uk-grid>
+                            <div class="uk-width-expand" uk-leader="fill: .">جمع کل سپرده بیمه سال قبل و سال جاری</div>
+                            <div><span dir="ltr">@((insuranceBalanceAmount + factorsAmount * percentMultiple).ToString("N0"))</span> ریال</div>
+                        </div>
+                        <div class="uk-grid-small" uk-grid>
                             <div class="uk-width-expand" uk-leader="fill: .">جمع کل مبلغ دریافتی از ابتدای سال جاری</div>
                             <div><span dir="ltr">@Model.Details.Sum(a => a.CustomerIncomes.Sum(a => a.Amount)).ToString("N0")</span> ریال</div>
                         </div>
@@ -296,8 +301,8 @@
 
                     <div class="amount-container">
                         <div class="uk-grid-small" uk-grid>
-                            <div class="uk-width-expand" uk-leader="fill: .">جمع کل سپرده بیمه سال قبل و سال جاری</div>
-                            <div><span dir="ltr">@((insuranceBalanceAmount + factorsAmount * percentMultiple).ToString("N0"))</span> ریال</div>
+                            <div class="uk-width-expand" uk-leader="fill: .">جمع کل سپرده بیمه با اعمال مفاصاحساب</div>
+                            <div><span dir="ltr">@(((insuranceBalanceAmount + factorsAmount * percentMultiple) - mofasaSum).ToString("N0"))</span> ریال</div>
                         </div>
                         <div class="uk-grid-small" uk-grid>
                             <div class="uk-width-expand" uk-leader="fill: .">مانده حساب پس از کسر دریافتی ها و جمع مانده سال قبل در سال جاری تاکنون (صفر روزه)</div>
