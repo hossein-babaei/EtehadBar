@@ -107,7 +107,7 @@ namespace EtehadBar.MVC.Controllers
                 firstRow += $"{amountSum}{tempName}";
                 //
 
-                str += $"{firstRow}\n";
+                str += $"{firstRow}{Environment.NewLine}";
                 for (int i = 0; i < amountList.Count; i++)
                 {
                     string bankAcountNumber = bankAccountList[i];
@@ -120,7 +120,7 @@ namespace EtehadBar.MVC.Controllers
                     //creating amount part
                     for (int x = 0; x < 13 - amount.Length; x++)
                         str += "0";
-                    str += $"{amount}{tempName}\n";
+                    str += $"{amount}{tempName}{Environment.NewLine}";
                     //
                 }
             }
@@ -160,7 +160,7 @@ namespace EtehadBar.MVC.Controllers
                 firstRow += $"N {amountList.Count} 840-819-2298306-1 {amountSum}";
                 //
 
-                str += $"{firstRow}\n";
+                str += $"{firstRow}{Environment.NewLine}";
                 for (int i = 0; i < amountList.Count; i++)
                 {
                     string bankAcountNumber = bankAccountList[i];
@@ -169,7 +169,7 @@ namespace EtehadBar.MVC.Controllers
                     if (i == amountList.Count - 1)
                         str += $"{bankAcountNumber} {amount}";
                     else
-                        str += $"{bankAcountNumber} {amount}\n";
+                        str += $"{bankAcountNumber} {amount}{Environment.NewLine}";
                 }
             }
 

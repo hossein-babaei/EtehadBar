@@ -2420,8 +2420,10 @@ namespace EtehadBar.MVC.Controllers
                             a = Math.Floor(a);
                         else if (rounding == "ceil")
                             a = Math.Ceiling(a);
+                        else
+                            a = Math.Round(a);
 
-                        int b = Convert.ToInt32(a);
+                            int b = Convert.ToInt32(a);
                         fee.Price += b;
                     }
                     else
@@ -2438,6 +2440,8 @@ namespace EtehadBar.MVC.Controllers
                             a = Math.Floor(a);
                         else if (rounding == "ceil")
                             a = Math.Ceiling(a);
+                        else
+                            a = Math.Round(a);
 
                         int b = Convert.ToInt32(a);
                         fee.DriverPrice += b;
@@ -2455,6 +2459,8 @@ namespace EtehadBar.MVC.Controllers
                             a = Math.Floor(a);
                         else if (rounding == "ceil")
                             a = Math.Ceiling(a);
+                        else
+                            a = Math.Round(a);
 
                         int b = Convert.ToInt32(a);
                         fee.TonnagePrice = fee.TonnagePrice.Value + b;
@@ -2472,6 +2478,8 @@ namespace EtehadBar.MVC.Controllers
                             a = Math.Floor(a);
                         else if (rounding == "ceil")
                             a = Math.Ceiling(a);
+                        else
+                            a = Math.Round(a);
 
                         int b = Convert.ToInt32(a);
                         fee.DriverTonnagePrice = fee.DriverTonnagePrice.Value + b;
