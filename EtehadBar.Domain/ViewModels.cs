@@ -1440,7 +1440,6 @@ namespace EtehadBar.Domain
         public int Year { get; set; }
     }
 
-
     public class EditUserPlannerVM
     {
         public long Id { get; set; }
@@ -1744,6 +1743,9 @@ namespace EtehadBar.Domain
 
         [Display(Name = "مشتری")]
         public long? CustomerId { get; set; }
+
+        [Display(Name = "وضعیت")]
+        public bool ActiveStatus { get; set; }
     }
 
     public class EditTurnoverProfileVM
@@ -1811,5 +1813,8 @@ namespace EtehadBar.Domain
 
         [Display(Name = "مشتری")]
         public long? CustomerId { get; set; }
+
+        [Display(Name = "وضعیت")]
+        public bool ActiveStatus { get; set; }
     }
 }

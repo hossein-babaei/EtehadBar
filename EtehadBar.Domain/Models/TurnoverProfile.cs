@@ -60,6 +60,9 @@ namespace EtehadBar.Domain.Models
         public long? CustomerId { get; set; }
         public Customer Customer { get; set; }
 
+        [Display(Name = "وضعیت")]
+        public bool ActiveStatus { get; set; } = true;
+
         public ICollection<Turnover> Turnovers { get; set; }
         public ICollection<TurnoverProfilePeriod> TurnoverProfilePeriods { get; set; }
 

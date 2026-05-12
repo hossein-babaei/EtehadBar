@@ -40,8 +40,8 @@
         }
 
         function remove(id) {
-            $('#delete-modal input').val(id);
-            UIkit.modal('#delete-modal').show();
+        $('#delete-modal input').val(id);
+        UIkit.modal('#delete-modal').show();
         }
     </script>
 }
@@ -71,6 +71,7 @@
                     <th>@Html.DisplayNameFor(model => model.ExpireDate)</th>
                     <th>@Html.DisplayNameFor(model => model.BankAccountOwner)</th>
                     <th>@Html.DisplayNameFor(model => model.BankAccount)</th>
+                    <th>@Html.DisplayNameFor(model => model.ActiveStatus)</th>
                     <th width="50">دوره</th>
                     <th width="50">گردش</th>
                     <th width="50">ویرایش</th>
@@ -107,6 +108,16 @@
                         <td>@expireDate</td>
                         <td>@(!string.IsNullOrWhiteSpace(item.BankAccountOwner) ? item.BankAccountOwner : "---")</td>
                         <td style="font-family: iranyekan" dir="ltr">@(!string.IsNullOrWhiteSpace(item.BankAccount) ? item.BankAccount : "---")</td>
+                        <td>
+                            @if (item.ActiveStatus)
+                            {
+                                <span class="uk-text-success">جاری</span>
+                            }
+                            else
+                            {
+                                <span class="uk-text-danger">غیر فعال</span>
+                            }
+                        </td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="TurnoverProfilePeriod" asp-route-id="@item.Id"><i class="fas fa-clipboard-list"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" asp-action="Turnover" asp-route-id="@item.RowId"><i class="fas fa-money-bill"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>

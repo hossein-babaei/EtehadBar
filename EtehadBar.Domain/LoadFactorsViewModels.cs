@@ -1009,6 +1009,10 @@ namespace EtehadBar.Domain
 
         [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
         public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "یادداشت")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string Note { get; set; }
     }
 
     public class EditLoadFactorNovinVM
@@ -1113,5 +1117,9 @@ namespace EtehadBar.Domain
 
         [Display(Name = "نرخ تناژ اضافه راننده (ریال)")]
         public double? DriverTonnagePrice { get; set; }
+
+        [Display(Name = "یادداشت")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string Note { get; set; }
     }
 }

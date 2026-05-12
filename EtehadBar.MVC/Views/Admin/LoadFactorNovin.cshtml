@@ -233,6 +233,7 @@
                         <th>@Html.DisplayNameFor(model => model.IsPaied)</th>
                         <th>@Html.DisplayNameFor(model => model.IsReceived)</th>
                     }
+                    <th>یادداشت</th>
                     <th width="50">جزئیات</th>
                     <th width="50">ویرایش</th>
                     @if (User.IsInRole("Admin"))
@@ -278,6 +279,7 @@
                                 <td class="uk-text-danger">دریافت نشده</td>
                             }
                         }
+                        <td class="uk-text-small">@item.Note</td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="viewDetail('@item.Id')"><i class="far fa-eye"></i></a></td>
                         <td><a class="uk-button uk-button-primary uk-button-small" onclick="getEditForm('@item.Id')"><i class="far fa-edit"></i></a></td>
                         @if (User.IsInRole("Admin"))

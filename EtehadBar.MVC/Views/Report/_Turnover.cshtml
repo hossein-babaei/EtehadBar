@@ -93,4 +93,11 @@
         <div class="uk-width-expand" uk-leader="fill: .">جمع پرداخت</div>
         <div>@Model.Sum(a => a.Creditor).ToString("N0") ریال</div>
     </div>
+    @if (Model.Sum(a => a.Debtor) > 0)
+    {
+        <div class="uk-grid-small" uk-grid>
+            <div class="uk-width-expand" uk-leader="fill: .">مانده</div>
+            <div>@((Model.Sum(a => a.Creditor) - Model.Sum(a => a.Debtor)).ToString("N0")) ریال</div>
+        </div>
+    }
 </div>

@@ -66,6 +66,7 @@ namespace EtehadBar.Infra.Data.Repository
                 VehicleId = item.VehicleId,
                 IsPaied = item.IsPaied,
                 IsReceived = item.IsReceived,
+                Note = item.Note,
                 PDay = pPd.Year == 1 ? 0 : pPd.Day,
                 PMonth = pPd.Year == 1 ? 0 : pPd.Month,
                 PYear = pPd.Year == 1 ? 0 : pPd.Year,

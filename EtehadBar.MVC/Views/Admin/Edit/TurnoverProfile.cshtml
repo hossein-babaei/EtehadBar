@@ -119,6 +119,14 @@
                     <span asp-validation-for="Description" class="uk-text-danger"></span>
                 </div>
                 <div>
+                    <label asp-for="ActiveStatus" class="uk-form-label"></label>
+                    <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
+                        <label><input class="uk-radio" type="radio" name="ActiveStatus" value="true" @if(Model.ActiveStatus){<text>checked</text>} /> جاری</label>
+                        <label><input class="uk-radio" type="radio" name="ActiveStatus" value="false" @if(!Model.ActiveStatus){<text>checked</text>}/> غیر فعال</label>
+                    </div>
+                    <span asp-validation-for="ActiveStatus" class="uk-text-danger"></span>
+                </div>
+                <div>
                     <label asp-for="TurnoverType" class="uk-form-label"></label>
                     <div class="uk-margin-small uk-grid-small uk-child-width-auto uk-grid">
                         <label><input class="uk-radio" type="radio" name="TurnoverType" value="@((int)TurnoverType.Partner)" @if(Model.TurnoverType.Equals(TurnoverType.Partner)){<text>checked</text>} /> شریک</label>

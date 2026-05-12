@@ -2278,7 +2278,7 @@ namespace EtehadBar.MVC.Controllers
                         latestContractAddon = await _contractRepo.Get(item.ContractId);
 
                     var shippingFeeRoutes = await _shippingFeeRouteRepository.Query().Where(a => a.ShippingFeeGroupId.Equals(item.Id)).ToListAsync();
-                    var loadFactorQuery = _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(item.ContractId) && shippingFeeRoutes.Select(a => a.Id).Contains(a.ShippingFeeRouteId.Value) && a.Date >= latestContractAddon.StartDate && !a.IsDriverFeeEditedByAdmin);
+                    var loadFactorQuery = _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).Where(a => a.ContractId.Equals(item.ContractId) && shippingFeeRoutes.Select(a => a.Id).Contains(a.ShippingFeeRouteId.Value) && a.Date >= latestContractAddon.StartDate && !a.IsDriverFeeEditedByAdmin);
                     if (!string.IsNullOrWhiteSpace(DateLimit))
                     {
                         DateLimit = DateLimit.PersianToEnglish();
@@ -2302,10 +2302,20 @@ namespace EtehadBar.MVC.Controllers
                             var shippingFeeRoute = shippingFeeRoutes.Single(a => a.Id.Equals(factor.ShippingFeeRouteId));
                             factor.OriginId = shippingFeeRoute.OriginId;
                             factor.DestinationId = shippingFeeRoute.DestinationId;
-                            factor.DriverFee = item.DriverPrice;
-                            factor.Amount = item.Price;
                             factor.TonnagePrice = item.TonnagePrice;
                             factor.DriverTonnagePrice = item.DriverTonnagePrice;
+
+                            //mehrcom hourly load facrors
+                            if (factor.MehrcomParsLoadFactor is not null && factor.MehrcomParsLoadFactor.LoadHours.HasValue)
+                            {
+                                factor.Amount = item.Price * factor.MehrcomParsLoadFactor.LoadHours.Value;
+                                factor.DriverFee = item.DriverPrice * factor.MehrcomParsLoadFactor.LoadHours.Value;
+                            }
+                            else
+                            {
+                                factor.DriverFee = item.DriverPrice;
+                                factor.Amount = item.Price;
+                            }
 
                             if (isDriverFeeChanged)
                             {
@@ -2495,12 +2505,19 @@ namespace EtehadBar.MVC.Controllers
                         bool isEdited = false;
 
                         if (loadFactor.Date >= amountDatetime /*&& loadFactor.CalendarId >= 5*/)
-                            loadFactor.Amount = fee.Price;
+                        {
+                            //mehrcom hourly load facrors
+                            if (loadFactor.MehrcomParsLoadFactor is not null && loadFactor.MehrcomParsLoadFactor.LoadHours.HasValue)
+                                loadFactor.Amount = fee.Price * loadFactor.MehrcomParsLoadFactor.LoadHours.Value;
+                        }
 
                         if (loadFactor.Date >= driverAmountDatetime && !(loadFactor.IsFreeDriverPrice || loadFactor.IsDriverFeeEditedByAdmin))
                         {
                             isEdited = true;
-                            loadFactor.DriverFee = fee.DriverPrice;
+
+                            //mehrcom hourly load facrors
+                            if (loadFactor.MehrcomParsLoadFactor is not null && loadFactor.MehrcomParsLoadFactor.LoadHours.HasValue)
+                                loadFactor.DriverFee = fee.DriverPrice * loadFactor.MehrcomParsLoadFactor.LoadHours.Value;
 
                             //if (loadFactor.MehrcomParsLoadFactor is not null && loadFactor.MehrcomParsLoadFactor.HasAddonMessage)
                             //    loadFactor.DriverFee += (loadFactor.DriverFee * 0.3);
@@ -5488,6 +5505,7 @@ namespace EtehadBar.MVC.Controllers
                     TonnagePrice = v.TonnagePrice,
                     VehicleId = v.VehicleId,
                     Code = v.Code,
+                    Note = v.Note,
                     Attachments = fileNames
                 };
 
@@ -5549,6 +5567,7 @@ namespace EtehadBar.MVC.Controllers
                 item.VehicleId = v.VehicleId;
                 item.IsReceived = v.IsReceived;
                 item.IsPaied = v.IsPaied;
+                item.Note = v.Note;
 
                 item.Date = new PersianDateTime(v.Year, v.Month, v.Day).ToDateTime();
 
@@ -6967,7 +6986,8 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> TurnoverProfile(TurnoverType type)
         {
             ViewData["Type"] = type;
-            return View(await _turnoverProfileRepository.Query().Include(a => a.Customer).Where(a => a.TurnoverType == type).OrderBy(a => a.Customer.Name).ThenBy(a => a.FullName).ToListAsync());
+            return View(await _turnoverProfileRepository.Query().Include(a => a.Customer).Where(a => a.TurnoverType == type)
+                .OrderByDescending(a => a.Customer.Name).ThenBy(a => a.FullName).ThenBy(a => a.ActiveStatus).ToListAsync());
         }
 
         [HttpGet]
@@ -7052,7 +7072,8 @@ namespace EtehadBar.MVC.Controllers
                 TurnoverType = item.TurnoverType,
                 TurnoverPaymentType = item.TurnoverPaymentType,
                 TurnoverTurnType = item.TurnoverTurnType,
-                Description = item.Description
+                Description = item.Description,
+                ActiveStatus = item.ActiveStatus
             });
         }
 
@@ -7084,6 +7105,7 @@ namespace EtehadBar.MVC.Controllers
                 item.TurnoverPaymentType = v.TurnoverPaymentType;
                 item.TurnoverTurnType = v.TurnoverTurnType;
                 item.Description = v.Description;
+                item.ActiveStatus = v.ActiveStatus;
 
                 _turnoverProfileRepository.Update(item);
                 try

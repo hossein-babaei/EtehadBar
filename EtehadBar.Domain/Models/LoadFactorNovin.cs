@@ -96,6 +96,10 @@ namespace EtehadBar.Domain.Models
         public long? CustomerId { get; set; }
         public Customer Customer { get; set; }
 
+        [Display(Name = "یادداشت")]
+        [StringLength(128, MinimumLength = 2, ErrorMessage = "{0} باید بین {2} تا {1} کاراکتر باشد.")]
+        public string Note { get; set; }
+
         [Required]
         [StringLength(36)]
         public string RowId { get; set; } = Guid.NewGuid().ToString();
