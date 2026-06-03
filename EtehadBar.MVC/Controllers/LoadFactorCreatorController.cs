@@ -1,17 +1,14 @@
 ﻿using ClosedXML.Excel;
-using DocumentFormat.OpenXml.Bibliography;
 using EtehadBar.Domain;
 using EtehadBar.Domain.Interfaces;
 using EtehadBar.Domain.Models;
 using EtehadBar.Domain.Models.LoadFactorCreator;
 using EtehadBar.Infra.Data.Context;
-using EtehadBar.Infra.Data.Repository;
 using MD.PersianDateTime.Standard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Packaging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -314,19 +311,29 @@ namespace EtehadBar.MVC.Controllers
         {
             var customers = await _customerRepository.GetAllActive();
             var calendars = await _calendarRepository.Calendars().OrderByDescending(a => a.Id).ToListAsync();
-            return Json(new { customers, calendars });
+            var vehicles = await _vehicleRepository.Vehicles().AsNoTracking()
+                .Where(a => a.RealStatus.Equals(false)).OrderBy(a => a.RightNumber).ThenBy(a => a.LeftNumber).Select(a =>
+                new {
+                    a.Id,
+                    name = a.VehicleOwnerFullname,
+                    number = $"{a.IranStateNumber} - {a.RightNumber} ع {a.LeftNumber}"
+                }).ToListAsync();
+
+            return Json(new { customers, calendars,vehicles });
         }
 
         [HttpPost]
-        public async Task<IActionResult> OtherCost_Search(int? p, long? calendarId, long? customerId, int bill)
+        public async Task<IActionResult> OtherCost_Search(int? p, long? calendarId, long? customerId, long? vehicleId, int bill)
         {
             var pageNumber = p ?? 1;
             var query = db.OtherCost.AsNoTracking();
 
-            if (calendarId.HasValue)
+            if (calendarId.HasValue && calendarId.Value > 0)
                 query = query.Where(a => a.CalendarId.Equals(calendarId.Value));
-            if (customerId.HasValue)
+            if (customerId.HasValue && customerId.Value > 0)
                 query = query.Where(a => a.CustomerId.Equals(customerId.Value));
+            if (vehicleId.HasValue && vehicleId.Value > 0)
+                query = query.Where(a => a.VehicleId.Equals(vehicleId.Value));
             if (bill == 1)
                 query = query.Where(a => a.BillId.HasValue);
             else if (bill == 2)
@@ -335,7 +342,8 @@ namespace EtehadBar.MVC.Controllers
 
             ViewBag.CustomerId = customerId;
             ViewBag.CalendarId = calendarId;
-            ViewBag.Cost = bill;
+            ViewBag.Bill = bill;
+            ViewBag.VehicleId = vehicleId;
             ViewBag.data = await query.Include(a => a.Calendar).Include(a => a.Vehicle).Include(a => a.Customer).OrderByDescending(a => a.Id).ToPagedListAsync(pageNumber, 20);
             return PartialView();
         }

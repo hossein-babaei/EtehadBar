@@ -58,7 +58,7 @@
     @if (data.PageCount > 1)
     {
         <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
-            @Html.PagedListPager(data, page => Url.Action("OtherCost_Search", new { p = page, customerId = ViewBag.CustomerId, calendarId = ViewBag.CalendarId, bill = ViewBag.Bill }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
+            @Html.PagedListPager(data, page => Url.Action("OtherCost_Search", new { p = page, customerId = ViewBag.CustomerId, calendarId = ViewBag.CalendarId, vehicleId = ViewBag.VehicleId, bill = ViewBag.Bill }), X.PagedList.Mvc.Core.Common.PagedListRenderOptions.EnableUnobtrusiveAjaxReplacing(new AjaxOptions() { HttpMethod = "POST", UpdateTargetId = "append", LoadingElementId = "preloader", OnSuccess = "goUp" }))
         </div>
     }
 }

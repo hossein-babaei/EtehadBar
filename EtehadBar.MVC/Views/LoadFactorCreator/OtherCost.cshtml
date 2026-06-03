@@ -203,18 +203,27 @@
             preloader();
             $.get('@Url.Action("OtherCost_Search")', {}, function (r) {
                 let customerOptions = '<option value="0">همه</option>',
+                    vehicleOptions = '<option value="0">همه</option>',
                     calendarOptions = '<option value="0">همه</option>';
 
                 $.each(r.customers, (i, v) => {
                     customerOptions += `<option value="${v.id}">${v.name}</option>`;
                 });
+                $.each(r.vehicles, (i, v) => {
+                    vehicleOptions += `<option value="${v.id}">${v.name} - ${v.number}</option>`;
+                });
                 $.each(r.calendars, (i, v) => {
                     calendarOptions += `<option value="${v.id}">${v.title}</option>`;
                 });
                 $('#search-modal #customerId').html(customerOptions);
+                $('#search-modal #vehicleId').html(vehicleOptions);
                 $('#search-modal #calendarId').html(calendarOptions);
 
                 $('#search-modal #customerId').select2({
+                    width: '100%',
+                    matcher: ignoreSpecialCharAndWhitespaceInSelect2
+                });
+                $('#search-modal #vehicleId').select2({
                     width: '100%',
                     matcher: ignoreSpecialCharAndWhitespaceInSelect2
                 });
@@ -389,6 +398,10 @@
                     <div>
                         <label class="uk-form-label">بر اساس تقویم کاری</label>
                         <select class="uk-select uk-border-rounded" id="calendarId" name="calendarId"></select>
+                    </div>
+                    <div>
+                        <label class="uk-form-label">بر اساس خودرو</label>
+                        <select class="uk-select uk-border-rounded" id="vehicleId" name="vehicleId"></select>
                     </div>
                     <div>
                         <label class="uk-form-label"> وضعیت قبض</label>
