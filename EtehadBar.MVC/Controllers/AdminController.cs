@@ -2506,6 +2506,7 @@ namespace EtehadBar.MVC.Controllers
 
                         if (loadFactor.Date >= amountDatetime /*&& loadFactor.CalendarId >= 5*/)
                         {
+                            loadFactor.Amount = fee.Price;
                             //mehrcom hourly load facrors
                             if (loadFactor.MehrcomParsLoadFactor is not null && loadFactor.MehrcomParsLoadFactor.LoadHours.HasValue)
                                 loadFactor.Amount = fee.Price * loadFactor.MehrcomParsLoadFactor.LoadHours.Value;
@@ -2515,6 +2516,7 @@ namespace EtehadBar.MVC.Controllers
                         {
                             isEdited = true;
 
+                            loadFactor.DriverFee = fee.DriverPrice;
                             //mehrcom hourly load facrors
                             if (loadFactor.MehrcomParsLoadFactor is not null && loadFactor.MehrcomParsLoadFactor.LoadHours.HasValue)
                                 loadFactor.DriverFee = fee.DriverPrice * loadFactor.MehrcomParsLoadFactor.LoadHours.Value;
