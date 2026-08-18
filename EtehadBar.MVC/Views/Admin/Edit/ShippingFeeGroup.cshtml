@@ -61,16 +61,6 @@
                         <span asp-validation-for="ShippingFeeLoadTypeId" class="uk-text-danger"></span>
                     </div>
                 }
-                <div>
-                    <label asp-for="Price" class="uk-form-label"></label>
-                    <input asp-for="Price" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
-                    <span asp-validation-for="Price" class="uk-text-danger"></span>
-                </div>
-                <div>
-                    <label asp-for="DriverPrice" class="uk-form-label"></label>
-                    <input asp-for="DriverPrice" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
-                    <span asp-validation-for="DriverPrice" class="uk-text-danger"></span>
-                </div>
                 @if (Model.TonnagePrice.HasValue)
                 {
                     <div>
@@ -85,13 +75,38 @@
                     </div>
                 }
                 <div class="uk-width-1-1"><hr /></div>
+                <div class="uk-width-1-1">
+                    <label asp-for="Price" class="uk-form-label"></label>
+                    <input asp-for="Price" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="Price" class="uk-text-danger"></span>
+                </div>
                 <div>
                     <label class="uk-form-label">تغییر نرخ بارنامه ها از تاریخ</label>
-                    <input class="uk-input uk-form-small uk-border-rounded datepicker" dir="ltr" name="DateLimit" />
+                    <input class="uk-input uk-form-small uk-border-rounded datepicker" dir="ltr" name="PriceDateLimit" />
                 </div>
                 <div>
                     <label class="uk-form-label">یا از تقویم کاری</label>
-                    <select id="CalendarLimit" name="CalendarLimit">
+                    <select id="PriceCalendarLimit" name="PriceCalendarLimit">
+                        <option value="0">بدون محدودیت تقویم کاری</option>
+                        @foreach (var item in calendars)
+                        {
+                            <option value="@item.Id">@item.Title</option>
+                        }
+                    </select>
+                </div>
+                <div class="uk-width-1-1"><hr /></div>
+                <div class="uk-width-1-1">
+                    <label asp-for="DriverPrice" class="uk-form-label"></label>
+                    <input asp-for="DriverPrice" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="DriverPrice" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label class="uk-form-label">تغییر نرخ بارنامه ها از تاریخ</label>
+                    <input class="uk-input uk-form-small uk-border-rounded datepicker" dir="ltr" name="DriverPriceDateLimit" />
+                </div>
+                <div>
+                    <label class="uk-form-label">یا از تقویم کاری</label>
+                    <select id="DriverPriceCalendarLimit" name="DriverPriceCalendarLimit">
                         <option value="0">بدون محدودیت تقویم کاری</option>
                         @foreach (var item in calendars)
                         {

@@ -56,6 +56,7 @@ namespace EtehadBar.Domain.Models
         public ICollection<LoadFactorNovin> LoadFactorNovins { get; set; }
         public ICollection<CustomerFactor> CustomerFactors { get; set; }
         public ICollection<TurnoverProfile> TurnoverProfiles { get; set; }
+        public ICollection<Cheque> Cheques { get; set; }
 
         [Required]
         [StringLength(36)]

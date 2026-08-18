@@ -133,4 +133,11 @@
         Damage,
         Other
     }
+
+    public enum ChequeStatus
+    {
+        NotPassed,
+        Passed,
+        Rejected
+    }
 }

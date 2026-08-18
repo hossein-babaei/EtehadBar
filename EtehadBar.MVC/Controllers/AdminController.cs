@@ -2237,7 +2237,8 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> EditShippingFeeGroup(ShippingFeeGroup s, string DateLimit, long CalendarLimit)
+        public async Task<IActionResult> EditShippingFeeGroup(ShippingFeeGroup s, 
+            string PriceDateLimit, long PriceCalendarLimit, string DriverPriceDateLimit, long DriverPriceCalendarLimit)
         {
             string msg;
             string status = "danger";
@@ -2253,13 +2254,15 @@ namespace EtehadBar.MVC.Controllers
                 bool isDriverFeeChanged = false;
 
                 if (item.DriverPrice != s.DriverPrice || item.DriverTonnagePrice != s.DriverTonnagePrice)
+                {
                     isDriverFeeChanged = true;
+                    item.DriverPrice = s.DriverPrice;
+                    item.DriverTonnagePrice = s.DriverTonnagePrice;
+                }
 
-                item.DriverPrice = s.DriverPrice;
                 item.Price = s.Price;
                 item.Vehicle = s.Vehicle;
                 item.TonnagePrice = s.TonnagePrice;
-                item.DriverTonnagePrice = s.DriverTonnagePrice;
                 item.ShippingFeeLoadTypeId = s.ShippingFeeLoadTypeId;
                 item.EditorId = _userManager.GetUserId(User);
                 item.EditDate = DateTime.Now;
@@ -2279,17 +2282,31 @@ namespace EtehadBar.MVC.Controllers
 
                     var shippingFeeRoutes = await _shippingFeeRouteRepository.Query().Where(a => a.ShippingFeeGroupId.Equals(item.Id)).ToListAsync();
                     var loadFactorQuery = _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).Where(a => a.ContractId.Equals(item.ContractId) && shippingFeeRoutes.Select(a => a.Id).Contains(a.ShippingFeeRouteId.Value) && a.Date >= latestContractAddon.StartDate && !a.IsDriverFeeEditedByAdmin);
-                    if (!string.IsNullOrWhiteSpace(DateLimit))
+                    if (!string.IsNullOrWhiteSpace(PriceDateLimit))
                     {
-                        DateLimit = DateLimit.PersianToEnglish();
-                        var dateLimitArr = DateLimit.Split("/");
+                        PriceDateLimit = PriceDateLimit.PersianToEnglish();
+                        var dateLimitArr = PriceDateLimit.Split("/");
                         var date = new PersianDateTime(Convert.ToInt32(dateLimitArr[0]), Convert.ToInt32(dateLimitArr[1]), Convert.ToInt32(dateLimitArr[2])).ToDateTime();
                         loadFactorQuery = loadFactorQuery.Where(a => a.Date >= date);
                     }
 
-                    if (CalendarLimit > 0)
+                    if (PriceCalendarLimit > 0)
                     {
-                        var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= _calendarRepo.Calendars().Single(a => a.Id.Equals(CalendarLimit)).Sequence).Select(a => a.Id).ToListAsync();
+                        var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= _calendarRepo.Calendars().Single(a => a.Id.Equals(PriceCalendarLimit)).Sequence).Select(a => a.Id).ToListAsync();
+                        loadFactorQuery = loadFactorQuery.Where(a => calendars.Contains(a.CalendarId));
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(DriverPriceDateLimit) && isDriverFeeChanged)
+                    {
+                        DriverPriceDateLimit = DriverPriceDateLimit.PersianToEnglish();
+                        var dateLimitArr = DriverPriceDateLimit.Split("/");
+                        var date = new PersianDateTime(Convert.ToInt32(dateLimitArr[0]), Convert.ToInt32(dateLimitArr[1]), Convert.ToInt32(dateLimitArr[2])).ToDateTime();
+                        loadFactorQuery = loadFactorQuery.Where(a => a.Date >= date);
+                    }
+
+                    if (DriverPriceCalendarLimit > 0 && isDriverFeeChanged)
+                    {
+                        var calendars = await _calendarRepo.Calendars().Where(a => a.Sequence >= _calendarRepo.Calendars().Single(a => a.Id.Equals(DriverPriceCalendarLimit)).Sequence).Select(a => a.Id).ToListAsync();
                         loadFactorQuery = loadFactorQuery.Where(a => calendars.Contains(a.CalendarId));
                     }
 
@@ -2303,18 +2320,22 @@ namespace EtehadBar.MVC.Controllers
                             factor.OriginId = shippingFeeRoute.OriginId;
                             factor.DestinationId = shippingFeeRoute.DestinationId;
                             factor.TonnagePrice = item.TonnagePrice;
-                            factor.DriverTonnagePrice = item.DriverTonnagePrice;
 
                             //mehrcom hourly load facrors
                             if (factor.MehrcomParsLoadFactor is not null && factor.MehrcomParsLoadFactor.LoadHours.HasValue)
                             {
                                 factor.Amount = item.Price * factor.MehrcomParsLoadFactor.LoadHours.Value;
-                                factor.DriverFee = item.DriverPrice * factor.MehrcomParsLoadFactor.LoadHours.Value;
+                                if (isDriverFeeChanged)
+                                    factor.DriverFee = item.DriverPrice * factor.MehrcomParsLoadFactor.LoadHours.Value;
                             }
                             else
                             {
-                                factor.DriverFee = item.DriverPrice;
                                 factor.Amount = item.Price;
+                                if (isDriverFeeChanged)
+                                {
+                                    factor.DriverFee = item.DriverPrice;
+                                    factor.DriverTonnagePrice = item.DriverTonnagePrice;
+                                }
                             }
 
                             if (isDriverFeeChanged)
