@@ -157,21 +157,22 @@
         });
         }
         function submitCreateForm() {
+        if ($('#create-form').valid() == true) {
         $.ajax({
-        type: 'POST',
-        url: '@Url.Action("CreateBill")',
-        data: $('#create-modal form').serialize(),
-        dataType: 'json',
-        beforeSend: function () {
-        preloader();
+            type: 'POST',
+            url: '@Url.Action("CreateBill")',
+            data: $('#create-modal form').serialize(),
+            dataType: 'json',
+            beforeSend: function () {
+            preloader();
         },
         success: function (r) {
-        uiAlert(r.msg, r.status);
-        if (r.status == 'success') {
-        $.post('@Url.Action("Bill_Search")', {}, function (r) {
-        $('#append').html(r);
-        }, 'html');
-        }
+            uiAlert(r.msg, r.status);
+            if (r.status == 'success') {
+                $.post('@Url.Action("Bill_Search")', {}, function (r) {
+                $('#append').html(r);
+                }, 'html');
+            }
         },
         error: function (e) {
         uiAlert(e.responseText, 'danger');
@@ -183,6 +184,7 @@
         }
         }
         });
+        }
         }
         function edit(id) {
         preloader();

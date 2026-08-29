@@ -25,6 +25,10 @@ namespace EtehadBar.Domain.Models
         [Display(Name = "تاریخ پاس شدن")]
         public DateTime? PassDate { get; set; }
 
+        [Display(Name = "مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
         [Display(Name = "صادر کننده")]
         [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
         [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]

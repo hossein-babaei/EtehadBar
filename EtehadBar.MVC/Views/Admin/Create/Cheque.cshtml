@@ -1,0 +1,91 @@
+﻿@model CreateChequeVM
+@{
+    var customers = (List<Customer>)ViewData["Customers"];
+}
+<div class="uk-modal-dialog">
+    <div class="uk-modal-header uk-light">
+        <h2 class="uk-modal-title">افزودن چک جدید</h2>
+    </div>
+    <div class="uk-modal-body">
+        <form id="create-form" asp-action="CreateCheque" method="post" autocomplete="off">
+            <input type="submit" style="display: none" />
+            <div asp-validation-summary="ModelOnly" class="uk-text-danger"></div>
+            <div class="uk-grid-small uk-child-width-1-2" uk-grid>
+                <div>
+                    <label asp-for="CustomerId" class="uk-form-label"></label>
+                    <select asp-for="CustomerId" class="uk-select uk-border-rounded uk-form-small">
+                        <option value="0">انتخاب مشتری</option>
+                        @foreach (var item in customers)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CustomerId" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Amount" class="uk-form-label"></label>
+                    <input asp-for="Amount" dir="ltr" type="number" min="0" class="uk-input uk-border-rounded uk-form-small format-number" />
+                    <span asp-validation-for="Amount" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Number" class="uk-form-label"></label>
+                    <input asp-for="Number" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Number" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Issuer" class="uk-form-label"></label>
+                    <input asp-for="Issuer" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="Issuer" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Date" class="uk-form-label"></label>
+                    <input asp-for="Date" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+                    <span asp-validation-for="Date" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="RecieveDate" class="uk-form-label"></label>
+                    <input asp-for="RecieveDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+                    <span asp-validation-for="RecieveDate" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="SendToBankDate" class="uk-form-label"></label>
+                    <input asp-for="SendToBankDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+                    <span asp-validation-for="SendToBankDate" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="PassDate" class="uk-form-label"></label>
+                    <input asp-for="PassDate" dir="ltr" readonly class="uk-input uk-border-rounded uk-form-small date-picker" />
+                    <span asp-validation-for="PassDate" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="BankOfOrigin" class="uk-form-label"></label>
+                    <input asp-for="BankOfOrigin" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="BankOfOrigin" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="SendToBankName" class="uk-form-label"></label>
+                    <input asp-for="SendToBankName" class="uk-input uk-border-rounded uk-form-small" />
+                    <span asp-validation-for="SendToBankName" class="uk-text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Status" class="uk-form-label"></label>
+                    <select asp-for="Status" class="uk-select uk-border-rounded uk-form-small">
+                        <option value="@((byte)ChequeStatus.NotPassed)">پاس نشده</option>
+                        <option value="@((byte)ChequeStatus.Passed)">پاس شده</option>
+                        <option value="@((byte)ChequeStatus.Rejected)">برگشت خورده</option>
+                    </select>
+                    <span asp-validation-for="Status" class="uk-text-danger"></span>
+                </div>
+                <div class="uk-width-1-1">
+                    <label asp-for="Description" class="uk-form-label"></label>
+                    <textarea asp-for="Description" class="uk-textarea uk-border-rounded" rows="2"></textarea>
+                    <span asp-validation-for="Description" class="uk-text-danger"></span>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="uk-modal-footer uk-text-center">
+        <button class="uk-button uk-button-primary" type="button" onclick="submitCreateForm()">ثبت اطلاعات</button>
+        <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+    </div>
+</div>

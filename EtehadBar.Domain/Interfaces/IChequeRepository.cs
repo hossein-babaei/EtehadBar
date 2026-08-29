@@ -8,6 +8,7 @@ namespace EtehadBar.Domain.Interfaces
     {
         Task<Cheque> Get(long id);
         Task<Cheque> Get(string rowId);
+        Task<EditChequeVM> GetEditData(long id);
         IQueryable<Cheque> Query();
         void Update(Cheque obj);
         void Create(Cheque obj);

@@ -13,19 +13,19 @@
     <li @if (param == 1) { <text> class="active" </text> }>
         <a asp-action="Index" asp-controller="Admin"><i class="uk-margin-left fas fa-tachometer-alt"></i>داشبورد</a>
     </li>
-    <li @if (param == 43) { <text> class="active" </text> }>
-        <a asp-action="UserPlanner" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar-plus"></i>کارتابل شخصی</a>
-    </li>
     @if (User.IsInRole("Admin"))
     {
         <li @if (param == 20) { <text> class="active" </text> }>
             <a asp-action="Users" asp-controller="Admin"><i class="uk-margin-left fas fa-users"></i>کاربران</a>
         </li>
+        <li @if (param == 3) { <text> class="active" </text> }>
+            <a asp-action="Calendar" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar-alt"></i>تقویم کاری</a>
+        </li>
         <li @if (param == 13) { <text> class="active" </text> }>
             <a asp-action="Customer" asp-controller="Admin"><i class="uk-margin-left fas fa-user"></i>مشتریان خدمات</a>
         </li>
-        <li @if (param == 3) { <text> class="active" </text> }>
-            <a asp-action="Calendar" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar-alt"></i>تقویم کاری</a>
+        <li @if (param == 44) { <text> class="active" </text> }>
+            <a asp-action="Cheque" asp-controller="Admin"><i class="uk-margin-left fas fa-money-check-alt"></i>چک های دریافتی</a>
         </li>
     }
     @if(User.IsInRole("Admin") || User.IsInRole("Milad"))
@@ -67,6 +67,9 @@
             <a asp-action="Index" asp-controller="LoadFactorCreator"><i class="uk-margin-left fas fa-robot"></i>بارنامه ساز</a>
         </li>
     }
+    <li @if (param == 43) { <text> class="active" </text> }>
+        <a asp-action="UserPlanner" asp-controller="Admin"><i class="uk-margin-left fas fa-calendar-plus"></i>کارتابل شخصی</a>
+    </li>
     @if (User.IsInRole("Admin"))
     {
         <li class="uk-parent @if(param == 8 || param == 40 || param == 24){<text>uk-open</text>}">

@@ -1,0 +1,373 @@
+﻿@model Cheque
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+
+@{
+    ViewData["pageId"] = 44;
+    var data = ViewBag.data as IPagedList<Cheque>;
+    ViewData["Title"] = "چک های دریافتی";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int i = 1;
+    if (data.PageNumber > 1)
+        i = (data.PageSize * data.PageNumber) - (data.PageSize - 1);
+}
+
+@section Links {
+    <link href="~/lib/select2/select2.min.css" rel="stylesheet" />
+    <link href="~/lib/persian-date/persian-datepicker.min.css" rel="stylesheet" />
+}
+
+@section Scripts {
+    <script src="~/lib/persian-date/persian-date.min.js"></script>
+    <script src="~/lib/persian-date/persian-datepicker.min.js"></script>
+    <script>
+        let isSearchLoaded = false;
+
+        let datePickerConfig = {
+            initialValue: true,
+            autoClose: true,
+            timePicker: {
+                enabled: false
+            },
+            format: 'YYYY/MM/DD',
+            navigator: {
+                enabled: true,
+                scroll: {
+                    "enabled": true
+                },
+                text: {
+                    btnNextText: '>',
+                    btnPrevText: '<'
+                }
+            },
+            toolbox: {
+                calendarSwitch: {
+                    enabled: false
+                }
+            }
+        };
+        let nullableDatePickerConfig = {
+            initialValueType: 'persian',
+            initialValue: false,
+            autoClose: true,
+            timePicker: {
+                enabled: false
+            },
+            format: 'YYYY/MM/DD',
+            navigator: {
+                enabled: true,
+                scroll: {
+                    "enabled": true
+                },
+                text: {
+                    btnNextText: '>',
+                    btnPrevText: '<'
+                }
+            },
+            toolbox: {
+                calendarSwitch: {
+                    enabled: false
+                }
+            }
+        };
+
+        $('#search-modal form').submit(function (e) {
+            e.preventDefault();
+            filter();
+        });
+
+        function getSearch() {
+            if (!isSearchLoaded) {
+                preloader();
+                $.get('@Url.Action("Cheque_Search")', {}, function (r) {
+                    let customerOptions = '<option value="0">همه</option>';
+                    $.each(r, (i, v) => {
+                        customerOptions += `<option value="${v.id}">${v.name}</option>`;
+                    });
+                    $('#search-modal #customerId').html(customerOptions);
+
+                }, 'json').then(function () {
+                    preloader();
+                    UIkit.modal('#search-modal').show();
+                });
+                } else {
+                    UIkit.modal('#search-modal').show();
+                }
+            }
+            function filter() {
+                var data = $('#search-modal form').serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("Cheque_Search")',
+                    data: data,
+                    dataType: 'html',
+                    beforeSend: function () {
+                    preloader();
+                    },
+                    success: function (r) {
+                        $('#append').html(r);
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger')
+                    },
+                    complete: function () {
+                        preloader();
+                        UIkit.modal('#search-modal').hide();
+                    }
+                });
+            }
+            async function create() {
+                preloader();
+                await $.get('@Url.Action("CreateCheque")', {}, function (r) {
+                    let modal = $('#create-modal');
+                    modal.html(r);
+                    modal.find('#Date').persianDatepicker(datePickerConfig);
+                    modal.find('#RecieveDate').persianDatepicker(datePickerConfig);
+                    modal.find('#SendToBankDate').persianDatepicker(nullableDatePickerConfig);
+                    modal.find('#PassDate').persianDatepicker(nullableDatePickerConfig);
+
+
+                    $('#create-modal form').submit(function (e) {
+                        e.preventDefault();
+                        submitCreateForm();
+                    });
+                }, 'html').then(function () {
+                    parseValidator('#create-form');
+                    preloader();
+                    UIkit.modal('#create-modal').show();
+                });
+            }
+            function submitCreateForm() {
+                if ($('#create-form').valid() == true) {
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("CreateCheque")',
+                    data: $('#create-modal form').serialize(),
+                    dataType: 'json',
+                    beforeSend: function () {
+                    preloader();
+                    },
+                    success: function (r) {
+                        uiAlert(r.msg, r.status);
+                        if (r.status == 'success') {
+                            let dataTag = $('#append > div');
+                            data = {
+                                'p': dataTag.data('page'),
+                                'customerId': dataTag.data('customer'),
+                                'number': dataTag.data('number'),
+                                'chequeStatus': dataTag.data('cheque-status')
+                            };
+                            $.post('@Url.Action("Cheque_Search")', data, function (r) {
+                                $('#append').html(r);
+                            }, 'html');
+                        }
+                    },
+                    error: function (e) {
+                        uiAlert(e.responseText, 'danger');
+                    },
+                    complete: function () {
+                        preloader();
+                    }
+                });
+                }
+            }
+            function edit(id) {
+                preloader();
+                $.get('@Url.Action("EditCheque")', { 'id': id }, function (r) {
+                    let modal = $('#edit-modal');
+                    modal.html(r);
+                    modal.find('#Date').persianDatepicker(nullableDatePickerConfig);
+                    modal.find('#RecieveDate').persianDatepicker(nullableDatePickerConfig);
+                    modal.find('#SendToBankDate').persianDatepicker(nullableDatePickerConfig);
+                    modal.find('#PassDate').persianDatepicker(nullableDatePickerConfig);
+                    $('#edit-modal form').submit(function (e) {
+                        e.preventDefault();
+                        submitEditForm();
+                    });
+                }, 'html').then(function () {
+                    parseValidator('#edit-modal form');
+                    preloader();
+                    UIkit.modal('#edit-modal').show();
+                });
+            }
+            function submitEditForm() {
+                if($('#edit-form').valid() == true) {
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("EditCheque")',
+                    data: $('#edit-modal form').serialize(),
+                    dataType: 'json',
+                    beforeSend: function () {
+                    preloader();
+                },
+                success: function (r) {
+                    uiAlert(r.msg, r.status);
+                    UIkit.modal('#edit-modal').hide();
+                    if (r.status == 'success') {
+                        let dataTag = $('#append > div');
+                        data = {
+                            'p': dataTag.data('page'),
+                            'customerId': dataTag.data('customer'),
+                            'number': dataTag.data('number'),
+                            'chequeStatus': dataTag.data('cheque-status')
+                        };
+                        $.post('@Url.Action("Cheque_Search")', data, function (r) {
+                            $('#append').html(r);
+                        }, 'html');
+                    }
+                },
+                error: function (e) {
+                    uiAlert(e.responseText, 'danger');
+                },
+                complete: function () {
+                    preloader();
+                }
+                });
+                }
+            }
+        function remove(id) {
+            $('#delete-modal input').val(id);
+            UIkit.modal('#delete-modal').show();
+        }
+    </script>
+}
+
+<div class="uk-grid-collapse uk-child-width-1-1@s uk-margin-bottom" uk-grid>
+    <div class="uk-width-auto@m">
+        <ul class="uk-breadcrumb">
+            <li><a asp-action="Index" asp-controller="Admin">داشبورد</a></li>
+            <li><span>@ViewData["Title"]</span></li>
+        </ul>
+    </div>
+    <div class="uk-width-expand@m uk-flex uk-flex-left">
+        <a onclick="create()" class="uk-button uk-button-primary">افزودن</a>
+        <button onclick="getSearch()" class="uk-button uk-button-secondary uk-margin-small-right">فیلتر</button>
+    </div>
+</div>
+<div id="append" class="box">
+    <div class="uk-overflow-auto">
+        <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+            <thead>
+                <tr>
+                    <th>ردیف</th>
+                    <th>@Html.DisplayNameFor(model => model.Date)</th>
+                    <th>@Html.DisplayNameFor(model => model.Amount)</th>
+                    <th>@Html.DisplayNameFor(model => model.CustomerId)</th>
+                    <th>@Html.DisplayNameFor(model => model.Issuer)</th>
+                    <th>@Html.DisplayNameFor(model => model.Number)</th>
+                    <th>@Html.DisplayNameFor(model => model.BankOfOrigin)</th>
+                    <th>@Html.DisplayNameFor(model => model.RecieveDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.SendToBankName)</th>
+                    <th>@Html.DisplayNameFor(model => model.SendToBankDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.Status)</th>
+                    <th>@Html.DisplayNameFor(model => model.PassDate)</th>
+                    <th>@Html.DisplayNameFor(model => model.Description)</th>
+                    <th width="35">ویرایش</th>
+                    <th width="35">حذف</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in data)
+                {
+                    var pd = new PersianDateTime(item.Date);
+                    var persianRecieveDate = new PersianDateTime(item.RecieveDate);
+                    var persianSendToBankDate = new PersianDateTime(item.SendToBankDate ?? DateTime.Now);
+                    var persianPassDate = new PersianDateTime(item.PassDate ?? DateTime.Now);
+
+                    <tr class="uk-text-center sm">
+                        <td>@i</td>
+                        <td>@pd.ToString("yyyy/MM/dd")</td>
+                        <td>@item.Amount.ToString("N0")</td>
+                        <td>@item.Customer.Name</td>
+                        <td>@item.Issuer</td>
+                        <td>@item.Number</td>
+                        <td>@item.BankOfOrigin</td>
+                        <td>@persianRecieveDate.ToString("yyyy/MM/dd")</td>
+                        <td>@item.SendToBankName</td>
+                        <td>@(item.SendToBankDate.HasValue ? persianSendToBankDate.ToString("yyyy/MM/dd") : "---")</td>
+                        <td>
+                            @switch (item.Status)
+                            {
+                                case (ChequeStatus.NotPassed):
+                                    <span class="uk-text-primary">پاس نشده</span>
+                                    break;
+                                case (ChequeStatus.Rejected):
+                                    <span class="uk-text-danger">برگشت خورده</span>
+                                    break;
+                                case (ChequeStatus.Passed):
+                                    <span class="uk-text-success">پاس شده</span>
+                                    break;
+                                default:
+                                    <span class="uk-text-primary">پاس نشده</span>
+                                    break;
+                            }
+                        </td>
+                        <td>@(item.PassDate.HasValue ? persianPassDate.ToString("yyyy/MM/dd") : "---")</td>
+                        <td class="uk-text-small">@(string.IsNullOrWhiteSpace(item.Description) ? "---" : item.Description)</td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="edit(@item.Id)"><i class="far fa-edit"></i></a></td>
+                        <td><a class="uk-button uk-button-primary uk-button-small" onclick="remove(@item.Id)"><i class="fas fa-trash-alt"></i></a>
+                        </tr>
+                        i++;
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (data.PageCount > 1)
+        {
+            <div class="uk-text-center uk-width-1-1 uk-margin-top" dir="ltr">
+                @Html.PagedListPager(data, page => Url.Action("Cheque", new { p = page }))
+            </div>
+        }
+    </div>
+    <div id="create-modal" uk-modal="bg-close: false"></div>
+    <div id="edit-modal" uk-modal="bg-close: false"></div>
+    <div id="delete-modal" class="uk-flex-top" uk-modal>
+        <div class="uk-modal-dialog uk-modal-body uk-text-center uk-margin-auto-vertical">
+            <form id="delete-form" method="post" asp-action="DeleteCheque" asp-controller="Admin">
+                <input type="hidden" name="id" />
+                <h3>آیا از حذف این مورد اطمینان دارید؟</h3>
+                <p class="uk-text-danger uk-text-bold">هشدار! این عملیات قابل بازگشت نیست</p>
+                <div class="uk-modal-footer uk-text-center">
+                    <button class="uk-button uk-button-primary" onclick="$('#delete-form').submit()" type="button">بلی</button>
+                    <button class="uk-button uk-button-danger uk-modal-close" type="button">خیر</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="search-modal" uk-modal>
+        <div class="uk-modal-dialog">
+            <div class="uk-modal-header uk-light">
+                <h2 class="uk-modal-title">جستجو</h2>
+            </div>
+            <div class="uk-modal-body">
+                <form>
+                    <div class="uk-grid-small uk-child-width-1-1" uk-grid>
+                        <div>
+                            <label class="uk-form-label">بر اساس مشتری</label>
+                            <select class="uk-select uk-border-rounded" id="customerId" name="customerId"></select>
+                        </div>
+                        <div>
+                            <label class="uk-form-label">بر اساس شماره چک</label>
+                            <input class="uk-input uk-border-rounded" id="number" name="number" />
+                        </div>
+                        <div>
+                            <label class="uk-form-label">بر اساس وضعیت</label>
+                            <select class="uk-select uk-border-rounded" id="status" name="chequeStatus">
+                                <option value=""></option>
+                                <option value="@((int)ChequeStatus.NotPassed)">پاس نشده</option>
+                                <option value="@((int)ChequeStatus.Passed)">پاس شده</option>
+                                <option value="@((int)ChequeStatus.Rejected)">برگشت خورده</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+                <div class="uk-margin-top uk-text-center">
+                    <a asp-action="Cheque" asp-controller="Admin" class="uk-button uk-button-text">ریست کردن نتایج</a>
+                </div>
+            </div>
+            <div class="uk-modal-footer uk-text-center">
+                <button class="uk-button uk-button-primary" type="button" onclick="filter()">مشاهده نتایج</button>
+                <button class="uk-button uk-button-danger uk-modal-close" type="button">بازگشت</button>
+            </div>
+        </div>
+    </div>

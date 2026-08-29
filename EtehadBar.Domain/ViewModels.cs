@@ -1817,4 +1817,61 @@ namespace EtehadBar.Domain
         [Display(Name = "وضعیت")]
         public bool ActiveStatus { get; set; }
     }
+
+    public class CreateChequeVM
+    {
+        [Display(Name = "تاریخ سررسید")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string Date { get; set; }
+
+        [Display(Name = "تاریخ دریافت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public string RecieveDate { get; set; }
+
+        [Display(Name = "تاریخ ارسال به بانک")]
+        public string SendToBankDate { get; set; }
+
+        [Display(Name = "تاریخ پاس شدن")]
+        public string PassDate { get; set; }
+
+        [Display(Name = "مبلغ")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public double Amount { get; set; }
+
+        [Display(Name = "صادر کننده")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(64, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Issuer { get; set; }
+
+        [Display(Name = "شماره چک")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(32, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Number { get; set; }
+
+        [Display(Name = "بانک صادرکننده")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(32, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string BankOfOrigin { get; set; }
+
+        [Display(Name = "بانک عامل")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        [StringLength(32, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string SendToBankName { get; set; }
+
+        [Display(Name = "توضیحات")]
+        [StringLength(256, ErrorMessage = "{0} باید {1} کاراکتر باشد.")]
+        public string Description { get; set; }
+
+        [Display(Name = "وضعیت")]
+        [Required(ErrorMessage = "پر کردن {0} الزامی است.")]
+        public ChequeStatus Status { get; set; } = (byte)ChequeStatus.NotPassed;
+
+        [Display(Name = "مشتری")]
+        public long? CustomerId { get; set; }
+    }
+
+    public partial class EditChequeVM : CreateChequeVM
+    {
+        public long Id { get; set; }
+    }
 }

@@ -17,6 +17,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using X.PagedList;
 
@@ -61,6 +62,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly IShippingFeeRouteRepository _shippingFeeRouteRepository;
         private readonly IUserPlannerRepository _userPlannerRepository;
         private readonly IUserPlannerItemRepository _userPlannerItemRepository;
+        private readonly IChequeRepository _chequeRepository;
         private readonly ApplicationDbContext _context;
 
         public AdminController(
@@ -99,7 +101,8 @@ namespace EtehadBar.MVC.Controllers
             IShippingFeeGroupRepository shippingFeeGroupRepository,
             IShippingFeeRouteRepository shippingFeeRouteRepository,
             IUserPlannerRepository userPlannerRepository,
-            IUserPlannerItemRepository userPlannerItemRepository)
+            IUserPlannerItemRepository userPlannerItemRepository,
+            IChequeRepository chequeRepository)
         {
             _accountBookRepository = accountBookRepository;
             _adminThemeRepo = adminThemeRepository;
@@ -137,6 +140,7 @@ namespace EtehadBar.MVC.Controllers
             _shippingFeeRouteRepository = shippingFeeRouteRepository;
             _userPlannerRepository = userPlannerRepository;
             _userPlannerItemRepository = userPlannerItemRepository;
+            _chequeRepository = chequeRepository;
         }
 
         private long CalcNextSequenceForLoadFactor(long sequence)
@@ -659,8 +663,7 @@ namespace EtehadBar.MVC.Controllers
 
                 var user = await _userManager.FindByIdAsync(u.Id);
 
-                string[] b = u.BirthString.PersianToEnglish().Split('/');
-                user.Birth = new PersianDateTime(Convert.ToInt32(b[0]), Convert.ToInt32(b[1]), Convert.ToInt32(b[2])).ToDateTime();
+                user.Birth = u.BirthString.PersianToEnglish().ToDateTime("/");
                 user.Firstname = u.Firstname;
                 user.Lastname = u.Lastname;
                 user.Email = u.Email;
@@ -787,8 +790,7 @@ namespace EtehadBar.MVC.Controllers
                     AccountBankName = u.AccountBankName
                 };
 
-                string[] b = u.BirthString.PersianToEnglish().Split('/');
-                user.Birth = new PersianDateTime(Convert.ToInt32(b[0]), Convert.ToInt32(b[1]), Convert.ToInt32(b[2])).ToDateTime();
+                user.Birth = u.BirthString.PersianToEnglish().ToDateTime("/");
 
                 var validTypes = new string[] { "image/jpeg", "image/png" };
                 if (u.Pic != null)
@@ -2237,7 +2239,7 @@ namespace EtehadBar.MVC.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin, Milad")]
-        public async Task<IActionResult> EditShippingFeeGroup(ShippingFeeGroup s, 
+        public async Task<IActionResult> EditShippingFeeGroup(ShippingFeeGroup s,
             string PriceDateLimit, long PriceCalendarLimit, string DriverPriceDateLimit, long DriverPriceCalendarLimit)
         {
             string msg;
@@ -2284,9 +2286,7 @@ namespace EtehadBar.MVC.Controllers
                     var loadFactorQuery = _loadFactorRepo.LoadFactors().Include(a => a.MehrcomParsLoadFactor).Where(a => a.ContractId.Equals(item.ContractId) && shippingFeeRoutes.Select(a => a.Id).Contains(a.ShippingFeeRouteId.Value) && a.Date >= latestContractAddon.StartDate && !a.IsDriverFeeEditedByAdmin);
                     if (!string.IsNullOrWhiteSpace(PriceDateLimit))
                     {
-                        PriceDateLimit = PriceDateLimit.PersianToEnglish();
-                        var dateLimitArr = PriceDateLimit.Split("/");
-                        var date = new PersianDateTime(Convert.ToInt32(dateLimitArr[0]), Convert.ToInt32(dateLimitArr[1]), Convert.ToInt32(dateLimitArr[2])).ToDateTime();
+                        var date = PriceDateLimit.PersianToEnglish().ToDateTime("/");
                         loadFactorQuery = loadFactorQuery.Where(a => a.Date >= date);
                     }
 
@@ -2298,9 +2298,7 @@ namespace EtehadBar.MVC.Controllers
 
                     if (!string.IsNullOrWhiteSpace(DriverPriceDateLimit) && isDriverFeeChanged)
                     {
-                        DriverPriceDateLimit = DriverPriceDateLimit.PersianToEnglish();
-                        var dateLimitArr = DriverPriceDateLimit.Split("/");
-                        var date = new PersianDateTime(Convert.ToInt32(dateLimitArr[0]), Convert.ToInt32(dateLimitArr[1]), Convert.ToInt32(dateLimitArr[2])).ToDateTime();
+                        var date = DriverPriceDateLimit.PersianToEnglish().ToDateTime("/");
                         loadFactorQuery = loadFactorQuery.Where(a => a.Date >= date);
                     }
 
@@ -2415,17 +2413,13 @@ namespace EtehadBar.MVC.Controllers
             if (driverTonnageType.Equals("percent") && (tonnageDriverAmount > 100 || tonnageDriverAmount < -100))
                 return Json(new { msg = "درصد تغییر نرخ تناژ راننده مناسب نیست.", status });
 
-            var amountDateArray = amountDate.PersianToEnglish().Split('/');
-            var amountDatetime = new PersianDateTime(Convert.ToInt32(amountDateArray[0]), Convert.ToInt32(amountDateArray[1]), Convert.ToInt32(amountDateArray[2])).ToDateTime();
+            var amountDatetime = amountDate.PersianToEnglish().ToDateTime("/");
 
-            var driverAmountDateArray = driverAmountDate.PersianToEnglish().Split('/');
-            var driverAmountDatetime = new PersianDateTime(Convert.ToInt32(driverAmountDateArray[0]), Convert.ToInt32(driverAmountDateArray[1]), Convert.ToInt32(driverAmountDateArray[2])).ToDateTime();
+            var driverAmountDatetime = driverAmountDate.PersianToEnglish().ToDateTime("/");
 
-            var tonnageAmountDateArray = tonnageAmountDate.PersianToEnglish().Split('/');
-            var tonnageAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageAmountDateArray[0]), Convert.ToInt32(tonnageAmountDateArray[1]), Convert.ToInt32(tonnageAmountDateArray[2])).ToDateTime();
+            var tonnageAmountDatetime = tonnageAmountDate.PersianToEnglish().ToDateTime("/");
 
-            var tonnageDriverAmountDateArray = tonnageDriverAmountDate.PersianToEnglish().Split('/');
-            var tonnageDriverAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageDriverAmountDateArray[0]), Convert.ToInt32(tonnageDriverAmountDateArray[1]), Convert.ToInt32(tonnageDriverAmountDateArray[2])).ToDateTime();
+            var tonnageDriverAmountDatetime = tonnageDriverAmountDate.PersianToEnglish().ToDateTime("/");
 
             var contract = await _contractRepo.Get(contractId);
 
@@ -2454,7 +2448,7 @@ namespace EtehadBar.MVC.Controllers
                         else
                             a = Math.Round(a);
 
-                            int b = Convert.ToInt32(a);
+                        int b = Convert.ToInt32(a);
                         fee.Price += b;
                     }
                     else
@@ -2593,8 +2587,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeShippingFeeGroupByAmount(long contractId, string type, string amountDate, long calendarId, double oldAmount, double newAmount)
         {
-            var amountDateArray = amountDate.PersianToEnglish().Split('/');
-            var amountDatetime = new PersianDateTime(Convert.ToInt32(amountDateArray[0]), Convert.ToInt32(amountDateArray[1]), Convert.ToInt32(amountDateArray[2])).ToDateTime();
+            var amountDatetime = amountDate.PersianToEnglish().ToDateTime("/");
 
             var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
             if (latestContractAddon == null)
@@ -3123,9 +3116,7 @@ namespace EtehadBar.MVC.Controllers
                     var loadFactorQuery = _loadFactorRepo.LoadFactors().Where(a => a.ContractId.Equals(item.ContractId) && a.ShippingFeeId.Equals(item.Id) && a.Date >= latestContractAddon.StartDate && !a.IsDriverFeeEditedByAdmin);
                     if (!string.IsNullOrWhiteSpace(DateLimit))
                     {
-                        DateLimit = DateLimit.PersianToEnglish();
-                        var dateLimitArr = DateLimit.Split("/");
-                        var date = new PersianDateTime(Convert.ToInt32(dateLimitArr[0]), Convert.ToInt32(dateLimitArr[1]), Convert.ToInt32(dateLimitArr[2])).ToDateTime();
+                        var date = DateLimit.PersianToEnglish().ToDateTime("/");
                         loadFactorQuery = loadFactorQuery.Where(a => a.Date >= date);
                     }
 
@@ -3269,17 +3260,13 @@ namespace EtehadBar.MVC.Controllers
             if (driverTonnageType.Equals("percent") && (tonnageDriverAmount > 100 || tonnageDriverAmount < -100))
                 return Json(new { msg = "درصد تغییر نرخ تناژ راننده مناسب نیست.", status });
 
-            var amountDateArray = amountDate.PersianToEnglish().Split('/');
-            var amountDatetime = new PersianDateTime(Convert.ToInt32(amountDateArray[0]), Convert.ToInt32(amountDateArray[1]), Convert.ToInt32(amountDateArray[2])).ToDateTime();
+            var amountDatetime = amountDate.PersianToEnglish().ToDateTime("/");
 
-            var driverAmountDateArray = driverAmountDate.PersianToEnglish().Split('/');
-            var driverAmountDatetime = new PersianDateTime(Convert.ToInt32(driverAmountDateArray[0]), Convert.ToInt32(driverAmountDateArray[1]), Convert.ToInt32(driverAmountDateArray[2])).ToDateTime();
+            var driverAmountDatetime = driverAmountDate.PersianToEnglish().ToDateTime("/");
 
-            var tonnageAmountDateArray = tonnageAmountDate.PersianToEnglish().Split('/');
-            var tonnageAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageAmountDateArray[0]), Convert.ToInt32(tonnageAmountDateArray[1]), Convert.ToInt32(tonnageAmountDateArray[2])).ToDateTime();
+            var tonnageAmountDatetime = tonnageAmountDate.PersianToEnglish().ToDateTime("/");
 
-            var tonnageDriverAmountDateArray = tonnageDriverAmountDate.PersianToEnglish().Split('/');
-            var tonnageDriverAmountDatetime = new PersianDateTime(Convert.ToInt32(tonnageDriverAmountDateArray[0]), Convert.ToInt32(tonnageDriverAmountDateArray[1]), Convert.ToInt32(tonnageDriverAmountDateArray[2])).ToDateTime();
+            var tonnageDriverAmountDatetime = tonnageDriverAmountDate.PersianToEnglish().ToDateTime("/");
 
             var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
             if (latestContractAddon == null)
@@ -3447,8 +3434,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ChangeShippingFeeByAmount(long contractId, string type, string amountDate, long calendarId, double oldAmount, double newAmount)
         {
-            var amountDateArray = amountDate.PersianToEnglish().Split('/');
-            var amountDatetime = new PersianDateTime(Convert.ToInt32(amountDateArray[0]), Convert.ToInt32(amountDateArray[1]), Convert.ToInt32(amountDateArray[2])).ToDateTime();
+            var amountDatetime = amountDate.PersianToEnglish().ToDateTime("/");
 
             var latestContractAddon = await _contractRepo.Contracts().AsNoTracking().Where(a => a.ParentContractId.Equals(contractId)).OrderByDescending(a => a.StartDate).FirstOrDefaultAsync();
             if (latestContractAddon == null)
@@ -5197,8 +5183,7 @@ namespace EtehadBar.MVC.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> MoveLoadFactorsToNewContract(string contractRowId, string newContractRowId, string dateString)
         {
-            var dateArr = dateString.PersianToEnglish().Split("/");
-            var date = new PersianDateTime(Convert.ToInt32(dateArr[0]), Convert.ToInt32(dateArr[1]), Convert.ToInt32(dateArr[2])).ToDateTime();
+            var date = dateString.PersianToEnglish().ToDateTime("/");
 
             var newContract = await _contractRepo.Contracts().Include(a => a.ShippingFees).Include(a => a.ShippingFeeGroups).ThenInclude(a => a.ShippingFeeRoutes).FirstOrDefaultAsync(a => a.RowId.Equals(newContractRowId));
             var newShippingFees = newContract.ShippingFees;
@@ -6837,14 +6822,12 @@ namespace EtehadBar.MVC.Controllers
                 query = query.Where(a => a.Description.Contains(description));
             else if (!string.IsNullOrWhiteSpace(fromDate))
             {
-                var dateArr = fromDate.PersianToEnglish().Split('/');
-                var fDate = new PersianDateTime(Convert.ToInt32(dateArr[0]), Convert.ToInt32(dateArr[1]), Convert.ToInt32(dateArr[2]));
+                var fDate = fromDate.ToDateTime("/");
                 query = query.Where(a => a.Date >= fDate);
             }
             else if (!string.IsNullOrWhiteSpace(toDate))
             {
-                var dateArr = toDate.PersianToEnglish().Split('/');
-                var tDate = new PersianDateTime(Convert.ToInt32(dateArr[0]), Convert.ToInt32(dateArr[1]), Convert.ToInt32(dateArr[2]));
+                var tDate = toDate.ToDateTime("/");
                 query = query.Where(a => a.Date <= tDate);
             }
 
@@ -8343,6 +8326,175 @@ namespace EtehadBar.MVC.Controllers
             try
             {
                 await _userPlannerItemRepository.Save();
+                TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
+            }
+            catch (Exception e)
+            {
+                TempData["msg"] = $"عملیات با خطا مواجه شد. جزئیات: {e.Message} |danger";
+            }
+            return Redirect(Request.Headers["Referer"].ToString());
+        }
+        #endregion
+
+        #region Cheque
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Cheque(int? p)
+        {
+            var pageNumber = p ?? 1;
+            var onePageOfData = await _chequeRepository.Query().Include(a => a.Customer).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Cheque_Search()
+        {
+            return Json(await _customerRepo.Customers().AsNoTracking().Where(a => a.Status).Select(a => new { a.Id, a.Name }).OrderBy(a => a.Id).ToListAsync());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Cheque_Search(int? p, string number, long? customerId, ChequeStatus? chequeStatus)
+        {
+            var query = _chequeRepository.Query();
+
+            if (!string.IsNullOrWhiteSpace(number))
+                query = query.Where(a => a.Number.Contains(number));
+
+            if (customerId.HasValue && customerId.Value > 0)
+                query = query.Where(a => a.CustomerId.Equals(customerId.Value));
+
+            if (chequeStatus.HasValue)
+                query = query.Where(a => a.Status.Equals(chequeStatus.Value));
+
+            var pageNumber = p ?? 1;
+            var onePageOfData = await query.Include(a => a.Customer).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
+            ViewBag.data = onePageOfData;
+
+            ViewBag.Number = number;
+            ViewBag.CustomerId = customerId;
+            ViewBag.ChequeStatus = chequeStatus;
+            return PartialView();
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateCheque()
+        {
+            ViewData["Customers"] = await _customerRepo.GetAllActive();
+            return PartialView("~/Views/Admin/Create/Cheque.cshtml");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CreateCheque(CreateChequeVM c)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                var date = c.Date.PersianToEnglish().ToDateTime("/");
+
+                if (await _chequeRepository.Query().AnyAsync(a => a.Date.Equals(date) && a.Number.Equals(c.Number)))
+                {
+                    TempData["msg"] = "عملیات با خطا مواجه شد. رکورد تکراری درج کرده اید. |danger";
+                    return Redirect(Request.Headers["Referer"].ToString());
+                }
+
+                var cheque = new Cheque
+                {
+                    CustomerId = c.CustomerId.Value == 0 ? null : c.CustomerId.Value,
+                    Amount = c.Amount,
+                    BankOfOrigin = c.BankOfOrigin,
+                    Date = date,
+                    Description = c.Description,
+                    Issuer = c.Issuer,
+                    Number = c.Number,
+                    RecieveDate = c.RecieveDate.PersianToEnglish().ToDateTime("/"),
+                    PassDate = string.IsNullOrWhiteSpace(c.PassDate) ? null : c.PassDate.PersianToEnglish().ToDateTime("/"),
+                    SendToBankDate = string.IsNullOrWhiteSpace(c.SendToBankDate) ? null : c.SendToBankDate.PersianToEnglish().ToDateTime("/"),
+                    SendToBankName = c.SendToBankName,
+                    Status = c.Status
+                };
+
+                _chequeRepository.Create(cheque);
+                try
+                {
+                    await _chequeRepository.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+            return Json(new { msg, status });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditCheque(long id)
+        {
+            ViewData["Customers"] = await _customerRepo.GetAllActive();
+            return PartialView("~/Views/Admin/Edit/Cheque.cshtml", await _chequeRepository.GetEditData(id));
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> EditCheque(EditChequeVM c)
+        {
+            string msg;
+            string status = "danger";
+            if (ModelState.IsValid)
+            {
+                var item = await _chequeRepository.Get(c.Id);
+                item.Date = c.Date.PersianToEnglish().ToDateTime("/");
+                item.RecieveDate = c.RecieveDate.PersianToEnglish().ToDateTime("/");
+                item.PassDate = string.IsNullOrWhiteSpace(c.PassDate) ? null : c.PassDate.PersianToEnglish().ToDateTime("/");
+                item.SendToBankDate = string.IsNullOrWhiteSpace(c.SendToBankDate) ? null : c.SendToBankDate.PersianToEnglish().ToDateTime("/");
+                item.Description = c.Description;
+                item.BankOfOrigin = c.BankOfOrigin;
+                item.CustomerId = c.CustomerId;
+                item.Issuer = c.Issuer;
+                item.Number = c.Number;
+                item.SendToBankName = c.SendToBankName;
+                item.Status = c.Status;
+
+                _chequeRepository.Update(item);
+                try
+                {
+                    await _chequeRepository.Save();
+                    msg = "عملیات موفقیت آمیز بود.";
+                    status = "success";
+                }
+                catch (Exception e)
+                {
+                    msg = $"عملیات با خطا مواجه شد. جزئیات: {e.Message}";
+                }
+            }
+            else
+            {
+                msg = "عملیات با خطا مواجه شد. لطفا مقادیر فرم را بررسی و دوباره ارسال کنید.";
+            }
+            return Json(new { msg, status });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteCheque(long id)
+        {
+            var item = await _chequeRepository.Get(id);
+            _chequeRepository.Delete(item);
+            try
+            {
+                await _chequeRepository.Save();
                 TempData["msg"] = "عملیات موفقیت آمیز بود. |success";
             }
             catch (Exception e)
