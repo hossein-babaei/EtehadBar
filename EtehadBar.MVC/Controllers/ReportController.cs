@@ -42,6 +42,7 @@ namespace EtehadBar.MVC.Controllers
         private readonly ITurnoverProfilePeriodRepository _turnoverProfilePeriodRepository;
         private readonly IShippingFeeGroupRepository _shippingFeeGroupRepository;
         private readonly IShippingFeeRepository _shippingFeeRepository;
+        private readonly IChequeRepository _chequeRepository;
 
         public ReportController(
             ICalendarRepository calendarRepository,
@@ -63,7 +64,8 @@ namespace EtehadBar.MVC.Controllers
             ILoadFactorNovinRepository loadFactorNovinRepository,
             ITurnoverProfilePeriodRepository turnoverProfilePeriodRepository,
             IShippingFeeGroupRepository shippingFeeGroupRepository,
-            IShippingFeeRepository shippingFeeRepository)
+            IShippingFeeRepository shippingFeeRepository,
+            IChequeRepository chequeRepository)
         {
             _calendarRepo = calendarRepository;
             _costRepo = costRepository;
@@ -85,6 +87,7 @@ namespace EtehadBar.MVC.Controllers
             _turnoverProfilePeriodRepository = turnoverProfilePeriodRepository;
             _shippingFeeGroupRepository = shippingFeeGroupRepository;
             _shippingFeeRepository = shippingFeeRepository;
+            _chequeRepository = chequeRepository;
         }
 
         [HttpPost]
@@ -1193,6 +1196,42 @@ namespace EtehadBar.MVC.Controllers
             ViewData["Calendar"] = calendar;
 
             return View(unrealVehicles.Where(a => !usedVehicles.Contains(a.Id)).ToList());
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Cheque()
+        {
+            var startOfPersianYear = new PersianDateTime(new PersianDateTime(DateTime.Now).Year, 1, 1).ToDateTime();
+
+            ViewData["Customers"] = await _customerRepo.GetAllActive();
+
+            ViewData["PreviousChequeRemainsSum"] = await _chequeRepository.Query().AsNoTracking()
+                .Where(a => a.Date < startOfPersianYear && a.Status != ChequeStatus.Passed).SumAsync(a => a.Amount);
+
+            return View(await _chequeRepository.Query()
+                .Where(a => a.Date > startOfPersianYear).Include(a => a.Customer).AsNoTracking().OrderBy(a => a.Date).ToListAsync());
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Cheque(string startDate, string endDate, long? customerId, ChequeStatus? chequeStatus)
+        {
+            var sDate = startDate.PersianToEnglish().ToDateTime("/");
+            var eDate = endDate.PersianToEnglish().ToDateTime("/");
+
+            ViewData["PreviousChequeRemainsSum"] = await _chequeRepository.Query().AsNoTracking()
+                .Where(a => a.Date < sDate && a.Status != ChequeStatus.Passed).SumAsync(a => a.Amount);
+
+            var query = _chequeRepository.Query().Where(a => a.Date >= sDate && a.Date <= eDate);
+
+            if (customerId.HasValue && customerId.Value > 0)
+                query = query.Where(a => a.CustomerId.Equals(customerId.Value));
+
+            if (chequeStatus.HasValue)
+                query = query.Where(a => a.Status.Equals(chequeStatus.Value));
+
+            return PartialView("_Cheque", await query.Include(a => a.Customer).AsNoTracking().OrderBy(a => a.Date).ToListAsync());
         }
     }
 }

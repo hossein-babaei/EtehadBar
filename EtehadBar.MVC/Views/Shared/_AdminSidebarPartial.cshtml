@@ -116,7 +116,7 @@
     }
     @if (User.IsInRole("Admin") || User.IsInRole("Milad"))
     {
-        <li class="uk-parent @if (param == 9 || param == 10 || param == 11 || param == 12 || param == 14 || param == 15 || param == 23 || param == 35 || param == 37) { <text>uk-open</text> }">
+        <li class="uk-parent @if (param == 9 || param == 10 || param == 11 || param == 12 || param == 14 || param == 15 || param == 23 || param == 35 || param == 37 || param == 45) { <text>uk-open</text> }">
             <a><i class="uk-margin-left fas fa-clipboard-list"></i>گزارشات</a>
             <ul class="uk-nav-sub">
                 @if (User.IsInRole("Admin"))
@@ -124,6 +124,7 @@
                     <li @if (param == 9) { <text> class="active" </text> }><a asp-action="Detailed" asp-controller="Report">تفصیلی</a></li>
                     <li><a onclick="getGeneralModal()">کل تفکیکی</a></li>
                     <li><a onclick="getAllCostModal()">هزینه ها</a></li>
+                    <li @if (param == 45) { <text> class="active" </text> }><a asp-action="Cheque" asp-controller="Report">چک های دریافتی</a></li>
                     <li @if (param == 37) { <text> class="active" </text> }><a asp-action="Turnover" asp-controller="Report">سرمایه گذار و شرکا</a></li>
                 }
                 <li @if (param == 38) { <text> class="active" </text> }><a onclick="getSlashedLoadFactor()">بارنامه موردی /</a></li>
