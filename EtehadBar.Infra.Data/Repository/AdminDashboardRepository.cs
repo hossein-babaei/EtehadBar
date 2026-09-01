@@ -67,6 +67,7 @@ namespace EtehadBar.Infra.Data.Repository
                 SazehGostarDriverFee = loadFactors.Where(a => a.SazehGostarLoadFactor is not null).Sum(a => a.DriverFee),
                 MehrcomParsAmount = loadFactors.Where(a => a.MehrcomParsLoadFactor is not null).Sum(a => a.Amount),
                 MehrcomParsDriverFee = loadFactors.Where(a => a.MehrcomParsLoadFactor is not null).Sum(a => a.DriverFee),
+                Cheques = new List<Domain.Models.Cheque>(),
                 UserActivity = new List<AdminDashboardUserActivityBoxVM>()
             };
 
@@ -88,6 +89,11 @@ namespace EtehadBar.Infra.Data.Repository
                     UserId = user.Id,
                     LoadFactorRegisterdCount = loadFactors.Count(a => a.AdminId.Equals(user.Id))
                 });
+            }
+
+            if (await db.Cheque.AsNoTracking().AnyAsync(a => a.Date >= DateTime.Now && a.Date <= DateTime.Now.AddDays(7)))
+            {
+                data.Cheques = await db.Cheque.Include(a => a.Customer).AsNoTracking().Where(a => a.Date >= DateTime.Now && a.Date <= DateTime.Now.AddDays(7)).OrderBy(a => a.Date).ThenBy(a => a.Number).ToListAsync();
             }
 
             return data;

@@ -147,6 +147,7 @@ namespace EtehadBar.Domain
         public double SaipaPlascoDriverFee { get; set; }
         public double SaipaPressAmount { get; set; }
         public double SaipaPressDeriverFee { get; set; }
+        public List<Cheque> Cheques { get; set; }
         public List<AdminDashboardUserActivityBoxVM> UserActivity { get; set; }
     }
 

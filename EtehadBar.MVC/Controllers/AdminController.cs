@@ -8342,7 +8342,7 @@ namespace EtehadBar.MVC.Controllers
         public async Task<IActionResult> Cheque(int? p)
         {
             var pageNumber = p ?? 1;
-            var onePageOfData = await _chequeRepository.Query().Include(a => a.Customer).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await _chequeRepository.Query().Include(a => a.Customer).OrderByDescending(a => a.Date).ThenBy(a => a.Number).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
             return View();
         }
@@ -8370,7 +8370,7 @@ namespace EtehadBar.MVC.Controllers
                 query = query.Where(a => a.Status.Equals(chequeStatus.Value));
 
             var pageNumber = p ?? 1;
-            var onePageOfData = await query.Include(a => a.Customer).OrderByDescending(a => a.Date).ToPagedListAsync(pageNumber, 15);
+            var onePageOfData = await query.Include(a => a.Customer).OrderByDescending(a => a.Date).ThenBy(a => a.Number).ToPagedListAsync(pageNumber, 15);
             ViewBag.data = onePageOfData;
 
             ViewBag.Number = number;

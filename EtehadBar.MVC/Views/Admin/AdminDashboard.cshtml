@@ -35,8 +35,8 @@
     <script src="~/calendar/app.js"></script>
     <script>
         function changeDayLimit(select) {
-            preloader();
-            window.location.href = `/admin/index?dayLimit=${$(select).val()}`;
+        preloader();
+        window.location.href = `/admin/index?dayLimit=${$(select).val()}`;
         }
     </script>
 }
@@ -57,23 +57,28 @@
                     <!option value="1" @if (dayLimit == 1)
                     {
                         <text>selected="selected"</text>
-                    }>1</!option>
+                    }
+                    >1</!option>
                     <!option value="3" @if (dayLimit == 3)
                     {
                         <text>selected="selected"</text>
-                    }>3</!option>
+                    }
+                    >3</!option>
                     <!option value="7" @if (dayLimit == 7)
                     {
                         <text>selected="selected"</text>
-                    }>7</!option>
+                    }
+                    >7</!option>
                     <!option value="14" @if (dayLimit == 14)
                     {
                         <text>selected="selected"</text>
-                    }>14</!option>
+                    }
+                    >14</!option>
                     <!option value="30" @if (dayLimit == 30)
                     {
                         <text>selected="selected"</text>
-                    }>30</!option>
+                    }
+                    >30</!option>
                 </select>
             </div>
             <div>
@@ -84,6 +89,67 @@
 </div>
 
 <div class="uk-grid-medium uk-child-width-1-1" uk-grid>
+
+    @if (Model.Cheques.Any())
+    {
+        int i = 1;
+        <div>
+            <div class="box">
+                <div class="uk-overflow-auto">
+                    <table class="uk-table uk-table-hover uk-table-divider uk-table-small uk-table-middle">
+                        <caption class="uk-text-center">چکهای در راه</caption>
+                        <thead>
+                            <tr>
+                                <th>ردیف</th>
+                                <th>تاریخ سررسید</th>
+                                <th>مبلغ</th>
+                                <th>مشتری</th>
+                                <th>شماره</th>
+                                <th>وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Cheques)
+                            {
+                                var pd = new PersianDateTime(item.Date);
+
+                                <tr class="uk-text-center sm">
+                                    <td>@i</td>
+                                    <td>@pd.ToString("yyyy/MM/dd")</td>
+                                    <td>@item.Amount.ToString("N0")</td>
+                                    <td>@item.Customer.Name</td>
+                                    <td>@item.Number</td>
+                                    <td>
+                                        @switch (item.Status)
+                                        {
+                                            case (ChequeStatus.NotPassed):
+                                                <span class="uk-text-primary">پاس نشده</span>
+                                                break;
+                                            case (ChequeStatus.Rejected):
+                                                <span class="uk-text-danger">برگشت خورده</span>
+                                                break;
+                                            case (ChequeStatus.Passed):
+                                                <span class="uk-text-success">پاس شده</span>
+                                                break;
+                                            default:
+                                                <span class="uk-text-primary">پاس نشده</span>
+                                                break;
+                                        }
+                                    </td>
+                                </tr>
+                                i++;
+                            }
+                            <tr>
+                                <td colspan="6">
+                                    <a class="uk-button uk-button-link" asp-action="Cheque">اطلاعات بیشتر</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
 
     <div>
         <div id="box-1" class="box">
